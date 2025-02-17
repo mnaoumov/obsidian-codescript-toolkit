@@ -24,8 +24,8 @@
     "babel-plugin-transform-import-meta": "^2.3.2",
     "debuggable-eval": "^2.1.1",
     "obsidian": "^1.7.2",
-    "obsidian-dev-utils": "^19.1.1",
-    "obsidian-typings": "^2.22.0"
+    "obsidian-dev-utils": "^19.2.1",
+    "obsidian-typings": "^2.23.5"
   },
   "type": "module"
 }
