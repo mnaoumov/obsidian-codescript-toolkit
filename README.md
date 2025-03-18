@@ -35,29 +35,19 @@ This plugin aims to erase the line between the [`Obsidian`][Obsidian] world and 
 
 The plugin adds the following functions to the global scope:
 
-```js
-require(id);
-require(id, options);
-
-await requireAsync(id);
-await requireAsync(id, options);
-
-await requireAsyncWrapper((require) => {
-  // any code that uses synchronous require()
-});
-await requireAsyncWrapper(async (require) => {
-  // any code that uses synchronous require()
-});
-```
-
 ```ts
-id: string;
-options: Partial<RequireOptions>;
+function require(id: string, options?: Partial<RequireOptions>);
+async function requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown>;
+async function requireAsyncWrapper((requireFn: RequireAsyncWrapperArg)): Promise<unknown>;
 
 interface RequireOptions {
   cacheInvalidationMode: 'always' | 'never' | 'whenPossible';
   parentPath: string;
 }
+
+type RequireAsyncWrapperArg = (require: RequireExFn) => Promise<unknown> | unknown;
+type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
+type RequireFn = (id: string, options: Partial<RequireOptions>) => unknown;
 ```
 
 Explanation of the options will be shown in the [Features](#features) section.
