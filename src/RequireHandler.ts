@@ -62,7 +62,7 @@ type RequireAsyncWrapperArg = (require: RequireExFn) => MaybePromise<unknown>;
 
 type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
 
-type RequireFn = (id: string, options: Partial<RequireOptions>) => unknown;
+type RequireFn = (id: string, options?: Partial<RequireOptions>) => unknown;
 
 interface RequireWindow {
   require?: RequireExFn;
@@ -163,7 +163,7 @@ export abstract class RequireHandler {
     plugin.register(() => delete requireWindow.requireAsyncWrapper);
   }
 
-  public async requireAsync(id: string, options: Partial<RequireOptions> = {}): Promise<unknown> {
+  public async requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
     const DEFAULT_OPTIONS: RequireOptions = {
       cacheInvalidationMode: CacheInvalidationMode.WhenPossible
     };
@@ -694,7 +694,7 @@ await requireAsyncWrapper((require) => {
     return JSON.parse(content) as PackageJson;
   }
 
-  private require(id: string, options: Partial<RequireOptions> = {}): unknown {
+  private require(id: string, options?: Partial<RequireOptions>): unknown {
     const DEFAULT_OPTIONS: RequireOptions = {
       cacheInvalidationMode: CacheInvalidationMode.WhenPossible
     };
@@ -853,7 +853,7 @@ ${this.getRequireAsyncAdvice(true)}`);
   }
 
   private wrapRequire(options: WrapRequireOptions): RequireExFn {
-    const fn = (id: string, requireOptions: Partial<RequireOptions> = {}): unknown => {
+    const fn = (id: string, requireOptions?: Partial<RequireOptions>): unknown => {
       options.beforeRequire?.(id);
       const newOptions = { ...options.optionsToPrepend, ...requireOptions, ...options.optionsToAppend };
       return options.require(id, newOptions);

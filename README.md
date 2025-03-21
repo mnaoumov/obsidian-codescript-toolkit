@@ -47,7 +47,7 @@ interface RequireOptions {
 
 type RequireAsyncWrapperArg = (require: RequireExFn) => Promise<unknown> | unknown;
 type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
-type RequireFn = (id: string, options: Partial<RequireOptions>) => unknown;
+type RequireFn = (id: string, options?: Partial<RequireOptions>) => unknown;
 ```
 
 Explanation of the options will be shown in the [Features](#features) section.
