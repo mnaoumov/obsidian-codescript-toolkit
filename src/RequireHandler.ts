@@ -872,7 +872,6 @@ ${this.getRequireAsyncAdvice(true)}`);
       case '.json':
         return this.requireJsonAsync(path);
       case '.node':
-      case '.wasm':
         return this.requireNodeBinaryAsync(path);
       default:
         throw new Error(`Unsupported file extension: ${ext}`);

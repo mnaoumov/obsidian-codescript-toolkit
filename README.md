@@ -327,11 +327,10 @@ require('node:fs');
 | **`require()`**      | ✔       | ✖      |
 | **`requireAsync()`** | ✔       | ✖      |
 
-You can require Node binaries `.node` and `.wasm`.
+You can require Node binaries `.node`.
 
 ```js
 require('./foo.node');
-require('./bar.wasm');
 ```
 
 ### URLs
