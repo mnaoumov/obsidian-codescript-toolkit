@@ -42,9 +42,11 @@ async function requireAsyncWrapper((requireFn: RequireAsyncWrapperArg)): Promise
 
 interface RequireOptions {
   cacheInvalidationMode: 'always' | 'never' | 'whenPossible';
-  parentPath: string;
+  moduleType?: ModuleType;
+  parentPath?: string;
 }
 
+type ModuleType = 'json' | 'jsTs' | 'node' | 'wasm';
 type RequireAsyncWrapperArg = (require: RequireExFn) => Promise<unknown> | unknown;
 type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
 type RequireFn = (id: string, options?: Partial<RequireOptions>) => unknown;
@@ -322,6 +324,19 @@ require('fs');
 require('node:fs');
 ```
 
+### JSON files
+
+|                      | Desktop | Mobile |
+| -------------------- | ------- | ------ |
+| **`require()`**      | ✔       | ✔      |
+| **`requireAsync()`** | ✔       | ✔      |
+
+You can require JSON files.
+
+```js
+require('./foo.json');
+```
+
 ### Node binaries
 
 |                      | Desktop | Mobile |
@@ -348,6 +363,26 @@ You can require WebAssembly binaries `.wasm`.
 await requireAsync('./foo.wasm');
 ```
 
+### Override module type
+
+|                      | Desktop | Mobile |
+| -------------------- | ------- | ------ |
+| **`require()`**      | ✔       | ✔      |
+| **`requireAsync()`** | ✔       | ✔      |
+
+Module type is determined via file extension. You can override it if needed.
+
+```js
+require('./actual-js-file.some-unknown-extension', { moduleType: 'jsTs' });
+```
+
+Possible values:
+
+- `json` - [JSON files](#json-files)
+- `jsTs` - JavaScript/TypeScript files: `.js`/`.cjs`/`.mjs`/`.ts`/`.cts`/`.mts`.
+- `node` - [Node binaries](#node-binaries)
+- `wasm` - [WebAssembly (WASM)](#webassembly-wasm)
+
 ### URLs
 
 |                      | Desktop | Mobile |
@@ -357,6 +392,18 @@ await requireAsync('./foo.wasm');
 
 ```js
 await requireAsync('https://some-site.com/some-script.js');
+```
+
+Module type is determined by `Content-Type` header returned when you fetch the url.
+
+In some cases the header is missing, incorrect or too generic like `text/plain` or `application/octet-stream`.
+
+In those cases `jsTs` module type is assumed, but it's recommended to specify it explicitly to avoid warnings.
+
+```js
+await requireAsync('https://some-site.com/some-script.js', {
+  moduleType: 'jsTs'
+});
 ```
 
 ### File URLs

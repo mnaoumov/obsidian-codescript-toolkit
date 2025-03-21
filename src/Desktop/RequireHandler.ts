@@ -1,14 +1,13 @@
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 
 import { FileSystemAdapter } from 'obsidian';
-import {
-  extname,
-  join
-} from 'obsidian-dev-utils/Path';
+import { join } from 'obsidian-dev-utils/Path';
+import { tmpdir } from 'obsidian-dev-utils/ScriptUtils/NodeModules';
 import { getRootDir } from 'obsidian-dev-utils/ScriptUtils/Root';
 
 import type { CodeScriptToolkitPlugin } from '../CodeScriptToolkitPlugin.ts';
 import type {
+  ModuleType,
   PluginRequireFn,
   RequireOptions
 } from '../RequireHandler.ts';
@@ -16,6 +15,7 @@ import type {
 import { CacheInvalidationMode } from '../CacheInvalidationMode.ts';
 import {
   ENTRY_POINT,
+  getModuleTypeFromPath,
   MODULE_NAME_SEPARATOR,
   NODE_MODULES_DIR,
   PATH_SUFFIXES,
@@ -110,23 +110,33 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return arrayBuffer as ArrayBuffer;
   }
 
-  protected override async requireNodeBinaryAsync(path: string): Promise<unknown> {
+  protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
     await Promise.resolve();
+    if (arrayBuffer) {
+      const tmpFilePath = join(tmpdir(), `${Date.now().toString()}.node`);
+      await this.writeFileBinaryAsync(tmpFilePath, arrayBuffer);
+      try {
+        return this.requireNodeBinary(tmpFilePath);
+      } finally {
+        await this.fileSystemAdapter.remove(tmpFilePath);
+      }
+    }
+
     return this.requireNodeBinary(path);
   }
 
-  protected override requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode): unknown {
+  protected override requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     switch (type) {
       case ResolvedType.Module: {
         const [parentDir = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return this.requireModule(moduleName, parentDir, cacheInvalidationMode);
+        return this.requireModule(moduleName, parentDir, cacheInvalidationMode, moduleType);
       }
       case ResolvedType.Path:
-        return this.requirePath(id, cacheInvalidationMode);
+        return this.requirePath(id, cacheInvalidationMode, moduleType);
       case ResolvedType.Url:
         throw new Error(`Cannot require synchronously from URL. ${this.getRequireAsyncAdvice(true)}`);
       default:
-        throw new Error('Unknown type');
+        throw new Error(`Unknown type: ${type as string}`);
     }
   }
 
@@ -153,7 +163,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return null;
   }
 
-  private getDependenciesTimestampChangedAndReloadIfNeeded(path: string, cacheInvalidationMode: CacheInvalidationMode): number {
+  private getDependenciesTimestampChangedAndReloadIfNeeded(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): number {
     if (this.currentModulesTimestampChain.has(path)) {
       return this.moduleTimestamps.get(path) ?? 0;
     }
@@ -212,7 +222,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     }
 
     if (timestamp > cachedTimestamp || !this.getCachedModule(path)) {
-      this.initModuleAndAddToCache(path, () => this.requirePathImpl(path));
+      this.initModuleAndAddToCache(path, () => this.requirePathImpl(path, moduleType));
     }
     return timestamp;
   }
@@ -266,7 +276,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     return this.requireString(code, path);
   }
 
-  private requireModule(moduleName: string, parentDir: string, cacheInvalidationMode: CacheInvalidationMode): unknown {
+  private requireModule(moduleName: string, parentDir: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
@@ -307,7 +317,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
           continue;
         }
 
-        return this.requirePath(existingPath, cacheInvalidationMode);
+        return this.requirePath(existingPath, cacheInvalidationMode, moduleType);
       }
     }
 
@@ -327,7 +337,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     return null;
   }
 
-  private requirePath(path: string, cacheInvalidationMode: CacheInvalidationMode): unknown {
+  private requirePath(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     const existingFilePath = this.findExistingFilePath(path);
     if (existingFilePath === null) {
       throw new Error(`File not found: ${path}`);
@@ -336,7 +346,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     const isRootRequire = this.currentModulesTimestampChain.size === 0;
 
     try {
-      this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, cacheInvalidationMode);
+      this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, cacheInvalidationMode, moduleType);
     } finally {
       if (isRootRequire) {
         this.currentModulesTimestampChain.clear();
@@ -345,24 +355,19 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     return this.modulesCache[existingFilePath]?.exports;
   }
 
-  private requirePathImpl(path: string): unknown {
-    const ext = extname(splitQuery(path).cleanStr);
-    switch (ext) {
-      case '.cjs':
-      case '.cts':
-      case '.js':
-      case '.mjs':
-      case '.mts':
-      case '.ts':
-        return this.requireJsTs(path);
-      case '.json':
+  private requirePathImpl(path: string, moduleType?: ModuleType): unknown {
+    moduleType ??= getModuleTypeFromPath(path);
+    switch (moduleType) {
+      case 'json':
         return this.requireJson(path);
-      case '.node':
+      case 'jsTs':
+        return this.requireJsTs(path);
+      case 'node':
         return this.requireNodeBinary(path);
-      case '.wasm':
+      case 'wasm':
         return this.requireWasm();
       default:
-        throw new Error(`Unsupported file extension: ${ext}`);
+        throw new Error(`Unknown module type: ${moduleType as string}`);
     }
   }
 
@@ -385,6 +390,11 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private requireWasm(): unknown {
     throw new Error(`Cannot require WASM synchronously. ${this.getRequireAsyncAdvice(true)}`);
+  }
+
+  private async writeFileBinaryAsync(path: string, arrayBuffer: ArrayBuffer): Promise<void> {
+    const buffer = Buffer.from(arrayBuffer);
+    await this.fileSystemAdapter.fsPromises.writeFile(path, buffer);
   }
 }
 
