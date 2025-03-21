@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 8.11.0
+
+- Add support for .node/.wasm files
+- Continue resolving on failed dependency
+- Clear timestamps on fallback
+- Add name of the failed dep
+
 ## 8.10.0
 
 - Fix folder check on mobile
