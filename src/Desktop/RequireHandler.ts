@@ -56,6 +56,20 @@ class RequireHandlerImpl extends RequireHandler {
     this.nodeBuiltinModules = new Set(Module.builtinModules);
   }
 
+  public override async requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
+    try {
+      return await super.requireAsync(id, options);
+    } catch (e) {
+      if (this.plugin.settings.shouldUseSyncFallback) {
+        console.warn('requireAsync() failed with error:', e);
+        console.warn('Trying a synchronous fallback');
+        return this.requireEx(id, options ?? {});
+      }
+
+      throw e;
+    }
+  }
+
   protected override canRequireNonCached(type: ResolvedType): boolean {
     return type !== ResolvedType.Url;
   }
