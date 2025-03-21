@@ -1,7 +1,10 @@
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 
 import { FileSystemAdapter } from 'obsidian';
-import { join } from 'obsidian-dev-utils/Path';
+import {
+  extname,
+  join
+} from 'obsidian-dev-utils/Path';
 import { getRootDir } from 'obsidian-dev-utils/ScriptUtils/Root';
 
 import type { CodeScriptToolkitPlugin } from '../CodeScriptToolkitPlugin.ts';
@@ -21,6 +24,7 @@ import {
   RequireHandler,
   ResolvedType,
   SCOPED_MODULE_PREFIX,
+  splitQuery,
   trimNodePrefix
 } from '../RequireHandler.ts';
 
@@ -98,6 +102,11 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
 
   protected override async readFileAsync(path: string): Promise<string> {
     return await this.fileSystemAdapter.fsPromises.readFile(path, 'utf8');
+  }
+
+  protected override async requireNodeBinaryAsync(path: string): Promise<unknown> {
+    await Promise.resolve();
+    return this.requireNodeBinary(path);
   }
 
   protected override requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode): unknown {
@@ -197,8 +206,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     }
 
     if (timestamp > cachedTimestamp || !this.getCachedModule(path)) {
-      const content = this.readFile(path);
-      this.initModuleAndAddToCache(path, () => this.requireString(content, path));
+      this.initModuleAndAddToCache(path, () => this.requirePathImpl(path));
     }
     return timestamp;
   }
@@ -240,6 +248,16 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   private readPackageJson(path: string): PackageJson {
     const content = this.readFile(path);
     return JSON.parse(content) as PackageJson;
+  }
+
+  private requireJson(path: string): unknown {
+    const jsonStr = this.readFile(splitQuery(path).cleanStr);
+    return JSON.parse(jsonStr);
+  }
+
+  private requireJsTs(path: string): unknown {
+    const code = this.readFile(splitQuery(path).cleanStr);
+    return this.requireString(code, path);
   }
 
   private requireModule(moduleName: string, parentDir: string, cacheInvalidationMode: CacheInvalidationMode): unknown {
@@ -290,6 +308,10 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     throw new Error(`Could not resolve module: ${moduleName}`);
   }
 
+  private requireNodeBinary(path: string): unknown {
+    return this.originalProtoRequire(path) as unknown;
+  }
+
   private requireNodeBuiltinModule(id: string): unknown {
     id = trimNodePrefix(id);
     if (this.nodeBuiltinModules.has(id)) {
@@ -317,11 +339,27 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     return this.modulesCache[existingFilePath]?.exports;
   }
 
-  private requireString(code: string, path: string): unknown {
-    if (this.isJson(path)) {
-      return JSON.parse(code);
+  private requirePathImpl(path: string): unknown {
+    const ext = extname(splitQuery(path).cleanStr);
+    switch (ext) {
+      case '.cjs':
+      case '.cts':
+      case '.js':
+      case '.mjs':
+      case '.mts':
+      case '.ts':
+        return this.requireJsTs(path);
+      case '.json':
+        return this.requireJson(path);
+      case '.node':
+      case '.wasm':
+        return this.originalProtoRequire(path) as unknown;
+      default:
+        throw new Error(`Unsupported file extension: ${ext}`);
     }
+  }
 
+  private requireString(code: string, path: string): unknown {
     try {
       return this.initModuleAndAddToCache(path, () => {
         const result = this.requireStringImpl({

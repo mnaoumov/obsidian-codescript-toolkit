@@ -47,6 +47,11 @@ class RequireHandlerImpl extends RequireHandler {
     return await this.capacitorAdapter.fs.read(path);
   }
 
+  protected override async requireNodeBinaryAsync(): Promise<unknown> {
+    await Promise.resolve();
+    throw new Error('Cannot require node binary on mobile');
+  }
+
   protected override requireNonCached(): unknown {
     throw new Error('Cannot require synchronously on mobile');
   }
