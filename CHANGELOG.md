@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 8.10.0
+
+- Fix folder check on mobile
+- Switch to optional options
+- Add synchronous fallback
+- `shouldUseSyncFallback` setting
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.19.1
+
 ## 8.9.6
 
 - https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.2.1
