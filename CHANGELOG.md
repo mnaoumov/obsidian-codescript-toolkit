@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.12.0
+
+- Allow to override module types
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.20.0
+
 ## 8.11.0
 
 - Add support for .node/.wasm files
