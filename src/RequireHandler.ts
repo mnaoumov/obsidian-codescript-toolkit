@@ -40,11 +40,13 @@ export enum ResolvedType {
   Url = 'url'
 }
 
+export type ModuleType = 'json' | 'jsTs' | 'node' | 'wasm';
 export type PluginRequireFn = (id: string) => unknown;
 export type RequireAsyncWrapperFn = (requireFn: RequireAsyncWrapperArg) => Promise<unknown>;
 
 export interface RequireOptions {
   cacheInvalidationMode: CacheInvalidationMode;
+  moduleType?: ModuleType;
   parentPath?: string;
 }
 
@@ -220,7 +222,7 @@ export abstract class RequireHandler {
 
     const module = await this.initModuleAndAddToCacheAsync(
       cleanResolvedId,
-      () => this.requireNonCachedAsync(cleanResolvedId, resolvedType, fullOptions.cacheInvalidationMode)
+      () => this.requireNonCachedAsync(cleanResolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
     );
     if (resolvedId !== cleanResolvedId) {
       this.initModuleAndAddToCache(resolvedId, () => module);
@@ -229,10 +231,6 @@ export abstract class RequireHandler {
   }
 
   public async requireStringAsync(code: string, path: string, urlSuffix?: string): Promise<unknown> {
-    if (this.isJson(path)) {
-      return JSON.parse(code);
-    }
-
     urlSuffix = urlSuffix ? `/${urlSuffix}` : '';
 
     try {
@@ -385,9 +383,9 @@ await requireAsyncWrapper((require) => {
     }));
   }
 
-  protected abstract requireNodeBinaryAsync(path: string): Promise<unknown>;
+  protected abstract requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown>;
 
-  protected abstract requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode): unknown;
+  protected abstract requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown;
 
   protected requireSpecialModule(id: string): unknown {
     if (id === 'obsidian/app') {
@@ -551,7 +549,11 @@ await requireAsyncWrapper((require) => {
     return null;
   }
 
-  private async getDependenciesTimestampChangedAndReloadIfNeededAsync(path: string, cacheInvalidationMode: CacheInvalidationMode): Promise<number> {
+  private async getDependenciesTimestampChangedAndReloadIfNeededAsync(
+    path: string,
+    cacheInvalidationMode: CacheInvalidationMode,
+    moduleType?: ModuleType
+  ): Promise<number> {
     if (this.currentModulesTimestampChain.has(path)) {
       return this.moduleTimestamps.get(path) ?? 0;
     }
@@ -603,7 +605,7 @@ await requireAsyncWrapper((require) => {
     }
 
     if (timestamp > cachedTimestamp || !this.getCachedModule(path)) {
-      await this.initModuleAndAddToCacheAsync(path, () => this.requirePathImplAsync(path));
+      await this.initModuleAndAddToCacheAsync(path, () => this.requirePathImplAsync(path, moduleType));
     }
     return timestamp;
   }
@@ -761,24 +763,32 @@ await requireAsyncWrapper((require) => {
 ${this.getRequireAsyncAdvice(true)}`);
     }
 
-    const module = this.initModuleAndAddToCache(cleanResolvedId, () => this.requireNonCached(cleanResolvedId, resolvedType, fullOptions.cacheInvalidationMode));
+    const module = this.initModuleAndAddToCache(
+      cleanResolvedId,
+      () => this.requireNonCached(cleanResolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
+    );
     if (resolvedId !== cleanResolvedId) {
       this.initModuleAndAddToCache(resolvedId, () => module);
     }
     return module;
   }
 
-  private async requireJsonAsync(path: string): Promise<unknown> {
-    const jsonStr = await this.readFileAsync(splitQuery(path).cleanStr);
+  private async requireJsonAsync(path: string, jsonStr?: string): Promise<unknown> {
+    jsonStr ??= await this.readFileAsync(splitQuery(path).cleanStr);
     return JSON.parse(jsonStr) as unknown;
   }
 
-  private async requireJsTsAsync(path: string): Promise<unknown> {
-    const code = await this.readFileAsync(splitQuery(path).cleanStr);
+  private async requireJsTsAsync(path: string, code?: string): Promise<unknown> {
+    code ??= await this.readFileAsync(splitQuery(path).cleanStr);
     return this.requireStringAsync(code, path);
   }
 
-  private async requireModuleAsync(moduleName: string, parentDir: string, cacheInvalidationMode: CacheInvalidationMode): Promise<unknown> {
+  private async requireModuleAsync(
+    moduleName: string,
+    parentDir: string,
+    cacheInvalidationMode: CacheInvalidationMode,
+    moduleType?: ModuleType
+  ): Promise<unknown> {
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
@@ -819,29 +829,29 @@ ${this.getRequireAsyncAdvice(true)}`);
           continue;
         }
 
-        return this.requirePathAsync(existingPath, cacheInvalidationMode);
+        return this.requirePathAsync(existingPath, cacheInvalidationMode, moduleType);
       }
     }
 
     throw new Error(`Could not resolve module: ${moduleName}`);
   }
 
-  private async requireNonCachedAsync(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode): Promise<unknown> {
+  private async requireNonCachedAsync(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
     switch (type) {
       case ResolvedType.Module: {
         const [parentDir = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return await this.requireModuleAsync(moduleName, parentDir, cacheInvalidationMode);
+        return await this.requireModuleAsync(moduleName, parentDir, cacheInvalidationMode, moduleType);
       }
       case ResolvedType.Path:
-        return await this.requirePathAsync(id, cacheInvalidationMode);
+        return await this.requirePathAsync(id, cacheInvalidationMode, moduleType);
       case ResolvedType.Url:
-        return await this.requireUrlAsync(id);
+        return await this.requireUrlAsync(id, moduleType);
       default:
         throw new Error('Unknown resolvedType');
     }
   }
 
-  private async requirePathAsync(path: string, cacheInvalidationMode: CacheInvalidationMode): Promise<unknown> {
+  private async requirePathAsync(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
     const existingFilePath = await this.findExistingFilePathAsync(path);
     if (existingFilePath === null) {
       throw new Error(`File not found: ${path}`);
@@ -850,7 +860,7 @@ ${this.getRequireAsyncAdvice(true)}`);
     const isRootRequire = this.currentModulesTimestampChain.size === 0;
 
     try {
-      await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, cacheInvalidationMode);
+      await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, cacheInvalidationMode, moduleType);
     } finally {
       if (isRootRequire) {
         this.currentModulesTimestampChain.clear();
@@ -860,34 +870,42 @@ ${this.getRequireAsyncAdvice(true)}`);
     return this.modulesCache[existingFilePath]?.exports;
   }
 
-  private async requirePathImplAsync(path: string): Promise<unknown> {
-    const ext = extname(splitQuery(path).cleanStr);
-    switch (ext) {
-      case '.cjs':
-      case '.cts':
-      case '.js':
-      case '.mjs':
-      case '.mts':
-      case '.ts':
-        return this.requireJsTsAsync(path);
-      case '.json':
+  private async requirePathImplAsync(path: string, moduleType?: ModuleType): Promise<unknown> {
+    moduleType ??= getModuleTypeFromPath(path);
+    switch (moduleType) {
+      case 'json':
         return this.requireJsonAsync(path);
-      case '.node':
+      case 'jsTs':
+        return this.requireJsTsAsync(path);
+      case 'node':
         return this.requireNodeBinaryAsync(path);
-      case '.wasm':
+      case 'wasm':
         return this.requireWasmAsync(path);
       default:
-        throw new Error(`Unsupported file extension: ${ext}`);
+        throw new Error(`Unknown module type: ${moduleType as string}`);
     }
   }
 
-  private async requireUrlAsync(url: string): Promise<unknown> {
+  private async requireUrlAsync(url: string, moduleType?: ModuleType): Promise<unknown> {
     const response = await requestUrl(url);
-    return this.requireStringAsync(response.text, url);
+    moduleType ??= getModuleTypeFromContentType(response.headers['content-type'], url);
+
+    switch (moduleType) {
+      case 'json':
+        return this.requireJsonAsync(url, response.text);
+      case 'jsTs':
+        return this.requireJsTsAsync(url, response.text);
+      case 'node':
+        return this.requireNodeBinaryAsync(url, response.arrayBuffer);
+      case 'wasm':
+        return this.requireWasmAsync(url, response.arrayBuffer);
+      default:
+        throw new Error(`Unknown module type: ${moduleType as string}`);
+    }
   }
 
-  private async requireWasmAsync(path: string): Promise<unknown> {
-    const arrayBuffer = await this.readFileBinaryAsync(path);
+  private async requireWasmAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
+    arrayBuffer ??= await this.readFileBinaryAsync(path);
     const wasm = await WebAssembly.instantiate(arrayBuffer);
     return wasm.instance.exports;
   }
@@ -903,6 +921,27 @@ ${this.getRequireAsyncAdvice(true)}`);
       options.require,
       normalizeOptionalProperties<{ parentPath?: string }>({ parentPath: options.optionsToPrepend?.parentPath })
     ) as RequireExFn;
+  }
+}
+
+export function getModuleTypeFromPath(path: string): ModuleType {
+  const ext = extname(splitQuery(path).cleanStr);
+  switch (ext) {
+    case '.cjs':
+    case '.cts':
+    case '.js':
+    case '.mjs':
+    case '.mts':
+    case '.ts':
+      return 'jsTs';
+    case '.json':
+      return 'json';
+    case '.node':
+      return 'node';
+    case '.wasm':
+      return 'wasm';
+    default:
+      throw new Error(`Unsupported file extension: ${ext}`);
   }
 }
 
@@ -925,4 +964,26 @@ function convertPathToObsidianUrl(path: string): string {
   }
 
   return Platform.resourcePathPrefix + path.replaceAll('\\', '/');
+}
+
+function getModuleTypeFromContentType(contentType: string | undefined, url: string): ModuleType {
+  contentType ??= '';
+  switch (contentType) {
+    case 'application/javascript':
+    case 'application/typescript':
+      return 'jsTs';
+    case 'application/json':
+      return 'json';
+    case 'application/octet-stream':
+      return 'node';
+    case 'application/wasm':
+      return 'wasm';
+    default:
+      console.warn(`URL: ${url} returned unsupported content type: ${contentType}.
+Assuming it's a JavaScript/TypeScript file.
+Consider passing moduleType explicitly:
+
+const module = await requireAsync(url, { moduleType: 'jsTs' });`);
+      return 'jsTs';
+  }
 }
