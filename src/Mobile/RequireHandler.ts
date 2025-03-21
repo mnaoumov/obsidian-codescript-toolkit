@@ -26,7 +26,7 @@ class RequireHandlerImpl extends RequireHandler {
     }
 
     const stat = await this.capacitorAdapter.fs.stat(path);
-    return stat.type === 'folder';
+    return stat.type === 'directory';
   }
 
   protected override async existsFileAsync(path: string): Promise<boolean> {
