@@ -369,6 +369,7 @@ await requireAsyncWrapper((require) => {
   }
 
   protected abstract readFileAsync(path: string): Promise<string>;
+  protected abstract readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
 
   protected async requireAsyncWrapper(requireFn: (require: RequireExFn) => MaybePromise<unknown>, require?: RequireExFn): Promise<unknown> {
     const result = new ExtractRequireArgsListBabelPlugin().transform(requireFn.toString(), 'extract-requires.js');
@@ -873,6 +874,8 @@ ${this.getRequireAsyncAdvice(true)}`);
         return this.requireJsonAsync(path);
       case '.node':
         return this.requireNodeBinaryAsync(path);
+      case '.wasm':
+        return this.requireWasmAsync(path);
       default:
         throw new Error(`Unsupported file extension: ${ext}`);
     }
@@ -881,6 +884,12 @@ ${this.getRequireAsyncAdvice(true)}`);
   private async requireUrlAsync(url: string): Promise<unknown> {
     const response = await requestUrl(url);
     return this.requireStringAsync(response.text, url);
+  }
+
+  private async requireWasmAsync(path: string): Promise<unknown> {
+    const arrayBuffer = await this.readFileBinaryAsync(path);
+    const wasm = await WebAssembly.instantiate(arrayBuffer);
+    return wasm.instance.exports;
   }
 
   private wrapRequire(options: WrapRequireOptions): RequireExFn {

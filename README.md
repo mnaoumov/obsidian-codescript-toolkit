@@ -333,6 +333,19 @@ You can require Node binaries `.node`.
 require('./foo.node');
 ```
 
+### WebAssembly (WASM)
+
+|                      | Desktop | Mobile |
+| -------------------- | ------- | ------ |
+| **`require()`**      | ✖       | ✖      |
+| **`requireAsync()`** | ✔       | ✔      |
+
+You can require WebAssembly binaries `.wasm`.
+
+```js
+require('./foo.wasm');
+```
+
 ### URLs
 
 |                      | Desktop | Mobile |

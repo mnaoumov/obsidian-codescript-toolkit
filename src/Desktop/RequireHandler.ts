@@ -104,6 +104,12 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return await this.fileSystemAdapter.fsPromises.readFile(path, 'utf8');
   }
 
+  protected override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
+    const buffer = await this.fileSystemAdapter.fsPromises.readFile(path);
+    const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+    return arrayBuffer as ArrayBuffer;
+  }
+
   protected override async requireNodeBinaryAsync(path: string): Promise<unknown> {
     await Promise.resolve();
     return this.requireNodeBinary(path);
@@ -353,6 +359,8 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
         return this.requireJson(path);
       case '.node':
         return this.requireNodeBinary(path);
+      case '.wasm':
+        return this.requireWasm();
       default:
         throw new Error(`Unsupported file extension: ${ext}`);
     }
@@ -373,6 +381,10 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     } catch (e) {
       throw new Error(`Failed to load module: ${path}`, { cause: e });
     }
+  }
+
+  private requireWasm(): unknown {
+    throw new Error(`Cannot require WASM synchronously. ${this.getRequireAsyncAdvice(true)}`);
   }
 }
 
