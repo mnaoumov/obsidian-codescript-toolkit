@@ -132,7 +132,7 @@ export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabB
 
     new SettingEx(this.containerEl)
       .setName('Hotkeys')
-      .setDesc('Hotkeys to invoke scripts')
+      .setDesc('Hotkeys to invoke scripts.')
       .addButton((button) =>
         button
           .setButtonText('Configure')
@@ -145,8 +145,12 @@ export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabB
       );
 
     new SettingEx(this.containerEl)
-      .setName('Mobile changes checking interval')
-      .setDesc('Interval in seconds to check for changes in the invocable scripts folder (only on mobile)')
+      .setName('Mobile: Changes checking interval')
+      .setDesc(createFragment((f) => {
+        f.appendText('Interval in seconds to check for changes in the invocable scripts folder ');
+        f.createEl('strong', { text: '(only on mobile)' });
+        f.appendText('.');
+      }))
       .addNumber((text) => {
         this.bind(text, 'mobileChangesCheckingIntervalInSeconds')
           .setPlaceholder('30')
