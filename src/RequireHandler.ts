@@ -8,6 +8,7 @@ import { normalizeOptionalProperties } from 'obsidian-dev-utils/Object';
 import {
   basename,
   dirname,
+  extname,
   isAbsolute,
   join,
   toPosixPath
@@ -383,6 +384,8 @@ await requireAsyncWrapper((require) => {
     }));
   }
 
+  protected abstract requireNodeBinaryAsync(path: string): Promise<unknown>;
+
   protected abstract requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode): unknown;
 
   protected requireSpecialModule(id: string): unknown {
@@ -599,8 +602,7 @@ await requireAsyncWrapper((require) => {
     }
 
     if (timestamp > cachedTimestamp || !this.getCachedModule(path)) {
-      const content = await this.readFileAsync(path);
-      await this.initModuleAndAddToCacheAsync(path, () => this.requireStringAsync(content, path));
+      await this.initModuleAndAddToCacheAsync(path, () => this.requirePathImplAsync(path));
     }
     return timestamp;
   }
@@ -765,6 +767,16 @@ ${this.getRequireAsyncAdvice(true)}`);
     return module;
   }
 
+  private async requireJsonAsync(path: string): Promise<unknown> {
+    const jsonStr = await this.readFileAsync(splitQuery(path).cleanStr);
+    return JSON.parse(jsonStr) as unknown;
+  }
+
+  private async requireJsTsAsync(path: string): Promise<unknown> {
+    const code = await this.readFileAsync(splitQuery(path).cleanStr);
+    return this.requireStringAsync(code, path);
+  }
+
   private async requireModuleAsync(moduleName: string, parentDir: string, cacheInvalidationMode: CacheInvalidationMode): Promise<unknown> {
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
 
@@ -847,6 +859,26 @@ ${this.getRequireAsyncAdvice(true)}`);
     return this.modulesCache[existingFilePath]?.exports;
   }
 
+  private async requirePathImplAsync(path: string): Promise<unknown> {
+    const ext = extname(splitQuery(path).cleanStr);
+    switch (ext) {
+      case '.cjs':
+      case '.cts':
+      case '.js':
+      case '.mjs':
+      case '.mts':
+      case '.ts':
+        return this.requireJsTsAsync(path);
+      case '.json':
+        return this.requireJsonAsync(path);
+      case '.node':
+      case '.wasm':
+        return this.requireNodeBinaryAsync(path);
+      default:
+        throw new Error(`Unsupported file extension: ${ext}`);
+    }
+  }
+
   private async requireUrlAsync(url: string): Promise<unknown> {
     const response = await requestUrl(url);
     return this.requireStringAsync(response.text, url);
@@ -866,6 +898,14 @@ ${this.getRequireAsyncAdvice(true)}`);
   }
 }
 
+export function splitQuery(str: string): SplitQueryResult {
+  const queryIndex = str.indexOf('?');
+  return {
+    cleanStr: queryIndex === -1 ? str : str.slice(0, queryIndex),
+    query: queryIndex === -1 ? '' : str.slice(queryIndex)
+  };
+}
+
 export function trimNodePrefix(id: string): string {
   const NODE_BUILTIN_MODULE_PREFIX = 'node:';
   return trimStart(id, NODE_BUILTIN_MODULE_PREFIX);
@@ -877,12 +917,4 @@ function convertPathToObsidianUrl(path: string): string {
   }
 
   return Platform.resourcePathPrefix + path.replaceAll('\\', '/');
-}
-
-function splitQuery(str: string): SplitQueryResult {
-  const queryIndex = str.indexOf('?');
-  return {
-    cleanStr: queryIndex === -1 ? str : str.slice(0, queryIndex),
-    query: queryIndex === -1 ? '' : str.slice(queryIndex)
-  };
 }
