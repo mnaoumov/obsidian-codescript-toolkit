@@ -171,7 +171,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
         case ResolvedType.Path: {
           const existingFilePath = this.findExistingFilePath(resolvedId);
           if (existingFilePath === null) {
-            throw new Error(`File not found: ${resolvedId}`);
+            continue;
           }
 
           const dependencyTimestamp = this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, cacheInvalidationMode);
