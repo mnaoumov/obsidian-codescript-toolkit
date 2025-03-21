@@ -306,6 +306,34 @@ require('npm-package-name');
 
 See [Tips](#tips) how to avoid performance issues.
 
+### Node built-in modules
+
+|                      | Desktop | Mobile |
+| -------------------- | ------- | ------ |
+| **`require()`**      | ✔       | ✖      |
+| **`requireAsync()`** | ✔       | ✖      |
+
+You can require Node built-in modules such as `fs` with optional prefix `node:`.
+
+```js
+require('fs');
+require('node:fs');
+```
+
+### Node binaries
+
+|                      | Desktop | Mobile |
+| -------------------- | ------- | ------ |
+| **`require()`**      | ✔       | ✖      |
+| **`requireAsync()`** | ✔       | ✖      |
+
+You can require Node binaries `.node` and `.wasm`.
+
+```js
+require('./foo.node');
+require('./bar.wasm');
+```
+
 ### URLs
 
 |                      | Desktop | Mobile |
