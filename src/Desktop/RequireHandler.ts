@@ -66,6 +66,7 @@ class RequireHandlerImpl extends RequireHandler {
       if (this.plugin.settings.shouldUseSyncFallback) {
         console.warn(`requireAsync('${id}') failed with error:`, e);
         console.warn('Trying a synchronous fallback');
+        this.currentModulesTimestampChain.clear();
         return this.requireEx(id, options ?? {});
       }
 
