@@ -64,7 +64,7 @@ class RequireHandlerImpl extends RequireHandler {
       return await super.requireAsync(id, options);
     } catch (e) {
       if (this.plugin.settings.shouldUseSyncFallback) {
-        console.warn('requireAsync() failed with error:', e);
+        console.warn(`requireAsync('${id}') failed with error:`, e);
         console.warn('Trying a synchronous fallback');
         return this.requireEx(id, options ?? {});
       }
