@@ -82,7 +82,9 @@ It is especially useful for migrating scripts you have for desktop to use on mob
 
 ## Features
 
-All of the examples below will be shown using `require()`, but you can use them with all the new functions introduced by this plugin.
+For each of the feature, we provide a table showing whether the feature enabled on the platform: `Desktop` or on `Mobile`. And whether it works for `require()` or for `requireAsync()` (and `requireAsyncWrapper()`).
+
+Most of the examples below will be shown using `require()`, but you can adjust the examples to use `requireAsync()` or `requireAsyncWrapper()`, as soon as the feature is enabled for your platform
 
 ### Built-in Modules
 
@@ -233,9 +235,9 @@ require('path/to/script.mjs');
 Now you can use any type of JavaScript modules:
 
 ```js
-require('path/to/script.js');
-require('path/to/script.cjs');
-require('path/to/script.mjs');
+require('./path/to/script.js');
+require('./path/to/script.cjs');
+require('./path/to/script.mjs');
 ```
 
 ### [`TypeScript`][TypeScript] modules
@@ -248,9 +250,9 @@ require('path/to/script.mjs');
 Adds support for [`TypeScript`][TypeScript] modules:
 
 ```js
-require('path/to/script.ts');
-require('path/to/script.cts');
-require('path/to/script.mts');
+require('./path/to/script.ts');
+require('./path/to/script.cts');
+require('./path/to/script.mts');
 ```
 
 > [!WARNING]
@@ -313,7 +315,7 @@ See [Tips](#tips) how to avoid performance issues.
 | **`require()`**      | ✔       | ✖      |
 | **`requireAsync()`** | ✔       | ✖      |
 
-You can require Node built-in modules such as `fs` with optional prefix `node:`.
+You can require Node built-in modules such as `fs` with an optional prefix `node:`.
 
 ```js
 require('fs');
@@ -343,7 +345,7 @@ require('./foo.node');
 You can require WebAssembly binaries `.wasm`.
 
 ```js
-require('./foo.wasm');
+await requireAsync('./foo.wasm');
 ```
 
 ### URLs
@@ -354,7 +356,7 @@ require('./foo.wasm');
 | **`requireAsync()`** | ✔       | ✔      |
 
 ```js
-require('https://some-site.com/some-script.js');
+await requireAsync('https://some-site.com/some-script.js');
 ```
 
 ### File URLs
@@ -395,9 +397,12 @@ See [getResourcePath()](https://docs.obsidian.md/Reference/TypeScript+API/Vault/
 | **`requireAsync()`** | ✔       | ✔      |
 
 ```js
-await Promise.resolve();
-
+// top-level-await.js
+await Promise.resolve(); // top-level await
 export const dep = 42;
+
+// script.js
+await requireAsync('./top-level-await.js');
 ```
 
 ### Smart caching
