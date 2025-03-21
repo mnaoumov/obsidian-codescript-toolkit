@@ -352,8 +352,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
       case '.json':
         return this.requireJson(path);
       case '.node':
-      case '.wasm':
-        return this.originalProtoRequire(path) as unknown;
+        return this.requireNodeBinary(path);
       default:
         throw new Error(`Unsupported file extension: ${ext}`);
     }
