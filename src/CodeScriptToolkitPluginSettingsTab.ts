@@ -152,6 +152,21 @@ export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabB
           .setPlaceholder('30')
           .setMin(1);
       });
+
+    new SettingEx(this.containerEl)
+      .setName('Desktop: Synchronous fallback')
+      .setDesc(createFragment((f) => {
+        f.appendText('Whether to use a synchronous ');
+        appendCodeBlock(f, 'require()');
+        f.appendText('fallback if ');
+        appendCodeBlock(f, 'requireAsync()');
+        f.appendText(' failed ');
+        f.createEl('strong', { text: '(only on desktop)' });
+        f.appendText('.');
+      }))
+      .addToggle((toggle) => {
+        this.bind(toggle, 'shouldUseSyncFallback');
+      });
   }
 
   public override hide(): void {

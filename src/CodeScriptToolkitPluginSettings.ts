@@ -10,6 +10,7 @@ export class CodeScriptToolkitPluginPluginSettings extends PluginSettingsBase {
   // eslint-disable-next-line no-magic-numbers
   public mobileChangesCheckingIntervalInSeconds = 30;
   public modulesRoot = '';
+  public shouldUseSyncFallback = false;
   public startupScriptPath = '';
 
   public constructor(data: unknown) {
