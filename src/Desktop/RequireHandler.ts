@@ -5,7 +5,10 @@ import { join } from 'obsidian-dev-utils/Path';
 import { getRootDir } from 'obsidian-dev-utils/ScriptUtils/Root';
 
 import type { CodeScriptToolkitPlugin } from '../CodeScriptToolkitPlugin.ts';
-import type { PluginRequireFn } from '../RequireHandler.ts';
+import type {
+  PluginRequireFn,
+  RequireOptions
+} from '../RequireHandler.ts';
 
 import { CacheInvalidationMode } from '../CacheInvalidationMode.ts';
 import {
