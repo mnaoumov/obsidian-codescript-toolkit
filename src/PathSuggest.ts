@@ -60,9 +60,7 @@ class PathSuggest extends AbstractInputSuggest<PathEntry> {
   }
 
   private async fillPathEntries(app: App, path: string, type: PathEntryType): Promise<void> {
-    if (!this.pathEntries) {
-      this.pathEntries = [];
-    }
+    this.pathEntries ??= [];
 
     if (basename(path) === 'node_modules') {
       return;
