@@ -70,7 +70,6 @@ export abstract class BabelPluginBase<Data = unknown> {
   }
 
   private getPluginObj(): PluginObj {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     const visitor = this.getVisitor();
     const inherits = this.getInherits();
