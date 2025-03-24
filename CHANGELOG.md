@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.13.0
+
+- Add support for ~ fenced block
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.22.0
+
 ## 8.12.0
 
 - Allow to override module types
