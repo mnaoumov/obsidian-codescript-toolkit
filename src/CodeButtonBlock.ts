@@ -142,7 +142,7 @@ function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement,
     const lines = sectionInfo.text.split('\n');
     const previousLines = lines.slice(0, sectionInfo.lineStart);
     const previousText = previousLines.join('\n');
-    const buttonIndex = Array.from(previousText.matchAll(new RegExp(`^\`{3,}${CODE_BUTTON_BLOCK_LANGUAGE}`, 'gm'))).length;
+    const buttonIndex = Array.from(previousText.matchAll(new RegExp(`^(?:\`{3,}|~{3,})${CODE_BUTTON_BLOCK_LANGUAGE}`, 'gm'))).length;
 
     const handleClickOptions: HandleClickOptions = {
       buttonIndex,
