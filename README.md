@@ -813,13 +813,8 @@ The plugin is available in [the official Community Plugins repository](https://o
 
 To install the latest beta release of this plugin (regardless if it is available in [the official Community Plugins repository](https://obsidian.md/plugins) or not), follow these steps:
 
-1. Make sure to have the [BRAT plugin](https://obsidian.md/plugins?id=obsidian42-brat) installed and enabled.
-2. Paste the following link in your browser and press `Enter`:
-
-   ```
-   obsidian://brat?plugin=https://github.com/mnaoumov/obsidian-codescript-toolkit
-   ```
-
+1. Ensure you have the [BRAT plugin](https://obsidian.md/plugins?id=obsidian42-brat) installed and enabled.
+2. Click [Install via BRAT](https://intradeus.github.io/http-protocol-redirector?r=obsidian://brat?plugin=https://github.com/mnaoumov/obsidian-codescript-toolkit).
 3. An Obsidian pop-up window should appear. In the window, click the `Add plugin` button once and wait a few seconds for the plugin to install.
 
 ## Debugging
