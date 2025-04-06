@@ -3,7 +3,7 @@ import type {
   MarkdownPostProcessorContext,
   PluginManifest
 } from 'obsidian';
-import type { MaybePromise } from 'obsidian-dev-utils/Async';
+import type { Promisable } from 'type-fest';
 
 import {
   MarkdownRenderer,
@@ -28,7 +28,7 @@ type CodeButtonBlockScriptWrapper = (
   console: Console,
   container: HTMLElement,
   renderMarkdown: (markdown: string) => Promise<void>
-) => MaybePromise<void>;
+) => Promisable<void>;
 type RegisterTempPluginFn = (tempPluginClass: TempPluginClass) => void;
 
 type TempPluginClass = new (app: App, manifest: PluginManifest) => Plugin;

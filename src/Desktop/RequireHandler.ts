@@ -5,7 +5,7 @@ import { join } from 'obsidian-dev-utils/Path';
 import { tmpdir } from 'obsidian-dev-utils/ScriptUtils/NodeModules';
 import { getRootDir } from 'obsidian-dev-utils/ScriptUtils/Root';
 
-import type { CodeScriptToolkitPlugin } from '../CodeScriptToolkitPlugin.ts';
+import type { Plugin } from '../Plugin.ts';
 import type {
   ModuleType,
   PluginRequireFn,
@@ -41,7 +41,7 @@ class RequireHandlerImpl extends RequireHandler {
     return adapter;
   }
 
-  public override register(plugin: CodeScriptToolkitPlugin, pluginRequire: PluginRequireFn): void {
+  public override register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
     super.register(plugin, pluginRequire);
 
     const Module = this.originalRequire('node:module') as typeof import('node:module');

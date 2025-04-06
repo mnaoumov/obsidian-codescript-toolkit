@@ -1,5 +1,10 @@
+import type { PluginSettingsManagerBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsManagerBase';
+
 import { PluginSettingTab } from 'obsidian';
-import { convertAsyncToSync } from 'obsidian-dev-utils/Async';
+import {
+  convertAsyncToSync,
+  invokeAsyncSafely
+} from 'obsidian-dev-utils/Async';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginBase';
 
 import type { RequireHandler } from './RequireHandler.ts';
@@ -9,9 +14,10 @@ import {
   registerCodeButtonBlock,
   unloadTempPlugins
 } from './CodeButtonBlock.ts';
-import { CodeScriptToolkitPluginPluginSettings } from './CodeScriptToolkitPluginSettings.ts';
-import { CodeScriptToolkitPluginPluginSettingsTab } from './CodeScriptToolkitPluginSettingsTab.ts';
 import { getPlatformDependencies } from './PlatformDependencies.ts';
+import { PluginSettings } from './PluginSettings.ts';
+import { PluginSettingsManager } from './PluginSettingsManager.ts';
+import { CodeScriptToolkitPluginPluginSettingsTab } from './PluginSettingsTab.ts';
 import {
   cleanupStartupScript,
   invokeStartupScript,
@@ -20,7 +26,7 @@ import {
   selectAndInvokeScript
 } from './Script.ts';
 
-export class CodeScriptToolkitPlugin extends PluginBase<CodeScriptToolkitPluginPluginSettings> {
+export class Plugin extends PluginBase<PluginSettings> {
   private requireHandler!: RequireHandler;
   private scriptFolderWatcher!: ScriptFolderWatcher;
 
@@ -28,21 +34,25 @@ export class CodeScriptToolkitPlugin extends PluginBase<CodeScriptToolkitPluginP
     await this.scriptFolderWatcher.register(this, () => registerInvocableScripts(this));
   }
 
-  public override async onExternalSettingsChange(): Promise<void> {
-    await super.onExternalSettingsChange();
-    await this.applyNewSettings();
+  public override async onLoadSettings(settings: PluginSettings): Promise<void> {
+    await super.onLoadSettings(settings);
+    invokeAsyncSafely(() => this.onLifecycleEvent('layoutReady', () => this.applyNewSettings()));
   }
 
-  protected override createPluginSettings(data: unknown): CodeScriptToolkitPluginPluginSettings {
-    return new CodeScriptToolkitPluginPluginSettings(data);
+  public override async onSaveSettings(newSettings: PluginSettings, oldSettings: PluginSettings): Promise<void> {
+    await super.onSaveSettings(newSettings, oldSettings);
+    await this.applyNewSettings();
   }
 
   protected override createPluginSettingsTab(): null | PluginSettingTab {
     return new CodeScriptToolkitPluginPluginSettingsTab(this);
   }
 
+  protected override createSettingsManager(): PluginSettingsManagerBase<PluginSettings> {
+    return new PluginSettingsManager(this);
+  }
+
   protected override async onLayoutReady(): Promise<void> {
-    await this.applyNewSettings();
     await invokeStartupScript(this);
     this.register(() => cleanupStartupScript(this));
   }

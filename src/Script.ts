@@ -2,28 +2,28 @@ import type {
   App,
   DataAdapter
 } from 'obsidian';
-import type { MaybePromise } from 'obsidian-dev-utils/Async';
+import type { Promisable } from 'type-fest';
 
 import { Notice } from 'obsidian';
 import { printError } from 'obsidian-dev-utils/Error';
 import { selectItem } from 'obsidian-dev-utils/obsidian/Modals/SelectItem';
 import { basename } from 'obsidian-dev-utils/Path';
 
-import type { CodeScriptToolkitPlugin } from './CodeScriptToolkitPlugin.ts';
+import type { Plugin } from './Plugin.ts';
 
 import { requireVaultScriptAsync } from './RequireHandlerUtils.ts';
 
 interface CleanupScript extends Script {
-  cleanup(app: App): MaybePromise<void>;
+  cleanup(app: App): Promisable<void>;
 }
 
 interface Script {
-  invoke(app: App): MaybePromise<void>;
+  invoke(app: App): Promisable<void>;
 }
 
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 
-export async function cleanupStartupScript(plugin: CodeScriptToolkitPlugin): Promise<void> {
+export async function cleanupStartupScript(plugin: Plugin): Promise<void> {
   const startupScriptPath = await validateStartupScript(plugin);
   if (!startupScriptPath) {
     return;
@@ -33,7 +33,7 @@ export async function cleanupStartupScript(plugin: CodeScriptToolkitPlugin): Pro
   await script.cleanup?.(plugin.app);
 }
 
-export async function invokeStartupScript(plugin: CodeScriptToolkitPlugin): Promise<void> {
+export async function invokeStartupScript(plugin: Plugin): Promise<void> {
   const startupScriptPath = await validateStartupScript(plugin);
   if (!startupScriptPath) {
     return;
@@ -42,7 +42,7 @@ export async function invokeStartupScript(plugin: CodeScriptToolkitPlugin): Prom
   await invoke(plugin, startupScriptPath, true);
 }
 
-export async function registerInvocableScripts(plugin: CodeScriptToolkitPlugin): Promise<void> {
+export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
   const COMMAND_NAME_PREFIX = 'invokeScriptFile-';
   const commands = plugin.app.commands.listCommands().filter((c) => c.id.startsWith(`${plugin.manifest.id}:${COMMAND_NAME_PREFIX}`));
   for (const command of commands) {
@@ -75,7 +75,7 @@ export async function registerInvocableScripts(plugin: CodeScriptToolkitPlugin):
   }
 }
 
-export async function reloadStartupScript(plugin: CodeScriptToolkitPlugin): Promise<void> {
+export async function reloadStartupScript(plugin: Plugin): Promise<void> {
   const startupScriptPath = await validateStartupScript(plugin, true);
   if (!startupScriptPath) {
     return;
@@ -85,7 +85,7 @@ export async function reloadStartupScript(plugin: CodeScriptToolkitPlugin): Prom
   await invokeStartupScript(plugin);
 }
 
-export async function selectAndInvokeScript(plugin: CodeScriptToolkitPlugin): Promise<void> {
+export async function selectAndInvokeScript(plugin: Plugin): Promise<void> {
   const app = plugin.app;
   const invocableScriptsFolder = plugin.settings.getInvocableScriptsFolder();
   let scriptFiles: string[];
@@ -136,7 +136,7 @@ function getSortedBaseNames(fullNames: string[]): string[] {
   return fullNames.map((file) => basename(file)).sort((a, b) => a.localeCompare(b));
 }
 
-async function invoke(plugin: CodeScriptToolkitPlugin, scriptPath: string, isStartup?: boolean): Promise<void> {
+async function invoke(plugin: Plugin, scriptPath: string, isStartup?: boolean): Promise<void> {
   const app = plugin.app;
   const scriptString = isStartup ? 'startup script' : 'script';
   plugin.consoleDebug(`Invoking ${scriptString}: ${scriptPath}`);
@@ -158,7 +158,7 @@ See console for details...`);
   }
 }
 
-async function validateStartupScript(plugin: CodeScriptToolkitPlugin, shouldWarnOnNotConfigured = false): Promise<null | string> {
+async function validateStartupScript(plugin: Plugin, shouldWarnOnNotConfigured = false): Promise<null | string> {
   const startupScriptPath = plugin.settings.getStartupScriptPath();
   if (!startupScriptPath) {
     if (shouldWarnOnNotConfigured) {
