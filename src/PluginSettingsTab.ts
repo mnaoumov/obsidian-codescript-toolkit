@@ -1,24 +1,13 @@
-import type { App } from 'obsidian';
-
 import { Events } from 'obsidian';
-import {
-  convertAsyncToSync,
-  invokeAsyncSafely
-} from 'obsidian-dev-utils/Async';
 import { appendCodeBlock } from 'obsidian-dev-utils/HTMLElement';
 import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsTabBase';
 import { SettingEx } from 'obsidian-dev-utils/obsidian/SettingEx';
-import {
-  extname,
-  join
-} from 'obsidian-dev-utils/Path';
 
-import type { CodeScriptToolkitPlugin } from './CodeScriptToolkitPlugin.ts';
+import type { Plugin } from './Plugin.ts';
 
 import { addPathSuggest } from './PathSuggest.ts';
-import { EXTENSIONS } from './RequireHandler.ts';
 
-export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabBase<CodeScriptToolkitPlugin> {
+export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabBase<Plugin> {
   public override display(): void {
     this.containerEl.empty();
     const events = new Events();
@@ -38,14 +27,7 @@ export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabB
           onChanged: () => {
             events.trigger('modulesRootChanged');
           },
-          shouldShowValidationMessage: false,
-          valueValidator: async (uiValue) => {
-            if (!uiValue) {
-              return;
-            }
-
-            return await validatePath(this.plugin.app, uiValue, 'folder');
-          }
+          shouldShowValidationMessage: false
         })
           .setPlaceholder('path/to/script/modules/root');
 
@@ -64,27 +46,16 @@ export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabB
       }))
       .addText((text) => {
         this.bind(text, 'invocableScriptsFolder', {
-          shouldShowValidationMessage: false,
-          valueValidator: async (uiValue) => {
-            if (!uiValue) {
-              return;
-            }
-
-            const path = join(this.plugin.settings.modulesRoot, uiValue);
-            return await validatePath(this.plugin.app, path, 'folder');
-          }
+          shouldShowValidationMessage: false
         })
           .setPlaceholder('path/to/invocable/scripts/folder');
 
         const suggest = addPathSuggest(this.plugin.app, text.inputEl, () => this.plugin.settings.modulesRoot, 'folder');
 
-        events.on(
-          'modulesRootChanged',
-          convertAsyncToSync(async () => {
-            await this.revalidate(text);
-            suggest.refresh();
-          })
-        );
+        events.on('modulesRootChanged', () => {
+          text.onChanged();
+          suggest.refresh();
+        });
       });
 
     new SettingEx(this.containerEl)
@@ -99,35 +70,15 @@ export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabB
       }))
       .addText((text) => {
         this.bind(text, 'startupScriptPath', {
-          shouldShowValidationMessage: false,
-          // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-          valueValidator: async (uiValue): Promise<string | void> => {
-            if (!uiValue) {
-              return;
-            }
-
-            const path = join(this.plugin.settings.modulesRoot, uiValue);
-            const ans = await validatePath(this.plugin.app, path, 'file');
-            if (ans) {
-              return ans;
-            }
-
-            const ext = extname(path);
-            if (!EXTENSIONS.includes(ext)) {
-              return `Only the following extensions are supported: ${EXTENSIONS.join(', ')}`;
-            }
-          }
+          shouldShowValidationMessage: false
         })
           .setPlaceholder('path/to/startup.ts');
         const suggest = addPathSuggest(this.plugin.app, text.inputEl, () => this.plugin.settings.modulesRoot, 'file');
 
-        events.on(
-          'modulesRootChanged',
-          convertAsyncToSync(async () => {
-            await this.revalidate(text);
-            suggest.refresh();
-          })
-        );
+        events.on('modulesRootChanged', () => {
+          text.onChanged();
+          suggest.refresh();
+        });
       });
 
     new SettingEx(this.containerEl)
@@ -171,21 +122,5 @@ export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabB
       .addToggle((toggle) => {
         this.bind(toggle, 'shouldUseSyncFallback');
       });
-  }
-
-  public override hide(): void {
-    invokeAsyncSafely(this.plugin.applyNewSettings.bind(this.plugin));
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-async function validatePath(app: App, path: string, type: 'file' | 'folder'): Promise<string | void> {
-  if (!await app.vault.exists(path)) {
-    return 'Path does not exist';
-  }
-
-  const stat = await app.vault.adapter.stat(path);
-  if (stat?.type !== type) {
-    return `Path is not a ${type}`;
   }
 }

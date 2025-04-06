@@ -1,5 +1,5 @@
-import type { MaybePromise } from 'obsidian-dev-utils/Async';
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
+import type { Promisable } from 'type-fest';
 
 import { debuggableEval } from 'debuggable-eval';
 import { Platform } from 'obsidian';
@@ -20,7 +20,7 @@ import {
 } from 'obsidian-dev-utils/String';
 import { isUrl } from 'obsidian-dev-utils/url';
 
-import type { CodeScriptToolkitPlugin } from './CodeScriptToolkitPlugin.ts';
+import type { Plugin } from './Plugin.ts';
 
 import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
@@ -59,9 +59,9 @@ type ModuleFnWrapper = (
   module: { exports: unknown },
   exports: unknown,
   requireAsyncWrapper: RequireAsyncWrapperFn
-) => MaybePromise<void>;
+) => Promisable<void>;
 type RequireAsyncFn = (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
-type RequireAsyncWrapperArg = (require: RequireExFn) => MaybePromise<unknown>;
+type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
 
 type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
 
@@ -84,7 +84,7 @@ interface SplitQueryResult {
 }
 
 interface WrapRequireOptions {
-  beforeRequire?: (id: string) => void;
+  beforeRequire?(id: string): void;
   optionsToAppend?: Partial<RequireOptions>;
   optionsToPrepend?: Partial<RequireOptions>;
   require: RequireExFn;
@@ -113,7 +113,7 @@ interface RequireStringImplOptions {
 
 interface RequireStringImplResult {
   exportsFn: () => unknown;
-  maybePromise: MaybePromise<void>;
+  Promisable: Promisable<void>;
 }
 
 export abstract class RequireHandler {
@@ -122,7 +122,7 @@ export abstract class RequireHandler {
   protected modulesCache!: NodeJS.Dict<NodeJS.Module>;
   protected readonly moduleTimestamps = new Map<string, number>();
   protected originalRequire!: NodeJS.Require;
-  protected plugin!: CodeScriptToolkitPlugin;
+  protected plugin!: Plugin;
   protected requireEx!: RequireExFn;
   protected vaultAbsolutePath!: string;
   private pluginRequire!: PluginRequireFn;
@@ -141,7 +141,7 @@ export abstract class RequireHandler {
     }
   }
 
-  public register(plugin: CodeScriptToolkitPlugin, pluginRequire: PluginRequireFn): void {
+  public register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
     this.plugin = plugin;
     this.pluginRequire = pluginRequire;
     this.vaultAbsolutePath = toPosixPath(plugin.app.vault.adapter.basePath);
@@ -242,7 +242,7 @@ export abstract class RequireHandler {
           shouldWrapInAsyncFunction: true,
           urlSuffix
         });
-        await result.maybePromise;
+        await result.Promisable;
         return result.exportsFn();
       });
     } catch (e) {
@@ -369,7 +369,7 @@ await requireAsyncWrapper((require) => {
   protected abstract readFileAsync(path: string): Promise<string>;
   protected abstract readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
 
-  protected async requireAsyncWrapper(requireFn: (require: RequireExFn) => MaybePromise<unknown>, require?: RequireExFn): Promise<unknown> {
+  protected async requireAsyncWrapper(requireFn: (require: RequireExFn) => Promisable<unknown>, require?: RequireExFn): Promise<unknown> {
     const result = new ExtractRequireArgsListBabelPlugin().transform(requireFn.toString(), 'extract-requires.js');
     const requireArgsList = result.data.requireArgsList;
     for (const requireArgs of requireArgsList) {
@@ -426,11 +426,11 @@ await requireAsyncWrapper((require) => {
     const module = { exports: {} };
     const childRequire = this.makeChildRequire(options.path);
     // eslint-disable-next-line import-x/no-commonjs
-    const maybePromise = moduleFnWrapper(childRequire, module, module.exports, this.requireAsyncWrapper.bind(this));
+    const Promisable = moduleFnWrapper(childRequire, module, module.exports, this.requireAsyncWrapper.bind(this));
     return {
       // eslint-disable-next-line import-x/no-commonjs
       exportsFn: () => module.exports,
-      maybePromise
+      Promisable
     };
   }
 
