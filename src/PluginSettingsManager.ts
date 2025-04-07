@@ -17,8 +17,21 @@ interface LegacySettings {
 }
 
 export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes> {
-  protected override addValidators(): void {
-    this.addValidator('modulesRoot', async (value): Promise<MaybeReturn<string>> => {
+  protected override createDefaultSettings(): PluginSettings {
+    return new PluginSettings();
+  }
+
+  protected override async onLoadRecord(record: Record<string, unknown>): Promise<void> {
+    await super.onLoadRecord(record);
+    const legacySettings = record as Partial<LegacySettings> & Partial<PluginSettings>;
+    if (legacySettings.invocableScriptsDirectory) {
+      legacySettings.invocableScriptsFolder = legacySettings.invocableScriptsDirectory;
+      delete legacySettings.invocableScriptsDirectory;
+    }
+  }
+
+  protected override registerValidators(): void {
+    this.registerValidator('modulesRoot', async (value): Promise<MaybeReturn<string>> => {
       if (!value) {
         return;
       }
@@ -26,7 +39,7 @@ export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes
       return await validatePath(this.app, value, 'folder');
     });
 
-    this.addValidator('invocableScriptsFolder', async (value): Promise<MaybeReturn<string>> => {
+    this.registerValidator('invocableScriptsFolder', async (value): Promise<MaybeReturn<string>> => {
       if (!value) {
         return;
       }
@@ -35,7 +48,7 @@ export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes
       return await validatePath(this.plugin.app, path, 'folder');
     });
 
-    this.addValidator('startupScriptPath', async (value): Promise<MaybeReturn<string>> => {
+    this.registerValidator('startupScriptPath', async (value): Promise<MaybeReturn<string>> => {
       if (!value) {
         return;
       }
@@ -51,18 +64,6 @@ export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes
         return `Only the following extensions are supported: ${EXTENSIONS.join(', ')}`;
       }
     });
-  }
-
-  protected override createDefaultSettings(): PluginSettings {
-    return new PluginSettings();
-  }
-
-  protected override onLoadRecord(record: Record<string, unknown>): void {
-    const legacySettings = record as Partial<LegacySettings> & Partial<PluginSettings>;
-    if (legacySettings.invocableScriptsDirectory) {
-      legacySettings.invocableScriptsFolder = legacySettings.invocableScriptsDirectory;
-      delete legacySettings.invocableScriptsDirectory;
-    }
   }
 }
 
