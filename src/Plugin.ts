@@ -1,12 +1,11 @@
-import type { PluginSettingsManagerBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsManagerBase';
-
-import { PluginSettingTab } from 'obsidian';
 import {
   convertAsyncToSync,
   invokeAsyncSafely
 } from 'obsidian-dev-utils/Async';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginBase';
 
+import type { PluginSettings } from './PluginSettings.ts';
+import type { PluginTypes } from './PluginTypes.ts';
 import type { RequireHandler } from './RequireHandler.ts';
 import type { ScriptFolderWatcher } from './ScriptFolderWatcher.ts';
 
@@ -15,9 +14,8 @@ import {
   unloadTempPlugins
 } from './CodeButtonBlock.ts';
 import { getPlatformDependencies } from './PlatformDependencies.ts';
-import { PluginSettings } from './PluginSettings.ts';
 import { PluginSettingsManager } from './PluginSettingsManager.ts';
-import { CodeScriptToolkitPluginPluginSettingsTab } from './PluginSettingsTab.ts';
+import { PluginSettingsTab } from './PluginSettingsTab.ts';
 import {
   cleanupStartupScript,
   invokeStartupScript,
@@ -26,7 +24,7 @@ import {
   selectAndInvokeScript
 } from './Script.ts';
 
-export class Plugin extends PluginBase<PluginSettings> {
+export class Plugin extends PluginBase<PluginTypes> {
   private requireHandler!: RequireHandler;
   private scriptFolderWatcher!: ScriptFolderWatcher;
 
@@ -47,11 +45,11 @@ export class Plugin extends PluginBase<PluginSettings> {
     await this.applyNewSettings();
   }
 
-  protected override createPluginSettingsTab(): null | PluginSettingTab {
-    return new CodeScriptToolkitPluginPluginSettingsTab(this);
+  protected override createPluginSettingsTab(): null | PluginSettingsTab {
+    return new PluginSettingsTab(this);
   }
 
-  protected override createSettingsManager(): PluginSettingsManagerBase<PluginSettings> {
+  protected override createSettingsManager(): PluginSettingsManager {
     return new PluginSettingsManager(this);
   }
 
@@ -60,7 +58,7 @@ export class Plugin extends PluginBase<PluginSettings> {
     this.register(() => cleanupStartupScript(this));
   }
 
-  protected override async onloadComplete(): Promise<void> {
+  protected override async onloadImpl(): Promise<void> {
     const platformDependencies = await getPlatformDependencies();
     this.scriptFolderWatcher = platformDependencies.scriptFolderWatcher;
     this.requireHandler = platformDependencies.requireHandler;
