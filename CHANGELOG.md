@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 8.14.0
+
+- Support ASAR archives
+- Support all Electron modules
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/24.0.1
+
 ## 8.13.2
 
 - Add missing super call
