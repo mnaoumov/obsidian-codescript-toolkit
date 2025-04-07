@@ -29,7 +29,7 @@
     "esbuild": "^0.25.2",
     "jiti": "^2.4.2",
     "obsidian": "^1.8.7",
-    "obsidian-dev-utils": "^22.1.1-beta.23",
+    "obsidian-dev-utils": "^22.1.1-beta.25",
     "obsidian-typings": "^2.41.4",
     "type-fest": "^4.39.1"
   },
