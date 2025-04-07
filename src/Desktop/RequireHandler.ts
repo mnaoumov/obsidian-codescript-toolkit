@@ -2,7 +2,15 @@ import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 
 import { FileSystemAdapter } from 'obsidian';
 import { join } from 'obsidian-dev-utils/Path';
-import { tmpdir } from 'obsidian-dev-utils/ScriptUtils/NodeModules';
+import {
+  existsSync,
+  readFile,
+  readFileSync,
+  stat,
+  statSync,
+  tmpdir,
+  writeFile
+} from 'obsidian-dev-utils/ScriptUtils/NodeModules';
 import { getRootDir } from 'obsidian-dev-utils/ScriptUtils/Root';
 
 import type { Plugin } from '../Plugin.ts';
@@ -87,7 +95,7 @@ class RequireHandlerImpl extends RequireHandler {
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
-    return (await this.fileSystemAdapter.fsPromises.stat(path)).mtimeMs;
+    return (await stat(path)).mtimeMs;
   }
 
   protected override handleCodeWithTopLevelAwait(path: string): void {
@@ -97,11 +105,11 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   protected override async readFileAsync(path: string): Promise<string> {
-    return await this.fileSystemAdapter.fsPromises.readFile(path, 'utf8');
+    return await readFile(path, 'utf8');
   }
 
   protected override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
-    const buffer = await this.fileSystemAdapter.fsPromises.readFile(path);
+    const buffer = await readFile(path);
     const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
     return arrayBuffer as ArrayBuffer;
   }
@@ -145,11 +153,11 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   private existsDirectory(path: string): boolean {
-    return this.fileSystemAdapter.fs.existsSync(path) && this.fileSystemAdapter.fs.statSync(path).isDirectory();
+    return existsSync(path) && statSync(path).isDirectory();
   }
 
   private existsFile(path: string): boolean {
-    return this.fileSystemAdapter.fs.existsSync(path) && this.fileSystemAdapter.fs.statSync(path).isFile();
+    return existsSync(path) && statSync(path).isFile();
   }
 
   private findExistingFilePath(path: string): null | string {
@@ -248,7 +256,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   private getTimestamp(path: string): number {
-    return this.fileSystemAdapter.fs.statSync(path).mtimeMs;
+    return statSync(path).mtimeMs;
   }
 
   private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode: CacheInvalidationMode): string {
@@ -258,7 +266,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   }
 
   private readFile(path: string): string {
-    return this.fileSystemAdapter.fs.readFileSync(path, 'utf8');
+    return readFileSync(path, 'utf8');
   }
 
   private readPackageJson(path: string): PackageJson {
@@ -394,7 +402,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private async writeFileBinaryAsync(path: string, arrayBuffer: ArrayBuffer): Promise<void> {
     const buffer = Buffer.from(arrayBuffer);
-    await this.fileSystemAdapter.fsPromises.writeFile(path, buffer);
+    await writeFile(path, buffer);
   }
 }
 
