@@ -36,7 +36,10 @@ export class Plugin extends PluginBase<PluginSettings> {
 
   public override async onLoadSettings(settings: PluginSettings): Promise<void> {
     await super.onLoadSettings(settings);
-    invokeAsyncSafely(() => this.onLifecycleEvent('layoutReady', () => this.applyNewSettings()));
+    invokeAsyncSafely(async () => {
+      await this.waitForLifecycleEvent('layoutReady');
+      await this.applyNewSettings();
+    });
   }
 
   public override async onSaveSettings(newSettings: PluginSettings, oldSettings: PluginSettings): Promise<void> {
