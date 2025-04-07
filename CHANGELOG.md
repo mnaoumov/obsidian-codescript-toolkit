@@ -3,7 +3,7 @@
 ## 8.13.2
 
 - Add missing super call
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/23.0.
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/23.0.5
 
 ## 8.13.1
 
