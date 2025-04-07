@@ -157,6 +157,27 @@ You can access the list of built-in [`Obsidian`][Obsidian] module names that are
 require('obsidian/builtInModuleNames');
 ```
 
+### Additional desktop modules
+
+|                      | Desktop | Mobile |
+| -------------------- | ------- | ------ |
+| **`require()`**      | ✔       | ✖      |
+| **`requireAsync()`** | ✔       | ✖      |
+
+[`Obsidian`][Obsidian] on desktop is shipped with some additional modules that you can [`require()`][require].
+
+```js
+// bundled with Electron app
+require('electron');
+require('electron/common');
+require('electron/renderer');
+
+// packed in `app.asar`
+require('@electron/remote');
+require('btime');
+require('get-fonts');
+```
+
 ### Relative path
 
 |                      | Desktop | Mobile |
@@ -361,6 +382,19 @@ You can require WebAssembly binaries `.wasm`.
 
 ```js
 await requireAsync('./foo.wasm');
+```
+
+### ASAR Archives
+
+|                      | Desktop | Mobile |
+| -------------------- | ------- | ------ |
+| **`require()`**      | ✔       | ✖      |
+| **`requireAsync()`** | ✔       | ✖      |
+
+You can require content of `.asar` files like if they were folders.
+
+```js
+require('./foo.asar/bar.js');
 ```
 
 ### Override module type
