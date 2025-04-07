@@ -36,6 +36,12 @@ import {
   trimNodePrefix
 } from '../RequireHandler.ts';
 
+const electronModuleNames = [
+  'electron',
+  'electron/common',
+  'electron/renderer'
+];
+
 const asarPackedModuleNames = [
   '@electron/remote',
   'btime',
@@ -43,7 +49,6 @@ const asarPackedModuleNames = [
 ];
 
 class RequireHandlerImpl extends RequireHandler {
-  private electronModuleNames = new Set(asarPackedModuleNames);
   private nodeBuiltinModules = new Set<string>();
   private get fileSystemAdapter(): FileSystemAdapter {
     const adapter = this.plugin.app.vault.adapter;
@@ -58,11 +63,6 @@ class RequireHandlerImpl extends RequireHandler {
     super.register(plugin, pluginRequire);
 
     const Module = this.originalRequire('node:module') as typeof import('node:module');
-    for (const [key, value] of Object.entries(this.originalRequire.cache)) {
-      if ((key.startsWith('electron') || key.includes('app.asar')) && value?.exports) {
-        this.electronModuleNames.add(key);
-      }
-    }
 
     this.nodeBuiltinModules = new Set(Module.builtinModules);
   }
@@ -145,11 +145,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   protected override requireSpecialModule(id: string): unknown {
-    if (this.electronModuleNames.has(id)) {
-      return this.originalRequire(id);
-    }
-
-    return super.requireSpecialModule(id) ?? this.requireNodeBuiltinModule(id);
+    return super.requireSpecialModule(id) ?? this.requireNodeBuiltinModule(id) ?? this.requireElectronModule(id) ?? this.requireAsarPackedModule(id);
   }
 
   private existsDirectory(path: string): boolean {
@@ -272,6 +268,22 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   private readPackageJson(path: string): PackageJson {
     const content = this.readFile(path);
     return JSON.parse(content) as PackageJson;
+  }
+
+  private requireAsarPackedModule(id: string): unknown {
+    if (asarPackedModuleNames.includes(id)) {
+      return this.originalRequire(id);
+    }
+
+    return null;
+  }
+
+  private requireElectronModule(id: string): unknown {
+    if (electronModuleNames.includes(id)) {
+      return this.originalRequire(id);
+    }
+
+    return null;
   }
 
   private requireJson(path: string): unknown {
