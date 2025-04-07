@@ -7,6 +7,8 @@ import {
   join
 } from 'obsidian-dev-utils/Path';
 
+import type { PluginTypes } from './PluginTypes.ts';
+
 import { PluginSettings } from './PluginSettings.ts';
 import { EXTENSIONS } from './RequireHandler.ts';
 
@@ -14,7 +16,7 @@ interface LegacySettings {
   invocableScriptsDirectory: string;
 }
 
-export class PluginSettingsManager extends PluginSettingsManagerBase<PluginSettings> {
+export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes> {
   protected override addValidators(): void {
     this.addValidator('modulesRoot', async (value): Promise<MaybeReturn<string>> => {
       if (!value) {

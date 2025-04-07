@@ -3,11 +3,11 @@ import { appendCodeBlock } from 'obsidian-dev-utils/HTMLElement';
 import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsTabBase';
 import { SettingEx } from 'obsidian-dev-utils/obsidian/SettingEx';
 
-import type { Plugin } from './Plugin.ts';
+import type { PluginTypes } from './PluginTypes.ts';
 
 import { addPathSuggest } from './PathSuggest.ts';
 
-export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabBase<Plugin> {
+export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
   public override display(): void {
     this.containerEl.empty();
     const events = new Events();
@@ -104,7 +104,6 @@ export class CodeScriptToolkitPluginPluginSettingsTab extends PluginSettingsTabB
       }))
       .addNumber((text) => {
         this.bind(text, 'mobileChangesCheckingIntervalInSeconds')
-          .setPlaceholder('30')
           .setMin(1);
       });
 

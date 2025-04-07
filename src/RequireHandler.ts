@@ -113,7 +113,7 @@ interface RequireStringImplOptions {
 
 interface RequireStringImplResult {
   exportsFn: () => unknown;
-  Promisable: Promisable<void>;
+  promisable: Promisable<void>;
 }
 
 export abstract class RequireHandler {
@@ -242,7 +242,7 @@ export abstract class RequireHandler {
           shouldWrapInAsyncFunction: true,
           urlSuffix
         });
-        await result.Promisable;
+        await result.promisable;
         return result.exportsFn();
       });
     } catch (e) {
@@ -426,11 +426,11 @@ await requireAsyncWrapper((require) => {
     const module = { exports: {} };
     const childRequire = this.makeChildRequire(options.path);
     // eslint-disable-next-line import-x/no-commonjs
-    const Promisable = moduleFnWrapper(childRequire, module, module.exports, this.requireAsyncWrapper.bind(this));
+    const promisable = moduleFnWrapper(childRequire, module, module.exports, this.requireAsyncWrapper.bind(this));
     return {
       // eslint-disable-next-line import-x/no-commonjs
       exportsFn: () => module.exports,
-      Promisable
+      promisable
     };
   }
 
@@ -911,13 +911,14 @@ ${this.getRequireAsyncAdvice(true)}`);
   }
 
   private wrapRequire(options: WrapRequireOptions): RequireExFn {
-    const fn = (id: string, requireOptions?: Partial<RequireOptions>): unknown => {
+    function wrapped(id: string, requireOptions?: Partial<RequireOptions>): unknown {
       options.beforeRequire?.(id);
       const newOptions = { ...options.optionsToPrepend, ...requireOptions, ...options.optionsToAppend };
       return options.require(id, newOptions);
-    };
+    }
+
     return Object.assign(
-      fn,
+      wrapped,
       options.require,
       normalizeOptionalProperties<{ parentPath?: string }>({ parentPath: options.optionsToPrepend?.parentPath })
     ) as RequireExFn;
