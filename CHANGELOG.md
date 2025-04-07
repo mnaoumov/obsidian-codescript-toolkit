@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 8.13.1
+
+- Update libs
+- New template
+- Update template
+- New template
+- Update README
+
 ## 8.13.0
 
 - Add support for ~ fenced block
