@@ -59,6 +59,7 @@ export class Plugin extends PluginBase<PluginTypes> {
   }
 
   protected override async onloadImpl(): Promise<void> {
+    await super.onloadImpl();
     const platformDependencies = await getPlatformDependencies();
     this.scriptFolderWatcher = platformDependencies.scriptFolderWatcher;
     this.requireHandler = platformDependencies.requireHandler;
