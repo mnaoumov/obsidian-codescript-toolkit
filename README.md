@@ -212,7 +212,7 @@ Adds support for root-relative paths:
 require('/path/from/root.js');
 ```
 
-The root `/` directory is configurable via settings.
+The root `/` folder is configurable via settings.
 
 ### System root path (Linux, MacOS)
 
@@ -594,7 +594,7 @@ export async function invoke(app: App): Promise<void> {
 | ------- | ------ |
 | ✔       | ✔      |
 
-Configure a script directory so every script in it can be invoked using the [`Command Palette`][Command Palette]. Use `CodeScript Toolkit: Invoke Script: <<Choose>>` for more predictable lists:
+Configure a script folder so every script in it can be invoked using the [`Command Palette`][Command Palette]. Use `CodeScript Toolkit: Invoke Script: <<Choose>>` for more predictable lists:
 
 ![Command Palette](images/commmand-palette.png)
 
@@ -827,7 +827,7 @@ Also all temp plugins are unloaded when current plugin is unloaded.
 | ------- | ------ |
 | ✔       | ✔      |
 
-If you plan to use scripts extensively, consider putting them in a [`dot directory`][dot directory], such as `.scripts` within your vault. [`Obsidian`][Obsidian] doesn't track changes within [`dot directories`][dot directory] and won't re-index your `node_modules` folder repeatedly.
+If you plan to use scripts extensively, consider putting them in a [`dot folder`][dot folder], such as `.scripts` within your vault. [`Obsidian`][Obsidian] doesn't track changes within [`dot folders`][dot folder] and won't re-index your `node_modules` folder repeatedly.
 
 ## Limitations
 
@@ -886,7 +886,7 @@ However, for the backward compatibility, the previous id `fix-require-modules` i
 [App]: https://docs.obsidian.md/Reference/TypeScript+API/App
 [cjs]: https://nodejs.org/api/modules.html#modules-commonjs-modules
 [Command Palette]: https://help.obsidian.md/Plugins/Command+palette
-[dot directory]: https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments
+[dot folder]: https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments
 [import]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 [JavaScript]: https://developer.mozilla.org/en-US/docs/Web/JavaScript
 [Module Register]: https://nodejs.org/api/module.html#moduleregisterspecifier-parenturl-options

@@ -20,15 +20,6 @@ class RequireHandlerImpl extends RequireHandler {
     return false;
   }
 
-  protected override async existsDirectoryAsync(path: string): Promise<boolean> {
-    if (!await this.capacitorAdapter.fs.exists(path)) {
-      return false;
-    }
-
-    const stat = await this.capacitorAdapter.fs.stat(path);
-    return stat.type === 'directory';
-  }
-
   protected override async existsFileAsync(path: string): Promise<boolean> {
     if (!await this.capacitorAdapter.fs.exists(path)) {
       return false;
@@ -36,6 +27,15 @@ class RequireHandlerImpl extends RequireHandler {
 
     const stat = await this.capacitorAdapter.fs.stat(path);
     return stat.type === 'file';
+  }
+
+  protected override async existsFolderAsync(path: string): Promise<boolean> {
+    if (!await this.capacitorAdapter.fs.exists(path)) {
+      return false;
+    }
+
+    const stat = await this.capacitorAdapter.fs.stat(path);
+    return stat.type === 'directory';
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
