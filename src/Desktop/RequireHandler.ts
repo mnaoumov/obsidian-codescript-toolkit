@@ -25,7 +25,7 @@ import {
   ENTRY_POINT,
   getModuleTypeFromPath,
   MODULE_NAME_SEPARATOR,
-  NODE_MODULES_DIR,
+  NODE_MODULES_FOLDER,
   PATH_SUFFIXES,
   PRIVATE_MODULE_PREFIX,
   RELATIVE_MODULE_PATH_SEPARATOR,
@@ -86,12 +86,12 @@ class RequireHandlerImpl extends RequireHandler {
     return type !== ResolvedType.Url;
   }
 
-  protected override async existsDirectoryAsync(path: string): Promise<boolean> {
-    return await Promise.resolve(this.existsDirectory(path));
-  }
-
   protected override async existsFileAsync(path: string): Promise<boolean> {
     return await Promise.resolve(this.existsFile(path));
+  }
+
+  protected override async existsFolderAsync(path: string): Promise<boolean> {
+    return await Promise.resolve(this.existsFolder(path));
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
@@ -132,8 +132,8 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   protected override requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     switch (type) {
       case ResolvedType.Module: {
-        const [parentDir = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return this.requireModule(moduleName, parentDir, cacheInvalidationMode, moduleType);
+        const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
+        return this.requireModule(moduleName, parentFolder, cacheInvalidationMode, moduleType);
       }
       case ResolvedType.Path:
         return this.requirePath(id, cacheInvalidationMode, moduleType);
@@ -148,12 +148,12 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return super.requireSpecialModule(id) ?? this.requireNodeBuiltinModule(id) ?? this.requireElectronModule(id) ?? this.requireAsarPackedModule(id);
   }
 
-  private existsDirectory(path: string): boolean {
-    return existsSync(path) && statSync(path).isDirectory();
-  }
-
   private existsFile(path: string): boolean {
     return existsSync(path) && statSync(path).isFile();
+  }
+
+  private existsFolder(path: string): boolean {
+    return existsSync(path) && statSync(path).isDirectory();
   }
 
   private findExistingFilePath(path: string): null | string {
@@ -187,8 +187,8 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
       const { resolvedId, resolvedType } = this.resolve(dependency, path);
       switch (resolvedType) {
         case ResolvedType.Module:
-          for (const rootDir of this.getRootDirs(path)) {
-            const packageJsonPath = this.getPackageJsonPath(rootDir);
+          for (const rootFolder of this.getRootFolders(path)) {
+            const packageJsonPath = this.getPackageJsonPath(rootFolder);
             if (!this.existsFile(packageJsonPath)) {
               continue;
             }
@@ -231,21 +231,21 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return timestamp;
   }
 
-  private getRootDirs(dir: string): string[] {
-    const modulesRootDir = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath, this.plugin.settings.modulesRoot) : null;
+  private getRootFolders(folder: string): string[] {
+    const modulesRootFolder = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath, this.plugin.settings.modulesRoot) : null;
 
     const ans: string[] = [];
-    for (const possibleDir of new Set([dir, modulesRootDir])) {
-      if (possibleDir === null) {
+    for (const possibleFolder of new Set([folder, modulesRootFolder])) {
+      if (possibleFolder === null) {
         continue;
       }
 
-      const rootDir = getRootDir(possibleDir);
-      if (rootDir === null) {
+      const rootFolder = getRootDir(possibleFolder);
+      if (rootFolder === null) {
         continue;
       }
 
-      ans.push(rootDir);
+      ans.push(rootFolder);
     }
 
     return ans;
@@ -296,7 +296,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     return this.requireString(code, path);
   }
 
-  private requireModule(moduleName: string, parentDir: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
+  private requireModule(moduleName: string, parentFolder: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
@@ -309,20 +309,20 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     const baseModuleName = separatorIndex === -1 ? moduleName : moduleName.slice(0, separatorIndex);
     let relativeModuleName = ENTRY_POINT + (separatorIndex === -1 ? '' : moduleName.slice(separatorIndex));
 
-    for (const rootDir of this.getRootDirs(parentDir)) {
-      let packageDir: string;
+    for (const rootFolder of this.getRootFolders(parentFolder)) {
+      let packageFolder: string;
       if (moduleName.startsWith(PRIVATE_MODULE_PREFIX) || moduleName === ENTRY_POINT) {
-        packageDir = rootDir;
+        packageFolder = rootFolder;
         relativeModuleName = moduleName;
       } else {
-        packageDir = join(rootDir, NODE_MODULES_DIR, baseModuleName);
+        packageFolder = join(rootFolder, NODE_MODULES_FOLDER, baseModuleName);
       }
 
-      if (!this.existsDirectory(packageDir)) {
+      if (!this.existsFolder(packageFolder)) {
         continue;
       }
 
-      const packageJsonPath = this.getPackageJsonPath(packageDir);
+      const packageJsonPath = this.getPackageJsonPath(packageFolder);
       if (!this.existsFile(packageJsonPath)) {
         continue;
       }
@@ -331,7 +331,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
       const relativeModulePaths = this.getRelativeModulePaths(packageJson, relativeModuleName);
 
       for (const relativeModulePath of relativeModulePaths) {
-        const fullModulePath = join(packageDir, relativeModulePath);
+        const fullModulePath = join(packageFolder, relativeModulePath);
         const existingPath = this.findExistingFilePath(fullModulePath);
         if (!existingPath) {
           continue;

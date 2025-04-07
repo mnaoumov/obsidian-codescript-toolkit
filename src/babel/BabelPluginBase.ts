@@ -40,10 +40,10 @@ export abstract class BabelPluginBase<Data = unknown> {
     noop();
   }
 
-  public transform(code: string, filename: string, dir?: string): TransformResult<Data> {
+  public transform(code: string, filename: string, folder?: string): TransformResult<Data> {
     try {
       const result = babelTransform(code, {
-        cwd: dir,
+        cwd: folder,
         filename,
         plugins: [
           this.getPluginObj()

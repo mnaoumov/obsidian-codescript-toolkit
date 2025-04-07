@@ -111,11 +111,11 @@ function makeRenderMarkdownFn(plugin: Plugin, resultEl: HTMLElement, sourcePath:
   };
 }
 
-function makeWrapperScript(source: string, sourceFileName: string, sourceDir: string, shouldAutoOutput: boolean): string {
+function makeWrapperScript(source: string, sourceFileName: string, sourceFolder: string, shouldAutoOutput: boolean): string {
   const result = new SequentialBabelPlugin([
     new ConvertToCommonJsBabelPlugin(),
     new WrapForCodeBlockBabelPlugin(shouldAutoOutput)
-  ]).transform(source, sourceFileName, sourceDir);
+  ]).transform(source, sourceFileName, sourceFolder);
 
   if (result.error) {
     throw result.error;

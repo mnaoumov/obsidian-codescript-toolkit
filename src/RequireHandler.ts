@@ -94,7 +94,7 @@ export const ENTRY_POINT = '.';
 export const EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 export const MODULE_NAME_SEPARATOR = '*';
 export const MODULE_TO_SKIP = Symbol('MODULE_TO_SKIP');
-export const NODE_MODULES_DIR = 'node_modules';
+export const NODE_MODULES_FOLDER = 'node_modules';
 const PACKAGE_JSON = 'package.json';
 export const PATH_SUFFIXES = ['', ...EXTENSIONS, ...EXTENSIONS.map((ext) => `/index${ext}`)];
 export const PRIVATE_MODULE_PREFIX = '#';
@@ -252,16 +252,16 @@ export abstract class RequireHandler {
 
   protected abstract canRequireNonCached(type: ResolvedType): boolean;
 
-  protected abstract existsDirectoryAsync(path: string): Promise<boolean>;
-
   protected abstract existsFileAsync(path: string): Promise<boolean>;
+
+  protected abstract existsFolderAsync(path: string): Promise<boolean>;
 
   protected getCachedModule(id: string): unknown {
     return this.modulesCache[id]?.loaded ? this.modulesCache[id].exports : null;
   }
 
-  protected getPackageJsonPath(packageDir: string): string {
-    return join(packageDir, PACKAGE_JSON);
+  protected getPackageJsonPath(packageFolder: string): string {
+    return join(packageFolder, PACKAGE_JSON);
   }
 
   protected getRelativeModulePaths(packageJson: PackageJson, relativeModuleName: string): string[] {
@@ -404,7 +404,7 @@ await requireAsyncWrapper((require) => {
   }
 
   protected requireStringImpl(options: RequireStringImplOptions): RequireStringImplResult {
-    const dir = isUrl(options.path) ? '' : dirname(options.path);
+    const folder = isUrl(options.path) ? '' : dirname(options.path);
     const filename = isUrl(options.path) ? options.path : basename(options.path);
     const url = convertPathToObsidianUrl(options.path) + options.urlSuffix;
 
@@ -412,7 +412,7 @@ await requireAsyncWrapper((require) => {
       new ConvertToCommonJsBabelPlugin(),
       new WrapInRequireFunctionBabelPlugin(options.shouldWrapInAsyncFunction),
       new FixSourceMapBabelPlugin(url)
-    ]).transform(options.code, filename, dir);
+    ]).transform(options.code, filename, folder);
 
     if (transformResult.error) {
       throw new Error(`Failed to transform code from: ${options.path}`, { cause: transformResult.error });
@@ -475,13 +475,13 @@ await requireAsyncWrapper((require) => {
     if (!isAbsolute(parentPath)) {
       parentPath = join(this.vaultAbsolutePath, parentPath);
     }
-    const parentDir = dirname(parentPath);
+    const parentFolder = dirname(parentPath);
 
     if (id.startsWith('./') || id.startsWith('../')) {
-      return { resolvedId: join(parentDir, id), resolvedType: ResolvedType.Path };
+      return { resolvedId: join(parentFolder, id), resolvedType: ResolvedType.Path };
     }
 
-    return { resolvedId: `${parentDir}${MODULE_NAME_SEPARATOR}${id}`, resolvedType: ResolvedType.Module };
+    return { resolvedId: `${parentFolder}${MODULE_NAME_SEPARATOR}${id}`, resolvedType: ResolvedType.Module };
   }
 
   private addToModuleCache(id: string, module: unknown, isLoaded = true): NodeJS.Module {
@@ -573,8 +573,8 @@ await requireAsyncWrapper((require) => {
       const { resolvedId, resolvedType } = this.resolve(dependency, path);
       switch (resolvedType) {
         case ResolvedType.Module:
-          for (const rootDir of await this.getRootDirsAsync(path)) {
-            const packageJsonPath = this.getPackageJsonPath(rootDir);
+          for (const rootFolder of await this.getRootFoldersAsync(path)) {
+            const packageJsonPath = this.getPackageJsonPath(rootFolder);
             if (!await this.existsFileAsync(packageJsonPath)) {
               continue;
             }
@@ -659,32 +659,32 @@ await requireAsyncWrapper((require) => {
     return parentPath;
   }
 
-  private async getRootDirAsync(cwd: string): Promise<null | string> {
-    let currentDir = toPosixPath(cwd);
-    while (currentDir !== '.' && currentDir !== '/') {
-      if (await this.existsFileAsync(this.getPackageJsonPath(currentDir))) {
-        return toPosixPath(currentDir);
+  private async getRootFolderAsync(cwd: string): Promise<null | string> {
+    let currentFolder = toPosixPath(cwd);
+    while (currentFolder !== '.' && currentFolder !== '/') {
+      if (await this.existsFileAsync(this.getPackageJsonPath(currentFolder))) {
+        return toPosixPath(currentFolder);
       }
-      currentDir = dirname(currentDir);
+      currentFolder = dirname(currentFolder);
     }
     return null;
   }
 
-  private async getRootDirsAsync(dir: string): Promise<string[]> {
-    const modulesRootDir = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath, this.plugin.settings.modulesRoot) : null;
+  private async getRootFoldersAsync(folder: string): Promise<string[]> {
+    const modulesRootFolder = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath, this.plugin.settings.modulesRoot) : null;
 
     const ans: string[] = [];
-    for (const possibleDir of new Set([dir, modulesRootDir])) {
-      if (possibleDir === null) {
+    for (const possibleFolder of new Set([folder, modulesRootFolder])) {
+      if (possibleFolder === null) {
         continue;
       }
 
-      const rootDir = await this.getRootDirAsync(possibleDir);
-      if (rootDir === null) {
+      const rootFolder = await this.getRootFolderAsync(possibleFolder);
+      if (rootFolder === null) {
         continue;
       }
 
-      ans.push(rootDir);
+      ans.push(rootFolder);
     }
 
     return ans;
@@ -785,7 +785,7 @@ ${this.getRequireAsyncAdvice(true)}`);
 
   private async requireModuleAsync(
     moduleName: string,
-    parentDir: string,
+    parentFolder: string,
     cacheInvalidationMode: CacheInvalidationMode,
     moduleType?: ModuleType
   ): Promise<unknown> {
@@ -801,20 +801,20 @@ ${this.getRequireAsyncAdvice(true)}`);
     const baseModuleName = separatorIndex === -1 ? moduleName : moduleName.slice(0, separatorIndex);
     let relativeModuleName = ENTRY_POINT + (separatorIndex === -1 ? '' : moduleName.slice(separatorIndex));
 
-    for (const rootDir of await this.getRootDirsAsync(parentDir)) {
-      let packageDir: string;
+    for (const rootFolder of await this.getRootFoldersAsync(parentFolder)) {
+      let packageFolder: string;
       if (moduleName.startsWith(PRIVATE_MODULE_PREFIX) || moduleName === ENTRY_POINT) {
-        packageDir = rootDir;
+        packageFolder = rootFolder;
         relativeModuleName = moduleName;
       } else {
-        packageDir = join(rootDir, NODE_MODULES_DIR, baseModuleName);
+        packageFolder = join(rootFolder, NODE_MODULES_FOLDER, baseModuleName);
       }
 
-      if (!await this.existsDirectoryAsync(packageDir)) {
+      if (!await this.existsFolderAsync(packageFolder)) {
         continue;
       }
 
-      const packageJsonPath = this.getPackageJsonPath(packageDir);
+      const packageJsonPath = this.getPackageJsonPath(packageFolder);
       if (!await this.existsFileAsync(packageJsonPath)) {
         continue;
       }
@@ -823,7 +823,7 @@ ${this.getRequireAsyncAdvice(true)}`);
       const relativeModulePaths = this.getRelativeModulePaths(packageJson, relativeModuleName);
 
       for (const relativeModulePath of relativeModulePaths) {
-        const fullModulePath = join(packageDir, relativeModulePath);
+        const fullModulePath = join(packageFolder, relativeModulePath);
         const existingPath = await this.findExistingFilePathAsync(fullModulePath);
         if (!existingPath) {
           continue;
@@ -839,8 +839,8 @@ ${this.getRequireAsyncAdvice(true)}`);
   private async requireNonCachedAsync(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
     switch (type) {
       case ResolvedType.Module: {
-        const [parentDir = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return await this.requireModuleAsync(moduleName, parentDir, cacheInvalidationMode, moduleType);
+        const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
+        return await this.requireModuleAsync(moduleName, parentFolder, cacheInvalidationMode, moduleType);
       }
       case ResolvedType.Path:
         return await this.requirePathAsync(id, cacheInvalidationMode, moduleType);

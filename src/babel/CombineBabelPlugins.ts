@@ -25,10 +25,10 @@ abstract class CombineBabelPlugins<DataList extends unknown[]> extends BabelPlug
 }
 
 export class SequentialBabelPlugin<DataList extends unknown[]> extends CombineBabelPlugins<DataList> {
-  public override transform(code: string, filename: string, dir?: string): TransformResult<TupleToIntersection<DataList>> {
+  public override transform(code: string, filename: string, folder?: string): TransformResult<TupleToIntersection<DataList>> {
     for (const plugin of this.plugins) {
       try {
-        const result = plugin.transform(code, filename, dir);
+        const result = plugin.transform(code, filename, folder);
 
         if (result.error) {
           throw result.error;

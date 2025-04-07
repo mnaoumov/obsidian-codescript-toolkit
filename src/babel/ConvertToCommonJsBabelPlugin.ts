@@ -14,11 +14,11 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
     super({ hasTopLevelAwait: false });
   }
 
-  public override transform(code: string, filename: string, dir?: string): TransformResult<TransformCodeToCommonJsData> {
+  public override transform(code: string, filename: string, folder?: string): TransformResult<TransformCodeToCommonJsData> {
     try {
       const result = babelTransform(code, {
         ast: true,
-        cwd: dir,
+        cwd: folder,
         filename,
         plugins: [
           'transform-modules-commonjs',
