@@ -11,7 +11,7 @@ import {
   tmpdir,
   writeFile
 } from 'obsidian-dev-utils/ScriptUtils/NodeModules';
-import { getRootDir } from 'obsidian-dev-utils/ScriptUtils/Root';
+import { getRootFolder } from 'obsidian-dev-utils/ScriptUtils/Root';
 
 import type { Plugin } from '../Plugin.ts';
 import type {
@@ -240,7 +240,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
         continue;
       }
 
-      const rootFolder = getRootDir(possibleFolder);
+      const rootFolder = getRootFolder(possibleFolder);
       if (rootFolder === null) {
         continue;
       }
