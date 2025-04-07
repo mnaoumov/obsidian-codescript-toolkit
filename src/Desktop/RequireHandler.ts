@@ -28,10 +28,15 @@ import {
   trimNodePrefix
 } from '../RequireHandler.ts';
 
+const asarPackedModuleNames = [
+  '@electron/remote',
+  'btime',
+  'get-fonts'
+];
+
 class RequireHandlerImpl extends RequireHandler {
-  private electronModules = new Map<string, unknown>();
+  private electronModuleNames = new Set(asarPackedModuleNames);
   private nodeBuiltinModules = new Set<string>();
-  private originalProtoRequire!: NodeJS.Require;
   private get fileSystemAdapter(): FileSystemAdapter {
     const adapter = this.plugin.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) {
@@ -45,18 +50,9 @@ class RequireHandlerImpl extends RequireHandler {
     super.register(plugin, pluginRequire);
 
     const Module = this.originalRequire('node:module') as typeof import('node:module');
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    this.originalProtoRequire = Module.prototype.require as NodeJS.Require;
-
-    plugin.register(() => {
-      Module.prototype.require = this.originalProtoRequire;
-    });
-
-    Module.prototype.require = this.requireEx;
-
     for (const [key, value] of Object.entries(this.originalRequire.cache)) {
       if ((key.startsWith('electron') || key.includes('app.asar')) && value?.exports) {
-        this.electronModules.set(key, value.exports);
+        this.electronModuleNames.add(key);
       }
     }
 
@@ -141,7 +137,11 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   protected override requireSpecialModule(id: string): unknown {
-    return super.requireSpecialModule(id) ?? this.electronModules.get(id) ?? this.requireNodeBuiltinModule(id);
+    if (this.electronModuleNames.has(id)) {
+      return this.originalRequire(id);
+    }
+
+    return super.requireSpecialModule(id) ?? this.requireNodeBuiltinModule(id);
   }
 
   private existsDirectory(path: string): boolean {
@@ -325,13 +325,13 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   }
 
   private requireNodeBinary(path: string): unknown {
-    return this.originalProtoRequire(path) as unknown;
+    return this.originalRequire(path) as unknown;
   }
 
   private requireNodeBuiltinModule(id: string): unknown {
     id = trimNodePrefix(id);
     if (this.nodeBuiltinModules.has(id)) {
-      return this.originalProtoRequire(id);
+      return this.originalRequire(id);
     }
 
     return null;
