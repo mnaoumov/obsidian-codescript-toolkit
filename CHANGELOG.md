@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 8.14.1
+
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/24.1.0
+
 ## 8.14.0
 
 - Support ASAR archives
