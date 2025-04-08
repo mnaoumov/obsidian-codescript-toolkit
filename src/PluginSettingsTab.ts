@@ -9,6 +9,7 @@ import { addPathSuggest } from './PathSuggest.ts';
 
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
   public override display(): void {
+    super.display();
     this.containerEl.empty();
     const events = new Events();
 

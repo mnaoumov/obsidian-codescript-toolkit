@@ -32,16 +32,16 @@ export class Plugin extends PluginBase<PluginTypes> {
     await this.scriptFolderWatcher.register(this, () => registerInvocableScripts(this));
   }
 
-  public override async onLoadSettings(settings: PluginSettings): Promise<void> {
-    await super.onLoadSettings(settings);
+  public override async onLoadSettings(settings: PluginSettings, isInitialLoad: boolean): Promise<void> {
+    await super.onLoadSettings(settings, isInitialLoad);
     invokeAsyncSafely(async () => {
       await this.waitForLifecycleEvent('layoutReady');
       await this.applyNewSettings();
     });
   }
 
-  public override async onSaveSettings(newSettings: PluginSettings, oldSettings: PluginSettings): Promise<void> {
-    await super.onSaveSettings(newSettings, oldSettings);
+  public override async onSaveSettings(newSettings: PluginSettings, oldSettings: PluginSettings, context?: unknown): Promise<void> {
+    await super.onSaveSettings(newSettings, oldSettings, context);
     await this.applyNewSettings();
   }
 
