@@ -18,6 +18,7 @@ import {
 import { getPlatformDependencies } from './PlatformDependencies.ts';
 import { PluginSettingsManager } from './PluginSettingsManager.ts';
 import { PluginSettingsTab } from './PluginSettingsTab.ts';
+import { ProtocolHandlerComponent } from './ProtocolHandlerComponent.ts';
 import {
   cleanupStartupScript,
   invokeStartupScript,
@@ -97,5 +98,7 @@ export class Plugin extends PluginBase<PluginTypes> {
       id: 'reload-startup-script',
       name: 'Reload Startup Script'
     });
+
+    this.addChild(new ProtocolHandlerComponent(this));
   }
 }
