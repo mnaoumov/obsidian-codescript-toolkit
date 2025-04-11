@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.15.0
+
+- Add URL protocol handler
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/25.1.0
+
 ## 8.14.2
 
 - https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/24.1.1
