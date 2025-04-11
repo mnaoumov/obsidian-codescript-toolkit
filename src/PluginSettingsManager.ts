@@ -39,21 +39,21 @@ export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes
       return await validatePath(this.app, value, 'folder');
     });
 
-    this.registerValidator('invocableScriptsFolder', async (value): Promise<MaybeReturn<string>> => {
+    this.registerValidator('invocableScriptsFolder', async (value, settings): Promise<MaybeReturn<string>> => {
       if (!value) {
         return;
       }
 
-      const path = join(this.plugin.settings.modulesRoot, value);
+      const path = join(settings.modulesRoot, value);
       return await validatePath(this.plugin.app, path, 'folder');
     });
 
-    this.registerValidator('startupScriptPath', async (value): Promise<MaybeReturn<string>> => {
+    this.registerValidator('startupScriptPath', async (value, settings): Promise<MaybeReturn<string>> => {
       if (!value) {
         return;
       }
 
-      const path = join(this.plugin.settings.modulesRoot, value);
+      const path = join(settings.modulesRoot, value);
       const ans = await validatePath(this.plugin.app, path, 'file');
       if (ans) {
         return ans;
