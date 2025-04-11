@@ -1,3 +1,5 @@
+import type { PluginSettingsWrapper } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsWrapper';
+
 import {
   convertAsyncToSync,
   invokeAsyncSafely
@@ -32,7 +34,7 @@ export class Plugin extends PluginBase<PluginTypes> {
     await this.scriptFolderWatcher.register(this, () => registerInvocableScripts(this));
   }
 
-  public override async onLoadSettings(settings: PluginSettings, isInitialLoad: boolean): Promise<void> {
+  public override async onLoadSettings(settings: PluginSettingsWrapper<PluginSettings>, isInitialLoad: boolean): Promise<void> {
     await super.onLoadSettings(settings, isInitialLoad);
     invokeAsyncSafely(async () => {
       await this.waitForLifecycleEvent('layoutReady');
@@ -40,7 +42,11 @@ export class Plugin extends PluginBase<PluginTypes> {
     });
   }
 
-  public override async onSaveSettings(newSettings: PluginSettings, oldSettings: PluginSettings, context?: unknown): Promise<void> {
+  public override async onSaveSettings(
+    newSettings: PluginSettingsWrapper<PluginSettings>,
+    oldSettings: PluginSettingsWrapper<PluginSettings>,
+    context?: unknown
+  ): Promise<void> {
     await super.onSaveSettings(newSettings, oldSettings, context);
     await this.applyNewSettings();
   }
