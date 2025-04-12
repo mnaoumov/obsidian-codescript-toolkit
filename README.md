@@ -841,7 +841,7 @@ All characters has to be properly URL-escaped, e.g., you have to replace `␣` (
 Opening URL
 
 ```
-obsidian://CodeScriptToolkit?module=/foo/bar.ts&functionName=baz&args='arg1','arg%20with%space2',42,app.vault,%7Bbaz%3A'qux'7D`
+obsidian://CodeScriptToolkit?module=/foo/bar.ts&functionName=baz&args='arg1','arg%20with%20space2',42,app.vault,%7Bbaz%3A'qux'%7D
 ```
 
 would be equivalent to calling
