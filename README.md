@@ -821,11 +821,16 @@ The loaded temp plugins can be unloaded using the `CodeScript Toolkit: Unload Te
 
 Also all temp plugins are unloaded when current plugin is unloaded.
 
-## URL schema
+## Protocol URLs
 
 | Desktop | Mobile |
 | ------- | ------ |
 | ✔       | ✔      |
+
+> [!WARNING]
+>
+> This allows arbitrary code execution, which could pose a security risk. Use with caution.
+> Disabled by default.
 
 You can invoke script files or custom code using Obsidian URL schema.
 

@@ -122,5 +122,17 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
       .addToggle((toggle) => {
         this.bind(toggle, 'shouldUseSyncFallback');
       });
+
+    new SettingEx(this.containerEl)
+      .setName('Handle protocol URLs')
+      .setDesc(createFragment((f) => {
+        f.appendText('Whether to handle protocol URLs: ');
+        appendCodeBlock(f, 'obsidian://CodeScriptToolkit?...');
+        f.createEl('br');
+        f.appendText('⚠️ WARNING: This allows arbitrary code execution, which could pose a security risk. Use with caution.');
+      }))
+      .addToggle((toggle) => {
+        this.bind(toggle, 'shouldHandleProtocolUrls');
+      });
   }
 }

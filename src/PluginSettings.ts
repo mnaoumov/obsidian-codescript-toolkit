@@ -5,6 +5,7 @@ export class PluginSettings {
   // eslint-disable-next-line no-magic-numbers
   public mobileChangesCheckingIntervalInSeconds = 30;
   public modulesRoot = '';
+  public shouldHandleProtocolUrls = false;
   public shouldUseSyncFallback = false;
   public startupScriptPath = '';
 
