@@ -32,6 +32,11 @@ export class ProtocolHandlerComponent extends Component {
   }
 
   private async processQuery(query: ObsidianProtocolData): Promise<void> {
+    if (!this.plugin.settings.shouldHandleProtocolUrls) {
+      console.warn('Handling of protocol URLs is disabled in plugin settings.');
+      return;
+    }
+
     const parsedQuery = query as Partial<Query>;
 
     if (!parsedQuery.module && !parsedQuery.code) {
