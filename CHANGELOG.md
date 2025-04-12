@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.16.0
+
+- Disable protocol URLs by default
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/26.1.0
+
 ## 8.15.0
 
 - Add URL protocol handler
