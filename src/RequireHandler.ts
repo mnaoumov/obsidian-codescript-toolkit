@@ -43,6 +43,7 @@ export enum ResolvedType {
 export type ModuleType = 'json' | 'jsTs' | 'node' | 'wasm';
 export type PluginRequireFn = (id: string) => unknown;
 export type RequireAsyncWrapperFn = (requireFn: RequireAsyncWrapperArg) => Promise<unknown>;
+export type RequireFn = (id: string, options?: Partial<RequireOptions>) => unknown;
 
 export interface RequireOptions {
   cacheInvalidationMode: CacheInvalidationMode;
@@ -62,10 +63,7 @@ type ModuleFnWrapper = (
 ) => Promisable<void>;
 type RequireAsyncFn = (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
 type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
-
 type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
-
-type RequireFn = (id: string, options?: Partial<RequireOptions>) => unknown;
 
 interface RequireWindow {
   require?: RequireExFn;
@@ -121,10 +119,10 @@ export abstract class RequireHandler {
   protected readonly moduleDependencies = new Map<string, Set<string>>();
   protected modulesCache!: NodeJS.Dict<NodeJS.Module>;
   protected readonly moduleTimestamps = new Map<string, number>();
-  protected originalRequire!: NodeJS.Require;
   protected plugin!: Plugin;
   protected requireEx!: RequireExFn;
   protected vaultAbsolutePath!: string;
+  private originalRequire!: NodeJS.Require;
   private pluginRequire!: PluginRequireFn;
 
   public clearCache(): void {
