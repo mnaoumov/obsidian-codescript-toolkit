@@ -2,12 +2,12 @@
 
 ## 8.16.2
 
-- Fixed `BRAT` and `Dataview` bugs introduced in [8.14.0](#8140)
+- Fixed `BRAT` and `Dataview` breakages introduced in [8.14.0](#8140)
 - Avoid circular calls
 
 ## 8.16.1
 
-- Attempted to fix the bugs introduced in [8.14.0](#8140)
+- Attempted to fix the breakages introduced in [8.14.0](#8140)
 - Restore patch of Module.prototype.require
 - https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/26.1.2
 
@@ -35,7 +35,7 @@
 - Support all Electron modules
 - https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/24.0.1
 
-### Introduced bugs
+### Introduced breakages
 
 #### [`BRAT`](https://github.com/TfTHacker/obsidian42-brat)
 
@@ -46,7 +46,6 @@ This does not seem to be an obsidian plugin with valid releases, as there are no
 ```
 
 #### [Dataview](https://github.com/blacksmithgu/obsidian-dataview)
-
 
 `dataviewjs` queries with `require` modules
 
