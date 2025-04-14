@@ -2,10 +2,12 @@
 
 ## 8.16.2
 
+- Fixed `BRAT` and `Dataview` bugs introduced in [8.14.0](#8140)
 - Avoid circular calls
 
 ## 8.16.1
 
+- Attempted to fix the bugs introduced in [8.14.0](#8140)
 - Restore patch of Module.prototype.require
 - https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/26.1.2
 
@@ -32,6 +34,59 @@
 - Support ASAR archives
 - Support all Electron modules
 - https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/24.0.1
+
+### Introduced bugs
+
+#### [`BRAT`](https://github.com/TfTHacker/obsidian42-brat)
+
+It starts to show the following error when you check for updates.
+
+```
+This does not seem to be an obsidian plugin with valid releases, as there are no releases available.
+```
+
+#### [Dataview](https://github.com/blacksmithgu/obsidian-dataview)
+
+
+`dataviewjs` queries with `require` modules
+
+````
+```dataviewjs
+require('foo');
+```
+````
+
+stops working with an error
+
+```
+Evaluation Error: Error: Cannot find module 'foo'
+Require stack:
+- electron/js2c/renderer_init
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1232:15)
+    at a._resolveFilename (node:electron/js2c/renderer_init:2:2643)
+    at Module._load (node:internal/modules/cjs/loader:1058:27)
+    at c._load (node:electron/js2c/node_init:2:16955)
+    at s._load (node:electron/js2c/renderer_init:2:30981)
+    at Module.require (node:internal/modules/cjs/loader:1318:19)
+    at require (node:internal/modules/helpers:179:18)
+    at hf (app://obsidian.md/app.js:1:653429)
+    at s (app://obsidian.md/app.js:1:2271150)
+    at eval (eval at <anonymous> (plugin:dataview), <anonymous>:1:56)
+    at DataviewInlineApi.eval (plugin:dataview:19027:16)
+    at evalInContext (plugin:dataview:19028:7)
+    at asyncEvalInContext (plugin:dataview:19038:32)
+    at DataviewJSRenderer.render (plugin:dataview:19064:19)
+    at DataviewJSRenderer.onload (plugin:dataview:18606:14)
+    at DataviewJSRenderer.load (app://obsidian.md/app.js:1:1214378)
+    at DataviewApi.executeJs (plugin:dataview:19607:18)
+    at DataviewPlugin.dataviewjs (plugin:dataview:20537:18)
+    at eval (plugin:dataview:20415:124)
+    at e.createCodeBlockPostProcessor (app://obsidian.md/app.js:1:1494428)
+    at t.postProcess (app://obsidian.md/app.js:1:1511757)
+    at t.postProcess (app://obsidian.md/app.js:1:1510723)
+    at h (app://obsidian.md/app.js:1:1481846)
+    at e.onRender (app://obsidian.md/app.js:1:1482106)
+```
 
 ## 8.13.2
 
