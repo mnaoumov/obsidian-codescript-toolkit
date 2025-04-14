@@ -5,6 +5,7 @@ import { registerPatch } from 'obsidian-dev-utils/obsidian/MonkeyAround';
 import { join } from 'obsidian-dev-utils/Path';
 import {
   existsSync,
+  Module,
   readFile,
   readFileSync,
   stat,
@@ -18,6 +19,7 @@ import type { Plugin } from '../Plugin.ts';
 import type {
   ModuleType,
   PluginRequireFn,
+  RequireFn,
   RequireOptions
 } from '../RequireHandler.ts';
 
@@ -51,6 +53,8 @@ const asarPackedModuleNames = [
 
 class RequireHandlerImpl extends RequireHandler {
   private nodeBuiltinModules = new Set<string>();
+  private originalModulePrototypeRequire!: RequireFn;
+
   private get fileSystemAdapter(): FileSystemAdapter {
     const adapter = this.plugin.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) {
@@ -63,11 +67,11 @@ class RequireHandlerImpl extends RequireHandler {
   public override register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
     super.register(plugin, pluginRequire);
 
-    const Module = this.originalRequire('node:module') as typeof import('node:module');
-    type ModulePrototypeRequireFn = (typeof Module)['prototype']['require'];
-
     registerPatch(plugin, Module.prototype, {
-      require: (): ModulePrototypeRequireFn => this.requireEx
+      require: (next: RequireFn): RequireFn => {
+        this.originalModulePrototypeRequire = next;
+        return this.requireEx;
+      }
     });
 
     this.nodeBuiltinModules = new Set(Module.builtinModules);
@@ -278,7 +282,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private requireAsarPackedModule(id: string): unknown {
     if (asarPackedModuleNames.includes(id)) {
-      return this.originalRequire(id);
+      return this.originalModulePrototypeRequire(id);
     }
 
     return null;
@@ -286,7 +290,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private requireElectronModule(id: string): unknown {
     if (electronModuleNames.includes(id)) {
-      return this.originalRequire(id);
+      return this.originalModulePrototypeRequire(id);
     }
 
     return null;
@@ -351,13 +355,13 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   }
 
   private requireNodeBinary(path: string): unknown {
-    return this.originalRequire(path) as unknown;
+    return this.originalModulePrototypeRequire(path);
   }
 
   private requireNodeBuiltinModule(id: string): unknown {
     id = trimNodePrefix(id);
     if (this.nodeBuiltinModules.has(id)) {
-      return this.originalRequire(id);
+      return this.originalModulePrototypeRequire(id);
     }
 
     return null;
