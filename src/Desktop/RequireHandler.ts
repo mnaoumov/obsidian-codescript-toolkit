@@ -1,6 +1,7 @@
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 
 import { FileSystemAdapter } from 'obsidian';
+import { registerPatch } from 'obsidian-dev-utils/obsidian/MonkeyAround';
 import { join } from 'obsidian-dev-utils/Path';
 import {
   existsSync,
@@ -63,6 +64,11 @@ class RequireHandlerImpl extends RequireHandler {
     super.register(plugin, pluginRequire);
 
     const Module = this.originalRequire('node:module') as typeof import('node:module');
+    type ModulePrototypeRequireFn = (typeof Module)['prototype']['require'];
+
+    registerPatch(plugin, Module.prototype, {
+      require: (): ModulePrototypeRequireFn => this.requireEx
+    });
 
     this.nodeBuiltinModules = new Set(Module.builtinModules);
   }
