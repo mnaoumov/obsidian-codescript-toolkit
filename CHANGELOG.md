@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 8.16.2
+
+- Avoid circular calls
+
 ## 8.16.1
 
 - Restore patch of Module.prototype.require
