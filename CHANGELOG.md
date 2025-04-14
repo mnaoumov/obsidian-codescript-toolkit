@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.16.1
+
+- Restore patch of Module.prototype.require
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/26.1.2
+
 ## 8.16.0
 
 - Disable protocol URLs by default
