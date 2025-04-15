@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 8.17.0
+
+- Switch styles for dark/light theme
+- Show validation messages
+- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/26.2.0
+- Update CHANGELOG
+- Update CHANGELOG
+
 ## 8.16.2
 
 - Fixed `BRAT` and `Dataview` breakages introduced in [8.14.0](#8140)
