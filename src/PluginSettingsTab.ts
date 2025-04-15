@@ -27,8 +27,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
         this.bind(text, 'modulesRoot', {
           onChanged: () => {
             events.trigger('modulesRootChanged');
-          },
-          shouldShowValidationMessage: false
+          }
         })
           .setPlaceholder('path/to/script/modules/root');
 
@@ -46,9 +45,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
         f.appendText('Leave blank if you don\'t use invocable scripts.');
       }))
       .addText((text) => {
-        this.bind(text, 'invocableScriptsFolder', {
-          shouldShowValidationMessage: false
-        })
+        this.bind(text, 'invocableScriptsFolder')
           .setPlaceholder('path/to/invocable/scripts/folder');
 
         const suggest = addPathSuggest(this.plugin.app, text.inputEl, () => this.plugin.settings.modulesRoot, 'folder');
@@ -70,9 +67,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
         f.appendText('Leave blank if you don\'t use startup script.');
       }))
       .addText((text) => {
-        this.bind(text, 'startupScriptPath', {
-          shouldShowValidationMessage: false
-        })
+        this.bind(text, 'startupScriptPath')
           .setPlaceholder('path/to/startup.ts');
         const suggest = addPathSuggest(this.plugin.app, text.inputEl, () => this.plugin.settings.modulesRoot, 'file');
 
