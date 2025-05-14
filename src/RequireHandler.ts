@@ -2,7 +2,10 @@ import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 import type { Promisable } from 'type-fest';
 
 import { debuggableEval } from 'debuggable-eval';
-import { Platform } from 'obsidian';
+import {
+  Platform,
+  requestUrl
+} from 'obsidian';
 import { noop } from 'obsidian-dev-utils/Function';
 import { normalizeOptionalProperties } from 'obsidian-dev-utils/Object';
 import {

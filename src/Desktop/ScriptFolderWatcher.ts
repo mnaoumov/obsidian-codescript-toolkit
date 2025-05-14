@@ -6,6 +6,7 @@ import type {
 
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { watch } from 'node:fs';
+import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
 import { join } from 'obsidian-dev-utils/Path';
 
