@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.17.1
+
+- Handle race condition
+- Update libs
+
 ## 8.17.0
 
 - Switch styles for dark/light theme
