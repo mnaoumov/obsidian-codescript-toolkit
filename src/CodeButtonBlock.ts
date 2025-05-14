@@ -7,6 +7,7 @@ import type { Promisable } from 'type-fest';
 
 import {
   MarkdownRenderer,
+  Notice,
   Plugin
 } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
