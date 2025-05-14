@@ -193,7 +193,17 @@ export abstract class RequireHandler {
       ({ cleanStr: cleanResolvedId, query } = splitQuery(resolvedId));
     }
 
-    const cachedModuleEntry = this.modulesCache[resolvedId];
+    const RELOAD_TIMEOUT_IN_MILLISECONDS = 2000;
+    const REPEAT_INTERVAL_IN_MILLISECONDS = 100;
+    let cachedModuleEntry: NodeJS.Module | undefined = undefined;
+    const start = performance.now();
+    while (performance.now() - start < RELOAD_TIMEOUT_IN_MILLISECONDS) {
+      cachedModuleEntry = this.modulesCache[resolvedId];
+      if (!cachedModuleEntry || cachedModuleEntry.loaded) {
+        break;
+      }
+      await sleep(REPEAT_INTERVAL_IN_MILLISECONDS);
+    }
 
     if (cachedModuleEntry) {
       if (!cachedModuleEntry.loaded) {
