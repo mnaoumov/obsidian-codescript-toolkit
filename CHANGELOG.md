@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 8.17.2
+
+- Update libs
+
 ## 8.17.1
 
 - Handle race condition
