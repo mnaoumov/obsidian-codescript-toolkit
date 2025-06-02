@@ -1,14 +1,12 @@
-// eslint-disable-next-line import-x/no-nodejs-modules
 import type {
   FSWatcher,
   WatchEventType
-} from 'node:fs';
+} from 'obsidian-dev-utils/ScriptUtils/NodeModules';
 
-// eslint-disable-next-line import-x/no-nodejs-modules
-import { watch } from 'node:fs';
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
 import { join } from 'obsidian-dev-utils/Path';
+import { watch } from 'obsidian-dev-utils/ScriptUtils/NodeModules';
 
 import { ScriptFolderWatcher } from '../ScriptFolderWatcher.ts';
 
