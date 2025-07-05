@@ -20,17 +20,17 @@
   "author": "mnaoumov",
   "license": "MIT",
   "devDependencies": {
-    "@babel/standalone": "^7.27.4",
-    "@babel/types": "^7.27.3",
+    "@babel/standalone": "^7.28.0",
+    "@babel/types": "^7.28.0",
     "@types/babel__standalone": "^7.1.9",
-    "@types/node": "^22.15.29",
-    "babel-plugin-transform-import-meta": "^2.3.2",
+    "@types/node": "^24.0.10",
+    "babel-plugin-transform-import-meta": "^2.3.3",
     "debuggable-eval": "^2.1.1",
     "esbuild": "^0.25.5",
     "jiti": "^2.4.2",
     "obsidian": "^1.8.7",
-    "obsidian-dev-utils": "^27.0.0",
-    "obsidian-typings": "^3.9.5",
+    "obsidian-dev-utils": "^27.4.0",
+    "obsidian-typings": "^3.12.1",
     "type-fest": "^4.41.0"
   },
   "overrides": {
