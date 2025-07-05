@@ -147,7 +147,7 @@ async function invoke(plugin: Plugin, scriptPath: string, isStartup?: boolean): 
     const script = await requireVaultScriptAsync(scriptPath) as Partial<Script>;
     const invokeFn = script.invoke?.bind(script);
     if (typeof invokeFn !== 'function') {
-      throw new Error(`${scriptPath} does not export a function`);
+      throw new Error(`${scriptPath} does not export invoke() function`);
     }
     await invokeFn(app);
     plugin.consoleDebug(`${scriptString} ${scriptPath} executed successfully`);
