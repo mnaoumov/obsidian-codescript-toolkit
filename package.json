@@ -20,6 +20,7 @@
   "author": "mnaoumov",
   "license": "MIT",
   "devDependencies": {
+    "@antfu/utils": "9.2.0",
     "@babel/standalone": "^7.28.0",
     "@babel/types": "^7.28.0",
     "@types/babel__standalone": "^7.1.9",
@@ -34,6 +35,7 @@
     "type-fest": "^4.41.0"
   },
   "overrides": {
+    "@antfu/utils": "$@antfu/utils",
     "esbuild": "$esbuild"
   },
   "type": "module"
