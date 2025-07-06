@@ -395,12 +395,23 @@ await requireAsyncWrapper((require) => {
   protected async requireAsyncWrapper(requireFn: (require: RequireExFn) => Promisable<unknown>, require?: RequireExFn): Promise<unknown> {
     const result = new ExtractRequireArgsListBabelPlugin().transform(requireFn.toString(), 'extract-requires.js');
     const requireArgsList = result.data.requireArgsList;
+    const idErrorMap = new Map<string, Error>();
     for (const requireArgs of requireArgsList) {
       const { id, options } = requireArgs;
       const newOptions = normalizeOptionalProperties<Partial<RequireOptions>>({ parentPath: require?.parentPath, ...options });
-      await this.requireAsync(id, newOptions);
+      try {
+        await this.requireAsync(id, newOptions);
+      } catch (e) {
+        idErrorMap.set(id, e as Error);
+      }
     }
     return await requireFn(this.wrapRequire({
+      beforeRequire: (id: string): void => {
+        const error = idErrorMap.get(id);
+        if (error) {
+          throw error;
+        }
+      },
       optionsToAppend: { cacheInvalidationMode: CacheInvalidationMode.Never },
       require: require ?? this.requireEx
     }));
