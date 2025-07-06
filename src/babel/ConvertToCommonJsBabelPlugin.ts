@@ -1,5 +1,4 @@
 import { transform as babelTransform } from '@babel/standalone';
-// eslint-disable-next-line import-x/no-rename-default
 import babelPluginTransformImportMeta from 'babel-plugin-transform-import-meta';
 
 import type { TransformResult } from './BabelPluginBase.ts';

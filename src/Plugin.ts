@@ -15,6 +15,7 @@ import {
   registerCodeButtonBlock,
   unloadTempPlugins
 } from './CodeButtonBlock.ts';
+import { registerCodeScriptBlock } from './CodeScriptBlock.ts';
 import { getPlatformDependencies } from './PlatformDependencies.ts';
 import { PluginSettingsManager } from './PluginSettingsManager.ts';
 import { PluginSettingsTab } from './PluginSettingsTab.ts';
@@ -73,6 +74,7 @@ export class Plugin extends PluginBase<PluginTypes> {
     this.requireHandler.register(this, require);
 
     registerCodeButtonBlock(this);
+    await registerCodeScriptBlock(this);
     this.addCommand({
       callback: () => selectAndInvokeScript(this),
       id: 'invokeScript',

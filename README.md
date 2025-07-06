@@ -46,7 +46,7 @@ interface RequireOptions {
   parentPath?: string;
 }
 
-type ModuleType = 'json' | 'jsTs' | 'node' | 'wasm';
+type ModuleType = 'json' | 'jsTs' | 'md' | 'node' | 'wasm';
 type RequireAsyncWrapperArg = (require: RequireExFn) => Promise<unknown> | unknown;
 type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
 type RequireFn = (id: string, options?: Partial<RequireOptions>) => unknown;
@@ -397,6 +397,39 @@ You can require content of `.asar` files like if they were folders.
 require('./foo.asar/bar.js');
 ```
 
+### Markdown files
+
+|                      | Desktop | Mobile |
+| -------------------- | ------- | ------ |
+| **`require()`**      | ✔       | ✔      |
+| **`requireAsync()`** | ✔       | ✔      |
+
+You can require content of `.md` files from `code-script` code blocks.
+
+```js
+require('./foo.md'); // require the default script block
+require('./foo.md?codeScriptName=bar'); // require the named script block
+```
+
+**`foo.md`**
+
+````md
+```code-script
+export function baz() {
+}
+```
+
+```code-script
+// codeScriptName: bar
+export function qux() {
+}
+```
+````
+
+The first `code-script` code block in the file is a default script block used when `?codeScriptName=...` part is not specified.
+
+If the first line of the `code-script` code block has special format `// codeScriptName: ...`, this name can be used for query `?codeScriptName=...`.
+
 ### Override module type
 
 |                      | Desktop | Mobile |
@@ -412,10 +445,11 @@ require('./actual-js-file.some-unknown-extension', { moduleType: 'jsTs' });
 
 Possible values:
 
-- `json` - [JSON files](#json-files)
+- `json` - [JSON files](#json-files).
 - `jsTs` - JavaScript/TypeScript files: `.js`/`.cjs`/`.mjs`/`.ts`/`.cts`/`.mts`.
-- `node` - [Node binaries](#node-binaries)
-- `wasm` - [WebAssembly (WASM)](#webassembly-wasm)
+- `md` - Markdown files.
+- `node` - [Node binaries](#node-binaries).
+- `wasm` - [WebAssembly (WASM)](#webassembly-wasm).
 
 ### URLs
 

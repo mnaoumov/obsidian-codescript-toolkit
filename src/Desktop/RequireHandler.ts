@@ -26,6 +26,7 @@ import type {
 import { CacheInvalidationMode } from '../CacheInvalidationMode.ts';
 import {
   ENTRY_POINT,
+  extractCodeScript,
   getModuleTypeFromPath,
   MODULE_NAME_SEPARATOR,
   NODE_MODULES_FOLDER,
@@ -105,7 +106,7 @@ class RequireHandlerImpl extends RequireHandler {
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
-    return (await stat(path)).mtimeMs;
+    return (await stat(splitQuery(path).cleanStr)).mtimeMs;
   }
 
   protected override handleCodeWithTopLevelAwait(path: string): void {
@@ -262,7 +263,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   private getTimestamp(path: string): number {
-    return statSync(path).mtimeMs;
+    return statSync(splitQuery(path).cleanStr).mtimeMs;
   }
 
   private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode: CacheInvalidationMode): string {
@@ -303,6 +304,12 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private requireJsTs(path: string): unknown {
     const code = this.readFile(splitQuery(path).cleanStr);
+    return this.requireString(code, path);
+  }
+
+  private requireMd(path: string): unknown {
+    const md = this.readFile(path);
+    const code = extractCodeScript(md, path);
     return this.requireString(code, path);
   }
 
@@ -392,6 +399,8 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
         return this.requireJson(path);
       case 'jsTs':
         return this.requireJsTs(path);
+      case 'md':
+        return this.requireMd(path);
       case 'node':
         return this.requireNodeBinary(path);
       case 'wasm':

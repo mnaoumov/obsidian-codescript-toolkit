@@ -1,3 +1,4 @@
+import type { Code } from 'mdast';
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 import type { Promisable } from 'type-fest';
 
@@ -22,6 +23,9 @@ import {
   trimStart
 } from 'obsidian-dev-utils/String';
 import { isUrl } from 'obsidian-dev-utils/url';
+import { remark } from 'remark';
+import remarkParse from 'remark-parse';
+import { visit } from 'unist-util-visit';
 
 import type { Plugin } from './Plugin.ts';
 
@@ -36,6 +40,7 @@ import {
   EMPTY_MODULE_SYMBOL
 } from './CachedModuleProxyHandler.ts';
 import { CacheInvalidationMode } from './CacheInvalidationMode.ts';
+import { CODE_SCRIPT_BLOCK_LANGUAGE } from './CodeScriptBlock.ts';
 
 export enum ResolvedType {
   Module = 'module',
@@ -43,7 +48,7 @@ export enum ResolvedType {
   Url = 'url'
 }
 
-export type ModuleType = 'json' | 'jsTs' | 'node' | 'wasm';
+export type ModuleType = 'json' | 'jsTs' | 'md' | 'node' | 'wasm';
 export type PluginRequireFn = (id: string) => unknown;
 export type RequireAsyncWrapperFn = (requireFn: RequireAsyncWrapperArg) => Promise<unknown>;
 export type RequireFn = (id: string, options?: Partial<RequireOptions>) => unknown;
@@ -92,7 +97,7 @@ interface WrapRequireOptions {
 }
 
 export const ENTRY_POINT = '.';
-export const EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
+export const EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts', '.md'];
 export const MODULE_NAME_SEPARATOR = '*';
 export const MODULE_TO_SKIP = Symbol('MODULE_TO_SKIP');
 export const NODE_MODULES_FOLDER = 'node_modules';
@@ -229,6 +234,13 @@ export abstract class RequireHandler {
         default:
           throw new Error('Unknown cacheInvalidationMode');
       }
+    }
+
+    if (cleanResolvedId.endsWith('.md')) {
+      return await this.initModuleAndAddToCacheAsync(
+        resolvedId,
+        () => this.requireNonCachedAsync(resolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
+      );
     }
 
     const module = await this.initModuleAndAddToCacheAsync(
@@ -550,10 +562,11 @@ await requireAsyncWrapper((require) => {
   }
 
   private async findExistingFilePathAsync(path: string): Promise<null | string> {
+    const { cleanStr: cleanPath, query } = splitQuery(path);
     for (const suffix of PATH_SUFFIXES) {
-      const newPath = path + suffix;
+      const newPath = cleanPath + suffix;
       if (await this.existsFileAsync(newPath)) {
-        return newPath;
+        return newPath + query;
       }
     }
 
@@ -774,6 +787,12 @@ await requireAsyncWrapper((require) => {
 ${this.getRequireAsyncAdvice(true)}`);
     }
 
+    if (cleanResolvedId.endsWith('.md')) {
+      return this.initModuleAndAddToCache(
+        resolvedId,
+        () => this.requireNonCached(resolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
+      );
+    }
     const module = this.initModuleAndAddToCache(
       cleanResolvedId,
       () => this.requireNonCached(cleanResolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
@@ -791,6 +810,12 @@ ${this.getRequireAsyncAdvice(true)}`);
 
   private async requireJsTsAsync(path: string, code?: string): Promise<unknown> {
     code ??= await this.readFileAsync(splitQuery(path).cleanStr);
+    return this.requireStringAsync(code, path);
+  }
+
+  private async requireMdAsync(path: string, md?: string): Promise<unknown> {
+    md ??= await this.readFileAsync(splitQuery(path).cleanStr);
+    const code = extractCodeScript(md, path);
     return this.requireStringAsync(code, path);
   }
 
@@ -888,6 +913,8 @@ ${this.getRequireAsyncAdvice(true)}`);
         return this.requireJsonAsync(path);
       case 'jsTs':
         return this.requireJsTsAsync(path);
+      case 'md':
+        return this.requireMdAsync(path);
       case 'node':
         return this.requireNodeBinaryAsync(path);
       case 'wasm':
@@ -906,6 +933,8 @@ ${this.getRequireAsyncAdvice(true)}`);
         return this.requireJsonAsync(url, response.text);
       case 'jsTs':
         return this.requireJsTsAsync(url, response.text);
+      case 'md':
+        return this.requireMdAsync(url, response.text);
       case 'node':
         return this.requireNodeBinaryAsync(url, response.arrayBuffer);
       case 'wasm':
@@ -936,6 +965,49 @@ ${this.getRequireAsyncAdvice(true)}`);
   }
 }
 
+export function extractCodeScript(md: string, path: string): string {
+  const processor = remark().use(remarkParse);
+  const root = processor.parse(md);
+
+  const codes: Code[] = [];
+
+  visit(root, 'code', (code: Code) => {
+    if (code.lang !== CODE_SCRIPT_BLOCK_LANGUAGE) {
+      return;
+    }
+
+    codes.push(code);
+  });
+
+  codes.sort((a, b) => (a.position?.start.offset ?? 0) - (b.position?.start.offset ?? 0));
+
+  if (codes.length === 0) {
+    throw new Error(`No ${CODE_SCRIPT_BLOCK_LANGUAGE} code block found in ${path}`);
+  }
+
+  const query = splitQuery(path).query;
+
+  if (!query) {
+    return codes[0]?.value ?? '';
+  }
+
+  const match = /^\?codeScriptName=(?<CodeScriptName>\S+)$/.exec(query);
+
+  if (!match) {
+    throw new Error(`Invalid query: ${query}`);
+  }
+
+  const codeScriptName = match.groups?.['CodeScriptName'] ?? '';
+
+  const code = codes.find((c) => c.value.startsWith(`// codeScriptName: ${codeScriptName}\n`));
+
+  if (!code) {
+    throw new Error(`Code script with name ${codeScriptName} not found in ${path}`);
+  }
+
+  return code.value;
+}
+
 export function getModuleTypeFromPath(path: string): ModuleType {
   const ext = extname(splitQuery(path).cleanStr);
   switch (ext) {
@@ -948,6 +1020,8 @@ export function getModuleTypeFromPath(path: string): ModuleType {
       return 'jsTs';
     case '.json':
       return 'json';
+    case '.md':
+      return 'md';
     case '.node':
       return 'node';
     case '.wasm':
@@ -990,6 +1064,8 @@ function getModuleTypeFromContentType(contentType: string | undefined, url: stri
       return 'node';
     case 'application/wasm':
       return 'wasm';
+    case 'text/markdown':
+      return 'md';
     default:
       console.warn(`URL: ${url} returned unsupported content type: ${contentType}.
 Assuming it's a JavaScript/TypeScript file.
