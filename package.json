@@ -29,10 +29,14 @@
     "debuggable-eval": "^2.1.1",
     "esbuild": "^0.25.5",
     "jiti": "^2.4.2",
+    "mdast": "^2.3.2",
     "obsidian": "^1.8.7",
     "obsidian-dev-utils": "^27.4.0",
     "obsidian-typings": "^3.12.1",
-    "type-fest": "^4.41.0"
+    "remark": "^15.0.1",
+    "remark-parse": "^11.0.0",
+    "type-fest": "^4.41.0",
+    "unist-util-visit": "^5.0.0"
   },
   "overrides": {
     "@antfu/utils": "$@antfu/utils",
