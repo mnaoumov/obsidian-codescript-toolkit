@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 8.18.0
+
+- Add support for requireAsync optional deps
+- Add support for markdown files
+- Specify error message
+- Update libs
+
 ## 8.17.4
 
 - Update libs
