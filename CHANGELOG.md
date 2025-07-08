@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 8.18.1
+
+- Make markdown module support typescript syntax
+
 ## 8.18.0
 
 - Add support for requireAsync optional deps
