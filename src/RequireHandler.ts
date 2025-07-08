@@ -827,7 +827,8 @@ ${this.getRequireAsyncAdvice(true)}`);
   private async requireMdAsync(path: string, md?: string): Promise<unknown> {
     md ??= await this.readFileAsync(splitQuery(path).cleanStr);
     const code = extractCodeScript(md, path);
-    return this.requireStringAsync(code, path);
+    const codeScriptName = getCodeScriptName(path) || '(default)';
+    return this.requireStringAsync(code, `${path}.code-script.${codeScriptName}.ts`);
   }
 
   private async requireModuleAsync(
@@ -996,10 +997,25 @@ export function extractCodeScript(md: string, path: string): string {
     throw new Error(`No ${CODE_SCRIPT_BLOCK_LANGUAGE} code block found in ${path}`);
   }
 
+  const codeScriptName = getCodeScriptName(path);
+
+  if (!codeScriptName) {
+    return codes[0]?.value ?? '';
+  }
+
+  const code = codes.find((c) => c.value.startsWith(`// codeScriptName: ${codeScriptName}\n`));
+  if (!code) {
+    throw new Error(`Code script with name ${codeScriptName} not found in ${path}`);
+  }
+
+  return code.value;
+}
+
+export function getCodeScriptName(path: string): string {
   const query = splitQuery(path).query;
 
   if (!query) {
-    return codes[0]?.value ?? '';
+    return '';
   }
 
   const match = /^\?codeScriptName=(?<CodeScriptName>\S+)$/.exec(query);
@@ -1008,15 +1024,7 @@ export function extractCodeScript(md: string, path: string): string {
     throw new Error(`Invalid query: ${query}`);
   }
 
-  const codeScriptName = match.groups?.['CodeScriptName'] ?? '';
-
-  const code = codes.find((c) => c.value.startsWith(`// codeScriptName: ${codeScriptName}\n`));
-
-  if (!code) {
-    throw new Error(`Code script with name ${codeScriptName} not found in ${path}`);
-  }
-
-  return code.value;
+  return match.groups?.['CodeScriptName'] ?? '';
 }
 
 export function getModuleTypeFromPath(path: string): ModuleType {
