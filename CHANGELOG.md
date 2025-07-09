@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 8.18.2
+
+- window.setTimeout
+
 ## 8.18.1
 
 - Make markdown module support typescript syntax
