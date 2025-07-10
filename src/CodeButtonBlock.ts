@@ -79,7 +79,9 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync(
       script,
-      `${options.plugin.app.vault.adapter.getFullPath(options.sourcePath).replaceAll('\\', '/')}.code-button.${options.buttonIndex.toString()}.${options.caption}.ts`
+      `${
+        options.plugin.app.vault.adapter.getFullPath(options.sourcePath).replaceAll('\\', '/')
+      }.code-button.${options.buttonIndex.toString()}.${options.caption}.ts`
     ) as CodeButtonBlockScriptWrapper;
     await codeButtonBlockScriptWrapper(
       makeRegisterTempPluginFn(options.plugin),
