@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.18.3
+
+- Ensure different code buttons don't collide (Fixes #18)
+- Update libs
+
 ## 8.18.2
 
 - window.setTimeout
