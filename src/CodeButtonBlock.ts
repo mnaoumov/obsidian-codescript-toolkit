@@ -136,10 +136,11 @@ function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement,
       ...rest
     ] = getCodeBlockArguments(ctx, el);
 
-    const shouldAutoRun = rest.includes('autorun') || rest.includes('autorun:true');
-    const shouldWrapConsole = !rest.includes('console:false');
-    const shouldAutoOutput = !rest.includes('autoOutput:false');
-    const shouldShowSystemMessages = !rest.includes('systemMessages:false');
+    const isRaw = rest.includes('raw');
+    const shouldAutoRun = isRaw || rest.includes('autorun') || rest.includes('autorun:true');
+    const shouldWrapConsole = !isRaw && !rest.includes('console:false');
+    const shouldAutoOutput = !isRaw && !rest.includes('autoOutput:false');
+    const shouldShowSystemMessages = !isRaw && !rest.includes('systemMessages:false');
 
     const lines = sectionInfo.text.split('\n');
     const previousLines = lines.slice(0, sectionInfo.lineStart);
@@ -150,7 +151,7 @@ function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement,
       buttonIndex,
       caption,
       plugin,
-      resultEl,
+      resultEl: isRaw ? el : resultEl,
       shouldAutoOutput,
       shouldShowSystemMessages,
       shouldWrapConsole,
@@ -158,14 +159,16 @@ function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement,
       sourcePath: ctx.sourcePath
     };
 
-    el.createEl('button', {
-      cls: 'mod-cta',
-      async onclick(): Promise<void> {
-        await handleClick(handleClickOptions);
-      },
-      prepend: true,
-      text: caption
-    });
+    if (!isRaw) {
+      el.createEl('button', {
+        cls: 'mod-cta',
+        async onclick(): Promise<void> {
+          await handleClick(handleClickOptions);
+        },
+        prepend: true,
+        text: caption
+      });
+    }
 
     if (shouldAutoRun) {
       invokeAsyncSafely(() => handleClick(handleClickOptions));

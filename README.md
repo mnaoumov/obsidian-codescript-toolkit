@@ -825,6 +825,20 @@ await renderMarkdown('**Hello, world!**');
 ```
 ````
 
+### Raw mode
+
+| Desktop | Mobile |
+| ------- | ------ |
+| ✔       | ✔      |
+
+Code buttons in raw mode show only the output container. Button itself, console output, system messages are hidden.
+
+````markdown
+```code-button "" raw
+await renderMarkdown('**Hello, world!**');
+```
+````
+
 ### Temp plugins
 
 | Desktop | Mobile |
