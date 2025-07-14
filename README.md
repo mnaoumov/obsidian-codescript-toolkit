@@ -721,7 +721,7 @@ To fix that, you can:
 - Modify the code block content.
 - Reopen the note.
 - Reload the plugin.
-- Use the [Refresh Preview](https://obsidian.md/plugins?id=refresh-preview) plugin.
+- Use the [Refresh Any View](https://obsidian.md/plugins?id=refresh-preview) plugin.
 
 ### Console messages
 
