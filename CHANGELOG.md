@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 8.20.0
+
+- Fix wrong mobile support doc
+- Add sourceFile (#20)
+- Update libs
+
 ## 8.19.0
 
 - Rename Refresh Any View
