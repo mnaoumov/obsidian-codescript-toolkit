@@ -825,6 +825,20 @@ await renderMarkdown('**Hello, world!**');
 ```
 ````
 
+### Source file
+
+| Desktop | Mobile |
+| ------- | ------ |
+| ✔       | ✔      |
+
+Within code block you have access to the `sourceFile` variable which represents the note file that contains the code block.
+
+````markdown
+```code-button "Print sourceFile"
+console.log(sourceFile);
+```
+````
+
 ### Raw mode
 
 | Desktop | Mobile |
