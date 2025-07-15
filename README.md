@@ -757,7 +757,7 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✖      |
+| ✔       | ✔      |
 
 Code blocks automatically output the last evaluated expression.
 
@@ -785,7 +785,7 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✖      |
+| ✔       | ✔      |
 
 Code blocks can be configured to run automatically when the note is opened using the `autorun` or `autorun:true` setting.
 
@@ -801,7 +801,7 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✖      |
+| ✔       | ✔      |
 
 Within code block you have access to the `container` HTML element that wraps the results panel.
 
@@ -815,7 +815,7 @@ container.createEl('button', { text: 'Click me!' });
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✖      |
+| ✔       | ✔      |
 
 Within code block you have access to the `renderMarkdown()` function that renders markdown in the results panel.
 
