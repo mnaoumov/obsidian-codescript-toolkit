@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 8.20.1
+
+- Fix incorrect detection `node:foo` as url module
+
 ## 8.20.0
 
 - Fix wrong mobile support doc
