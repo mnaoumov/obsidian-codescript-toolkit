@@ -100,6 +100,7 @@ export const ENTRY_POINT = '.';
 export const EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts', '.md'];
 export const MODULE_NAME_SEPARATOR = '*';
 export const MODULE_TO_SKIP = Symbol('MODULE_TO_SKIP');
+const NODE_BUILTIN_MODULE_PREFIX = 'node:';
 export const NODE_MODULES_FOLDER = 'node_modules';
 const PACKAGE_JSON = 'package.json';
 export const PATH_SUFFIXES = ['', ...EXTENSIONS, ...EXTENSIONS.map((ext) => `/index${ext}`)];
@@ -470,6 +471,10 @@ await requireAsyncWrapper((require) => {
 
   protected resolve(id: string, parentPath?: string): ResolveResult {
     id = toPosixPath(id);
+
+    if (id.startsWith(NODE_BUILTIN_MODULE_PREFIX)) {
+      return { resolvedId: id, resolvedType: ResolvedType.Path };
+    }
 
     if (isUrl(id)) {
       const FILE_URL_PREFIX = 'file:///';
@@ -1059,7 +1064,6 @@ export function splitQuery(str: string): SplitQueryResult {
 }
 
 export function trimNodePrefix(id: string): string {
-  const NODE_BUILTIN_MODULE_PREFIX = 'node:';
   return trimStart(id, NODE_BUILTIN_MODULE_PREFIX);
 }
 
