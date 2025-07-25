@@ -698,7 +698,7 @@ await requireAsyncWrapper((require) => {
     const callStackMatch = callStackLines.at(CALLER_LINE_INDEX)?.match(/^ {4}at .+? \((?<ParentPath>.+?):\d+:\d+\)$/);
     const parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
 
-    if (parentPath?.includes('<anonymous>')) {
+    if (parentPath?.includes('<anonymous>') || parentPath?.startsWith('plugin:')) {
       return null;
     }
 
