@@ -41,6 +41,7 @@ import {
 } from './CachedModuleProxyHandler.ts';
 import { CacheInvalidationMode } from './CacheInvalidationMode.ts';
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from './CodeScriptBlock.ts';
+import { getCodeScriptToolkitNoteSettingsFromContent } from './CodeScriptToolkitNoteSettings.ts';
 
 export enum ResolvedType {
   Module = 'module',
@@ -61,6 +62,11 @@ export interface RequireOptions {
 
 interface EmptyModule {
   [EMPTY_MODULE_SYMBOL]: boolean;
+}
+
+interface ExtractCodeScriptResult {
+  code: string;
+  codeScriptName: string | undefined;
 }
 
 type ModuleFnWrapper = (
@@ -831,9 +837,8 @@ ${this.getRequireAsyncAdvice(true)}`);
 
   private async requireMdAsync(path: string, md?: string): Promise<unknown> {
     md ??= await this.readFileAsync(splitQuery(path).cleanStr);
-    const code = extractCodeScript(md, path);
-    const codeScriptName = getCodeScriptName(path) || '(default)';
-    return this.requireStringAsync(code, `${path}.code-script.${codeScriptName}.ts`);
+    const { code, codeScriptName } = extractCodeScript(md, path);
+    return this.requireStringAsync(code, `${path}.code-script.${codeScriptName ?? '(default)'}.ts`);
   }
 
   private async requireModuleAsync(
@@ -982,7 +987,7 @@ ${this.getRequireAsyncAdvice(true)}`);
   }
 }
 
-export function extractCodeScript(md: string, path: string): string {
+export function extractCodeScript(md: string, path: string): ExtractCodeScriptResult {
   const processor = remark().use(remarkParse);
   const root = processor.parse(md);
 
@@ -1002,10 +1007,10 @@ export function extractCodeScript(md: string, path: string): string {
     throw new Error(`No ${CODE_SCRIPT_BLOCK_LANGUAGE} code block found in ${path}`);
   }
 
-  const codeScriptName = getCodeScriptName(path);
+  const codeScriptName = getCodeScriptName(md, path);
 
   if (!codeScriptName) {
-    return codes[0]?.value ?? '';
+    return { code: codes[0]?.value ?? '', codeScriptName: undefined };
   }
 
   const code = codes.find((c) => c.value.startsWith(`// codeScriptName: ${codeScriptName}\n`));
@@ -1013,23 +1018,7 @@ export function extractCodeScript(md: string, path: string): string {
     throw new Error(`Code script with name ${codeScriptName} not found in ${path}`);
   }
 
-  return code.value;
-}
-
-export function getCodeScriptName(path: string): string {
-  const query = splitQuery(path).query;
-
-  if (!query) {
-    return '';
-  }
-
-  const match = /^\?codeScriptName=(?<CodeScriptName>\S+)$/.exec(query);
-
-  if (!match) {
-    throw new Error(`Invalid query: ${query}`);
-  }
-
-  return match.groups?.['CodeScriptName'] ?? '';
+  return { code: code.value, codeScriptName };
 }
 
 export function getModuleTypeFromPath(path: string): ModuleType {
@@ -1073,6 +1062,23 @@ function convertPathToObsidianUrl(path: string): string {
   }
 
   return Platform.resourcePathPrefix + path.replaceAll('\\', '/');
+}
+
+function getCodeScriptName(md: string, path: string): string | undefined {
+  const query = splitQuery(path).query;
+
+  if (!query) {
+    const settings = getCodeScriptToolkitNoteSettingsFromContent(md);
+    return settings.defaultCodeScriptName;
+  }
+
+  const match = /^\?codeScriptName=(?<CodeScriptName>\S+)$/.exec(query);
+
+  if (!match) {
+    throw new Error(`Invalid query: ${query}`);
+  }
+
+  return match.groups?.['CodeScriptName'];
 }
 
 function getModuleTypeFromContentType(contentType: string | undefined, url: string): ModuleType {

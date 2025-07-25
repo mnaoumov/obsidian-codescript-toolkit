@@ -1,16 +1,18 @@
-import type {
-  App,
-  DataAdapter
-} from 'obsidian';
+import type { App } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 import { Notice } from 'obsidian';
 import { printError } from 'obsidian-dev-utils/Error';
+import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/FileSystem';
 import { selectItem } from 'obsidian-dev-utils/obsidian/Modals/SelectItem';
-import { basename } from 'obsidian-dev-utils/Path';
+import {
+  basename,
+  join
+} from 'obsidian-dev-utils/Path';
 
 import type { Plugin } from './Plugin.ts';
 
+import { getCodeScriptToolkitNoteSettings } from './CodeScriptToolkitNoteSettings.ts';
 import { requireVaultScriptAsync } from './RequireHandlerUtils.ts';
 
 interface CleanupScript extends Script {
@@ -62,7 +64,7 @@ export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
     return;
   }
 
-  const scriptFiles = await getAllScriptFiles(plugin.app.vault.adapter, plugin.settings.getInvocableScriptsFolder(), '');
+  const scriptFiles = await getAllScriptFiles(plugin.app, plugin.settings.getInvocableScriptsFolder(), '');
 
   for (const scriptFile of scriptFiles) {
     plugin.addCommand({
@@ -93,7 +95,7 @@ export async function selectAndInvokeScript(plugin: Plugin): Promise<void> {
   if (!invocableScriptsFolder) {
     scriptFiles = ['Error: No Invocable scripts folder specified in the settings'];
   } else if (await app.vault.adapter.exists(invocableScriptsFolder)) {
-    scriptFiles = await getAllScriptFiles(app.vault.adapter, invocableScriptsFolder, '');
+    scriptFiles = await getAllScriptFiles(app, invocableScriptsFolder, '');
   } else {
     scriptFiles = [`Error: Invocable scripts folder not found: ${invocableScriptsFolder}`];
   }
@@ -115,17 +117,19 @@ export async function selectAndInvokeScript(plugin: Plugin): Promise<void> {
   }
 }
 
-async function getAllScriptFiles(adapter: DataAdapter, scriptsFolder: string, folder: string): Promise<string[]> {
+async function getAllScriptFiles(app: App, scriptsFolder: string, folder: string): Promise<string[]> {
+  const adapter = app.vault.adapter;
   const files: string[] = [];
   const listedFiles = await adapter.list(`${scriptsFolder}/${folder}`);
   for (const fileName of getSortedBaseNames(listedFiles.files)) {
+    const path = join(scriptsFolder, folder, fileName);
     const lowerCasedFileName = fileName.toLowerCase();
-    if (extensions.some((ext) => lowerCasedFileName.endsWith(ext))) {
+    if (await isInvocableMarkdownFile(app, path) || extensions.some((ext) => lowerCasedFileName.endsWith(ext))) {
       files.push(folder ? `${folder}/${fileName}` : fileName);
     }
   }
   for (const folderName of getSortedBaseNames(listedFiles.folders)) {
-    const subFiles = await getAllScriptFiles(adapter, scriptsFolder, folder ? `${folder}/${folderName}` : folderName);
+    const subFiles = await getAllScriptFiles(app, scriptsFolder, folder ? `${folder}/${folderName}` : folderName);
     files.push(...subFiles);
   }
 
@@ -144,6 +148,16 @@ async function invoke(plugin: Plugin, scriptPath: string, isStartup?: boolean): 
     if (!await app.vault.adapter.exists(scriptPath)) {
       throw new Error(`Script not found: ${scriptPath}`);
     }
+
+    if (isMarkdownFile(app, scriptPath)) {
+      const settings = await getCodeScriptToolkitNoteSettings(app, scriptPath);
+      if (!settings.isInvocable) {
+        throw new Error(`Script is not invocable: ${scriptPath}`);
+      }
+      if (settings.invocableCodeScriptName) {
+        scriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
+      }
+    }
     const script = await requireVaultScriptAsync(scriptPath) as Partial<Script>;
     const invokeFn = script.invoke?.bind(script);
     if (typeof invokeFn !== 'function') {
@@ -156,6 +170,10 @@ async function invoke(plugin: Plugin, scriptPath: string, isStartup?: boolean): 
 See console for details...`);
     printError(new Error(`Error invoking ${scriptString} ${scriptPath}`, { cause: error }));
   }
+}
+
+async function isInvocableMarkdownFile(app: App, path: string): Promise<boolean> {
+  return !!(await getCodeScriptToolkitNoteSettings(app, path)).isInvocable;
 }
 
 async function validateStartupScript(plugin: Plugin, shouldWarnOnNotConfigured = false): Promise<null | string> {

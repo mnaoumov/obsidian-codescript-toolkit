@@ -415,13 +415,13 @@ require('./foo.md?codeScriptName=bar'); // require the named script block
 
 ````md
 ```code-script
-export function baz() {
+export function baz(): void {
 }
 ```
 
 ```code-script
 // codeScriptName: bar
-export function qux() {
+export function qux(): void {
 }
 ```
 ````
@@ -429,6 +429,21 @@ export function qux() {
 The first `code-script` code block in the file is a default script block used when `?codeScriptName=...` part is not specified.
 
 If the first line of the `code-script` code block has special format `// codeScriptName: ...`, this name can be used for query `?codeScriptName=...`.
+
+You can customize behavior via frontmatter of the note.
+
+````md
+---
+codeScriptToolkit:
+  defaultCodeScriptName: foo
+  invocableCodeScriptName: bar
+  isInvocable: true
+---
+````
+
+- `defaultCodeScriptName` - name of the code block to be used when `?codeScriptName=...` part is not specified.
+- `invocableCodeScriptName` - name of the code block to be used when running the note via [Invoke Scripts](#invoke-scripts).
+- `isInvocable` - whether to add the current note into the list for [Invoke Scripts](#invoke-scripts) commands.
 
 ### Override module type
 
