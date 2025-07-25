@@ -18,6 +18,7 @@
     "Dataview",
     "dataviewjs",
     "evaled",
+    "frontmatter",
     "hotreload",
     "Invocables",
     "lezer",

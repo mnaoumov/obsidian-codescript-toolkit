@@ -27,7 +27,6 @@ import { CacheInvalidationMode } from '../CacheInvalidationMode.ts';
 import {
   ENTRY_POINT,
   extractCodeScript,
-  getCodeScriptName,
   getModuleTypeFromPath,
   MODULE_NAME_SEPARATOR,
   NODE_MODULES_FOLDER,
@@ -310,9 +309,8 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private requireMd(path: string): unknown {
     const md = this.readFile(path);
-    const code = extractCodeScript(md, path);
-    const codeScriptName = getCodeScriptName(path) || '(default)';
-    return this.requireString(code, `${path}.code-script.${codeScriptName}.ts`);
+    const { code, codeScriptName } = extractCodeScript(md, path);
+    return this.requireString(code, `${path}.code-script.${codeScriptName ?? '(default)'}.ts`);
   }
 
   private requireModule(moduleName: string, parentFolder: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
