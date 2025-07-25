@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.21.0
+
+- Allow invocable md scripts (#21)
+- Update libs
+
 ## 8.20.1
 
 - Fix incorrect detection `node:foo` as url module
