@@ -69,7 +69,7 @@ export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
   for (const scriptFile of scriptFiles) {
     plugin.addCommand({
       callback: async () => {
-        await invoke(plugin, `${invocableScriptsFolder}/${scriptFile}`);
+        await invoke(plugin, join(invocableScriptsFolder, scriptFile));
       },
       id: `${COMMAND_NAME_PREFIX}${scriptFile}`,
       name: `Invoke Script: ${scriptFile}`
@@ -113,23 +113,23 @@ export async function selectAndInvokeScript(plugin: Plugin): Promise<void> {
   }
 
   if (!scriptFile.startsWith('Error:')) {
-    await invoke(plugin, `${invocableScriptsFolder}/${scriptFile}`);
+    await invoke(plugin, join(invocableScriptsFolder, scriptFile));
   }
 }
 
 async function getAllScriptFiles(app: App, scriptsFolder: string, folder: string): Promise<string[]> {
   const adapter = app.vault.adapter;
   const files: string[] = [];
-  const listedFiles = await adapter.list(`${scriptsFolder}/${folder}`);
+  const listedFiles = await adapter.list(join(scriptsFolder, folder));
   for (const fileName of getSortedBaseNames(listedFiles.files)) {
     const path = join(scriptsFolder, folder, fileName);
     const lowerCasedFileName = fileName.toLowerCase();
     if (await isInvocableMarkdownFile(app, path) || extensions.some((ext) => lowerCasedFileName.endsWith(ext))) {
-      files.push(folder ? `${folder}/${fileName}` : fileName);
+      files.push(join(folder, fileName));
     }
   }
   for (const folderName of getSortedBaseNames(listedFiles.folders)) {
-    const subFiles = await getAllScriptFiles(app, scriptsFolder, folder ? `${folder}/${folderName}` : folderName);
+    const subFiles = await getAllScriptFiles(app, scriptsFolder, join(folder, folderName));
     files.push(...subFiles);
   }
 
