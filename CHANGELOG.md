@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.21.1
+
+- Handle nested require calls (#22)
+- Escape button captions into valid temp file names (#22)
+
 ## 8.21.0
 
 - Allow invocable md scripts (#21)
