@@ -71,9 +71,10 @@ interface ExtractCodeScriptResult {
 
 type ModuleFnWrapper = (
   require: NodeJS.Require,
+  requireAsync: RequireAsyncFn,
+  requireAsyncWrapper: RequireAsyncWrapperFn,
   module: { exports: unknown },
-  exports: unknown,
-  requireAsyncWrapper: RequireAsyncWrapperFn
+  exports: unknown
 ) => Promisable<void>;
 type RequireAsyncFn = (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
 type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
@@ -466,8 +467,9 @@ await requireAsyncWrapper((require) => {
     const moduleFnWrapper = debuggableEval(transformResult.transformedCode, `${options.evalPrefix}/${options.path}${options.urlSuffix}`) as ModuleFnWrapper;
     const module = { exports: {} };
     const childRequire = this.makeChildRequire(options.path);
+    const childRequireAsync = this.makeChildRequireAsync(options.path);
     // eslint-disable-next-line import-x/no-commonjs
-    const promisable = moduleFnWrapper(childRequire, module, module.exports, this.requireAsyncWrapper.bind(this));
+    const promisable = moduleFnWrapper(childRequire, childRequireAsync, this.requireAsyncWrapper.bind(this), module, module.exports);
     return {
       // eslint-disable-next-line import-x/no-commonjs
       exportsFn: () => module.exports,
@@ -738,6 +740,16 @@ await requireAsyncWrapper((require) => {
 
   private isEmptyModule(module: unknown): boolean {
     return (module as Partial<EmptyModule> | undefined)?.[EMPTY_MODULE_SYMBOL] === true;
+  }
+
+  private makeChildRequireAsync(parentPath: string): RequireAsyncFn {
+    const that = this;
+    return wrapped;
+
+    async function wrapped(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
+      const newOptions = normalizeOptionalProperties<Partial<RequireOptions>>({ parentPath, ...options });
+      return await that.requireAsync(id, newOptions);
+    }
   }
 
   private async readPackageJsonAsync(path: string): Promise<PackageJson> {

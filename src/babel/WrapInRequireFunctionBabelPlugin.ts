@@ -51,9 +51,10 @@ export class WrapInRequireFunctionBabelPlugin extends BabelPluginBase {
           identifier('scriptWrapper'),
           [
             identifier('require'),
+            identifier('requireAsync'),
+            identifier('requireAsyncWrapper'),
             identifier('module'),
-            identifier('exports'),
-            identifier('requireAsyncWrapper')
+            identifier('exports')
           ],
           blockStatement(wrapperBody),
           false,
