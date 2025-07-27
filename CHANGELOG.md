@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 8.22.0
+
+- Pass parentPath to requireAsync (#22)
+
 ## 8.21.1
 
 - Handle nested require calls (#22)
