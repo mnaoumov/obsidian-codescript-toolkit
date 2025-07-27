@@ -357,78 +357,13 @@ await requireAsyncWrapper((require) => {
     }
   }
 
-  protected async initModuleAndAddToCacheAsync(id: string, moduleInitializer: () => Promise<unknown>): Promise<unknown> {
-    if (!this.modulesCache[id] || this.modulesCache[id].loaded) {
-      this.deleteCacheEntry(id);
-      this.addToModuleCache(id, this.createEmptyModule(id), false);
-    }
-    try {
-      const module = await moduleInitializer();
-      const cachedModule = this.getCachedModule(id);
-      if (cachedModule) {
-        return cachedModule;
-      }
-      if (!this.isEmptyModule(module)) {
-        this.addToModuleCache(id, module);
-      }
-      return module;
-    } catch (e) {
-      this.deleteCacheEntry(id);
-      throw e;
-    }
-  }
-
-  protected isJson(path: string): boolean {
-    return splitQuery(path).cleanStr.endsWith('.json');
-  }
-
-  protected makeChildRequire(parentPath: string): RequireExFn {
-    return this.wrapRequire({
-      beforeRequire: (id: string): void => {
-        let dependencies = this.moduleDependencies.get(parentPath);
-        if (!dependencies) {
-          dependencies = new Set<string>();
-          this.moduleDependencies.set(parentPath, dependencies);
-        }
-        dependencies.add(id);
-      },
-      optionsToPrepend: { parentPath },
-      require: this.requireEx
-    });
-  }
-
   protected abstract readFileAsync(path: string): Promise<string>;
-  protected abstract readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
 
-  protected async requireAsyncWrapper(requireFn: (require: RequireExFn) => Promisable<unknown>, require?: RequireExFn): Promise<unknown> {
-    const result = new ExtractRequireArgsListBabelPlugin().transform(requireFn.toString(), 'extract-requires.js');
-    const requireArgsList = result.data.requireArgsList;
-    const idErrorMap = new Map<string, Error>();
-    for (const requireArgs of requireArgsList) {
-      const { id, options } = requireArgs;
-      const newOptions = normalizeOptionalProperties<Partial<RequireOptions>>({ parentPath: require?.parentPath, ...options });
-      try {
-        await this.requireAsync(id, newOptions);
-      } catch (e) {
-        idErrorMap.set(id, e as Error);
-      }
-    }
-    return await requireFn(this.wrapRequire({
-      beforeRequire: (id: string): void => {
-        const error = idErrorMap.get(id);
-        if (error) {
-          throw error;
-        }
-      },
-      optionsToAppend: { cacheInvalidationMode: CacheInvalidationMode.Never },
-      require: require ?? this.requireEx
-    }));
-  }
+  protected abstract readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
 
   protected abstract requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown>;
 
   protected abstract requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown;
-
   protected requireSpecialModule(id: string): unknown {
     if (id === 'obsidian/app') {
       return this.plugin.app;
@@ -738,8 +673,44 @@ await requireAsyncWrapper((require) => {
     return ans;
   }
 
+  private async initModuleAndAddToCacheAsync(id: string, moduleInitializer: () => Promise<unknown>): Promise<unknown> {
+    if (!this.modulesCache[id] || this.modulesCache[id].loaded) {
+      this.deleteCacheEntry(id);
+      this.addToModuleCache(id, this.createEmptyModule(id), false);
+    }
+    try {
+      const module = await moduleInitializer();
+      const cachedModule = this.getCachedModule(id);
+      if (cachedModule) {
+        return cachedModule;
+      }
+      if (!this.isEmptyModule(module)) {
+        this.addToModuleCache(id, module);
+      }
+      return module;
+    } catch (e) {
+      this.deleteCacheEntry(id);
+      throw e;
+    }
+  }
+
   private isEmptyModule(module: unknown): boolean {
     return (module as Partial<EmptyModule> | undefined)?.[EMPTY_MODULE_SYMBOL] === true;
+  }
+
+  private makeChildRequire(parentPath: string): RequireExFn {
+    return this.wrapRequire({
+      beforeRequire: (id: string): void => {
+        let dependencies = this.moduleDependencies.get(parentPath);
+        if (!dependencies) {
+          dependencies = new Set<string>();
+          this.moduleDependencies.set(parentPath, dependencies);
+        }
+        dependencies.add(id);
+      },
+      optionsToPrepend: { parentPath },
+      require: this.requireEx
+    });
   }
 
   private makeChildRequireAsync(parentPath: string): RequireAsyncFn {
@@ -835,6 +806,31 @@ ${this.getRequireAsyncAdvice(true)}`);
       this.initModuleAndAddToCache(resolvedId, () => module);
     }
     return module;
+  }
+
+  private async requireAsyncWrapper(requireFn: (require: RequireExFn) => Promisable<unknown>, require?: RequireExFn): Promise<unknown> {
+    const result = new ExtractRequireArgsListBabelPlugin().transform(requireFn.toString(), 'extract-requires.js');
+    const requireArgsList = result.data.requireArgsList;
+    const idErrorMap = new Map<string, Error>();
+    for (const requireArgs of requireArgsList) {
+      const { id, options } = requireArgs;
+      const newOptions = normalizeOptionalProperties<Partial<RequireOptions>>({ parentPath: require?.parentPath, ...options });
+      try {
+        await this.requireAsync(id, newOptions);
+      } catch (e) {
+        idErrorMap.set(id, e as Error);
+      }
+    }
+    return await requireFn(this.wrapRequire({
+      beforeRequire: (id: string): void => {
+        const error = idErrorMap.get(id);
+        if (error) {
+          throw error;
+        }
+      },
+      optionsToAppend: { cacheInvalidationMode: CacheInvalidationMode.Never },
+      require: require ?? this.requireEx
+    }));
   }
 
   private async requireJsonAsync(path: string, jsonStr?: string): Promise<unknown> {
