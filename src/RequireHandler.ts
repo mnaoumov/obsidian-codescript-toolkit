@@ -34,7 +34,6 @@ import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlug
 import { ExtractRequireArgsListBabelPlugin } from './babel/ExtractRequireArgsListBabelPlugin.ts';
 import { FixSourceMapBabelPlugin } from './babel/FixSourceMapBabelPlugin.ts';
 import { WrapInRequireFunctionBabelPlugin } from './babel/WrapInRequireFunctionBabelPlugin.ts';
-import { builtInModuleNames } from './BuiltInModuleNames.ts';
 import {
   CachedModuleProxyHandler,
   EMPTY_MODULE_SYMBOL
@@ -42,10 +41,17 @@ import {
 import { CacheInvalidationMode } from './CacheInvalidationMode.ts';
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from './CodeScriptBlock.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from './CodeScriptToolkitNoteSettings.ts';
+import {
+  ASAR_PACKED_MODULE_NAMES,
+  ELECTRON_MODULE_NAMES,
+  NODE_BUILT_IN_MODULE_NAMES,
+  OBSIDIAN_BUILT_IN_MODULE_NAMES
+} from './SpecialPluginNames.ts';
 
 export enum ResolvedType {
   Module = 'module',
   Path = 'path',
+  SpecialModule = 'specialModule',
   Url = 'url'
 }
 
@@ -106,8 +112,6 @@ interface WrapRequireOptions {
 export const ENTRY_POINT = '.';
 export const EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts', '.md'];
 export const MODULE_NAME_SEPARATOR = '*';
-export const MODULE_TO_SKIP = Symbol('MODULE_TO_SKIP');
-const NODE_BUILTIN_MODULE_PREFIX = 'node:';
 export const NODE_MODULES_FOLDER = 'node_modules';
 const PACKAGE_JSON = 'package.json';
 export const PATH_SUFFIXES = ['', ...EXTENSIONS, ...EXTENSIONS.map((ext) => `/index${ext}`)];
@@ -140,6 +144,11 @@ export abstract class RequireHandler {
   protected vaultAbsolutePath!: string;
   private originalRequire!: NodeJS.Require;
   private pluginRequire!: PluginRequireFn;
+  private specialModuleFactories = new Map<string, () => unknown>();
+
+  public constructor() {
+    this.initSpecialModuleFactories();
+  }
 
   public clearCache(): void {
     this.moduleTimestamps.clear();
@@ -188,12 +197,9 @@ export abstract class RequireHandler {
       ...DEFAULT_OPTIONS,
       ...options
     };
-    const cleanId = splitQuery(id).cleanStr;
-    const specialModule = this.requireSpecialModule(cleanId);
-    if (specialModule) {
-      if (specialModule === MODULE_TO_SKIP) {
-        return null;
-      }
+
+    const specialModule = this.requireSpecialModule(id);
+    if (specialModule !== undefined) {
       return specialModule;
     }
 
@@ -361,23 +367,19 @@ await requireAsyncWrapper((require) => {
 
   protected abstract readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
 
+  protected abstract requireAsarPackedModule(id: string): unknown;
+
+  protected abstract requireElectronModule(id: string): unknown;
+
   protected abstract requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown>;
 
+  protected abstract requireNodeBuiltInModule(id: string): unknown;
+
   protected abstract requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown;
+
   protected requireSpecialModule(id: string): unknown {
-    if (id === 'obsidian/app') {
-      return this.plugin.app;
-    }
-
-    if (id === 'obsidian/builtInModuleNames') {
-      return builtInModuleNames;
-    }
-
-    if (builtInModuleNames.includes(id)) {
-      return this.pluginRequire(id);
-    }
-
-    return null;
+    const cleanId = splitQuery(id).cleanStr;
+    return this.specialModuleFactories.get(cleanId)?.();
   }
 
   protected requireStringImpl(options: RequireStringImplOptions): RequireStringImplResult {
@@ -415,8 +417,9 @@ await requireAsyncWrapper((require) => {
   protected resolve(id: string, parentPath?: string): ResolveResult {
     id = toPosixPath(id);
 
-    if (id.startsWith(NODE_BUILTIN_MODULE_PREFIX)) {
-      return { resolvedId: id, resolvedType: ResolvedType.Path };
+    const cleanId = splitQuery(id).cleanStr;
+    if (this.specialModuleFactories.has(cleanId)) {
+      return { resolvedId: id, resolvedType: ResolvedType.SpecialModule };
     }
 
     if (isUrl(id)) {
@@ -576,6 +579,8 @@ await requireAsyncWrapper((require) => {
           updateTimestamp(dependencyTimestamp);
           break;
         }
+        case ResolvedType.SpecialModule:
+          break;
         case ResolvedType.Url: {
           if (cacheInvalidationMode !== CacheInvalidationMode.Never) {
             updateTimestamp(Date.now());
@@ -694,6 +699,29 @@ await requireAsyncWrapper((require) => {
     }
   }
 
+  private initSpecialModuleFactories(): void {
+    this.specialModuleFactories.set('obsidian/app', () => this.plugin.app);
+    this.specialModuleFactories.set('obsidian/builtInModuleNames', () => OBSIDIAN_BUILT_IN_MODULE_NAMES);
+
+    for (const id of OBSIDIAN_BUILT_IN_MODULE_NAMES) {
+      this.specialModuleFactories.set(id, () => this.pluginRequire(id));
+    }
+
+    for (const id of NODE_BUILT_IN_MODULE_NAMES) {
+      this.specialModuleFactories.set(id, () => this.requireNodeBuiltInModule(id));
+      const NODE_BUILT_IN_MODULE_PREFIX = 'node:';
+      this.specialModuleFactories.set(NODE_BUILT_IN_MODULE_PREFIX + id, () => this.requireNodeBuiltInModule(id));
+    }
+
+    for (const id of ELECTRON_MODULE_NAMES) {
+      this.specialModuleFactories.set(id, () => this.requireElectronModule(id));
+    }
+
+    for (const id of ASAR_PACKED_MODULE_NAMES) {
+      this.specialModuleFactories.set(id, () => this.requireAsarPackedModule(id));
+    }
+  }
+
   private isEmptyModule(module: unknown): boolean {
     return (module as Partial<EmptyModule> | undefined)?.[EMPTY_MODULE_SYMBOL] === true;
   }
@@ -736,12 +764,8 @@ await requireAsyncWrapper((require) => {
       ...DEFAULT_OPTIONS,
       ...options
     };
-    const cleanId = splitQuery(id).cleanStr;
-    const specialModule = this.requireSpecialModule(cleanId);
-    if (specialModule) {
-      if (specialModule === MODULE_TO_SKIP) {
-        return null;
-      }
+    const specialModule = this.requireSpecialModule(id);
+    if (specialModule !== undefined) {
       return specialModule;
     }
 
@@ -910,6 +934,8 @@ ${this.getRequireAsyncAdvice(true)}`);
       }
       case ResolvedType.Path:
         return await this.requirePathAsync(id, cacheInvalidationMode, moduleType);
+      case ResolvedType.SpecialModule:
+        return this.requireSpecialModule(id);
       case ResolvedType.Url:
         return await this.requireUrlAsync(id, moduleType);
       default:
@@ -1058,10 +1084,6 @@ export function splitQuery(str: string): SplitQueryResult {
     cleanStr: queryIndex === -1 ? str : str.slice(0, queryIndex),
     query: queryIndex === -1 ? '' : str.slice(queryIndex)
   };
-}
-
-export function trimNodePrefix(id: string): string {
-  return trimStart(id, NODE_BUILTIN_MODULE_PREFIX);
 }
 
 function convertPathToObsidianUrl(path: string): string {

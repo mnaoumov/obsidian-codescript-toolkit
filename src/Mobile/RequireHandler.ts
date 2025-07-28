@@ -1,10 +1,6 @@
 import { CapacitorAdapter } from 'obsidian';
 
-import {
-  MODULE_TO_SKIP,
-  RequireHandler,
-  trimNodePrefix
-} from '../RequireHandler.ts';
+import { RequireHandler } from '../RequireHandler.ts';
 
 class RequireHandlerImpl extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {
@@ -51,27 +47,30 @@ class RequireHandlerImpl extends RequireHandler {
     return await this.capacitorAdapter.fs.readBinary(path);
   }
 
+  protected override requireAsarPackedModule(id: string): unknown {
+    throw new Error(`Could not require module: ${id}. ASAR packed modules are not available on mobile.`);
+  }
+
+  protected override requireElectronModule(id: string): unknown {
+    throw new Error(`Could not require module: ${id}. Electron modules are not available on mobile.`);
+  }
+
   protected override async requireNodeBinaryAsync(): Promise<unknown> {
     await Promise.resolve();
     throw new Error('Cannot require node binary on mobile');
   }
 
-  protected override requireNonCached(): unknown {
-    throw new Error('Cannot require synchronously on mobile');
+  protected override requireNodeBuiltInModule(id: string): unknown {
+    if (id === 'crypto') {
+      console.warn('Crypto module is not available on mobile. Consider using window.scrypt instead');
+      return null;
+    }
+
+    throw new Error(`Could not require module: ${id}. Node built-in modules are not available on mobile.`);
   }
 
-  protected override requireSpecialModule(id: string): unknown {
-    const module = super.requireSpecialModule(id);
-    if (module) {
-      return module;
-    }
-
-    if (trimNodePrefix(id) === 'crypto') {
-      console.warn('Crypto module is not available on mobile. Consider using window.scrypt instead');
-      return MODULE_TO_SKIP;
-    }
-
-    return null;
+  protected override requireNonCached(): unknown {
+    throw new Error('Cannot require synchronously on mobile');
   }
 }
 

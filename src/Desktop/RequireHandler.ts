@@ -36,24 +36,10 @@ import {
   RequireHandler,
   ResolvedType,
   SCOPED_MODULE_PREFIX,
-  splitQuery,
-  trimNodePrefix
+  splitQuery
 } from '../RequireHandler.ts';
 
-const electronModuleNames = [
-  'electron',
-  'electron/common',
-  'electron/renderer'
-];
-
-const asarPackedModuleNames = [
-  '@electron/remote',
-  'btime',
-  'get-fonts'
-];
-
 class RequireHandlerImpl extends RequireHandler {
-  private nodeBuiltinModules = new Set<string>();
   private originalModulePrototypeRequire!: RequireFn;
 
   private get fileSystemAdapter(): FileSystemAdapter {
@@ -74,8 +60,6 @@ class RequireHandlerImpl extends RequireHandler {
         return this.requireEx;
       }
     });
-
-    this.nodeBuiltinModules = new Set(Module.builtinModules);
   }
 
   public override async requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
@@ -125,6 +109,14 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return arrayBuffer as ArrayBuffer;
   }
 
+  protected requireAsarPackedModule(id: string): unknown {
+    return this.originalModulePrototypeRequire(id);
+  }
+
+  protected override requireElectronModule(id: string): unknown {
+    return this.originalModulePrototypeRequire(id);
+  }
+
   protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
     await Promise.resolve();
     if (arrayBuffer) {
@@ -140,6 +132,10 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return this.requireNodeBinary(path);
   }
 
+  protected override requireNodeBuiltInModule(id: string): unknown {
+    return this.originalModulePrototypeRequire(id);
+  }
+
   protected override requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     switch (type) {
       case ResolvedType.Module: {
@@ -148,15 +144,13 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
       }
       case ResolvedType.Path:
         return this.requirePath(id, cacheInvalidationMode, moduleType);
+      case ResolvedType.SpecialModule:
+        return this.requireSpecialModule(id);
       case ResolvedType.Url:
         throw new Error(`Cannot require synchronously from URL. ${this.getRequireAsyncAdvice(true)}`);
       default:
         throw new Error(`Unknown type: ${type as string}`);
     }
-  }
-
-  protected override requireSpecialModule(id: string): unknown {
-    return super.requireSpecialModule(id) ?? this.requireNodeBuiltinModule(id) ?? this.requireElectronModule(id) ?? this.requireAsarPackedModule(id);
   }
 
   private existsFile(path: string): boolean {
@@ -218,6 +212,8 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
           updateTimestamp(dependencyTimestamp);
           break;
         }
+        case ResolvedType.SpecialModule:
+          break;
         case ResolvedType.Url: {
           const errorMessage = this.getUrlDependencyErrorMessage(path, resolvedId, cacheInvalidationMode);
           switch (cacheInvalidationMode) {
@@ -279,22 +275,6 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   private readPackageJson(path: string): PackageJson {
     const content = this.readFile(path);
     return JSON.parse(content) as PackageJson;
-  }
-
-  private requireAsarPackedModule(id: string): unknown {
-    if (asarPackedModuleNames.includes(id)) {
-      return this.originalModulePrototypeRequire(id);
-    }
-
-    return null;
-  }
-
-  private requireElectronModule(id: string): unknown {
-    if (electronModuleNames.includes(id)) {
-      return this.originalModulePrototypeRequire(id);
-    }
-
-    return null;
   }
 
   private requireJson(path: string): unknown {
@@ -363,15 +343,6 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private requireNodeBinary(path: string): unknown {
     return this.originalModulePrototypeRequire(path);
-  }
-
-  private requireNodeBuiltinModule(id: string): unknown {
-    id = trimNodePrefix(id);
-    if (this.nodeBuiltinModules.has(id)) {
-      return this.originalModulePrototypeRequire(id);
-    }
-
-    return null;
   }
 
   private requirePath(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
