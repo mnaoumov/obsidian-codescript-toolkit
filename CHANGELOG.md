@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 8.22.1
+
+- Unify error messages
+- Refactor special modules
+
 ## 8.22.0
 
 - Pass parentPath to requireAsync (#22)
