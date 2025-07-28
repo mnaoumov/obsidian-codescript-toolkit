@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 9.0.1
+
+- Fix typo
+
 ## 9.0.0
 
 - Add deprecated special modules, refactor
