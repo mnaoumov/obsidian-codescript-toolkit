@@ -2,7 +2,7 @@ import type { ObsidianProtocolData } from 'obsidian';
 
 import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/Async';
-import { toJson } from 'obsidian-dev-utils/Object';
+import { toJson } from 'obsidian-dev-utils/ObjectUtils';
 
 import type { Plugin } from './Plugin.ts';
 

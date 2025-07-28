@@ -3,7 +3,7 @@ import { noop } from 'obsidian-dev-utils/Function';
 import {
   FunctionHandlingMode,
   toJson
-} from 'obsidian-dev-utils/Object';
+} from 'obsidian-dev-utils/ObjectUtils';
 
 type ConsoleMethod = 'debug' | 'error' | 'info' | 'log' | 'warn';
 

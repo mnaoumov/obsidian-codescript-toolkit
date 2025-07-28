@@ -8,7 +8,7 @@ import {
   requestUrl
 } from 'obsidian';
 import { noop } from 'obsidian-dev-utils/Function';
-import { normalizeOptionalProperties } from 'obsidian-dev-utils/Object';
+import { normalizeOptionalProperties } from 'obsidian-dev-utils/ObjectUtils';
 import {
   basename,
   dirname,
