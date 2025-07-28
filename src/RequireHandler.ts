@@ -77,6 +77,11 @@ type ModuleFnWrapper = (
   module: { exports: unknown },
   exports: unknown
 ) => Promisable<void>;
+
+interface ModuleWithDefault {
+  default: unknown;
+}
+
 type RequireAsyncFn = (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
 type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
 type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
@@ -505,6 +510,10 @@ await requireAsyncWrapper((require) => {
       paths: [],
       require: this.requireEx
     };
+    if (!this.isEmptyModule(module) && (typeof module === 'object' || typeof module === 'function') && module !== null && !('default' in module) && Object.isExtensible(module)) {
+      (module as ModuleWithDefault).default = module;
+    }
+
     return this.modulesCache[id];
   }
 
