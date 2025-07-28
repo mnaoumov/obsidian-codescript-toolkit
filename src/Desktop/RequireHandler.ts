@@ -1,7 +1,7 @@
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 
 import { FileSystemAdapter } from 'obsidian';
-import { normalizeOptionalProperties } from 'obsidian-dev-utils/Object';
+import { normalizeOptionalProperties } from 'obsidian-dev-utils/ObjectUtils';
 import { registerPatch } from 'obsidian-dev-utils/obsidian/MonkeyAround';
 import { join } from 'obsidian-dev-utils/Path';
 import {
