@@ -609,9 +609,26 @@ await requireAsyncWrapper((require) => {
       return [resolvedPath];
     }
 
+    const CONDITIONS = ['browser', 'import', 'default', 'require', 'node'];
+
     if (!Array.isArray(exportsNode)) {
       const conditions = exportsNode;
       return Object.entries(conditions)
+        .sort((entry1, entry2) => {
+          const key1 = entry1[0];
+          const key2 = entry2[0];
+          const NOT_FOUND_INDEX = -1;
+
+          let index1 = CONDITIONS.indexOf(key1);
+          if (index1 === NOT_FOUND_INDEX) {
+            index1 = CONDITIONS.length;
+          }
+          let index2 = CONDITIONS.indexOf(key2);
+          if (index2 === -1) {
+            index2 = CONDITIONS.length;
+          }
+          return index1 - index2;
+        })
         .flatMap(([condition, exportsNodeChild]) => this.applyCondition(condition, exportsNodeChild, relativeModuleName));
     }
 
