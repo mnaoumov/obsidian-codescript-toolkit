@@ -280,8 +280,8 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
      * 4:     at require (node:internal/modules/helpers:?:?)
      * 5:     at functionName (path/to/caller.js:?:?)
      */
-
-    const parentPath = this.getParentPathFromCallStack(5) ?? undefined;
+    const CALLER_LINE_INDEX = 5;
+    const parentPath = this.getParentPathFromCallStack(CALLER_LINE_INDEX) ?? undefined;
     const options = normalizeOptionalProperties<{ parentPath?: string }>({ parentPath });
     return this.requireEx(id, options);
   }

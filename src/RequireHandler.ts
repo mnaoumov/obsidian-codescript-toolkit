@@ -104,6 +104,17 @@ interface WrapRequireOptions {
   require: RequireExFn;
 }
 
+/**
+ * The caller line index is 4 because the call stack is as follows:
+ *
+ * 0: Error
+ * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
+ * 2:     at RequireHandlerImpl.resolve (plugin:fix-require-modules:?:?)
+ * 3:     at RequireHandlerImpl.require (plugin:fix-require-modules:?:?)
+ * 4:     at functionName (path/to/caller.js:?:?)
+ */
+const CALLER_LINE_INDEX = 4;
+
 export const ENTRY_POINT = '.';
 export const EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts', '.md'];
 export const MODULE_NAME_SEPARATOR = '*';
@@ -296,17 +307,7 @@ export abstract class RequireHandler {
     return join(packageFolder, PACKAGE_JSON);
   }
 
-  protected getParentPathFromCallStack(callerLineIndex = 4): null | string {
-    /**
-     * The caller line index is 4 because the call stack is as follows:
-     *
-     * 0: Error
-     * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
-     * 2:     at RequireHandlerImpl.resolve (plugin:fix-require-modules:?:?)
-     * 3:     at RequireHandlerImpl.require (plugin:fix-require-modules:?:?)
-     * 4:     at functionName (path/to/caller.js:?:?)
-     */
-
+  protected getParentPathFromCallStack(callerLineIndex = CALLER_LINE_INDEX): null | string {
     const callStackLines = new Error().stack?.split('\n') ?? [];
     this.plugin.consoleDebug('callStackLines', { callStackLines });
     const callStackMatch = callStackLines.at(callerLineIndex)?.match(/^ {4}at .+? \((?<ParentPath>.+?):\d+:\d+\)$/);
