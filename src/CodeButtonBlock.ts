@@ -220,12 +220,12 @@ function registerTempPluginImpl(plugin: Plugin, tempPluginClass: TempPluginClass
   tempPlugin.register(() => {
     tempPlugins.delete(id);
     plugin.removeCommand(unloadCommandId);
-    new Notice(`Unloaded Temp Plugin: ${tempPluginClass.name}`);
+    new Notice(`Unloaded Temp Plugin: ${tempPluginClass.name}.`);
   });
 
   tempPlugins.set(id, tempPlugin);
   plugin.addChild(tempPlugin);
-  new Notice(`Loaded Temp Plugin: ${tempPluginClass.name}`);
+  new Notice(`Loaded Temp Plugin: ${tempPluginClass.name}.`);
 
   plugin.addCommand({
     callback: () => {

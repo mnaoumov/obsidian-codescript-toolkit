@@ -6,7 +6,7 @@ class RequireHandlerImpl extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {
     const adapter = this.plugin.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {
-      throw new Error('Vault adapter is not a CapacitorAdapter');
+      throw new Error('Vault adapter is not a CapacitorAdapter.');
     }
 
     return adapter;
@@ -57,20 +57,20 @@ class RequireHandlerImpl extends RequireHandler {
 
   protected override async requireNodeBinaryAsync(): Promise<unknown> {
     await Promise.resolve();
-    throw new Error('Cannot require node binary on mobile');
+    throw new Error('Cannot require node binary on mobile.');
   }
 
   protected override requireNodeBuiltInModule(id: string): unknown {
     if (id === 'crypto') {
-      console.warn('Crypto module is not available on mobile. Consider using window.scrypt instead');
+      console.warn('Crypto module is not available on mobile. Consider using window.scrypt instead.');
       return null;
     }
 
     throw new Error(`Could not require module: ${id}. Node built-in modules are not available on mobile.`);
   }
 
-  protected override requireNonCached(): unknown {
-    throw new Error('Cannot require synchronously on mobile');
+  protected override requireNonCached(id: string): unknown {
+    throw new Error(`Cannot require synchronously on mobile: '${id}'.`);
   }
 }
 

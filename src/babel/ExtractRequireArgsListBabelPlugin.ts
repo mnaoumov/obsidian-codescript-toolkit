@@ -42,7 +42,7 @@ export class ExtractRequireArgsListBabelPlugin extends BabelPluginBase<ExtractRe
         }
         const requireFnArgument = path.node.params[0];
         if (!isIdentifier(requireFnArgument)) {
-          console.warn('Could not find require function name in arrow function expression');
+          console.warn('Could not find require function name in arrow function expression.');
           return;
         }
 
@@ -68,7 +68,7 @@ export class ExtractRequireArgsListBabelPlugin extends BabelPluginBase<ExtractRe
         }
         const requireFnArgument = path.node.params[0];
         if (!isIdentifier(requireFnArgument)) {
-          console.warn('Could not find require function name in function declaration');
+          console.warn('Could not find require function name in function declaration.');
           return;
         }
 

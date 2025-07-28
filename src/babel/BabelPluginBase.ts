@@ -53,7 +53,7 @@ export abstract class BabelPluginBase<Data = unknown> {
       });
 
       if (result.code === null || result.code === undefined) {
-        throw new Error('Unknown error');
+        throw new Error('Unknown error.');
       }
 
       return {

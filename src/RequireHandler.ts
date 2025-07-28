@@ -229,7 +229,7 @@ export abstract class RequireHandler {
 
     if (cachedModuleEntry) {
       if (!cachedModuleEntry.loaded) {
-        console.warn(`Circular dependency detected: ${resolvedId} -> ... -> ${fullOptions.parentPath ?? ''} -> ${resolvedId}`);
+        console.warn(`Circular dependency detected: ${resolvedId} -> ... -> ${fullOptions.parentPath ?? ''} -> ${resolvedId}.`);
         return cachedModuleEntry.exports;
       }
 
@@ -246,7 +246,7 @@ export abstract class RequireHandler {
           }
           break;
         default:
-          throw new Error('Unknown cacheInvalidationMode');
+          throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as string}'.`);
       }
     }
 
@@ -283,7 +283,7 @@ export abstract class RequireHandler {
         return result.exportsFn();
       });
     } catch (e) {
-      throw new Error(`Failed to load module: ${path}`, { cause: e });
+      throw new Error(`Failed to load module: '${path}'.`, { cause: e });
     }
   }
 
@@ -394,7 +394,7 @@ await requireAsyncWrapper((require) => {
     ]).transform(options.code, filename, folder);
 
     if (transformResult.error) {
-      throw new Error(`Failed to transform code from: ${options.path}`, { cause: transformResult.error });
+      throw new Error(`Failed to transform code from: '${options.path}'.`, { cause: transformResult.error });
     }
 
     if (transformResult.data.hasTopLevelAwait) {
@@ -572,7 +572,7 @@ await requireAsyncWrapper((require) => {
         case ResolvedType.Path: {
           const existingFilePath = await this.findExistingFilePathAsync(resolvedId);
           if (existingFilePath === null) {
-            throw new Error(`File not found: ${resolvedId}`);
+            throw new Error(`File not found: '${resolvedId}'.`);
           }
 
           const dependencyTimestamp = await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, cacheInvalidationMode);
@@ -588,7 +588,7 @@ await requireAsyncWrapper((require) => {
           break;
         }
         default:
-          throw new Error('Unknown resolvedType');
+          throw new Error(`Unknown resolvedType: '${resolvedType as string}'.`);
       }
     }
 
@@ -785,7 +785,7 @@ await requireAsyncWrapper((require) => {
 
     if (cachedModuleEntry) {
       if (!cachedModuleEntry.loaded) {
-        console.warn(`Circular dependency detected: ${resolvedId} -> ... -> ${fullOptions.parentPath ?? ''} -> ${resolvedId}`);
+        console.warn(`Circular dependency detected: ${resolvedId} -> ... -> ${fullOptions.parentPath ?? ''} -> ${resolvedId}.`);
         return cachedModuleEntry.exports;
       }
 
@@ -807,7 +807,7 @@ await requireAsyncWrapper((require) => {
           }
           break;
         default:
-          throw new Error('Unknown cacheInvalidationMode');
+          throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as string}'.`);
       }
     }
 
@@ -883,7 +883,7 @@ ${this.getRequireAsyncAdvice(true)}`);
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
       if (separatorIndex === -1) {
-        throw new Error(`Invalid scoped module name: ${moduleName}`);
+        throw new Error(`Invalid scoped module name: '${moduleName}'.`);
       }
       separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR, separatorIndex + 1);
     }
@@ -923,7 +923,7 @@ ${this.getRequireAsyncAdvice(true)}`);
       }
     }
 
-    throw new Error(`Could not resolve module: ${moduleName}`);
+    throw new Error(`Could not resolve module: '${moduleName}'.`);
   }
 
   private async requireNonCachedAsync(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
@@ -939,14 +939,14 @@ ${this.getRequireAsyncAdvice(true)}`);
       case ResolvedType.Url:
         return await this.requireUrlAsync(id, moduleType);
       default:
-        throw new Error('Unknown resolvedType');
+        throw new Error(`Unknown resolvedType: '${type as string}'.`);
     }
   }
 
   private async requirePathAsync(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
     const existingFilePath = await this.findExistingFilePathAsync(path);
     if (existingFilePath === null) {
-      throw new Error(`File not found: ${path}`);
+      throw new Error(`File not found: '${path}'.`);
     }
 
     const isRootRequire = this.currentModulesTimestampChain.size === 0;
@@ -976,7 +976,7 @@ ${this.getRequireAsyncAdvice(true)}`);
       case 'wasm':
         return this.requireWasmAsync(path);
       default:
-        throw new Error(`Unknown module type: ${moduleType as string}`);
+        throw new Error(`Unknown module type: '${moduleType as string}'.`);
     }
   }
 
@@ -996,7 +996,7 @@ ${this.getRequireAsyncAdvice(true)}`);
       case 'wasm':
         return this.requireWasmAsync(url, response.arrayBuffer);
       default:
-        throw new Error(`Unknown module type: ${moduleType as string}`);
+        throw new Error(`Unknown module type: '${moduleType as string}'.`);
     }
   }
 
@@ -1038,7 +1038,7 @@ export function extractCodeScript(md: string, path: string): ExtractCodeScriptRe
   codes.sort((a, b) => (a.position?.start.offset ?? 0) - (b.position?.start.offset ?? 0));
 
   if (codes.length === 0) {
-    throw new Error(`No ${CODE_SCRIPT_BLOCK_LANGUAGE} code block found in ${path}`);
+    throw new Error(`No ${CODE_SCRIPT_BLOCK_LANGUAGE} code block found in '${path}'.`);
   }
 
   const codeScriptName = getCodeScriptName(md, path);
@@ -1049,7 +1049,7 @@ export function extractCodeScript(md: string, path: string): ExtractCodeScriptRe
 
   const code = codes.find((c) => c.value.startsWith(`// codeScriptName: ${codeScriptName}\n`));
   if (!code) {
-    throw new Error(`Code script with name ${codeScriptName} not found in ${path}`);
+    throw new Error(`Code script with name ${codeScriptName} not found in '${path}'.`);
   }
 
   return { code: code.value, codeScriptName };
@@ -1074,7 +1074,7 @@ export function getModuleTypeFromPath(path: string): ModuleType {
     case '.wasm':
       return 'wasm';
     default:
-      throw new Error(`Unsupported file extension: ${ext}`);
+      throw new Error(`Unsupported file extension: '${ext}'.`);
   }
 }
 
@@ -1105,7 +1105,7 @@ function getCodeScriptName(md: string, path: string): string | undefined {
   const match = /^\?codeScriptName=(?<CodeScriptName>\S+)$/.exec(query);
 
   if (!match) {
-    throw new Error(`Invalid query: ${query}`);
+    throw new Error(`Invalid query: '${query}'.`);
   }
 
   return match.groups?.['CodeScriptName'];
