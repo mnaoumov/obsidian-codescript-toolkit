@@ -46,7 +46,7 @@ import {
   ELECTRON_MODULE_NAMES,
   NODE_BUILT_IN_MODULE_NAMES,
   OBSIDIAN_BUILT_IN_MODULE_NAMES
-} from './SpecialPluginNames.ts';
+} from './SpecialModuleNames.ts';
 
 export enum ResolvedType {
   Module = 'module',
