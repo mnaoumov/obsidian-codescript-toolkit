@@ -24,6 +24,7 @@ import { escapeRegExp } from 'obsidian-dev-utils/RegExp';
 
 import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
+import { ReplaceDynamicImportBabelPlugin } from './babel/ReplaceDynamicImportBabelPlugin.ts';
 import { WrapForCodeBlockBabelPlugin } from './babel/WrapForCodeBlockBabelPlugin.ts';
 import { ConsoleWrapper } from './ConsoleWrapper.ts';
 import { requireStringAsync } from './RequireHandlerUtils.ts';
@@ -129,7 +130,8 @@ function makeRenderMarkdownFn(plugin: Plugin, resultEl: HTMLElement, sourcePath:
 function makeWrapperScript(source: string, sourceFileName: string, sourceFolder: string, shouldAutoOutput: boolean): string {
   const result = new SequentialBabelPlugin([
     new ConvertToCommonJsBabelPlugin(),
-    new WrapForCodeBlockBabelPlugin(shouldAutoOutput)
+    new WrapForCodeBlockBabelPlugin(shouldAutoOutput),
+    new ReplaceDynamicImportBabelPlugin()
   ]).transform(source, sourceFileName, sourceFolder);
 
   if (result.error) {

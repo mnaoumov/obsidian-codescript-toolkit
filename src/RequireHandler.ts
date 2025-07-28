@@ -33,6 +33,7 @@ import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
 import { ExtractRequireArgsListBabelPlugin } from './babel/ExtractRequireArgsListBabelPlugin.ts';
 import { FixSourceMapBabelPlugin } from './babel/FixSourceMapBabelPlugin.ts';
+import { ReplaceDynamicImportBabelPlugin } from './babel/ReplaceDynamicImportBabelPlugin.ts';
 import { WrapInRequireFunctionBabelPlugin } from './babel/WrapInRequireFunctionBabelPlugin.ts';
 import {
   CachedModuleProxyHandler,
@@ -418,6 +419,7 @@ await requireAsyncWrapper((require) => {
     const transformResult = new SequentialBabelPlugin([
       new ConvertToCommonJsBabelPlugin(),
       new WrapInRequireFunctionBabelPlugin(options.shouldWrapInAsyncFunction),
+      new ReplaceDynamicImportBabelPlugin(),
       new FixSourceMapBabelPlugin(url)
     ]).transform(options.code, filename, folder);
 
