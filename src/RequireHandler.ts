@@ -857,7 +857,7 @@ ${this.getRequireAsyncAdvice(true)}`);
   }
 
   private requireDeprecatedObsidianBuiltInModule(id: string): unknown {
-    throw new Error(`Could not require module: ${id}. Deprecated Obsidian built-in modules are not longer available.`);
+    throw new Error(`Could not require module: ${id}. Deprecated Obsidian built-in modules are no longer available.`);
   }
 
   private async requireJsonAsync(path: string, jsonStr?: string): Promise<unknown> {
