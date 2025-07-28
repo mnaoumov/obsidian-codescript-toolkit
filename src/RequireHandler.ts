@@ -296,6 +296,33 @@ export abstract class RequireHandler {
     return join(packageFolder, PACKAGE_JSON);
   }
 
+  protected getParentPathFromCallStack(callerLineIndex = 4): null | string {
+    /**
+     * The caller line index is 4 because the call stack is as follows:
+     *
+     * 0: Error
+     * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
+     * 2:     at RequireHandlerImpl.resolve (plugin:fix-require-modules:?:?)
+     * 3:     at RequireHandlerImpl.require (plugin:fix-require-modules:?:?)
+     * 4:     at functionName (path/to/caller.js:?:?)
+     */
+
+    const callStackLines = new Error().stack?.split('\n') ?? [];
+    this.plugin.consoleDebug('callStackLines', { callStackLines });
+    const callStackMatch = callStackLines.at(callerLineIndex)?.match(/^ {4}at .+? \((?<ParentPath>.+?):\d+:\d+\)$/);
+    let parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
+
+    if (parentPath) {
+      parentPath = trimStart(parentPath, 'requireString/');
+    }
+
+    if (parentPath?.includes('<anonymous>') || parentPath?.startsWith('plugin:')) {
+      return null;
+    }
+
+    return parentPath;
+  }
+
   protected getRelativeModulePaths(packageJson: PackageJson, relativeModuleName: string): string[] {
     const isPrivateModule = relativeModuleName.startsWith(PRIVATE_MODULE_PREFIX);
     const importsExportsNode = isPrivateModule ? packageJson.imports : packageJson.exports;
@@ -634,29 +661,6 @@ await requireAsyncWrapper((require) => {
 
     const arr = exportsNode;
     return arr.flatMap((exportsNodeChild) => this.getExportsRelativeModulePaths(exportsNodeChild, relativeModuleName));
-  }
-
-  private getParentPathFromCallStack(): null | string {
-    /**
-     * The caller line index is 4 because the call stack is as follows:
-     *
-     * 0: Error
-     * 1:     at CustomRequireImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
-     * 2:     at CustomRequireImpl.resolve (plugin:fix-require-modules:?:?)
-     * 3:     at CustomRequireImpl.require (plugin:fix-require-modules:?:?)
-     * 4:     at functionName (path/to/caller.js:?:?)
-     */
-    const CALLER_LINE_INDEX = 4;
-    const callStackLines = new Error().stack?.split('\n') ?? [];
-    this.plugin.consoleDebug('callStackLines', { callStackLines });
-    const callStackMatch = callStackLines.at(CALLER_LINE_INDEX)?.match(/^ {4}at .+? \((?<ParentPath>.+?):\d+:\d+\)$/);
-    const parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
-
-    if (parentPath?.includes('<anonymous>') || parentPath?.startsWith('plugin:')) {
-      return null;
-    }
-
-    return parentPath;
   }
 
   private async getRootFolderAsync(cwd: string): Promise<null | string> {
