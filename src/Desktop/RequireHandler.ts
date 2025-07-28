@@ -45,7 +45,7 @@ class RequireHandlerImpl extends RequireHandler {
   private get fileSystemAdapter(): FileSystemAdapter {
     const adapter = this.plugin.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) {
-      throw new Error('Vault adapter is not a FileSystemAdapter');
+      throw new Error('Vault adapter is not a FileSystemAdapter.');
     }
 
     return adapter;
@@ -68,7 +68,7 @@ class RequireHandlerImpl extends RequireHandler {
     } catch (e) {
       if (this.plugin.settings.shouldUseSyncFallback) {
         console.warn(`requireAsync('${id}') failed with error:`, e);
-        console.warn('Trying a synchronous fallback');
+        console.warn('Trying a synchronous fallback.');
         this.currentModulesTimestampChain.clear();
         return this.requireEx(id, options ?? {});
       }
@@ -149,7 +149,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
       case ResolvedType.Url:
         throw new Error(`Cannot require synchronously from URL. ${this.getRequireAsyncAdvice(true)}`);
       default:
-        throw new Error(`Unknown type: ${type as string}`);
+        throw new Error(`Unknown type: '${type as string}'.`);
     }
   }
 
@@ -223,12 +223,12 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
               console.warn(errorMessage);
               break;
             default:
-              throw new Error('Unknown cacheInvalidationMode');
+              throw new Error(`Unknown cacheInvalidationMode: '${cacheInvalidationMode as string}'.`);
           }
           break;
         }
         default:
-          throw new Error('Unknown type');
+          throw new Error(`Unknown type: '${resolvedType as string}'.`);
       }
     }
 
@@ -298,7 +298,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
       if (separatorIndex === -1) {
-        throw new Error(`Invalid scoped module name: ${moduleName}`);
+        throw new Error(`Invalid scoped module name: '${moduleName}'.`);
       }
       separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR, separatorIndex + 1);
     }
@@ -338,7 +338,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
       }
     }
 
-    throw new Error(`Could not resolve module: ${moduleName}`);
+    throw new Error(`Could not resolve module: '${moduleName}'.`);
   }
 
   private requireNodeBinary(path: string): unknown {
@@ -348,7 +348,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   private requirePath(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     const existingFilePath = this.findExistingFilePath(path);
     if (existingFilePath === null) {
-      throw new Error(`File not found: ${path}`);
+      throw new Error(`File not found: '${path}'.`);
     }
 
     const isRootRequire = this.currentModulesTimestampChain.size === 0;
@@ -377,7 +377,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
       case 'wasm':
         return this.requireWasm();
       default:
-        throw new Error(`Unknown module type: ${moduleType as string}`);
+        throw new Error(`Unknown module type: '${moduleType as string}'.`);
     }
   }
 

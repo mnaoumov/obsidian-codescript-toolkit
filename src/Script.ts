@@ -143,16 +143,16 @@ function getSortedBaseNames(fullNames: string[]): string[] {
 async function invoke(plugin: Plugin, scriptPath: string, isStartup?: boolean): Promise<void> {
   const app = plugin.app;
   const scriptString = isStartup ? 'startup script' : 'script';
-  plugin.consoleDebug(`Invoking ${scriptString}: ${scriptPath}`);
+  plugin.consoleDebug(`Invoking ${scriptString}: ${scriptPath}.`);
   try {
     if (!await app.vault.adapter.exists(scriptPath)) {
-      throw new Error(`Script not found: ${scriptPath}`);
+      throw new Error(`Script not found: '${scriptPath}'.`);
     }
 
     if (isMarkdownFile(app, scriptPath)) {
       const settings = await getCodeScriptToolkitNoteSettings(app, scriptPath);
       if (!settings.isInvocable) {
-        throw new Error(`Script is not invocable: ${scriptPath}`);
+        throw new Error(`Script is not invocable: '${scriptPath}'.`);
       }
       if (settings.invocableCodeScriptName) {
         scriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;

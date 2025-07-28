@@ -2,6 +2,7 @@ import type { ObsidianProtocolData } from 'obsidian';
 
 import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/Async';
+import { toJson } from 'obsidian-dev-utils/Object';
 
 import type { Plugin } from './Plugin.ts';
 
@@ -40,11 +41,11 @@ export class ProtocolHandlerComponent extends Component {
     const parsedQuery = query as Partial<Query>;
 
     if (!parsedQuery.module && !parsedQuery.code) {
-      throw new Error('URL provided neither module nor code parameters.');
+      throw new Error(`URL provided neither module nor code parameters: ${toJson(query)}`);
     }
 
     if (parsedQuery.module && parsedQuery.code) {
-      throw new Error('URL provided both module and code parameters.');
+      throw new Error(`URL provided both module and code parameters: ${toJson(query)}'`);
     }
 
     if (parsedQuery.module) {
