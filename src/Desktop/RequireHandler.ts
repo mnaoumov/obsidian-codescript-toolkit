@@ -1,6 +1,7 @@
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 
 import { FileSystemAdapter } from 'obsidian';
+import { normalizeOptionalProperties } from 'obsidian-dev-utils/Object';
 import { registerPatch } from 'obsidian-dev-utils/obsidian/MonkeyAround';
 import { join } from 'obsidian-dev-utils/Path';
 import {
@@ -57,7 +58,7 @@ class RequireHandlerImpl extends RequireHandler {
     registerPatch(plugin, Module.prototype, {
       require: (next: RequireFn): RequireFn => {
         this.originalModulePrototypeRequire = next;
-        return this.requireEx;
+        return this.modulePrototypeRequire.bind(this);
       }
     });
   }
@@ -266,6 +267,23 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return `Module ${path} depends on URL ${resolvedId}.
 URL dependencies validation is not supported when cacheInvalidationMode=${cacheInvalidationMode}.
 Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.getRequireAsyncAdvice()}`;
+  }
+
+  private modulePrototypeRequire(id: string): unknown {
+    /**
+     * The caller line index is 5 because the call stack is as follows:
+     *
+     * 0: Error
+     * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
+     * 2:     at RequireHandlerImpl.modulePrototypeRequire (plugin:fix-require-modules:?:?)
+     * 3:     at Module.wrapper [as require] (plugin:fix-require-modules:?:?)
+     * 4:     at require (node:internal/modules/helpers:?:?)
+     * 5:     at functionName (path/to/caller.js:?:?)
+     */
+
+    const parentPath = this.getParentPathFromCallStack(5) ?? undefined;
+    const options = normalizeOptionalProperties<{ parentPath?: string }>({ parentPath });
+    return this.requireEx(id, options);
   }
 
   private readFile(path: string): string {
