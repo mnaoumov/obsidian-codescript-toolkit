@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 9.0.0
+
+- Add deprecated special modules, refactor
+
 ## 8.22.1
 
 - Unify error messages
