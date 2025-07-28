@@ -41,12 +41,7 @@ import {
 import { CacheInvalidationMode } from './CacheInvalidationMode.ts';
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from './CodeScriptBlock.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from './CodeScriptToolkitNoteSettings.ts';
-import {
-  ASAR_PACKED_MODULE_NAMES,
-  ELECTRON_MODULE_NAMES,
-  NODE_BUILT_IN_MODULE_NAMES,
-  OBSIDIAN_BUILT_IN_MODULE_NAMES
-} from './SpecialModuleNames.ts';
+import { SPECIAL_MODULE_NAMES } from './SpecialModuleNames.ts';
 
 export enum ResolvedType {
   Module = 'module',
@@ -701,24 +696,28 @@ await requireAsyncWrapper((require) => {
 
   private initSpecialModuleFactories(): void {
     this.specialModuleFactories.set('obsidian/app', () => this.plugin.app);
-    this.specialModuleFactories.set('obsidian/builtInModuleNames', () => OBSIDIAN_BUILT_IN_MODULE_NAMES);
+    this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
 
-    for (const id of OBSIDIAN_BUILT_IN_MODULE_NAMES) {
+    for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
       this.specialModuleFactories.set(id, () => this.pluginRequire(id));
     }
 
-    for (const id of NODE_BUILT_IN_MODULE_NAMES) {
+    for (const id of SPECIAL_MODULE_NAMES.nodeBuiltInModuleNames) {
       this.specialModuleFactories.set(id, () => this.requireNodeBuiltInModule(id));
       const NODE_BUILT_IN_MODULE_PREFIX = 'node:';
       this.specialModuleFactories.set(NODE_BUILT_IN_MODULE_PREFIX + id, () => this.requireNodeBuiltInModule(id));
     }
 
-    for (const id of ELECTRON_MODULE_NAMES) {
+    for (const id of SPECIAL_MODULE_NAMES.electronModuleNames) {
       this.specialModuleFactories.set(id, () => this.requireElectronModule(id));
     }
 
-    for (const id of ASAR_PACKED_MODULE_NAMES) {
+    for (const id of SPECIAL_MODULE_NAMES.asarPackedModuleNames) {
       this.specialModuleFactories.set(id, () => this.requireAsarPackedModule(id));
+    }
+
+    for (const id of SPECIAL_MODULE_NAMES.deprecatedObsidianBuiltInModuleNames) {
+      this.specialModuleFactories.set(id, () => this.requireDeprecatedObsidianBuiltInModule(id));
     }
   }
 
@@ -855,6 +854,10 @@ ${this.getRequireAsyncAdvice(true)}`);
       optionsToAppend: { cacheInvalidationMode: CacheInvalidationMode.Never },
       require: require ?? this.requireEx
     }));
+  }
+
+  private requireDeprecatedObsidianBuiltInModule(id: string): unknown {
+    throw new Error(`Could not require module: ${id}. Deprecated Obsidian built-in modules are not longer available.`);
   }
 
   private async requireJsonAsync(path: string, jsonStr?: string): Promise<unknown> {
