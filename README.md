@@ -144,17 +144,17 @@ This plugin gives you a safer alternative:
 require('obsidian/app');
 ```
 
-### `obsidian/builtInModuleNames` module
+### `obsidian/specialModuleNames` module
 
 |                      | Desktop | Mobile |
 | -------------------- | ------- | ------ |
 | **`require()`**      | ✔       | ✔      |
 | **`requireAsync()`** | ✔       | ✔      |
 
-You can access the list of built-in [`Obsidian`][Obsidian] module names that are made available by this plugin.
+You can access the list of all special [`Obsidian`][Obsidian] module names that are made available by this plugin. This includes module names like `obsidian`, `@codemirror/view`, etc.
 
 ```js
-require('obsidian/builtInModuleNames');
+require('obsidian/specialModuleNames');
 ```
 
 ### Additional desktop modules
