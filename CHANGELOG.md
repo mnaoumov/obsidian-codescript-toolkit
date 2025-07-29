@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 9.2.0
+
+- Make default property non-enumerable
+
 ## 9.1.0
 
 - Partially implement dynamic `import()`
