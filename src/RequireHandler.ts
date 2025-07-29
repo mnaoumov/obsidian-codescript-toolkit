@@ -512,7 +512,10 @@ await requireAsyncWrapper((require) => {
       paths: [],
       require: this.requireEx
     };
-    if (!this.isEmptyModule(module) && (typeof module === 'object' || typeof module === 'function') && module !== null && !('default' in module) && Object.isExtensible(module)) {
+    if (
+      !this.isEmptyModule(module) && (typeof module === 'object' || typeof module === 'function') && module !== null && !('default' in module)
+      && Object.isExtensible(module)
+    ) {
       (module as ModuleWithDefault).default = module;
     }
 
