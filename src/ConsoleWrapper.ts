@@ -27,7 +27,6 @@ export class ConsoleWrapper {
     const originalConsole = console;
     for (const method of ['log', 'debug', 'error', 'info', 'warn'] as ConsoleMethod[]) {
       wrappedConsole[method] = (...args): void => {
-        // eslint-disable-next-line no-console
         originalConsole[method](...args);
         this.appendToResultEl(args, method);
       };
