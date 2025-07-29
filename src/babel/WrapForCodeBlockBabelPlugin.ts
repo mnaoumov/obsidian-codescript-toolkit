@@ -13,7 +13,10 @@ import {
   functionExpression,
   identifier,
   isExpressionStatement,
-  memberExpression
+  memberExpression,
+  tryStatement,
+  variableDeclaration,
+  variableDeclarator
 } from '@babel/types';
 
 import { BabelPluginBase } from './BabelPluginBase.ts';
@@ -58,7 +61,43 @@ export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
             identifier('renderMarkdown'),
             identifier('sourceFile')
           ],
-          blockStatement(programBody),
+          blockStatement([
+            variableDeclaration('const', [
+              variableDeclarator(
+                identifier('__console'),
+                memberExpression(
+                  identifier('window'),
+                  identifier('console')
+                )
+              )
+            ]),
+            expressionStatement(
+              assignmentExpression(
+                '=',
+                memberExpression(
+                  identifier('window'),
+                  identifier('console')
+                ),
+                identifier('console')
+              )
+            ),
+            tryStatement(
+              blockStatement(programBody),
+              null,
+              blockStatement([
+                expressionStatement(
+                  assignmentExpression(
+                    '=',
+                    memberExpression(
+                      identifier('window'),
+                      identifier('console')
+                    ),
+                    identifier('__console')
+                  )
+                )
+              ])
+            )
+          ]),
           false,
           true
         );
