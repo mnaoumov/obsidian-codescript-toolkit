@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 9.1.0
+
+- Partially implement dynamic `import()`
+- Override console during script button call
+- Duplicate default property
+- Extract callstack from `Module.prototype.require`
+- Prioritize available conditions
+- Update libs
+
 ## 9.0.1
 
 - Fix typo
