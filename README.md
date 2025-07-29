@@ -564,6 +564,33 @@ require('./someScript.js?someQuery'); // cacheInvalidationMode: 'never'
 require('https://some-site.com/some-script.js?someQuery'); // cacheInvalidationMode: 'whenPossible'
 ```
 
+### Dynamic [`import()`][import]
+
+| Desktop | Mobile |
+| ------- | ------ |
+| ✔*      | ✔*     |
+
+Dynamic [`import()`][import] was **partially** modified to be an alias to [`requireAsync()`](#requireasync).
+
+However due to the technical limitations, it's not possible to extend dynamic [`import()`][import] in all contexts.
+
+**It is fully extended in**:
+
+- External script files: `js`, `cjs`, `mjs`, `ts`, `cts`, `mts`, `md`.
+- [Code buttons](#code-buttons) blocks.
+
+**It has original (not extended) behavior in**:
+
+- [`DevTools Console`][DevTools Console] within [`Obsidian`][Obsidian];
+- [`CustomJS`][CustomJS] scripts;
+- [`datacorejs` / `datacorejsx` / `datacorets` / `datacoretsx`][datacorejs] scripts;
+- [`dataviewjs`][dataviewjs] scripts;
+- [`Modules`][Modules] scripts;
+- [`QuickAdd`][QuickAdd] scripts;
+- [`Templater`][Templater] scripts;
+
+So if you need fully functional variant, use [`requireAsync()`](#requireasync) instead.
+
 ### Clear cache
 
 | Desktop | Mobile |
@@ -955,16 +982,6 @@ console.log('foo bar');
 | ✔       | ✔      |
 
 If you plan to use scripts extensively, consider putting them in a [`dot folder`][dot folder], such as `.scripts` within your vault. [`Obsidian`][Obsidian] doesn't track changes within [`dot folders`][dot folder] and won't re-index your `node_modules` folder repeatedly.
-
-## Limitations
-
-### Extending [`import()`][import]
-
-| Desktop | Mobile |
-| ------- | ------ |
-| ✔       | ✔      |
-
-Extending dynamic [`import()`][import] expressions to support `const obsidian = await import('obsidian')` is currently impossible due to [`Electron`](https://www.electronjs.org/) limitations within [`Obsidian`][Obsidian]. Although [`Obsidian`][Obsidian] [`1.6.5+`](https://obsidian.md/changelog/2024-06-25-desktop-v1.6.5/) uses [`Node.js v20.14.0`](https://nodejs.org/en/blog/release/v20.14.0) which includes [`Module.register()`][Module Register], it depends on [`Node.js Worker threads`](https://nodejs.org/api/worker_threads.html) and fails with `The V8 platform used by this instance of Node does not support creating Workers`. Use [`requireAsync()`](#requireAsync) as a workaround.
 
 ## Installation
 
