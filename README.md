@@ -9,12 +9,13 @@ This is a plugin for [`Obsidian`][Obsidian] that allows to do a lot of things wi
 This plugin is for you if you want to:
 
 - Write in any flavor of [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript] in:
-  - [DevTools Console](https://developer.chrome.com/docs/devtools/console) within [`Obsidian`][Obsidian];
-  - [CustomJS](https://github.com/saml-dev/obsidian-custom-js) scripts;
-  - [dataviewjs](https://blacksmithgu.github.io/obsidian-dataview/api/intro/) scripts;
-  - [Modules](https://github.com/polyipseity/obsidian-modules) scripts;
-  - [QuickAdd](https://quickadd.obsidian.guide/) scripts;
-  - [Templater](https://silentvoid13.github.io/Templater/) scripts;
+  - [`DevTools Console`][DevTools Console] within [`Obsidian`][Obsidian];
+  - [`CustomJS`][CustomJS] scripts;
+  - [`datacorejs` / `datacorejsx` / `datacorets` / `datacoretsx`][datacorejs] scripts;
+  - [`dataviewjs`][dataviewjs] scripts;
+  - [`Modules`][Modules] scripts;
+  - [`QuickAdd`][QuickAdd] scripts;
+  - [`Templater`][Templater] scripts;
   - etc.
 - Write modular scripts using modern [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript] syntax and patterns.
 - Prototype [`Obsidian`][Obsidian] plugins.
@@ -64,15 +65,15 @@ This plugin brings the advanced version of [`require()`][require] to both deskto
 
 ### `requireAsync()`
 
-Combines all features of [`require()`][require] and [`import()`][import].
+Combines all features of [`require()`][require] and dynamic [`import()`][import].
 
 All features brought by this plugin are available for it.
 
 ### `requireAsyncWrapper()`
 
-Wraps synchronous `require()` calls in asynchronous ones.
+Wraps synchronous [`require()`](#require) calls in asynchronous ones.
 
-It is useful when you want to use the synchronous `require()` calls but some features are not available for it normally.
+It is useful when you want to use the synchronous [`require()`](#require) calls but some features are not available for it normally.
 
 ```js
 await requireAsyncWrapper((require) => {
@@ -80,20 +81,20 @@ await requireAsyncWrapper((require) => {
 });
 ```
 
-It is especially useful for migrating scripts you have for desktop to use on mobile, as you can see in the [Features](#features) section, most of the features of `require()` don't work on mobile.
+It is especially useful for migrating scripts you have for desktop to use on mobile, as you can see in the [Features](#features) section, most of the features of [`require()`](#require) don't work on mobile.
 
 ## Features
 
-For each of the feature, we provide a table showing whether the feature enabled on the platform: `Desktop` or on `Mobile`. And whether it works for `require()` or for `requireAsync()` (and `requireAsyncWrapper()`).
+For each of the feature, we provide a table showing whether the feature enabled on the platform: `Desktop` or on `Mobile`. And whether it works for [`require()`](#require) or for [`requireAsync()`](#requireasync) (and [`requireAsyncWrapper()`](#requireasyncwrapper)).
 
-Most of the examples below will be shown using `require()`, but you can adjust the examples to use `requireAsync()` or `requireAsyncWrapper()`, as soon as the feature is enabled for your platform
+Most of the examples below will be shown using [`require()`](#require), but you can adjust the examples to use [`requireAsync()`](#requireasync) or [`requireAsyncWrapper()`](#requireasyncwrapper), as soon as the feature is enabled for your platform
 
 ### Built-in Modules
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✔      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✔      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 Certain [`Obsidian`][Obsidian] built-in modules are available for import during plugin development but show `Uncaught Error: Cannot find module` if you try to [`require()`][require] them manually. This plugin fixes that problem, allowing the following [`require()`][require] calls to work properly:
 
@@ -125,10 +126,10 @@ new Notice('My notice');
 
 ### `obsidian/app` module
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✔      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✔      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 There is a global variable `app` that gives access to [`Obsidian`][Obsidian] [`App`][App] instance.
 
@@ -146,10 +147,10 @@ require('obsidian/app');
 
 ### `obsidian/specialModuleNames` module
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✔      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✔      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 You can access the list of all special [`Obsidian`][Obsidian] module names that are made available by this plugin. This includes module names like `obsidian`, `@codemirror/view`, etc.
 
@@ -159,12 +160,12 @@ require('obsidian/specialModuleNames');
 
 ### Additional desktop modules
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✖      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✖      |
 
-[`Obsidian`][Obsidian] on desktop is shipped with some additional modules that you can [`require()`][require].
+[`Obsidian`][Obsidian] on desktop is shipped with some additional modules that you can [`require()`](#require).
 
 ```js
 // bundled with Electron app
@@ -180,10 +181,10 @@ require('get-fonts');
 
 ### Relative path
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 Fixes `Cannot find module` errors for relative paths:
 
@@ -201,10 +202,10 @@ require('./some/relative/path.js', { parentPath: 'path/to/current/note.md' });
 
 ### Root-relative path
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 Adds support for root-relative paths:
 
@@ -216,10 +217,10 @@ The root `/` folder is configurable via settings.
 
 ### System root path (Linux, MacOS)
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 On Linux and MacOS, the system root path is `/path/from/system/root.js`.
 
@@ -231,10 +232,10 @@ require('~/path/from/system/root.js');
 
 ### Vault-root-relative path
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 Adds support for vault-root-relative paths:
 
@@ -244,10 +245,10 @@ require('//path/from/vault/root.js');
 
 ### [`ECMAScript Modules` (`esm`)](https://nodejs.org/api/esm.html)
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 Originally, [`require()`][require] only supported [`CommonJS` (`cjs`)][cjs] modules and would throw `require() of ES Module path/to/script.mjs not supported. Instead change the require of path/to/script.mjs to a dynamic import() which is available in all CommonJS modules`. This plugin adds support for ECMAScript modules:
 
@@ -265,10 +266,10 @@ require('./path/to/script.mjs');
 
 ### [`TypeScript`][TypeScript] modules
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 Adds support for [`TypeScript`][TypeScript] modules:
 
@@ -318,10 +319,10 @@ require('./path/to/script.mts');
 
 ### NPM modules
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 You can require NPM modules installed into your configured scripts root folder.
 
@@ -333,10 +334,10 @@ See [Tips](#tips) how to avoid performance issues.
 
 ### Node built-in modules
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✖      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✖      |
 
 You can require Node built-in modules such as `fs` with an optional prefix `node:`.
 
@@ -347,10 +348,10 @@ require('node:fs');
 
 ### JSON files
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✔      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✔      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 You can require JSON files.
 
@@ -360,10 +361,10 @@ require('./foo.json');
 
 ### Node binaries
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✖      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✖      |
 
 You can require Node binaries `.node`.
 
@@ -373,10 +374,10 @@ require('./foo.node');
 
 ### WebAssembly (WASM)
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✖       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✖       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 You can require WebAssembly binaries `.wasm`.
 
@@ -386,10 +387,10 @@ await requireAsync('./foo.wasm');
 
 ### ASAR Archives
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✖      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✖      |
 
 You can require content of `.asar` files like if they were folders.
 
@@ -399,10 +400,10 @@ require('./foo.asar/bar.js');
 
 ### Markdown files
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✔      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✔      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 You can require content of `.md` files from `code-script` code blocks.
 
@@ -447,10 +448,10 @@ codeScriptToolkit:
 
 ### Override module type
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✔      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✔      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 Module type is determined via file extension. You can override it if needed.
 
@@ -468,10 +469,10 @@ Possible values:
 
 ### URLs
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✖       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✖       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 ```js
 await requireAsync('https://some-site.com/some-script.js');
@@ -491,10 +492,10 @@ await requireAsync('https://some-site.com/some-script.js', {
 
 ### File URLs
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 You can require files using file URLs:
 
@@ -504,10 +505,10 @@ require('file:///C:/path/to/vault/then/to/script.js');
 
 ### Resource URLs
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 You can require files using resource URLs:
 
@@ -521,10 +522,10 @@ See [getResourcePath()](https://docs.obsidian.md/Reference/TypeScript+API/Vault/
 
 ### Top-level await
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✖       | ✖      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✖       | ✖      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 ```js
 // top-level-await.js
@@ -537,10 +538,10 @@ await requireAsync('./top-level-await.js');
 
 ### Smart caching
 
-|                      | Desktop | Mobile |
-| -------------------- | ------- | ------ |
-| **`require()`**      | ✔       | ✔      |
-| **`requireAsync()`** | ✔       | ✔      |
+|                                       | Desktop | Mobile |
+| ------------------------------------- | ------- | ------ |
+| **[`require()`](#require)**           | ✔       | ✔      |
+| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
 
 Modules are cached for performance, but the cache is invalidated if the script or its dependencies change.
 
@@ -993,7 +994,7 @@ For more details, refer to the [documentation](https://github.com/mnaoumov/obsid
 
 This plugin was formerly known as `Fix Require Modules`.
 
-The plugin quickly overgrew its original purpose and got way more features than just fixing `require()` calls. That's why it got a new name.
+The plugin quickly overgrew its original purpose and got way more features than just fixing [`require()`][require] calls. That's why it got a new name.
 
 However, for the backward compatibility, the previous id `fix-require-modules` is still used internally and you might find it
 
@@ -1012,10 +1013,17 @@ However, for the backward compatibility, the previous id `fix-require-modules` i
 [App]: https://docs.obsidian.md/Reference/TypeScript+API/App
 [cjs]: https://nodejs.org/api/modules.html#modules-commonjs-modules
 [Command Palette]: https://help.obsidian.md/Plugins/Command+palette
+[CustomJS]: https://github.com/saml-dev/obsidian-custom-js
+[datacorejs]: https://blacksmithgu.github.io/datacore/code-views/
+[dataviewjs]: https://blacksmithgu.github.io/obsidian-dataview/api/intro/
+[DevTools Console]: https://developer.chrome.com/docs/devtools/console
 [dot folder]: https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments
 [import]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 [JavaScript]: https://developer.mozilla.org/en-US/docs/Web/JavaScript
 [Module Register]: https://nodejs.org/api/module.html#moduleregisterspecifier-parenturl-options
+[Modules]: https://github.com/polyipseity/obsidian-modules
 [Obsidian]: https://obsidian.md/
+[QuickAdd]: https://quickadd.obsidian.guide/
 [require]: https://nodejs.org/api/modules.html#requireid
+[Templater]: (https://silentvoid13.github.io/Templater/)
 [TypeScript]: https://www.typescriptlang.org/
