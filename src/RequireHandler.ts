@@ -22,6 +22,10 @@ import {
   trimEnd,
   trimStart
 } from 'obsidian-dev-utils/String';
+import {
+  assertAllTypeKeys,
+  typeToDummyParam
+} from 'obsidian-dev-utils/Type';
 import { isUrl } from 'obsidian-dev-utils/url';
 import { remark } from 'remark';
 import remarkParse from 'remark-parse';
@@ -71,17 +75,26 @@ interface ExtractCodeScriptResult {
   codeScriptName: string | undefined;
 }
 
-type ModuleFnWrapper = (
-  require: NodeJS.Require,
-  requireAsync: RequireAsyncFn,
-  requireAsyncWrapper: RequireAsyncWrapperFn,
-  module: { exports: unknown },
-  exports: unknown
-) => Promisable<void>;
+interface Module {
+  exports: object;
+}
 
 type RequireAsyncFn = (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
 type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
 type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
+
+interface RequireStringImplOptions {
+  code: string;
+  evalPrefix: string;
+  path: string;
+  shouldWrapInAsyncFunction: boolean;
+  urlSuffix: string;
+}
+
+interface RequireStringImplResult {
+  exportsFn: () => unknown;
+  promisable: Promisable<void>;
+}
 
 interface RequireWindow {
   require?: RequireExFn;
@@ -92,6 +105,16 @@ interface RequireWindow {
 interface ResolveResult {
   resolvedId: string;
   resolvedType: ResolvedType;
+}
+
+type ScriptWrapper = (ctx: ScriptWrapperContext) => Promisable<void>;
+
+interface ScriptWrapperContext {
+  exports: object;
+  module: Module;
+  require: RequireExFn;
+  requireAsync: RequireAsyncFn;
+  requireAsyncWrapper: RequireAsyncWrapperFn;
 }
 
 interface SplitQueryResult {
@@ -126,21 +149,15 @@ export const PATH_SUFFIXES = ['', ...EXTENSIONS, ...EXTENSIONS.map((ext) => `/in
 export const PRIVATE_MODULE_PREFIX = '#';
 export const RELATIVE_MODULE_PATH_SEPARATOR = '/';
 export const SCOPED_MODULE_PREFIX = '@';
+const SCRIPT_WRAPPER_CONTEXT_KEYS = assertAllTypeKeys(typeToDummyParam<ScriptWrapperContext>(), [
+  'require',
+  'requireAsync',
+  'requireAsyncWrapper',
+  'module',
+  'exports'
+]);
 const WILDCARD_MODULE_CONDITION_SUFFIX = '/*';
 export const VAULT_ROOT_PREFIX = '//';
-
-interface RequireStringImplOptions {
-  code: string;
-  evalPrefix: string;
-  path: string;
-  shouldWrapInAsyncFunction: boolean;
-  urlSuffix: string;
-}
-
-interface RequireStringImplResult {
-  exportsFn: () => unknown;
-  promisable: Promisable<void>;
-}
 
 export abstract class RequireHandler {
   protected readonly currentModulesTimestampChain = new Set<string>();
@@ -414,7 +431,7 @@ await requireAsyncWrapper((require) => {
 
     const transformResult = new SequentialBabelPlugin([
       new ConvertToCommonJsBabelPlugin(),
-      new WrapInRequireFunctionBabelPlugin(options.shouldWrapInAsyncFunction),
+      new WrapInRequireFunctionBabelPlugin(options.shouldWrapInAsyncFunction, SCRIPT_WRAPPER_CONTEXT_KEYS),
       new ReplaceDynamicImportBabelPlugin(),
       new FixSourceMapBabelPlugin(url)
     ]).transform(options.code, filename, folder);
@@ -427,12 +444,18 @@ await requireAsyncWrapper((require) => {
       this.handleCodeWithTopLevelAwait(options.path);
     }
 
-    const moduleFnWrapper = debuggableEval(transformResult.transformedCode, `${options.evalPrefix}/${options.path}${options.urlSuffix}`) as ModuleFnWrapper;
+    const scriptWrapper = debuggableEval(transformResult.transformedCode, `${options.evalPrefix}/${options.path}${options.urlSuffix}`) as ScriptWrapper;
     const module = { exports: {} };
-    const childRequire = this.makeChildRequire(options.path);
-    const childRequireAsync = this.makeChildRequireAsync(options.path);
-    // eslint-disable-next-line import-x/no-commonjs
-    const promisable = moduleFnWrapper(childRequire, childRequireAsync, this.requireAsyncWrapper.bind(this), module, module.exports);
+
+    const ctx: ScriptWrapperContext = {
+      // eslint-disable-next-line import-x/no-commonjs
+      exports: module.exports,
+      module,
+      require: this.makeChildRequire(options.path),
+      requireAsync: this.makeChildRequireAsync(options.path),
+      requireAsyncWrapper: this.requireAsyncWrapper.bind(this)
+    };
+    const promisable = scriptWrapper(ctx);
     return {
       // eslint-disable-next-line import-x/no-commonjs
       exportsFn: () => module.exports,

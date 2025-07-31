@@ -12,9 +12,10 @@ import {
 } from '@babel/types';
 
 import { BabelPluginBase } from './BabelPluginBase.ts';
+import { objectPatternFromKeys } from './utils.ts';
 
 export class WrapInRequireFunctionBabelPlugin extends BabelPluginBase {
-  public constructor(private readonly isAsync: boolean) {
+  public constructor(private readonly isAsync: boolean, private readonly contextKeys: readonly string[]) {
     super({});
   }
 
@@ -50,11 +51,7 @@ export class WrapInRequireFunctionBabelPlugin extends BabelPluginBase {
         const wrapperFunction = functionExpression(
           identifier('scriptWrapper'),
           [
-            identifier('require'),
-            identifier('requireAsync'),
-            identifier('requireAsyncWrapper'),
-            identifier('module'),
-            identifier('exports')
+            objectPatternFromKeys(this.contextKeys)
           ],
           blockStatement(wrapperBody),
           false,

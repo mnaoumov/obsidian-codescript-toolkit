@@ -21,6 +21,10 @@ import {
   dirname
 } from 'obsidian-dev-utils/Path';
 import { escapeRegExp } from 'obsidian-dev-utils/RegExp';
+import {
+  assertAllTypeKeys,
+  typeToDummyParam
+} from 'obsidian-dev-utils/Type';
 
 import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
@@ -29,20 +33,14 @@ import { WrapForCodeBlockBabelPlugin } from './babel/WrapForCodeBlockBabelPlugin
 import { ConsoleWrapper } from './ConsoleWrapper.ts';
 import { requireStringAsync } from './RequireHandlerUtils.ts';
 
-type CodeButtonBlockScriptWrapper = (
-  registerTempPlugin: RegisterTempPluginFn,
-  console: Console,
-  container: HTMLElement,
-  renderMarkdown: (markdown: string) => Promise<void>,
-  sourceFile: TFile
-) => Promisable<void>;
-type RegisterTempPluginFn = (tempPluginClass: TempPluginClass) => void;
-
-type TempPluginClass = new (app: App, manifest: PluginManifest) => Plugin;
-
-const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
-const tempPlugins = new Map<string, Plugin>();
-
+type CodeButtonBlockScriptWrapper = (ctx: CodeButtonBlockScriptWrapperContext) => Promisable<void>;
+interface CodeButtonBlockScriptWrapperContext {
+  console: Console;
+  container: HTMLElement;
+  registerTempPlugin: RegisterTempPluginFn;
+  renderMarkdown(markdown: string): Promise<void>;
+  sourceFile: TFile;
+}
 interface HandleClickOptions {
   buttonIndex: number;
   escapedCaption: string;
@@ -54,6 +52,20 @@ interface HandleClickOptions {
   source: string;
   sourceFile: TFile;
 }
+
+type RegisterTempPluginFn = (tempPluginClass: TempPluginClass) => void;
+
+type TempPluginClass = new (app: App, manifest: PluginManifest) => Plugin;
+
+const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
+const CODE_BUTTON_BLOCK_SCRIPT_WRAPPER_CONTEXT_KEYS = assertAllTypeKeys(typeToDummyParam<CodeButtonBlockScriptWrapperContext>(), [
+  'registerTempPlugin',
+  'console',
+  'container',
+  'renderMarkdown',
+  'sourceFile'
+]);
+const tempPlugins = new Map<string, Plugin>();
 
 export function registerCodeButtonBlock(plugin: Plugin): void {
   registerCodeHighlighting();
@@ -96,13 +108,14 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
         options.plugin.app.vault.adapter.getFullPath(options.sourceFile.path).replaceAll('\\', '/')
       }.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`
     ) as CodeButtonBlockScriptWrapper;
-    await codeButtonBlockScriptWrapper(
-      makeRegisterTempPluginFn(options.plugin),
-      wrappedConsole.getConsoleInstance(options.shouldWrapConsole),
-      options.resultEl,
-      makeRenderMarkdownFn(options.plugin, options.resultEl, options.sourceFile.path),
-      options.sourceFile
-    );
+    const ctx: CodeButtonBlockScriptWrapperContext = {
+      console: wrappedConsole.getConsoleInstance(options.shouldWrapConsole),
+      container: options.resultEl,
+      registerTempPlugin: makeRegisterTempPluginFn(options.plugin),
+      renderMarkdown: makeRenderMarkdownFn(options.plugin, options.resultEl, options.sourceFile.path),
+      sourceFile: options.sourceFile
+    };
+    await codeButtonBlockScriptWrapper(ctx);
     if (options.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('✔ Executed successfully');
     }
@@ -130,7 +143,7 @@ function makeRenderMarkdownFn(plugin: Plugin, resultEl: HTMLElement, sourcePath:
 function makeWrapperScript(source: string, sourceFileName: string, sourceFolder: string, shouldAutoOutput: boolean): string {
   const result = new SequentialBabelPlugin([
     new ConvertToCommonJsBabelPlugin(),
-    new WrapForCodeBlockBabelPlugin(shouldAutoOutput),
+    new WrapForCodeBlockBabelPlugin(shouldAutoOutput, CODE_BUTTON_BLOCK_SCRIPT_WRAPPER_CONTEXT_KEYS),
     new ReplaceDynamicImportBabelPlugin()
   ]).transform(source, sourceFileName, sourceFolder);
 
