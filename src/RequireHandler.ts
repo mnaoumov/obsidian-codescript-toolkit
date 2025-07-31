@@ -110,6 +110,8 @@ interface ResolveResult {
 type ScriptWrapper = (ctx: ScriptWrapperContext) => Promisable<void>;
 
 interface ScriptWrapperContext {
+  __dirname: string;
+  __filename: string;
   exports: object;
   module: Module;
   require: RequireExFn;
@@ -150,6 +152,8 @@ export const PRIVATE_MODULE_PREFIX = '#';
 export const RELATIVE_MODULE_PATH_SEPARATOR = '/';
 export const SCOPED_MODULE_PREFIX = '@';
 const SCRIPT_WRAPPER_CONTEXT_KEYS = assertAllTypeKeys(typeToDummyParam<ScriptWrapperContext>(), [
+  '__dirname',
+  '__filename',
   'require',
   'requireAsync',
   'requireAsyncWrapper',
@@ -448,6 +452,8 @@ await requireAsyncWrapper((require) => {
     const module = { exports: {} };
 
     const ctx: ScriptWrapperContext = {
+      __dirname: dirname(options.path),
+      __filename: options.path,
       // eslint-disable-next-line import-x/no-commonjs
       exports: module.exports,
       module,
