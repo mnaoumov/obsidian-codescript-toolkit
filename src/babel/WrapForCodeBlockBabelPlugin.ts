@@ -20,9 +20,10 @@ import {
 } from '@babel/types';
 
 import { BabelPluginBase } from './BabelPluginBase.ts';
+import { objectPatternFromKeys } from './utils.ts';
 
 export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
-  public constructor(private readonly shouldAutoOutput: boolean) {
+  public constructor(private readonly shouldAutoOutput: boolean, private readonly contextKeys: readonly string[]) {
     super({});
   }
 
@@ -55,11 +56,7 @@ export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
         const wrapperFunction = functionExpression(
           identifier('codeButtonBlockScriptWrapper'),
           [
-            identifier('registerTempPlugin'),
-            identifier('console'),
-            identifier('container'),
-            identifier('renderMarkdown'),
-            identifier('sourceFile')
+            objectPatternFromKeys(this.contextKeys)
           ],
           blockStatement([
             variableDeclaration('const', [
