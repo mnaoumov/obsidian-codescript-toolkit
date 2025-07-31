@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 9.3.0
+
+- Add __filename/__dirname
+- Update libs
+
 ## 9.2.0
 
 - Make default property non-enumerable
