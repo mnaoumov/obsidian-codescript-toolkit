@@ -35,6 +35,7 @@ import { requireStringAsync } from './RequireHandlerUtils.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonBlockScriptWrapperContext) => Promisable<void>;
 interface CodeButtonBlockScriptWrapperContext {
+  app: App;
   console: Console;
   container: HTMLElement;
   registerTempPlugin: RegisterTempPluginFn;
@@ -59,6 +60,7 @@ type TempPluginClass = new (app: App, manifest: PluginManifest) => Plugin;
 
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
 const CODE_BUTTON_BLOCK_SCRIPT_WRAPPER_CONTEXT_KEYS = assertAllTypeKeys(typeToDummyParam<CodeButtonBlockScriptWrapperContext>(), [
+  'app',
   'registerTempPlugin',
   'console',
   'container',
@@ -109,6 +111,7 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
       }.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`
     ) as CodeButtonBlockScriptWrapper;
     const ctx: CodeButtonBlockScriptWrapperContext = {
+      app: options.plugin.app,
       console: wrappedConsole.getConsoleInstance(options.shouldWrapConsole),
       container: options.resultEl,
       registerTempPlugin: makeRegisterTempPluginFn(options.plugin),
