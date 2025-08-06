@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 9.3.1
+
+- Explicitly pass app to code blocks
+
 ## 9.3.0
 
 - Add __filename/__dirname
