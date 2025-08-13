@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 9.3.2
+
+- Update libs
+
 ## 9.3.1
 
 - Explicitly pass app to code blocks
