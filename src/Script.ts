@@ -173,7 +173,7 @@ See console for details...`);
 }
 
 async function isInvocableMarkdownFile(app: App, path: string): Promise<boolean> {
-  return !!(await getCodeScriptToolkitNoteSettings(app, path)).isInvocable;
+  return (await getCodeScriptToolkitNoteSettings(app, path)).isInvocable;
 }
 
 async function validateStartupScript(plugin: Plugin, shouldWarnOnNotConfigured = false): Promise<null | string> {

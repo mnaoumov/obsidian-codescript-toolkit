@@ -20,26 +20,25 @@
   "author": "mnaoumov",
   "license": "MIT",
   "devDependencies": {
-    "@antfu/utils": "9.2.0",
     "@babel/standalone": "^7.28.2",
     "@babel/types": "^7.28.2",
     "@types/babel__standalone": "^7.1.9",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.2.1",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "debuggable-eval": "^2.1.1",
-    "esbuild": "^0.25.8",
+    "esbuild": "^0.25.9",
     "jiti": "^2.5.1",
     "mdast": "^3.0.0",
     "obsidian": "^1.8.7",
-    "obsidian-dev-utils": "^30.2.1",
-    "obsidian-typings": "^3.13.5",
+    "obsidian-dev-utils": "^31.0.0",
+    "obsidian-typings": "^3.16.0",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
     "type-fest": "^4.41.0",
     "unist-util-visit": "^5.0.0"
   },
   "overrides": {
-    "@antfu/utils": "$@antfu/utils",
+    "@antfu/utils": "9.2.0",
     "esbuild": "$esbuild"
   },
   "type": "module"
