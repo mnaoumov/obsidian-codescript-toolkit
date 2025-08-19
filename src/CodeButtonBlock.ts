@@ -9,7 +9,6 @@ import type { Promisable } from 'type-fest';
 import {
   MarkdownRenderer,
   Notice,
-  Platform,
   Plugin
 } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
@@ -20,11 +19,11 @@ import {
   basename,
   dirname
 } from 'obsidian-dev-utils/Path';
-import { escapeRegExp } from 'obsidian-dev-utils/RegExp';
 import {
   assertAllTypeKeys,
   typeToDummyParam
 } from 'obsidian-dev-utils/Type';
+import { getOsAndObsidianUnsafePathCharsRegExp } from 'obsidian-dev-utils/obsidian/Validation';
 
 import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
@@ -84,10 +83,7 @@ export function unloadTempPlugins(): void {
 }
 
 function escapeForFileName(str: string): string {
-  const OBSIDIAN_FORBIDDEN_CHARACTERS = '#^[]|';
-  const SYSTEM_FORBIDDEN_CHARACTERS = Platform.isWin ? '*\\/<>:|?"' : '\0/';
-  const invalidCharacters = Array.from(new Set([...OBSIDIAN_FORBIDDEN_CHARACTERS.split(''), ...SYSTEM_FORBIDDEN_CHARACTERS.split('')])).join('');
-  return str.replace(new RegExp(`[${escapeRegExp(invalidCharacters)}]`, 'g'), '_');
+  return str.replace(getOsAndObsidianUnsafePathCharsRegExp(), '_');
 }
 
 async function handleClick(options: HandleClickOptions): Promise<void> {
