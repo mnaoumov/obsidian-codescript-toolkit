@@ -914,7 +914,16 @@ console.log(sourceFile);
 
 Code buttons in raw mode show only the output container. Button itself, console output, system messages are hidden.
 
-Implies the following full configuration:
+````markdown
+```code-button
+---
+isRaw: true
+---
+await renderMarkdown('**Hello, world!**');
+```
+````
+
+It implies the following full configuration:
 
 ```yaml
 ---
@@ -925,15 +934,6 @@ shouldShowSystemMessages: false
 shouldWrapConsole: false
 ---
 ```
-
-````markdown
-```code-button
----
-isRaw: true
----
-await renderMarkdown('**Hello, world!**');
-```
-````
 
 ### Temp plugins
 
