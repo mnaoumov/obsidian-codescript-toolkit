@@ -93,8 +93,8 @@ Most of the examples below will be shown using [`require()`](#require), but you 
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✔      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ✅      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 Certain [`Obsidian`][Obsidian] built-in modules are available for import during plugin development but show `Uncaught Error: Cannot find module` if you try to [`require()`][require] them manually. This plugin fixes that problem, allowing the following [`require()`][require] calls to work properly:
 
@@ -128,8 +128,8 @@ new Notice('My notice');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✔      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ✅      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 There is a global variable `app` that gives access to [`Obsidian`][Obsidian] [`App`][App] instance.
 
@@ -149,8 +149,8 @@ require('obsidian/app');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✔      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ✅      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 You can access the list of all special [`Obsidian`][Obsidian] module names that are made available by this plugin. This includes module names like `obsidian`, `@codemirror/view`, etc.
 
@@ -162,8 +162,8 @@ require('obsidian/specialModuleNames');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✖      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ❌      |
 
 [`Obsidian`][Obsidian] on desktop is shipped with some additional modules that you can [`require()`](#require).
 
@@ -183,8 +183,8 @@ require('get-fonts');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 Fixes `Cannot find module` errors for relative paths:
 
@@ -204,8 +204,8 @@ require('./some/relative/path.js', { parentPath: 'path/to/current/note.md' });
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 Adds support for root-relative paths:
 
@@ -219,8 +219,8 @@ The root `/` folder is configurable via settings.
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 On Linux and MacOS, the system root path is `/path/from/system/root.js`.
 
@@ -234,8 +234,8 @@ require('~/path/from/system/root.js');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 Adds support for vault-root-relative paths:
 
@@ -247,8 +247,8 @@ require('//path/from/vault/root.js');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 Originally, [`require()`][require] only supported [`CommonJS` (`cjs`)][cjs] modules and would throw `require() of ES Module path/to/script.mjs not supported. Instead change the require of path/to/script.mjs to a dynamic import() which is available in all CommonJS modules`. This plugin adds support for ECMAScript modules:
 
@@ -268,8 +268,8 @@ require('./path/to/script.mjs');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 Adds support for [`TypeScript`][TypeScript] modules:
 
@@ -321,8 +321,8 @@ require('./path/to/script.mts');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 You can require NPM modules installed into your configured scripts root folder.
 
@@ -336,8 +336,8 @@ See [Tips](#tips) how to avoid performance issues.
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✖      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ❌      |
 
 You can require Node built-in modules such as `fs` with an optional prefix `node:`.
 
@@ -350,8 +350,8 @@ require('node:fs');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✔      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ✅      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 You can require JSON files.
 
@@ -363,8 +363,8 @@ require('./foo.json');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✖      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ❌      |
 
 You can require Node binaries `.node`.
 
@@ -376,8 +376,8 @@ require('./foo.node');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✖       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ❌       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 You can require WebAssembly binaries `.wasm`.
 
@@ -389,8 +389,8 @@ await requireAsync('./foo.wasm');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✖      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ❌      |
 
 You can require content of `.asar` files like if they were folders.
 
@@ -402,8 +402,8 @@ require('./foo.asar/bar.js');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✔      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ✅      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 You can require content of `.md` files from `code-script` code blocks.
 
@@ -450,8 +450,8 @@ codeScriptToolkit:
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✔      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ✅      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 Module type is determined via file extension. You can override it if needed.
 
@@ -471,8 +471,8 @@ Possible values:
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✖       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ❌       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 ```js
 await requireAsync('https://some-site.com/some-script.js');
@@ -494,8 +494,8 @@ await requireAsync('https://some-site.com/some-script.js', {
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 You can require files using file URLs:
 
@@ -507,8 +507,8 @@ require('file:///C:/path/to/vault/then/to/script.js');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 You can require files using resource URLs:
 
@@ -524,8 +524,8 @@ See [getResourcePath()](https://docs.obsidian.md/Reference/TypeScript+API/Vault/
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✖       | ✖      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ❌       | ❌      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 ```js
 // top-level-await.js
@@ -540,8 +540,8 @@ await requireAsync('./top-level-await.js');
 
 |                                       | Desktop | Mobile |
 | ------------------------------------- | ------- | ------ |
-| **[`require()`](#require)**           | ✔       | ✔      |
-| **[`requireAsync()`](#requireasync)** | ✔       | ✔      |
+| **[`require()`](#require)**           | ✅       | ✅      |
+| **[`requireAsync()`](#requireasync)** | ✅       | ✅      |
 
 Modules are cached for performance, but the cache is invalidated if the script or its dependencies change.
 
@@ -568,7 +568,7 @@ require('https://some-site.com/some-script.js?someQuery'); // cacheInvalidationM
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔*      | ✔*     |
+| ✅*      | ✅*     |
 
 Dynamic [`import()`][import] was **partially** modified to be an alias to [`requireAsync()`](#requireasync).
 
@@ -595,7 +595,7 @@ So if you need fully functional variant, use [`requireAsync()`](#requireasync) i
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 If you need to clear the `require` cache, you can invoke the `CodeScript Toolkit: Clear Cache` command.
 
@@ -603,7 +603,7 @@ If you need to clear the `require` cache, you can invoke the `CodeScript Toolkit
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Manages source maps for compiled code, allowing seamless debugging in [`Obsidian`][Obsidian].
 
@@ -611,7 +611,7 @@ Manages source maps for compiled code, allowing seamless debugging in [`Obsidian
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Make any script invocable by defining a module that exports a function named `invoke` (sync or async) that accepts `app` argument of [`App`][App] type.
 
@@ -669,7 +669,7 @@ export async function invoke(app: App): Promise<void> {
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Configure a script folder so every script in it can be invoked using the [`Command Palette`][Command Palette]. Use `CodeScript Toolkit: Invoke Script: <<Choose>>` for more predictable lists:
 
@@ -681,7 +681,7 @@ Configure a script folder so every script in it can be invoked using the [`Comma
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Invoke any script when [`Obsidian`][Obsidian] loads via a configuration setting.
 
@@ -707,7 +707,7 @@ You can reload the startup script using the `CodeScript Toolkit: Reload Startup 
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✖      |
+| ✅       | ❌      |
 
 Assign hotkeys to frequently used scripts:
 
@@ -717,7 +717,7 @@ Assign hotkeys to frequently used scripts:
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Create code buttons that execute [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript]:
 
@@ -751,7 +751,7 @@ If you don't want to see the system messages such as `Executing...`, `Executed s
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Code blocks are refreshed automatically when the content changes.
 
@@ -770,7 +770,7 @@ To fix that, you can:
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Code blocks intercept all calls to `console.debug()`, `console.error()`, `console.info()`, `console.log()`, `console.warn()` and display them in the results panel.
 
@@ -800,7 +800,7 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Code blocks automatically output the last evaluated expression.
 
@@ -828,7 +828,7 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Code blocks can be configured to run automatically when the note is opened using the `autorun` or `autorun:true` setting.
 
@@ -844,7 +844,7 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Within code block you have access to the `container` HTML element that wraps the results panel.
 
@@ -858,7 +858,7 @@ container.createEl('button', { text: 'Click me!' });
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Within code block you have access to the `renderMarkdown()` function that renders markdown in the results panel.
 
@@ -872,7 +872,7 @@ await renderMarkdown('**Hello, world!**');
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Within code block you have access to the `sourceFile` variable which represents the note file that contains the code block.
 
@@ -886,7 +886,7 @@ console.log(sourceFile);
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 Code buttons in raw mode show only the output container. Button itself, console output, system messages are hidden.
 
@@ -900,7 +900,7 @@ await renderMarkdown('**Hello, world!**');
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 This plugin allows you to create temporary plugins.
 
@@ -930,7 +930,7 @@ Also all temp plugins are unloaded when current plugin is unloaded.
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 > [!WARNING]
 >
@@ -979,7 +979,7 @@ console.log('foo bar');
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✔       | ✔      |
+| ✅       | ✅      |
 
 If you plan to use scripts extensively, consider putting them in a [`dot folder`][dot folder], such as `.scripts` within your vault. [`Obsidian`][Obsidian] doesn't track changes within [`dot folders`][dot folder] and won't re-index your `node_modules` folder repeatedly.
 

@@ -116,13 +116,13 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
     };
     await codeButtonBlockScriptWrapper(ctx);
     if (options.shouldShowSystemMessages) {
-      wrappedConsole.writeSystemMessage('✔ Executed successfully');
+      wrappedConsole.writeSystemMessage('✅ Executed successfully');
     }
   } catch (error) {
     printError(error);
     wrappedConsole.appendToResultEl([error], 'error');
     if (options.shouldShowSystemMessages) {
-      wrappedConsole.writeSystemMessage('✖ Executed with error!');
+      wrappedConsole.writeSystemMessage('❌ Executed with error!');
     }
   }
 }
