@@ -35,7 +35,7 @@ export class ConsoleWrapper {
     return wrappedConsole;
   }
 
-  public writeSystemMessage(message: string): void {
+  public writeSystemMessage(message: DocumentFragment | string): void {
     const systemMessage = this.resultEl.createDiv({ cls: 'system-message', text: message });
     systemMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
