@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 10.0.0
+
+- Rename _AnonymousPlugin
+- Switch to new config format
+
 ## 9.3.4
 
 - Update libs
