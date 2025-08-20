@@ -414,7 +414,7 @@ require('./foo.md?codeScriptName=bar'); // require the named script block
 
 **`foo.md`**
 
-````md
+````markdown
 ```code-script
 export function baz(): void {
 }
@@ -433,7 +433,7 @@ If the first line of the `code-script` code block has special format `// codeScr
 
 You can customize behavior via frontmatter of the note.
 
-````md
+````markdown
 ---
 codeScriptToolkit:
   defaultCodeScriptName: foo
@@ -722,7 +722,10 @@ Assign hotkeys to frequently used scripts:
 Create code buttons that execute [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript]:
 
 ````markdown
-```code-button "Click me!"
+```code-button
+---
+caption: Click me!
+---
 // CommonJS (cjs) style
 const { dependency1 } = require('./path/to/script1.js');
 
@@ -739,32 +742,32 @@ function myTypeScriptFn(arg: string): void {}
 
 ![Code Button](images/code-button.png)
 
-If you don't want to see the system messages such as `Executing...`, `Executed successfully`, you can set the `systemMessages` setting to `false`.
+#### Code button config
+
+Code button config is a `YAML` block at the beginning of the code block. Below shown an example of the full config with default values.
 
 ````markdown
-```code-button "Click me!" systemMessages:false
+```code-button
+---
+caption: (no caption)
+isRaw: false
+shouldAutoOutput: true
+shouldAutoRun: false
+shouldShowSystemMessages: true
+shouldWrapConsole: true
+---
 // code
 ```
 ````
 
-### Refreshing code blocks
+The config block is mandatory, but all keys are optional. If the config key is missing, the default value is used.
 
-| Desktop | Mobile |
-| ------- | ------ |
-| ✅       | ✅      |
-
-Code blocks are refreshed automatically when the content changes.
-
-If you just update settings in the code block header, the code block will not be rerendered.
-
-So your button caption and settings will not be refreshed.
-
-To fix that, you can:
-
-- Modify the code block content.
-- Reopen the note.
-- Reload the plugin.
-- Use the [Refresh Any View](https://obsidian.md/plugins?id=refresh-preview) plugin.
+- `caption` - The caption of the button.
+- `isRaw` - Is the button working in the [raw mode](#raw-mode). If `true`, any other settings are not allowed.
+- `shouldAutoOutput` - Whether to [automatically output](#auto-output) the last evaluated expression.
+- `shouldAutoRun` - Whether to [run code automatically](#auto-running-code-blocks) without pressing the button.
+- `shouldShowSystemMessages` - Whether to show system messages such as `Executing...`, `Executed successfully`, etc.
+- `shouldWrapConsole` - Whether to display [console messages](#console-messages) in the results panel.
 
 ### Console messages
 
@@ -775,7 +778,10 @@ To fix that, you can:
 Code blocks intercept all calls to `console.debug()`, `console.error()`, `console.info()`, `console.log()`, `console.warn()` and display them in the results panel.
 
 ````markdown
-```code-button "Console messages"
+```code-button
+---
+shouldWrapConsole: true # default
+---
 console.debug('debug message');
 console.error('error message');
 console.info('info message');
@@ -786,10 +792,13 @@ console.warn('warn message');
 
 ![Console messages](images/console-messages.png)
 
-If you do not want to intercept console messages, you can set the `console` setting to `false`.
+If you do not want to intercept console messages, you can set the `shouldWrapConsole` setting to `false`.
 
 ````markdown
-```code-button "Console messages" console:false
+```code-button
+---
+shouldWrapConsole: false
+---
 // code
 ```
 ````
@@ -802,20 +811,26 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 | ------- | ------ |
 | ✅       | ✅      |
 
-Code blocks automatically output the last evaluated expression.
+Code blocks automatically output the last evaluated expression like in `REPL` environments, such as [`DevTools Console`][DevTools Console].
 
 ````markdown
-```code-button REPL
+```code-button
+---
+shouldAutoOutput: true # default
+---
 1 + 2;
 3 + 4;
 5 + 6; // this will be displayed in the results panel
 ```
 ````
 
-To disable this feature, set the `autoOutput` setting to `false`.
+To disable this feature, set the `shouldAutoOutput` setting to `false`.
 
 ````markdown
-```code-button REPL autoOutput:false
+```code-button
+---
+shouldAutoOutput: false
+---
 1 + 2;
 3 + 4;
 5 + 6; // this will NOT be displayed in the results panel
@@ -830,10 +845,13 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 | ------- | ------ |
 | ✅       | ✅      |
 
-Code blocks can be configured to run automatically when the note is opened using the `autorun` or `autorun:true` setting.
+Code blocks can be configured to run automatically when the note is opened using the `shouldAutoRun` setting.
 
 ````markdown
-```code-button "Run automatically" autorun
+```code-button
+---
+shouldAutoRun: true
+---
 // code to run
 ```
 ````
@@ -849,7 +867,9 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 Within code block you have access to the `container` HTML element that wraps the results panel.
 
 ````markdown
-```code-button "Using container"
+```code-button
+---
+---
 container.createEl('button', { text: 'Click me!' });
 ```
 ````
@@ -863,7 +883,9 @@ container.createEl('button', { text: 'Click me!' });
 Within code block you have access to the `renderMarkdown()` function that renders markdown in the results panel.
 
 ````markdown
-```code-button "Render markdown"
+```code-button
+---
+---
 await renderMarkdown('**Hello, world!**');
 ```
 ````
@@ -877,7 +899,9 @@ await renderMarkdown('**Hello, world!**');
 Within code block you have access to the `sourceFile` variable which represents the note file that contains the code block.
 
 ````markdown
-```code-button "Print sourceFile"
+```code-button
+---
+---
 console.log(sourceFile);
 ```
 ````
@@ -890,8 +914,23 @@ console.log(sourceFile);
 
 Code buttons in raw mode show only the output container. Button itself, console output, system messages are hidden.
 
+Implies the following full configuration:
+
+```yaml
+---
+isRaw: true
+shouldAutoOutput: false
+shouldAutoRun: true
+shouldShowSystemMessages: false
+shouldWrapConsole: false
+---
+```
+
 ````markdown
-```code-button "" raw
+```code-button
+---
+isRaw: true
+---
 await renderMarkdown('**Hello, world!**');
 ```
 ````
@@ -909,7 +948,9 @@ This is useful for quick plugin prototyping from inside the [`Obsidian`][Obsidia
 The key here is the function `registerTempPlugin()`, which is available in the script scope.
 
 ````markdown
-```code-button "Click me!"
+```code-button
+---
+---
 import { Plugin } from 'obsidian';
 
 class MyPlugin extends Plugin {
