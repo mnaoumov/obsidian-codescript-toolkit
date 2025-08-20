@@ -286,6 +286,13 @@ ${code}
   }
 
   if (config.isRaw) {
+    if (Object.keys(config).length > 1) {
+      new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+        f.appendText('❌ Error!\nThe `isRaw` setting is not allowed with other settings.');
+        addLinkToDocs(f);
+      }));
+      return;
+    }
     config.shouldAutoOutput = false;
     config.shouldAutoRun = true;
     config.shouldShowSystemMessages = false;
