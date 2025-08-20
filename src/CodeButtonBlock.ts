@@ -344,8 +344,8 @@ function registerTempPluginImpl(plugin: Plugin, tempPluginClass: TempPluginClass
   }
 
   const tempPlugin = new tempPluginClass(app, {
-    author: '__Temp Plugin created by Fix Require Modules',
-    description: '__Temp Plugin created by Fix Require Modules',
+    author: '__Temp Plugin created by CodeScript Toolkit',
+    description: '__Temp Plugin created by CodeScript Toolkit',
     id,
     minAppVersion: '0.0.1',
     name: `__Temp Plugin ${tempPluginClassName}`,
