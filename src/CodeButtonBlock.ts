@@ -244,13 +244,13 @@ ${code}
 
     if (isInCallout) {
       new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
-        f.appendText('❌ Error!\nYour code block does not have a config section.');
+        f.appendText('❌ Error!\nYour code block does not have a config block.');
         addLinkToDocs(f);
         f.appendText('⚠️ Detecting legacy button config (if you have one) or inserting a sample config is not supported inside a callout.');
       }));
     } else {
       new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
-        f.appendText('❌ Error!\nYour code block does not have a config section.');
+        f.appendText('❌ Error!\nYour code block does not have a config block.');
         addLinkToDocs(f);
         f.createEl('button', {
           text: 'Insert sample config'
