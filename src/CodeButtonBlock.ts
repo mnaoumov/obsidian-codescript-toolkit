@@ -334,8 +334,9 @@ function registerCodeHighlighting(): void {
 }
 
 function registerTempPluginImpl(plugin: Plugin, tempPluginClass: TempPluginClass): void {
+  const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
   const app = plugin.app;
-  const id = `__temp-plugin-${tempPluginClass.name}`;
+  const id = `__temp-plugin-${tempPluginClassName}`;
 
   const existingPlugin = tempPlugins.get(id);
   if (existingPlugin) {
@@ -347,28 +348,28 @@ function registerTempPluginImpl(plugin: Plugin, tempPluginClass: TempPluginClass
     description: '__Temp Plugin created by Fix Require Modules',
     id,
     minAppVersion: '0.0.1',
-    name: `__Temp Plugin ${tempPluginClass.name}`,
+    name: `__Temp Plugin ${tempPluginClassName}`,
     version: '0.0.0'
   });
 
-  const unloadCommandId = `unload-temp-plugin-${tempPluginClass.name}`;
+  const unloadCommandId = `unload-temp-plugin-${tempPluginClassName}`;
 
   tempPlugin.register(() => {
     tempPlugins.delete(id);
     plugin.removeCommand(unloadCommandId);
-    new Notice(`Unloaded Temp Plugin: ${tempPluginClass.name}.`);
+    new Notice(`Unloaded Temp Plugin: ${tempPluginClassName}.`);
   });
 
   tempPlugins.set(id, tempPlugin);
   plugin.addChild(tempPlugin);
-  new Notice(`Loaded Temp Plugin: ${tempPluginClass.name}.`);
+  new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
 
   plugin.addCommand({
     callback: () => {
       tempPlugin.unload();
     },
     id: unloadCommandId,
-    name: `Unload Temp Plugin: ${tempPluginClass.name}`
+    name: `Unload Temp Plugin: ${tempPluginClassName}`
   });
 }
 
