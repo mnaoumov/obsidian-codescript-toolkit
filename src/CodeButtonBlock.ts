@@ -7,14 +7,25 @@ import type {
 import type { Promisable } from 'type-fest';
 
 import {
+  getFrontMatterInfo,
   MarkdownRenderer,
   Notice,
-  Plugin
+  parseYaml,
+  Plugin,
+  stringifyYaml
 } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
 import { printError } from 'obsidian-dev-utils/Error';
+import {
+  normalizeOptionalProperties,
+  removeUndefinedProperties
+} from 'obsidian-dev-utils/ObjectUtils';
 import { getFile } from 'obsidian-dev-utils/obsidian/FileSystem';
-import { getCodeBlockArguments } from 'obsidian-dev-utils/obsidian/MarkdownCodeBlockProcessor';
+import {
+  getCodeBlockArguments,
+  replaceCodeBlock
+} from 'obsidian-dev-utils/obsidian/MarkdownCodeBlockProcessor';
+import { getOsAndObsidianUnsafePathCharsRegExp } from 'obsidian-dev-utils/obsidian/Validation';
 import {
   basename,
   dirname
@@ -23,7 +34,6 @@ import {
   assertAllTypeKeys,
   typeToDummyParam
 } from 'obsidian-dev-utils/Type';
-import { getOsAndObsidianUnsafePathCharsRegExp } from 'obsidian-dev-utils/obsidian/Validation';
 
 import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
@@ -67,6 +77,15 @@ const CODE_BUTTON_BLOCK_SCRIPT_WRAPPER_CONTEXT_KEYS = assertAllTypeKeys(typeToDu
   'sourceFile'
 ]);
 const tempPlugins = new Map<string, Plugin>();
+
+interface CodeButtonBlockConfig {
+  caption: string;
+  isRaw: boolean;
+  shouldAutoOutput: boolean;
+  shouldAutoRun: boolean;
+  shouldShowSystemMessages: boolean;
+  shouldWrapConsole: boolean;
+}
 
 export function registerCodeButtonBlock(plugin: Plugin): void {
   registerCodeHighlighting();
@@ -153,57 +172,153 @@ function makeWrapperScript(source: string, sourceFileName: string, sourceFolder:
   return result.transformedCode;
 }
 
+const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
+  caption: '(no caption)',
+  isRaw: false,
+  shouldAutoOutput: true,
+  shouldAutoRun: false,
+  shouldShowSystemMessages: true,
+  shouldWrapConsole: true
+};
+
+let lastButtonIndex = 0;
+
+function addLinkToDocs(f: DocumentFragment): void {
+  f.appendText(' See ');
+  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#code-buttons', text: 'docs' });
+  f.appendText(' for more details.');
+  f.createEl('br');
+}
+
+function getBooleanArgument(codeBlockArguments: string[], argumentName: string): boolean | undefined {
+  if (codeBlockArguments.includes(argumentName) || codeBlockArguments.includes(`${argumentName}:true`)) {
+    return true;
+  }
+  if (codeBlockArguments.includes(`${argumentName}:false`)) {
+    return false;
+  }
+  return undefined;
+}
+
 function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
-  const sectionInfo = ctx.getSectionInfo(el);
+  lastButtonIndex++;
   const resultEl = el.createDiv({ cls: 'fix-require-modules console-log-container' });
 
-  if (sectionInfo) {
-    const [
-      caption = '(no caption)',
-      ...rest
-    ] = getCodeBlockArguments(ctx, el);
+  const codeBlockArguments = getCodeBlockArguments(ctx, el);
 
-    const isRaw = rest.includes('raw');
-    const shouldAutoRun = isRaw || rest.includes('autorun') || rest.includes('autorun:true');
-    const shouldWrapConsole = !isRaw && !rest.includes('console:false');
-    const shouldAutoOutput = !isRaw && !rest.includes('autoOutput:false');
-    const shouldShowSystemMessages = !isRaw && !rest.includes('systemMessages:false');
+  const frontMatterInfo = getFrontMatterInfo(source);
+  const code = source.slice(frontMatterInfo.contentStart);
 
-    const lines = sectionInfo.text.split('\n');
-    const previousLines = lines.slice(0, sectionInfo.lineStart);
-    const previousText = previousLines.join('\n');
-    const buttonIndex = Array.from(previousText.matchAll(new RegExp(`^(?:\`{3,}|~{3,})${CODE_BUTTON_BLOCK_LANGUAGE}`, 'gm'))).length;
-
-    const handleClickOptions: HandleClickOptions = {
-      buttonIndex,
-      escapedCaption: escapeForFileName(caption),
-      plugin,
-      resultEl: isRaw ? el : resultEl,
-      shouldAutoOutput,
-      shouldShowSystemMessages,
-      shouldWrapConsole,
-      source,
-      sourceFile: getFile(plugin.app, ctx.sourcePath)
-    };
-
-    if (!isRaw) {
-      el.createEl('button', {
-        cls: 'mod-cta',
-        async onclick(): Promise<void> {
-          await handleClick(handleClickOptions);
-        },
-        prepend: true,
-        text: caption
+  if (codeBlockArguments.length > 0) {
+    new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+      f.appendText('❌ Error!\nYour code block uses legacy button config.');
+      addLinkToDocs(f);
+      f.createEl('button', {
+        text: 'Update config'
+      }, (button) => {
+        button.addEventListener('click', () => {
+          invokeAsyncSafely(async () => {
+            const config: Partial<CodeButtonBlockConfig> = removeUndefinedProperties(normalizeOptionalProperties<Partial<CodeButtonBlockConfig>>({
+              caption: codeBlockArguments[0],
+              isRaw: getBooleanArgument(codeBlockArguments, 'raw'),
+              shouldAutoOutput: getBooleanArgument(codeBlockArguments, 'autoOutput'),
+              shouldAutoRun: getBooleanArgument(codeBlockArguments, 'autorun'),
+              shouldShowSystemMessages: getBooleanArgument(codeBlockArguments, 'systemMessages'),
+              shouldWrapConsole: getBooleanArgument(codeBlockArguments, 'console')
+            }));
+            const newSource = `\`\`\`code-button
+---
+${stringifyYaml(config)}---
+${code}
+\`\`\``;
+            await replaceCodeBlock(plugin.app, ctx, el, newSource);
+          });
+        });
       });
-    }
-
-    if (shouldAutoRun) {
-      invokeAsyncSafely(() => handleClick(handleClickOptions));
-    }
+    }));
+    return;
   }
 
-  if (!sectionInfo) {
-    new ConsoleWrapper(resultEl).writeSystemMessage('✖ Error!\nCould not get code block info. Try to reopen the note...');
+  if (!frontMatterInfo.exists) {
+    const isInCallout = el.parentElement?.hasClass('callout-content');
+
+    if (isInCallout) {
+      new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+        f.appendText('❌ Error!\nYour code block does not have a config section.');
+        addLinkToDocs(f);
+        f.appendText('⚠️ Detecting legacy button config (if you have one) or inserting a sample config is not supported inside a callout.');
+      }));
+    } else {
+      new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+        f.appendText('❌ Error!\nYour code block does not have a config section.');
+        addLinkToDocs(f);
+        f.createEl('button', {
+          text: 'Insert sample config'
+        }, (button) => {
+          button.addEventListener('click', () => {
+            invokeAsyncSafely(async () => {
+              const newSource = `\`\`\`code-button
+---
+${stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG)}---
+${code}
+\`\`\``;
+              await replaceCodeBlock(plugin.app, ctx, el, newSource);
+            });
+          });
+        });
+      }));
+    }
+    return;
+  }
+
+  let config: Partial<CodeButtonBlockConfig>;
+
+  try {
+    config = parseYaml(frontMatterInfo.frontmatter) as Partial<CodeButtonBlockConfig>;
+  } catch (error) {
+    console.error(error);
+    new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+      f.appendText('❌ Error!\nYour code block config is not a valid YAML.');
+      addLinkToDocs(f);
+      f.appendText('See the YAML parsing error in the console.');
+    }));
+    return;
+  }
+
+  if (config.isRaw) {
+    config.shouldAutoOutput = false;
+    config.shouldAutoRun = true;
+    config.shouldShowSystemMessages = false;
+    config.shouldWrapConsole = false;
+  }
+
+  const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
+
+  const handleClickOptions: HandleClickOptions = {
+    buttonIndex: lastButtonIndex,
+    escapedCaption: escapeForFileName(fullConfig.caption),
+    plugin,
+    resultEl: fullConfig.isRaw ? el : resultEl,
+    shouldAutoOutput: fullConfig.shouldAutoOutput,
+    shouldShowSystemMessages: fullConfig.shouldShowSystemMessages,
+    shouldWrapConsole: fullConfig.shouldWrapConsole,
+    source: code,
+    sourceFile: getFile(plugin.app, ctx.sourcePath)
+  };
+
+  if (!fullConfig.isRaw) {
+    el.createEl('button', {
+      cls: 'mod-cta',
+      async onclick(): Promise<void> {
+        await handleClick(handleClickOptions);
+      },
+      prepend: true,
+      text: fullConfig.caption
+    });
+  }
+
+  if (fullConfig.shouldAutoRun) {
+    invokeAsyncSafely(() => handleClick(handleClickOptions));
   }
 }
 
