@@ -33,6 +33,11 @@
     font-style: italic;
     font-weight: bold;
     margin-bottom: 10px;
+
+    a {
+      color: var(--console-log-entry-system-color);
+      font-weight: bold;
+    }
   }
 
   .console-log-entry {
