@@ -1083,5 +1083,5 @@ However, for the backward compatibility, the previous id `fix-require-modules` i
 [Obsidian]: https://obsidian.md/
 [QuickAdd]: https://quickadd.obsidian.guide/
 [require]: https://nodejs.org/api/modules.html#requireid
-[Templater]: (https://silentvoid13.github.io/Templater/)
+[Templater]: https://silentvoid13.github.io/Templater/
 [TypeScript]: https://www.typescriptlang.org/
