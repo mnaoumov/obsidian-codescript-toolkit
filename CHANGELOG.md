@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 10.1.0
+
+- allowReturnOutsideFunction
+
 ## 10.0.0
 
 - Rename _AnonymousPlugin
