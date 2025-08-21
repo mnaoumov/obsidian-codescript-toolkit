@@ -20,6 +20,9 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
         ast: true,
         cwd: folder,
         filename,
+        parserOpts: {
+          allowReturnOutsideFunction: true
+        },
         plugins: [
           'transform-modules-commonjs',
           [babelPluginTransformImportMeta(), { module: 'ES6' }]
