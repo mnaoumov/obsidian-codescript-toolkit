@@ -45,6 +45,9 @@ export abstract class BabelPluginBase<Data = unknown> {
       const result = babelTransform(code, {
         cwd: folder,
         filename,
+        parserOpts: {
+          allowReturnOutsideFunction: true
+        },
         plugins: [
           this.getPluginObj()
         ],
