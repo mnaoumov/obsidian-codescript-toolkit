@@ -917,7 +917,6 @@ ${this.getRequireAsyncAdvice(true)}`);
           throw error;
         }
       },
-      optionsToAppend: { cacheInvalidationMode: CacheInvalidationMode.Never },
       require: require ?? this.requireEx
     }));
   }
