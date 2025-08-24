@@ -803,12 +803,15 @@ shouldWrapConsole: true
 
 The config block is mandatory, but all keys are optional. If the config key is missing, the default value is used.
 
-- `caption` - The caption of the button.
-- `isRaw` - Is the button working in the [raw mode](#raw-mode). If `true`, any other settings are not allowed.
-- `shouldAutoOutput` - Whether to [automatically output](#auto-output) the last evaluated expression.
-- `shouldAutoRun` - Whether to [run code automatically](#auto-running-code-blocks) without pressing the button.
-- `shouldShowSystemMessages` - Whether to show system messages such as `Executing...`, `Executed successfully`, etc.
-- `shouldWrapConsole` - Whether to display [console messages](#console-messages) in the results panel.
+See [spec](./src/CodeButtonBlockConfig.ts) for all config keys.
+
+#### `codeButtonContext`
+
+During runtime execution of the code button block, the following variable is available `codeButtonContext`.
+
+The variable contains all metadata and helper functions available during runtime execution.
+
+See [spec](./src/CodeButtonContext.ts) for all possible values.
 
 ### Console messages
 
@@ -905,13 +908,11 @@ See [Refreshing code blocks](#refreshing-code-blocks).
 | ------- | ------ |
 | ✅       | ✅      |
 
-Within code block you have access to the `container` HTML element that wraps the results panel.
+Within code block you have access to the `codeButtonContext.container` HTML element that wraps the results panel.
 
 ````markdown
 ```code-button
----
----
-container.createEl('button', { text: 'Click me!' });
+codeButtonContext.container.createEl('button', { text: 'Click me!' });
 ```
 ````
 
@@ -921,13 +922,11 @@ container.createEl('button', { text: 'Click me!' });
 | ------- | ------ |
 | ✅       | ✅      |
 
-Within code block you have access to the `renderMarkdown()` function that renders markdown in the results panel.
+Within code block you have access to the `codeButtonContext.renderMarkdown()` function that renders markdown in the results panel.
 
 ````markdown
 ```code-button
----
----
-await renderMarkdown('**Hello, world!**');
+await codeButtonContext.renderMarkdown('**Hello, world!**');
 ```
 ````
 
@@ -937,13 +936,11 @@ await renderMarkdown('**Hello, world!**');
 | ------- | ------ |
 | ✅       | ✅      |
 
-Within code block you have access to the `sourceFile` variable which represents the note file that contains the code block.
+Within code block you have access to the `codeButtonContext.sourceFile` variable which represents the note file that contains the code block.
 
 ````markdown
 ```code-button
----
----
-console.log(sourceFile);
+console.log(codeButtonContext.sourceFile);
 ```
 ````
 
@@ -986,12 +983,10 @@ This plugin allows you to create temporary plugins.
 
 This is useful for quick plugin prototyping from inside the [`Obsidian`][Obsidian] itself.
 
-The key here is the function `registerTempPlugin()`, which is available in the script scope.
+The key here is the function `codeButtonContext.registerTempPlugin()`, which is available in the script scope.
 
 ````markdown
 ```code-button
----
----
 import { Plugin } from 'obsidian';
 
 class MyPlugin extends Plugin {
@@ -1000,7 +995,7 @@ class MyPlugin extends Plugin {
   }
 }
 
-registerTempPlugin(MyPlugin);
+codeButtonContext.registerTempPlugin(MyPlugin);
 ```
 ````
 
