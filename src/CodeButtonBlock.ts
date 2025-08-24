@@ -1,4 +1,7 @@
-import type { MarkdownPostProcessorContext } from 'obsidian';
+import type {
+  Editor,
+  MarkdownPostProcessorContext
+} from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 import {
@@ -21,6 +24,7 @@ import {
   basename,
   dirname
 } from 'obsidian-dev-utils/Path';
+import { indent } from 'obsidian-dev-utils/String';
 
 import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
 import type { CodeButtonContext } from './CodeButtonContext.ts';
@@ -67,6 +71,24 @@ const FORBIDDEN_KEYS_FOR_RAW_MODE: (keyof CodeButtonBlockConfig)[] = [
 ];
 
 let lastButtonIndex = 0;
+
+export function insertSampleCodeButton(editor: Editor): void {
+  const config = stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG);
+  let newCodeBlock = `\`\`\`code-button
+---
+${config}---
+// Code goes here
+\`\`\``;
+  const cursor = editor.getCursor('from');
+  const line = editor.getLine(cursor.line);
+  const PREFIX_LINE_REG_EXP = /^ {0,3}(?:> {1,3})*/g;
+  const linePrefix = line.match(PREFIX_LINE_REG_EXP)?.[0] ?? '';
+  newCodeBlock = indent(newCodeBlock, linePrefix);
+  newCodeBlock = newCodeBlock.slice(0, cursor.ch) === line.slice(0, cursor.ch)
+    ? newCodeBlock.slice(cursor.ch)
+    : `\n${newCodeBlock}`;
+  editor.replaceSelection(newCodeBlock);
+}
 
 export function registerCodeButtonBlock(plugin: Plugin): void {
   registerCodeHighlighting();
