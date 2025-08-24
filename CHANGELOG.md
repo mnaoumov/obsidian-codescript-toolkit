@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 11.0.0
+
+- insertSampleCodeButton
+- Add removeAfterExecution
+- Modify containing note functions
+- Don't skip cache
+- Handle empty frontmatter
+- Update libs
+
 ## 10.1.0
 
 - allowReturnOutsideFunction
