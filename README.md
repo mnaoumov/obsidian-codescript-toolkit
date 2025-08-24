@@ -748,7 +748,7 @@ function myTypeScriptFn(arg: string): void {}
 >
 > In some rare occasions, plugin fails to do so and will show an error instead of the button.
 >
-> In this case, you need to slightly modify the code button content to ensure such content is unique in its markdown note.
+> In this case, you need to slightly modify the code button source to ensure such source is unique in its markdown note.
 >
 > **Example**:
 >
@@ -756,11 +756,11 @@ function myTypeScriptFn(arg: string): void {}
 > > [!NOTE]
 > >
 > > ```code-button
-> > // Identical code button content
+> > // Identical code button source
 > > ```
 > >
 > > ```code-button
-> > // Identical code button content
+> > // Identical code button source
 > > ```
 > ````
 >
@@ -770,14 +770,14 @@ function myTypeScriptFn(arg: string): void {}
 > > [!NOTE]
 > >
 > > ```code-button
-> > // No longer identical code button content
+> > // No longer identical code button source
 > > ```
 > >
 > > ```code-button
 > > ---
 > > someKey: someValue
 > > ---
-> > // No longer identical code button content
+> > // No longer identical code button source
 > > ```
 > ````
 >
