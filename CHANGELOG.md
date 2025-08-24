@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.0.1
+
+- Update libs
+
 ## 11.0.0
 
 - insertSampleCodeButton
