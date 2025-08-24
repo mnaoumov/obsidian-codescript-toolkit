@@ -46,6 +46,28 @@ export interface CodeButtonContext {
   container: HTMLElement;
 
   /**
+   * Insert markdown after the code button block.
+   *
+   * @param markdown - The markdown to insert.
+   * @param lineOffset - The line offset to insert the markdown at. Defaults to 0.
+   * @param shouldPreserveLinePrefix - Whether to preserve the line prefix. Defaults to `true`.
+   *
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#modify-containing-note-file}
+   */
+  insertAfterCodeButtonBlock(markdown: string, lineOffset?: number, shouldPreserveLinePrefix?: boolean): Promise<void>;
+
+  /**
+   * Insert markdown before the code button block.
+   *
+   * @param markdown - The markdown to insert.
+   * @param lineOffset - The line offset to insert the markdown at. Defaults to 0.
+   * @param shouldPreserveLinePrefix - Whether to preserve the line prefix. Defaults to `true`.
+   *
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#modify-containing-note-file}
+   */
+  insertBeforeCodeButtonBlock(markdown: string, lineOffset?: number, shouldPreserveLinePrefix?: boolean): Promise<void>;
+
+  /**
    * Information about a code block in a markdown file
    *
    * @see {@link https://github.com/mnaoumov/obsidian-dev-utils/blob/main/src/obsidian/CodeBlockMarkdownInformation.ts}
@@ -72,6 +94,15 @@ export interface CodeButtonContext {
   registerTempPlugin(tempPluginClass: TempPluginClass): void;
 
   /**
+   * Remove the code button block.
+   *
+   * @param shouldKeepGap - Whether to keep the gap after removing the code button block. Defaults to `false`.
+   *
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#modify-containing-note-file}
+   */
+  removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void>;
+
+  /**
    * Render markdown inside the {@link container}.
    *
    * @param markdown - The markdown to render.
@@ -79,6 +110,17 @@ export interface CodeButtonContext {
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#render-markdown}
    */
   renderMarkdown(markdown: string): Promise<void>;
+
+  /**
+   * Replace the code button block with the given markdown.
+   *
+   * @param markdown - The markdown to replace the code button block with.
+   * @param shouldPreserveLinePrefix - Whether to preserve the line prefix. Defaults to `true`.
+   * @param shouldKeepGapWhenEmpty - Whether to keep the gap when the new code block is empty. Defaults to `false`.
+   *
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#modify-containing-note-file}
+   */
+  replaceCodeButtonBlock(markdown: string, shouldPreserveLinePrefix?: boolean, shouldKeepGapWhenEmpty?: boolean): Promise<void>;
 
   /**
    * The source code of the code button block.
