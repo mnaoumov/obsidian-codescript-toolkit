@@ -792,12 +792,15 @@ Code button config is a `YAML` block at the beginning of the code block. Below s
 ---
 caption: (no caption)
 isRaw: false
+removeAfterExecution:
+  shouldKeepGap: false
+  when: never
 shouldAutoOutput: true
 shouldAutoRun: false
 shouldShowSystemMessages: true
 shouldWrapConsole: true
 ---
-// code
+// Code
 ```
 ````
 
@@ -843,11 +846,11 @@ If you do not want to intercept console messages, you can set the `shouldWrapCon
 ---
 shouldWrapConsole: false
 ---
-// code
+// Code
 ```
 ````
 
-See [Refreshing code blocks](#refreshing-code-blocks).
+See [Code button config](#code-button-config).
 
 ### Auto output
 
@@ -881,7 +884,7 @@ shouldAutoOutput: false
 ```
 ````
 
-See [Refreshing code blocks](#refreshing-code-blocks).
+See [Code button config](#code-button-config).
 
 ### Auto running code blocks
 
@@ -896,11 +899,11 @@ Code blocks can be configured to run automatically when the note is opened using
 ---
 shouldAutoRun: true
 ---
-// code to run
+// Code
 ```
 ````
 
-See [Refreshing code blocks](#refreshing-code-blocks).
+See [Code button config](#code-button-config).
 
 ### Container
 
@@ -997,6 +1000,25 @@ shouldShowSystemMessages: false
 shouldWrapConsole: false
 ---
 ```
+
+See [Code button config](#code-button-config).
+
+### Remove after execution
+
+You can configure a button to remove itself after execution:
+
+````markdown
+```code-button
+---
+removeAfterExecution:
+  shouldKeepGap: false
+  when: never
+---
+// Code
+```
+````
+
+See [Code button config](#code-button-config).
 
 ### Temp plugins
 
