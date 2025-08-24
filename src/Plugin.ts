@@ -79,7 +79,7 @@ export class Plugin extends PluginBase<PluginTypes> {
     this.addCommand({
       callback: () => selectAndInvokeScript(this),
       id: 'invokeScript',
-      name: 'Invoke Script: <<Choose>>'
+      name: 'Invoke script: <<Choose>>'
     });
 
     this.addCommand({
@@ -87,19 +87,19 @@ export class Plugin extends PluginBase<PluginTypes> {
         this.requireHandler.clearCache();
       },
       id: 'clearCache',
-      name: 'Clear Cache'
+      name: 'Clear cache'
     });
 
     this.addCommand({
       callback: unloadTempPlugins,
       id: 'unload-temp-plugins',
-      name: 'Unload Temp Plugins'
+      name: 'Unload temp plugins'
     });
 
     this.addCommand({
       callback: convertAsyncToSync(() => reloadStartupScript(this)),
       id: 'reload-startup-script',
-      name: 'Reload Startup Script'
+      name: 'Reload startup script'
     });
 
     this.addCommand({
