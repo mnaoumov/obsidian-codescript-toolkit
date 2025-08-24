@@ -805,7 +805,7 @@ The config block is mandatory, but all keys are optional. If the config key is m
 
 See [spec](./src/CodeButtonBlockConfig.ts) for all config keys.
 
-#### `codeButtonContext`
+#### Code button context
 
 During runtime execution of the code button block, the following variable is available `codeButtonContext`.
 
@@ -916,6 +916,8 @@ codeButtonContext.container.createEl('button', { text: 'Click me!' });
 ```
 ````
 
+See [Code button context](#code-button-context).
+
 ### Render markdown
 
 | Desktop | Mobile |
@@ -926,9 +928,11 @@ Within code block you have access to the `codeButtonContext.renderMarkdown()` fu
 
 ````markdown
 ```code-button
-await codeButtonContext.renderMarkdown('**Hello, world!**');
+await codeButtonContext.renderMarkdown('**foo**');
 ```
 ````
+
+See [Code button context](#code-button-context).
 
 ### Source file
 
@@ -944,6 +948,27 @@ console.log(codeButtonContext.sourceFile);
 ```
 ````
 
+See [Code button context](#code-button-context).
+
+### Modify containing note file
+
+| Desktop | Mobile |
+| ------- | ------ |
+| ✅       | ✅      |
+
+Within code block you have access to the following functions that modify the containing note file:
+
+````markdown
+```code-button
+await codeButtonContext.insertAfterCodeButtonBlock('**foo**');
+await codeButtonContext.insertBeforeCodeButtonBlock('**bar**');
+await codeButtonContext.removeCodeBlock();
+await codeButtonContext.replaceCodeBlock(**baz**);
+```
+````
+
+See [Code button context](#code-button-context).
+
 ### Raw mode
 
 | Desktop | Mobile |
@@ -957,7 +982,7 @@ Code buttons in raw mode show only the output container. Button itself, console 
 ---
 isRaw: true
 ---
-await renderMarkdown('**Hello, world!**');
+await codeButtonContext.renderMarkdown('**foo**');
 ```
 ````
 
@@ -1002,6 +1027,8 @@ codeButtonContext.registerTempPlugin(MyPlugin);
 The loaded temp plugins can be unloaded using the `CodeScript Toolkit: Unload Temp Plugin: PluginName` / `CodeScript Toolkit: Unload Temp Plugins` commands.
 
 Also all temp plugins are unloaded when current plugin is unloaded.
+
+See [Code button context](#code-button-context).
 
 ## Protocol URLs
 
