@@ -77,7 +77,7 @@ export function insertSampleCodeButton(editor: Editor): void {
   let newCodeBlock = `\`\`\`code-button
 ---
 ${config}---
-// Code goes here
+// Code
 \`\`\``;
   const cursor = editor.getCursor('from');
   const line = editor.getLine(cursor.line);
