@@ -13,6 +13,11 @@ export interface CodeButtonBlockConfig {
   isRaw: boolean;
 
   /**
+   * Configures the behavior of the button removal after it has been executed.
+   */
+  removeAfterExecution: RemoveAfterExecutionConfig;
+
+  /**
    * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#auto-output) the last evaluated expression.
    */
   shouldAutoOutput: boolean;
@@ -31,4 +36,19 @@ export interface CodeButtonBlockConfig {
    * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#console-messages) in the results panel.
    */
   shouldWrapConsole: boolean;
+}
+
+/**
+ * Configures the behavior of the button removal after it has been executed.
+ */
+export interface RemoveAfterExecutionConfig {
+  /**
+   * Whether to keep the gap after the button has been removed.
+   */
+  shouldKeepGap: boolean;
+
+  /**
+   * The condition of the button removal.
+   */
+  when: 'always' | 'never' | 'onError' | 'onSuccess';
 }

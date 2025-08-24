@@ -25,19 +25,16 @@ import { ConsoleWrapper } from './ConsoleWrapper.ts';
 import { registerTempPlugin } from './TempPluginRegistry.ts';
 
 interface CodeButtonContextImplConstructorOptions {
-  plugin: Plugin;
   config: CodeButtonBlockConfig;
+  markdownInfo: CodeBlockMarkdownInformation;
   markdownPostProcessorContext: MarkdownPostProcessorContext;
   parentEl: HTMLElement;
-  markdownInfo: CodeBlockMarkdownInformation;
+  plugin: Plugin;
   resultEl: HTMLElement;
   source: string;
 }
 
 export class CodeButtonContextImpl implements CodeButtonContext {
-  private readonly plugin: Plugin;
-  private readonly resultEl: HTMLElement;
-
   public readonly app: App;
   public readonly config: CodeButtonBlockConfig;
   public readonly console: Console;
@@ -47,6 +44,9 @@ export class CodeButtonContextImpl implements CodeButtonContext {
   public readonly parentEl: HTMLElement;
   public readonly source: string;
   public readonly sourceFile: TFile;
+
+  private readonly plugin: Plugin;
+  private readonly resultEl: HTMLElement;
 
   public constructor(options: CodeButtonContextImplConstructorOptions) {
     this.app = options.plugin.app;
