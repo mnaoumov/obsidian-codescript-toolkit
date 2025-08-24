@@ -806,6 +806,8 @@ shouldWrapConsole: true
 
 The config block is mandatory, but all keys are optional. If the config key is missing, the default value is used.
 
+To simplify adding new button you can use command `CodeScript Toolkit: Insert sample code button`.
+
 See [spec](./src/CodeButtonBlockConfig.ts) for all config keys.
 
 #### Code button context
