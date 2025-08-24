@@ -742,6 +742,47 @@ function myTypeScriptFn(arg: string): void {}
 
 ![Code Button](images/code-button.png)
 
+> [!WARNING]
+>
+> For code buttons to work properly, the plugin has to be able to uniquely identify the code button block to its source in the markdown note.
+>
+> In some rare occasions, plugin fails to do so and will show an error instead of the button.
+>
+> In this case, you need to slightly modify the code button content to ensure such content is unique in its markdown note.
+>
+> **Example**:
+>
+> ````markdown
+> > [!NOTE]
+> >
+> > ```code-button
+> > // Identical code button content
+> > ```
+> >
+> > ```code-button
+> > // Identical code button content
+> > ```
+> ````
+>
+> The plugin is unable to distinguish those two buttons and will show an error. But if you change at least one of them:
+>
+> ````markdown
+> > [!NOTE]
+> >
+> > ```code-button
+> > // No longer identical code button content
+> > ```
+> >
+> > ```code-button
+> > ---
+> > someKey: someValue
+> > ---
+> > // No longer identical code button content
+> > ```
+> ````
+>
+> The buttons are no longer identical and the plugin can distinguish them now.
+
 #### Code button config
 
 Code button config is a `YAML` block at the beginning of the code block. Below shown an example of the full config with default values.
