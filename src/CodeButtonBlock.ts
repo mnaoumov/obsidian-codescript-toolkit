@@ -274,7 +274,7 @@ ${code}
   let config: Partial<CodeButtonBlockConfig>;
 
   try {
-    config = parseYaml(frontMatterInfo.frontmatter) as Partial<CodeButtonBlockConfig> ?? {};
+    config = parseYaml(frontMatterInfo.frontmatter) as (Partial<CodeButtonBlockConfig> | undefined) ?? {};
   } catch (error) {
     console.error(error);
     new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
