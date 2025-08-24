@@ -22,7 +22,7 @@ import {
 } from 'obsidian-dev-utils/ObjectUtils';
 import { getFile } from 'obsidian-dev-utils/obsidian/FileSystem';
 import {
-  getCodeBlockArguments,
+  getCodeBlockMarkdownInfo,
   replaceCodeBlock
 } from 'obsidian-dev-utils/obsidian/MarkdownCodeBlockProcessor';
 import { getOsAndObsidianUnsafePathCharsRegExp } from 'obsidian-dev-utils/obsidian/Validation';
@@ -91,7 +91,7 @@ export function registerCodeButtonBlock(plugin: Plugin): void {
   registerCodeHighlighting();
   plugin.register(unregisterCodeHighlighting);
   plugin.registerMarkdownCodeBlockProcessor(CODE_BUTTON_BLOCK_LANGUAGE, (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
-    processCodeButtonBlock(plugin, source, el, ctx);
+    invokeAsyncSafely(() => processCodeButtonBlock(plugin, source, el, ctx));
   });
 }
 
@@ -200,16 +200,29 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
   return undefined;
 }
 
-function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
+async function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> {
   lastButtonIndex++;
   const resultEl = el.createDiv({ cls: 'fix-require-modules console-log-container' });
 
-  const codeBlockArguments = getCodeBlockArguments(ctx, el);
+  const markdownInfo = await getCodeBlockMarkdownInfo({
+    app: plugin.app,
+    ctx,
+    el,
+    source
+  });
+
+  if (!markdownInfo) {
+    new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+      f.appendText('❌ Error!\nCould not uniquely identify the code block. Try to modify its content for it to differ from other code blocks in the note.');
+      addLinkToDocs(f);
+    }));
+    return;
+  }
 
   const frontMatterInfo = getFrontMatterInfo(source);
   const code = source.slice(frontMatterInfo.contentStart);
 
-  if (codeBlockArguments.length > 0) {
+  if (markdownInfo.args.length > 0) {
     new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
       f.appendText('❌ Error!\nYour code block uses legacy button config.');
       addLinkToDocs(f);
@@ -219,55 +232,30 @@ function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement,
         button.addEventListener('click', () => {
           invokeAsyncSafely(async () => {
             const config: Partial<CodeButtonBlockConfig> = removeUndefinedProperties(normalizeOptionalProperties<Partial<CodeButtonBlockConfig>>({
-              caption: codeBlockArguments[0],
-              isRaw: getBooleanArgument(codeBlockArguments, 'raw'),
-              shouldAutoOutput: getBooleanArgument(codeBlockArguments, 'autoOutput'),
-              shouldAutoRun: getBooleanArgument(codeBlockArguments, 'autorun'),
-              shouldShowSystemMessages: getBooleanArgument(codeBlockArguments, 'systemMessages'),
-              shouldWrapConsole: getBooleanArgument(codeBlockArguments, 'console')
+              caption: markdownInfo.args[0],
+              isRaw: getBooleanArgument(markdownInfo.args, 'raw'),
+              shouldAutoOutput: getBooleanArgument(markdownInfo.args, 'autoOutput'),
+              shouldAutoRun: getBooleanArgument(markdownInfo.args, 'autorun'),
+              shouldShowSystemMessages: getBooleanArgument(markdownInfo.args, 'systemMessages'),
+              shouldWrapConsole: getBooleanArgument(markdownInfo.args, 'console')
             }));
-            const newSource = `\`\`\`code-button
+            const newCodeBlock = `\`\`\`code-button
 ---
 ${stringifyYaml(config)}---
 ${code}
 \`\`\``;
-            await replaceCodeBlock(plugin.app, ctx, el, newSource);
+            await replaceCodeBlock({
+              app: plugin.app,
+              codeBlockProvider: newCodeBlock,
+              ctx,
+              el,
+              shouldPreserveLinePrefix: true,
+              source
+            });
           });
         });
       });
     }));
-    return;
-  }
-
-  if (!frontMatterInfo.exists) {
-    const isInCallout = el.parentElement?.hasClass('callout-content');
-
-    if (isInCallout) {
-      new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
-        f.appendText('❌ Error!\nYour code block does not have a config block.');
-        addLinkToDocs(f);
-        f.appendText('⚠️ Detecting legacy button config (if you have one) or inserting a sample config is not supported inside a callout.');
-      }));
-    } else {
-      new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
-        f.appendText('❌ Error!\nYour code block does not have a config block.');
-        addLinkToDocs(f);
-        f.createEl('button', {
-          text: 'Insert sample config'
-        }, (button) => {
-          button.addEventListener('click', () => {
-            invokeAsyncSafely(async () => {
-              const newSource = `\`\`\`code-button
----
-${stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG)}---
-${code}
-\`\`\``;
-              await replaceCodeBlock(plugin.app, ctx, el, newSource);
-            });
-          });
-        });
-      }));
-    }
     return;
   }
 
