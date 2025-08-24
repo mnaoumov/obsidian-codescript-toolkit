@@ -48,11 +48,23 @@ const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
 const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   caption: '(no caption)',
   isRaw: false,
+  removeAfterExecution: {
+    shouldKeepGap: false,
+    when: 'never'
+  },
   shouldAutoOutput: true,
   shouldAutoRun: false,
   shouldShowSystemMessages: true,
   shouldWrapConsole: true
 };
+
+const FORBIDDEN_KEYS_FOR_RAW_MODE: (keyof CodeButtonBlockConfig)[] = [
+  'caption',
+  'shouldAutoOutput',
+  'shouldAutoRun',
+  'shouldShowSystemMessages',
+  'shouldWrapConsole'
+];
 
 let lastButtonIndex = 0;
 
@@ -92,6 +104,7 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
     wrappedConsole.writeSystemMessage('⏳ Executing...');
   }
 
+  let isSuccess = false;
   try {
     const script = makeWrapperScript(
       options.code,
@@ -101,18 +114,41 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync(
       script,
-      `${options.codeButtonContext.app.vault.adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')
+      `${
+        options.codeButtonContext.app.vault.adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')
       }.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`
     ) as CodeButtonBlockScriptWrapper;
     await codeButtonBlockScriptWrapper(options.codeButtonContext);
     if (options.codeButtonContext.config.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('✅ Executed successfully');
     }
+    isSuccess = true;
   } catch (error) {
     printError(error);
     wrappedConsole.appendToResultEl([error], 'error');
     if (options.codeButtonContext.config.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('❌ Executed with error!');
+    }
+  } finally {
+    let shouldRemoveButton = false;
+    switch (options.codeButtonContext.config.removeAfterExecution.when) {
+      case 'always':
+        shouldRemoveButton = true;
+        break;
+      case 'never':
+        break;
+      case 'onError':
+        shouldRemoveButton = !isSuccess;
+        break;
+      case 'onSuccess':
+        shouldRemoveButton = isSuccess;
+        break;
+      default:
+        console.error(`Unknown remove after execution mode: ${options.codeButtonContext.config.removeAfterExecution.when as string}`);
+        break;
+    }
+    if (shouldRemoveButton) {
+      await options.codeButtonContext.removeCodeButtonBlock(options.codeButtonContext.config.removeAfterExecution.shouldKeepGap);
     }
   }
 }
@@ -205,13 +241,16 @@ ${code}
   }
 
   if (config.isRaw) {
-    if (Object.keys(config).length > 1) {
-      new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
-        f.appendText('❌ Error!\nThe `isRaw` setting is not allowed with other settings.');
-        addLinkToDocs(f);
-      }));
-      return;
+    for (const key of Object.keys(config) as (keyof CodeButtonBlockConfig)[]) {
+      if (FORBIDDEN_KEYS_FOR_RAW_MODE.includes(key)) {
+        new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+          f.appendText(`❌ Error!\nThe \`${key}\` setting is not allowed with \`isRaw: true\`.`);
+          addLinkToDocs(f);
+        }));
+        return;
+      }
     }
+
     config.shouldAutoOutput = false;
     config.shouldAutoRun = true;
     config.shouldShowSystemMessages = false;
