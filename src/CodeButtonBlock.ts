@@ -1,9 +1,4 @@
-import type {
-  App,
-  MarkdownPostProcessorContext,
-  PluginManifest,
-  TFile
-} from 'obsidian';
+import type { MarkdownPostProcessorContext } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 import {
@@ -30,10 +25,12 @@ import {
   basename,
   dirname
 } from 'obsidian-dev-utils/Path';
-import {
-  assertAllTypeKeys,
-  typeToDummyParam
-} from 'obsidian-dev-utils/Type';
+
+import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
+import type {
+  CodeButtonContext,
+  TempPluginClass
+} from './CodeButtonContext.ts';
 
 import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
@@ -42,52 +39,16 @@ import { WrapForCodeBlockBabelPlugin } from './babel/WrapForCodeBlockBabelPlugin
 import { ConsoleWrapper } from './ConsoleWrapper.ts';
 import { requireStringAsync } from './RequireHandlerUtils.ts';
 
-interface CodeButtonBlockConfig {
-  caption: string;
-  isRaw: boolean;
-  shouldAutoOutput: boolean;
-  shouldAutoRun: boolean;
-  shouldShowSystemMessages: boolean;
-  shouldWrapConsole: boolean;
-}
-
-type CodeButtonBlockScriptWrapper = (ctx: CodeButtonBlockScriptWrapperContext) => Promisable<void>;
-
-interface CodeButtonBlockScriptWrapperContext {
-  app: App;
-  console: Console;
-  container: HTMLElement;
-  registerTempPlugin: RegisterTempPluginFn;
-  renderMarkdown(markdown: string): Promise<void>;
-  sourceFile: TFile;
-}
+type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
 interface HandleClickOptions {
   buttonIndex: number;
+  code: string;
+  codeButtonContext: CodeButtonContext;
   escapedCaption: string;
-  plugin: Plugin;
-  resultEl: HTMLElement;
-  shouldAutoOutput: boolean;
-  shouldShowSystemMessages: boolean;
-  shouldWrapConsole: boolean;
-  source: string;
-  sourceFile: TFile;
 }
 
-type RegisterTempPluginFn = (tempPluginClass: TempPluginClass) => void;
-
-type TempPluginClass = new (app: App, manifest: PluginManifest) => Plugin;
-
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
-const CODE_BUTTON_BLOCK_SCRIPT_WRAPPER_CONTEXT_KEYS = assertAllTypeKeys(typeToDummyParam<CodeButtonBlockScriptWrapperContext>(), [
-  'app',
-  'registerTempPlugin',
-  'console',
-  'container',
-  'renderMarkdown',
-  'sourceFile'
-]);
-
 const tempPlugins = new Map<string, Plugin>();
 
 const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
@@ -137,47 +98,39 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
 }
 
 async function handleClick(options: HandleClickOptions): Promise<void> {
-  options.resultEl.empty();
-  const wrappedConsole = new ConsoleWrapper(options.resultEl);
-  if (options.shouldShowSystemMessages) {
+  options.codeButtonContext.container.empty();
+  const wrappedConsole = new ConsoleWrapper(options.codeButtonContext.container);
+  if (options.codeButtonContext.config.shouldShowSystemMessages) {
     wrappedConsole.writeSystemMessage('⏳ Executing...');
   }
 
   try {
     const script = makeWrapperScript(
-      options.source,
-      `${basename(options.sourceFile.path)}.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`,
-      dirname(options.sourceFile.path),
-      options.shouldAutoOutput
+      options.code,
+      `${basename(options.codeButtonContext.sourceFile.path)}.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`,
+      dirname(options.codeButtonContext.sourceFile.path),
+      options.codeButtonContext.config.shouldAutoOutput
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync(
       script,
       `${
-        options.plugin.app.vault.adapter.getFullPath(options.sourceFile.path).replaceAll('\\', '/')
+        options.codeButtonContext.app.vault.adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')
       }.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`
     ) as CodeButtonBlockScriptWrapper;
-    const ctx: CodeButtonBlockScriptWrapperContext = {
-      app: options.plugin.app,
-      console: wrappedConsole.getConsoleInstance(options.shouldWrapConsole),
-      container: options.resultEl,
-      registerTempPlugin: makeRegisterTempPluginFn(options.plugin),
-      renderMarkdown: makeRenderMarkdownFn(options.plugin, options.resultEl, options.sourceFile.path),
-      sourceFile: options.sourceFile
-    };
-    await codeButtonBlockScriptWrapper(ctx);
-    if (options.shouldShowSystemMessages) {
+    await codeButtonBlockScriptWrapper(options.codeButtonContext);
+    if (options.codeButtonContext.config.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('✅ Executed successfully');
     }
   } catch (error) {
     printError(error);
     wrappedConsole.appendToResultEl([error], 'error');
-    if (options.shouldShowSystemMessages) {
+    if (options.codeButtonContext.config.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('❌ Executed with error!');
     }
   }
 }
 
-function makeRegisterTempPluginFn(plugin: Plugin): RegisterTempPluginFn {
+function makeRegisterTempPluginFn(plugin: Plugin): CodeButtonContext['registerTempPlugin'] {
   return (tempPluginClass) => {
     registerTempPluginImpl(plugin, tempPluginClass);
   };
@@ -192,7 +145,7 @@ function makeRenderMarkdownFn(plugin: Plugin, resultEl: HTMLElement, sourcePath:
 function makeWrapperScript(source: string, sourceFileName: string, sourceFolder: string, shouldAutoOutput: boolean): string {
   const result = new SequentialBabelPlugin([
     new ConvertToCommonJsBabelPlugin(),
-    new WrapForCodeBlockBabelPlugin(shouldAutoOutput, CODE_BUTTON_BLOCK_SCRIPT_WRAPPER_CONTEXT_KEYS),
+    new WrapForCodeBlockBabelPlugin(shouldAutoOutput),
     new ReplaceDynamicImportBabelPlugin()
   ]).transform(source, sourceFileName, sourceFolder);
 
@@ -292,16 +245,25 @@ ${code}
 
   const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
 
+  const container = fullConfig.isRaw ? el : resultEl;
+  const wrappedConsole = new ConsoleWrapper(container);
   const handleClickOptions: HandleClickOptions = {
     buttonIndex: lastButtonIndex,
-    escapedCaption: escapeForFileName(fullConfig.caption),
-    plugin,
-    resultEl: fullConfig.isRaw ? el : resultEl,
-    shouldAutoOutput: fullConfig.shouldAutoOutput,
-    shouldShowSystemMessages: fullConfig.shouldShowSystemMessages,
-    shouldWrapConsole: fullConfig.shouldWrapConsole,
-    source: code,
-    sourceFile: getFile(plugin.app, ctx.sourcePath)
+    code,
+    codeButtonContext: {
+      app: plugin.app,
+      config: fullConfig,
+      console: wrappedConsole.getConsoleInstance(fullConfig.shouldWrapConsole),
+      container,
+      markdownInfo,
+      markdownPostProcessorContext: ctx,
+      parentEl: el,
+      registerTempPlugin: makeRegisterTempPluginFn(plugin),
+      renderMarkdown: makeRenderMarkdownFn(plugin, container, ctx.sourcePath),
+      source,
+      sourceFile: getFile(plugin.app, ctx.sourcePath)
+    },
+    escapedCaption: escapeForFileName(fullConfig.caption)
   };
 
   if (!fullConfig.isRaw) {
