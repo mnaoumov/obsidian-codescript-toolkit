@@ -11,7 +11,10 @@ import type { PluginTypes } from './PluginTypes.ts';
 import type { RequireHandler } from './RequireHandler.ts';
 import type { ScriptFolderWatcher } from './ScriptFolderWatcher.ts';
 
-import { registerCodeButtonBlock } from './CodeButtonBlock.ts';
+import {
+  insertSampleCodeButton,
+  registerCodeButtonBlock
+} from './CodeButtonBlock.ts';
 import { registerCodeScriptBlock } from './CodeScriptBlock.ts';
 import { getPlatformDependencies } from './PlatformDependencies.ts';
 import { PluginSettingsManager } from './PluginSettingsManager.ts';
@@ -97,6 +100,12 @@ export class Plugin extends PluginBase<PluginTypes> {
       callback: convertAsyncToSync(() => reloadStartupScript(this)),
       id: 'reload-startup-script',
       name: 'Reload Startup Script'
+    });
+
+    this.addCommand({
+      editorCallback: insertSampleCodeButton,
+      id: 'insert-sample-code-button',
+      name: 'Insert sample code button'
     });
 
     this.addChild(new ProtocolHandlerComponent(this));
