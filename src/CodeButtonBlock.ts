@@ -42,7 +42,17 @@ import { WrapForCodeBlockBabelPlugin } from './babel/WrapForCodeBlockBabelPlugin
 import { ConsoleWrapper } from './ConsoleWrapper.ts';
 import { requireStringAsync } from './RequireHandlerUtils.ts';
 
+interface CodeButtonBlockConfig {
+  caption: string;
+  isRaw: boolean;
+  shouldAutoOutput: boolean;
+  shouldAutoRun: boolean;
+  shouldShowSystemMessages: boolean;
+  shouldWrapConsole: boolean;
+}
+
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonBlockScriptWrapperContext) => Promisable<void>;
+
 interface CodeButtonBlockScriptWrapperContext {
   app: App;
   console: Console;
@@ -51,6 +61,7 @@ interface CodeButtonBlockScriptWrapperContext {
   renderMarkdown(markdown: string): Promise<void>;
   sourceFile: TFile;
 }
+
 interface HandleClickOptions {
   buttonIndex: number;
   escapedCaption: string;
@@ -76,16 +87,19 @@ const CODE_BUTTON_BLOCK_SCRIPT_WRAPPER_CONTEXT_KEYS = assertAllTypeKeys(typeToDu
   'renderMarkdown',
   'sourceFile'
 ]);
+
 const tempPlugins = new Map<string, Plugin>();
 
-interface CodeButtonBlockConfig {
-  caption: string;
-  isRaw: boolean;
-  shouldAutoOutput: boolean;
-  shouldAutoRun: boolean;
-  shouldShowSystemMessages: boolean;
-  shouldWrapConsole: boolean;
-}
+const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
+  caption: '(no caption)',
+  isRaw: false,
+  shouldAutoOutput: true,
+  shouldAutoRun: false,
+  shouldShowSystemMessages: true,
+  shouldWrapConsole: true
+};
+
+let lastButtonIndex = 0;
 
 export function registerCodeButtonBlock(plugin: Plugin): void {
   registerCodeHighlighting();
@@ -101,8 +115,25 @@ export function unloadTempPlugins(): void {
   }
 }
 
+function addLinkToDocs(f: DocumentFragment): void {
+  f.appendText(' See ');
+  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#code-buttons', text: 'docs' });
+  f.appendText(' for more details.');
+  f.createEl('br');
+}
+
 function escapeForFileName(str: string): string {
   return str.replace(getOsAndObsidianUnsafePathCharsRegExp(), '_');
+}
+
+function getBooleanArgument(codeBlockArguments: string[], argumentName: string): boolean | undefined {
+  if (codeBlockArguments.includes(argumentName) || codeBlockArguments.includes(`${argumentName}:true`)) {
+    return true;
+  }
+  if (codeBlockArguments.includes(`${argumentName}:false`)) {
+    return false;
+  }
+  return undefined;
 }
 
 async function handleClick(options: HandleClickOptions): Promise<void> {
@@ -170,34 +201,6 @@ function makeWrapperScript(source: string, sourceFileName: string, sourceFolder:
   }
 
   return result.transformedCode;
-}
-
-const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
-  caption: '(no caption)',
-  isRaw: false,
-  shouldAutoOutput: true,
-  shouldAutoRun: false,
-  shouldShowSystemMessages: true,
-  shouldWrapConsole: true
-};
-
-let lastButtonIndex = 0;
-
-function addLinkToDocs(f: DocumentFragment): void {
-  f.appendText(' See ');
-  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#code-buttons', text: 'docs' });
-  f.appendText(' for more details.');
-  f.createEl('br');
-}
-
-function getBooleanArgument(codeBlockArguments: string[], argumentName: string): boolean | undefined {
-  if (codeBlockArguments.includes(argumentName) || codeBlockArguments.includes(`${argumentName}:true`)) {
-    return true;
-  }
-  if (codeBlockArguments.includes(`${argumentName}:false`)) {
-    return false;
-  }
-  return undefined;
 }
 
 async function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> {
