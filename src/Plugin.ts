@@ -11,10 +11,7 @@ import type { PluginTypes } from './PluginTypes.ts';
 import type { RequireHandler } from './RequireHandler.ts';
 import type { ScriptFolderWatcher } from './ScriptFolderWatcher.ts';
 
-import {
-  registerCodeButtonBlock,
-  unloadTempPlugins
-} from './CodeButtonBlock.ts';
+import { registerCodeButtonBlock } from './CodeButtonBlock.ts';
 import { registerCodeScriptBlock } from './CodeScriptBlock.ts';
 import { getPlatformDependencies } from './PlatformDependencies.ts';
 import { PluginSettingsManager } from './PluginSettingsManager.ts';
@@ -27,6 +24,7 @@ import {
   reloadStartupScript,
   selectAndInvokeScript
 } from './Script.ts';
+import { unloadTempPlugins } from './TempPluginRegistry.ts';
 
 export class Plugin extends PluginBase<PluginTypes> {
   private requireHandler!: RequireHandler;

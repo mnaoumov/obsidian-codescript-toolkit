@@ -3,10 +3,7 @@ import type { Promisable } from 'type-fest';
 
 import {
   getFrontMatterInfo,
-  MarkdownRenderer,
-  Notice,
   parseYaml,
-  Plugin,
   stringifyYaml
 } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
@@ -15,7 +12,6 @@ import {
   normalizeOptionalProperties,
   removeUndefinedProperties
 } from 'obsidian-dev-utils/ObjectUtils';
-import { getFile } from 'obsidian-dev-utils/obsidian/FileSystem';
 import {
   getCodeBlockMarkdownInfo,
   replaceCodeBlock
@@ -27,15 +23,14 @@ import {
 } from 'obsidian-dev-utils/Path';
 
 import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
-import type {
-  CodeButtonContext,
-  TempPluginClass
-} from './CodeButtonContext.ts';
+import type { CodeButtonContext } from './CodeButtonContext.ts';
+import type { Plugin } from './Plugin.ts';
 
 import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
 import { ReplaceDynamicImportBabelPlugin } from './babel/ReplaceDynamicImportBabelPlugin.ts';
 import { WrapForCodeBlockBabelPlugin } from './babel/WrapForCodeBlockBabelPlugin.ts';
+import { CodeButtonContextImpl } from './CodeButtonContextImpl.ts';
 import { ConsoleWrapper } from './ConsoleWrapper.ts';
 import { requireStringAsync } from './RequireHandlerUtils.ts';
 
@@ -49,7 +44,6 @@ interface HandleClickOptions {
 }
 
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
-const tempPlugins = new Map<string, Plugin>();
 
 const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   caption: '(no caption)',
@@ -68,12 +62,6 @@ export function registerCodeButtonBlock(plugin: Plugin): void {
   plugin.registerMarkdownCodeBlockProcessor(CODE_BUTTON_BLOCK_LANGUAGE, (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
     invokeAsyncSafely(() => processCodeButtonBlock(plugin, source, el, ctx));
   });
-}
-
-export function unloadTempPlugins(): void {
-  for (const tempPlugin of tempPlugins.values()) {
-    tempPlugin.unload();
-  }
 }
 
 function addLinkToDocs(f: DocumentFragment): void {
@@ -113,8 +101,7 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync(
       script,
-      `${
-        options.codeButtonContext.app.vault.adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')
+      `${options.codeButtonContext.app.vault.adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')
       }.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`
     ) as CodeButtonBlockScriptWrapper;
     await codeButtonBlockScriptWrapper(options.codeButtonContext);
@@ -128,18 +115,6 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
       wrappedConsole.writeSystemMessage('❌ Executed with error!');
     }
   }
-}
-
-function makeRegisterTempPluginFn(plugin: Plugin): CodeButtonContext['registerTempPlugin'] {
-  return (tempPluginClass) => {
-    registerTempPluginImpl(plugin, tempPluginClass);
-  };
-}
-
-function makeRenderMarkdownFn(plugin: Plugin, resultEl: HTMLElement, sourcePath: string): (markdown: string) => Promise<void> {
-  return async (markdown: string) => {
-    await MarkdownRenderer.render(plugin.app, markdown, resultEl, sourcePath, plugin);
-  };
 }
 
 function makeWrapperScript(source: string, sourceFileName: string, sourceFolder: string, shouldAutoOutput: boolean): string {
@@ -245,24 +220,18 @@ ${code}
 
   const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
 
-  const container = fullConfig.isRaw ? el : resultEl;
-  const wrappedConsole = new ConsoleWrapper(container);
   const handleClickOptions: HandleClickOptions = {
     buttonIndex: lastButtonIndex,
     code,
-    codeButtonContext: {
-      app: plugin.app,
+    codeButtonContext: new CodeButtonContextImpl({
       config: fullConfig,
-      console: wrappedConsole.getConsoleInstance(fullConfig.shouldWrapConsole),
-      container,
       markdownInfo,
       markdownPostProcessorContext: ctx,
       parentEl: el,
-      registerTempPlugin: makeRegisterTempPluginFn(plugin),
-      renderMarkdown: makeRenderMarkdownFn(plugin, container, ctx.sourcePath),
-      source,
-      sourceFile: getFile(plugin.app, ctx.sourcePath)
-    },
+      plugin,
+      resultEl,
+      source
+    }),
     escapedCaption: escapeForFileName(fullConfig.caption)
   };
 
@@ -284,46 +253,6 @@ ${code}
 
 function registerCodeHighlighting(): void {
   window.CodeMirror.defineMode(CODE_BUTTON_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'text/typescript'));
-}
-
-function registerTempPluginImpl(plugin: Plugin, tempPluginClass: TempPluginClass): void {
-  const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
-  const app = plugin.app;
-  const id = `__temp-plugin-${tempPluginClassName}`;
-
-  const existingPlugin = tempPlugins.get(id);
-  if (existingPlugin) {
-    existingPlugin.unload();
-  }
-
-  const tempPlugin = new tempPluginClass(app, {
-    author: '__Temp Plugin created by CodeScript Toolkit',
-    description: '__Temp Plugin created by CodeScript Toolkit',
-    id,
-    minAppVersion: '0.0.1',
-    name: `__Temp Plugin ${tempPluginClassName}`,
-    version: '0.0.0'
-  });
-
-  const unloadCommandId = `unload-temp-plugin-${tempPluginClassName}`;
-
-  tempPlugin.register(() => {
-    tempPlugins.delete(id);
-    plugin.removeCommand(unloadCommandId);
-    new Notice(`Unloaded Temp Plugin: ${tempPluginClassName}.`);
-  });
-
-  tempPlugins.set(id, tempPlugin);
-  plugin.addChild(tempPlugin);
-  new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
-
-  plugin.addCommand({
-    callback: () => {
-      tempPlugin.unload();
-    },
-    id: unloadCommandId,
-    name: `Unload Temp Plugin: ${tempPluginClassName}`
-  });
 }
 
 function unregisterCodeHighlighting(): void {
