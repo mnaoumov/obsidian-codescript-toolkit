@@ -280,6 +280,7 @@ ${code}
   }
 
   const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
+  fullConfig.removeAfterExecution = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG.removeAfterExecution, ...config.removeAfterExecution };
 
   const handleClickOptions: HandleClickOptions = {
     buttonIndex: lastButtonIndex,
