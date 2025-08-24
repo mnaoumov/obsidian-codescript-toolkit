@@ -597,7 +597,7 @@ So if you need fully functional variant, use [`requireAsync()`](#requireasync) i
 | ------- | ------ |
 | ✅       | ✅      |
 
-If you need to clear the `require` cache, you can invoke the `CodeScript Toolkit: Clear Cache` command.
+If you need to clear the `require` cache, you can invoke the `CodeScript Toolkit: Clear cache` command.
 
 ### Source maps
 
@@ -671,7 +671,7 @@ export async function invoke(app: App): Promise<void> {
 | ------- | ------ |
 | ✅       | ✅      |
 
-Configure a script folder so every script in it can be invoked using the [`Command Palette`][Command Palette]. Use `CodeScript Toolkit: Invoke Script: <<Choose>>` for more predictable lists:
+Configure a script folder so every script in it can be invoked using the [`Command Palette`][Command Palette]. Use `CodeScript Toolkit: Invoke script: <<Choose>>` for more predictable lists:
 
 ![Command Palette](images/commmand-palette.png)
 
@@ -701,7 +701,7 @@ export async function invoke(app: App): Promise<void> {
 }
 ```
 
-You can reload the startup script using the `CodeScript Toolkit: Reload Startup Script` command.
+You can reload the startup script using the `CodeScript Toolkit: Reload startup script` command.
 
 ### Hotkeys
 
@@ -1005,6 +1005,10 @@ See [Code button config](#code-button-config).
 
 ### Remove after execution
 
+| Desktop | Mobile |
+| ------- | ------ |
+| ✅       | ✅      |
+
 You can configure a button to remove itself after execution:
 
 ````markdown
@@ -1046,7 +1050,7 @@ codeButtonContext.registerTempPlugin(MyPlugin);
 ```
 ````
 
-The loaded temp plugins can be unloaded using the `CodeScript Toolkit: Unload Temp Plugin: PluginName` / `CodeScript Toolkit: Unload Temp Plugins` commands.
+The loaded temp plugins can be unloaded using the `CodeScript Toolkit: Unload temp plugin: PluginName` / `CodeScript Toolkit: Unload temp plugins` commands.
 
 Also all temp plugins are unloaded when current plugin is unloaded.
 
