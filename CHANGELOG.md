@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 11.0.2
+
+- Workaround Clipper LF [issue](https://github.com/obsidianmd/obsidian-clipper/issues/577)
+- Update libs
+
 ## 11.0.1
 
 - Update libs
