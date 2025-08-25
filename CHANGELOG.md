@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.0.3
+
+- Update libs Ensure CodeBlockMarkdownInformation is up to date
+
 ## 11.0.2
 
 - Workaround Clipper LF [issue](https://github.com/obsidianmd/obsidian-clipper/issues/577)
