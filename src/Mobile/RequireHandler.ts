@@ -1,6 +1,6 @@
 import { CapacitorAdapter } from 'obsidian';
 
-import { RequireHandler } from '../RequireHandler.ts';
+import { RequireHandler, splitQuery } from '../RequireHandler.ts';
 
 class RequireHandlerImpl extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {
@@ -35,7 +35,7 @@ class RequireHandlerImpl extends RequireHandler {
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
-    const stat = await this.capacitorAdapter.fs.stat(path);
+    const stat = await this.capacitorAdapter.fs.stat(splitQuery(path).cleanStr);
     return stat.mtime ?? 0;
   }
 
