@@ -1,6 +1,9 @@
 import { CapacitorAdapter } from 'obsidian';
 
-import { RequireHandler } from '../RequireHandler.ts';
+import {
+  RequireHandler,
+  splitQuery
+} from '../RequireHandler.ts';
 
 class RequireHandlerImpl extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {
@@ -17,6 +20,7 @@ class RequireHandlerImpl extends RequireHandler {
   }
 
   protected override async existsFileAsync(path: string): Promise<boolean> {
+    path = splitQuery(path).cleanStr;
     if (!await this.capacitorAdapter.fs.exists(path)) {
       return false;
     }
@@ -26,6 +30,7 @@ class RequireHandlerImpl extends RequireHandler {
   }
 
   protected override async existsFolderAsync(path: string): Promise<boolean> {
+    path = splitQuery(path).cleanStr;
     if (!await this.capacitorAdapter.fs.exists(path)) {
       return false;
     }
@@ -35,15 +40,18 @@ class RequireHandlerImpl extends RequireHandler {
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
+    path = splitQuery(path).cleanStr;
     const stat = await this.capacitorAdapter.fs.stat(path);
     return stat.mtime ?? 0;
   }
 
   protected override async readFileAsync(path: string): Promise<string> {
+    path = splitQuery(path).cleanStr;
     return await this.capacitorAdapter.fs.read(path);
   }
 
   protected override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
+    path = splitQuery(path).cleanStr;
     return await this.capacitorAdapter.fs.readBinary(path);
   }
 
