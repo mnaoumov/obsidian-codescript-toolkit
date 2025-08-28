@@ -115,7 +115,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
     await Promise.resolve();
     if (arrayBuffer) {
-      const tmpFilePath = join(tmpdir(), `${Date.now().toString()}.node`);
+      const tmpFilePath = join(tmpdir(), `${String(Date.now())}.node`);
       await this.writeFileBinaryAsync(tmpFilePath, arrayBuffer);
       try {
         return this.requireNodeBinary(tmpFilePath);

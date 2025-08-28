@@ -130,15 +130,15 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
   try {
     const script = makeWrapperScript(
       options.code,
-      `${basename(options.codeButtonContext.sourceFile.path)}.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`,
+      `${basename(options.codeButtonContext.sourceFile.path)}.code-button.${String(options.buttonIndex)}.${options.escapedCaption}.ts`,
       dirname(options.codeButtonContext.sourceFile.path),
       options.codeButtonContext.config.shouldAutoOutput
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync(
       script,
-      `${
-        options.codeButtonContext.app.vault.adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')
-      }.code-button.${options.buttonIndex.toString()}.${options.escapedCaption}.ts`
+      `${options.codeButtonContext.app.vault.adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
+        String(options.buttonIndex)
+      }.${options.escapedCaption}.ts`
     ) as CodeButtonBlockScriptWrapper;
     await codeButtonBlockScriptWrapper(options.codeButtonContext);
     if (options.codeButtonContext.config.shouldShowSystemMessages) {
