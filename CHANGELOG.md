@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.0.7
+
+- Update libs
+
 ## 11.0.6
 
 - Ensure all fs operation split query Alternative to #25
