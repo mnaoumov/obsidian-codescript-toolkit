@@ -58,7 +58,7 @@ export class ProtocolHandlerComponent extends Component {
         module: parsedQuery.module
       });
 
-      parsedQuery.code = `(${invokeModuleFn.toString()})('${parsedQuery.module}', '${parsedQuery.functionName}', [${parsedQuery.args}])`;
+      parsedQuery.code = `(${String(invokeModuleFn)})('${parsedQuery.module}', '${parsedQuery.functionName}', [${parsedQuery.args}])`;
     } else {
       parsedQuery.code ??= '';
 
