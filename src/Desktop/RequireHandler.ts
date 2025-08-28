@@ -1,6 +1,5 @@
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 
-import { FileSystemAdapter } from 'obsidian';
 import { normalizeOptionalProperties } from 'obsidian-dev-utils/ObjectUtils';
 import { registerPatch } from 'obsidian-dev-utils/obsidian/MonkeyAround';
 import { join } from 'obsidian-dev-utils/Path';
@@ -9,6 +8,7 @@ import {
   Module,
   readFile,
   readFileSync,
+  rm,
   stat,
   statSync,
   tmpdir,
@@ -42,15 +42,6 @@ import {
 
 class RequireHandlerImpl extends RequireHandler {
   private originalModulePrototypeRequire!: RequireFn;
-
-  private get fileSystemAdapter(): FileSystemAdapter {
-    const adapter = this.plugin.app.vault.adapter;
-    if (!(adapter instanceof FileSystemAdapter)) {
-      throw new Error('Vault adapter is not a FileSystemAdapter.');
-    }
-
-    return adapter;
-  }
 
   public override register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
     super.register(plugin, pluginRequire);
@@ -91,7 +82,8 @@ class RequireHandlerImpl extends RequireHandler {
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
-    return (await stat(splitQuery(path).cleanStr)).mtimeMs;
+    path = splitQuery(path).cleanStr;
+    return (await stat(path)).mtimeMs;
   }
 
   protected override handleCodeWithTopLevelAwait(path: string): void {
@@ -101,10 +93,12 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   protected override async readFileAsync(path: string): Promise<string> {
+    path = splitQuery(path).cleanStr;
     return await readFile(path, 'utf8');
   }
 
   protected override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
+    path = splitQuery(path).cleanStr;
     const buffer = await readFile(path);
     const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
     return arrayBuffer as ArrayBuffer;
@@ -126,7 +120,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
       try {
         return this.requireNodeBinary(tmpFilePath);
       } finally {
-        await this.fileSystemAdapter.remove(tmpFilePath);
+        await rm(tmpFilePath);
       }
     }
 
@@ -155,10 +149,12 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   private existsFile(path: string): boolean {
+    path = splitQuery(path).cleanStr;
     return existsSync(path) && statSync(path).isFile();
   }
 
   private existsFolder(path: string): boolean {
+    path = splitQuery(path).cleanStr;
     return existsSync(path) && statSync(path).isDirectory();
   }
 
@@ -260,7 +256,8 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   private getTimestamp(path: string): number {
-    return statSync(splitQuery(path).cleanStr).mtimeMs;
+    path = splitQuery(path).cleanStr;
+    return statSync(path).mtimeMs;
   }
 
   private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode: CacheInvalidationMode): string {
@@ -287,21 +284,25 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   }
 
   private readFile(path: string): string {
+    path = splitQuery(path).cleanStr;
     return readFileSync(path, 'utf8');
   }
 
   private readPackageJson(path: string): PackageJson {
+    path = splitQuery(path).cleanStr;
     const content = this.readFile(path);
     return JSON.parse(content) as PackageJson;
   }
 
   private requireJson(path: string): unknown {
-    const jsonStr = this.readFile(splitQuery(path).cleanStr);
+    path = splitQuery(path).cleanStr;
+    const jsonStr = this.readFile(path);
     return JSON.parse(jsonStr);
   }
 
   private requireJsTs(path: string): unknown {
-    const code = this.readFile(splitQuery(path).cleanStr);
+    path = splitQuery(path).cleanStr;
+    const code = this.readFile(path);
     return this.requireString(code, path);
   }
 
@@ -421,6 +422,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   }
 
   private async writeFileBinaryAsync(path: string, arrayBuffer: ArrayBuffer): Promise<void> {
+    path = splitQuery(path).cleanStr;
     const buffer = Buffer.from(arrayBuffer);
     await writeFile(path, buffer);
   }
