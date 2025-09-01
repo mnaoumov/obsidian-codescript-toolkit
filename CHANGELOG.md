@@ -1,8 +1,12 @@
 # CHANGELOG
 
+## 11.0.8
+
+- Minor changes
+
 ## 11.0.7
 
-- Update libs
+- Minor changes
 
 ## 11.0.6
 
@@ -10,11 +14,11 @@
 
 ## 11.0.5
 
-- Update libs
+- Minor changes
 
 ## 11.0.4
 
-- Update libs
+- Minor changes
 
 ## 11.0.3
 
@@ -22,12 +26,11 @@
 
 ## 11.0.2
 
-- Workaround Clipper LF [issue](https://github.com/obsidianmd/obsidian-clipper/issues/577)
-- Update libs
+- Workaround Clipper LF issue https://github.com/obsidianmd/obsidian-clipper/issues/577
 
 ## 11.0.1
 
-- Update libs
+- Minor changes
 
 ## 11.0.0
 
@@ -36,7 +39,6 @@
 - Modify containing note functions
 - Don't skip cache
 - Handle empty frontmatter
-- Update libs
 
 ## 10.1.0
 
@@ -49,15 +51,15 @@
 
 ## 9.3.4
 
-- Update libs
+- Minor changes
 
 ## 9.3.3
 
-- Update libs
+- Minor changes
 
 ## 9.3.2
 
-- Update libs
+- Minor changes
 
 ## 9.3.1
 
@@ -66,7 +68,6 @@
 ## 9.3.0
 
 - Add __filename/__dirname
-- Update libs
 
 ## 9.2.0
 
@@ -79,7 +80,6 @@
 - Duplicate default property
 - Extract callstack from `Module.prototype.require`
 - Prioritize available conditions
-- Update libs
 
 ## 9.0.1
 
@@ -106,7 +106,6 @@
 ## 8.21.0
 
 - Allow invocable md scripts (#21)
-- Update libs
 
 ## 8.20.1
 
@@ -116,7 +115,6 @@
 
 - Fix wrong mobile support doc
 - Add sourceFile (#20)
-- Update libs
 
 ## 8.19.0
 
@@ -126,7 +124,6 @@
 ## 8.18.3
 
 - Ensure different code buttons don't collide (Fixes #18)
-- Update libs
 
 ## 8.18.2
 
@@ -141,32 +138,27 @@
 - Add support for requireAsync optional deps
 - Add support for markdown files
 - Specify error message
-- Update libs
 
 ## 8.17.4
 
-- Update libs
+- Minor changes
 
 ## 8.17.3
 
-- Update libs
+- Minor changes
 
 ## 8.17.2
 
-- Update libs
+- Minor changes
 
 ## 8.17.1
 
 - Handle race condition
-- Update libs
 
 ## 8.17.0
 
 - Switch styles for dark/light theme
 - Show validation messages
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/26.2.0
-- Update CHANGELOG
-- Update CHANGELOG
 
 ## 8.16.2
 
@@ -177,31 +169,27 @@
 
 - Attempted to fix the breakages introduced in [8.14.0](#8140)
 - Restore patch of Module.prototype.require
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/26.1.2
 
 ## 8.16.0
 
 - Disable protocol URLs by default
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/26.1.0
 
 ## 8.15.0
 
 - Add URL protocol handler
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/25.1.0
 
 ## 8.14.2
 
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/24.1.1
+- Minor changes
 
 ## 8.14.1
 
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/24.1.0
+- Minor changes
 
 ## 8.14.0
 
 - Support ASAR archives
 - Support all Electron modules
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/24.0.1
 
 ### Introduced breakages
 
@@ -258,11 +246,9 @@ Require stack:
 ## 8.13.2
 
 - Add missing super call
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/23.0.5
 
 ## 8.13.1
 
-- Update libs
 - New template
 - Update template
 - New template
@@ -271,12 +257,10 @@ Require stack:
 ## 8.13.0
 
 - Add support for ~ fenced block
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.22.0
 
 ## 8.12.0
 
 - Allow to override module types
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.20.0
 
 ## 8.11.0
 
@@ -291,26 +275,22 @@ Require stack:
 - Switch to optional options
 - Add synchronous fallback
 - `shouldUseSyncFallback` setting
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.19.1
 
 ## 8.9.6
 
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.2.1
+- Minor changes
 
 ## 8.9.5
 
 - Fix settings binding (thanks to @claremacrae)
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/19.1.1
 
 ## 8.9.4
 
 - Update template
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/18.4.2
 
 ## 8.9.3
 
 - Lint
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/17.2.2
 
 ## 8.9.2
 
@@ -330,15 +310,15 @@ Require stack:
 
 ## 8.8.3
 
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/16.1.0
+- Minor changes
 
 ## 8.8.2
 
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/16.0.3
+- Minor changes
 
 ## 8.8.1
 
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/15.0.0
+- Minor changes
 
 ## 8.8.0
 
@@ -349,7 +329,6 @@ Require stack:
 - Add PathSuggest
 - Validate paths
 - Auto Save settings
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/14.3.0
 
 ## 8.7.2
 
@@ -360,7 +339,6 @@ Require stack:
 - Remove outdated eslint
 - Add Debugging / Rebranding
 - Fix relative wildcard resolution
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/13.15.0
 
 ## 8.7.0
 
@@ -370,7 +348,6 @@ Require stack:
 - Output error
 - Update imports in README
 - Better toJson
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/13.3.2
 - Switch to ES2024
 
 ## 8.6.0
@@ -385,7 +362,6 @@ Require stack:
 
 ## 8.4.0
 
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/12.0.0
 - Fix multiple initialization
 - Resolve entry point
 - Support circular dependencies
@@ -435,15 +411,14 @@ Require stack:
 
 - Load/unload temp plugin
 - Add mobile version
-- https://github.com/mnaoumov/obsidian-dev-utils/releases/tag/11.2.0
 
 ## 6.2.2
 
-- Update libs
+- Minor changes
 
 ## 6.2.1
 
-- Update libs
+- Minor changes
 
 ## 6.2.0
 
@@ -459,7 +434,7 @@ Require stack:
 
 ## 5.2.3
 
-- Update libs
+- Minor changes
 
 ## 5.2.2
 
@@ -467,7 +442,7 @@ Require stack:
 
 ## 5.2.1
 
-- Update libs
+- Minor changes
 
 ## 5.2.0
 
