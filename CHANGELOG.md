@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.0.12
+
+- Minor changes
+
 ## 11.0.11
 
 - Fix support for iOS < 17.2
