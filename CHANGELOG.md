@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.0.15
+
+- Fix startup script reload logic
+
 ## 11.0.14
 
 - Minor changes
