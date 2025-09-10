@@ -15,33 +15,40 @@ import type { Plugin } from './Plugin.ts';
 import { getCodeScriptToolkitNoteSettings } from './CodeScriptToolkitNoteSettings.ts';
 import { requireVaultScriptAsync } from './RequireHandlerUtils.ts';
 
-interface CleanupScript extends Script {
-  cleanup(app: App): Promisable<void>;
-}
-
 interface Script {
   invoke(app: App): Promisable<void>;
 }
 
+interface StartupScript extends Script {
+  cleanup?(app: App): Promisable<void>;
+}
+
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
+let startupScript: null | StartupScript = null;
 
 export async function cleanupStartupScript(plugin: Plugin): Promise<void> {
-  const startupScriptPath = await validateStartupScript(plugin);
-  if (!startupScriptPath) {
+  if (!startupScript) {
     return;
   }
 
-  const script = await requireVaultScriptAsync(startupScriptPath) as Partial<CleanupScript>;
-  await script.cleanup?.(plugin.app);
+  await startupScript.cleanup?.(plugin.app);
+  // eslint-disable-next-line require-atomic-updates
+  startupScript = null;
 }
 
 export async function invokeStartupScript(plugin: Plugin): Promise<void> {
+  if (startupScript) {
+    throw new Error('Startup script already invoked');
+  }
+
   const startupScriptPath = await validateStartupScript(plugin);
   if (!startupScriptPath) {
     return;
   }
 
-  await invoke(plugin, startupScriptPath, true);
+  // eslint-disable-next-line require-atomic-updates
+  startupScript = await requireVaultScriptAsync(startupScriptPath) as StartupScript;
+  await startupScript.invoke(plugin.app);
 }
 
 export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
@@ -78,11 +85,6 @@ export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
 }
 
 export async function reloadStartupScript(plugin: Plugin): Promise<void> {
-  const startupScriptPath = await validateStartupScript(plugin, true);
-  if (!startupScriptPath) {
-    return;
-  }
-
   await cleanupStartupScript(plugin);
   await invokeStartupScript(plugin);
 }
