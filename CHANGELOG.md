@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.1.0
+
+- Init require in all windows
+
 ## 11.0.16
 
 - Minor changes
