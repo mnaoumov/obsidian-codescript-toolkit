@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.1.1
+
+- Update libs (#26)
+
 ## 11.1.0
 
 - Init require in all windows
