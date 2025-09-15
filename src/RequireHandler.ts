@@ -204,18 +204,20 @@ export abstract class RequireHandler {
     }, this.originalRequire) as RequireExFn;
     this.modulesCache = this.requireEx.cache;
 
-    const requireWindow = window as Partial<RequireWindow>;
+    plugin.registerDomWindowHandler((win) => {
+      const requireWindow = win as Partial<RequireWindow>;
 
-    requireWindow.require = this.requireEx;
-    plugin.register(() => {
-      requireWindow.require = this.originalRequire;
+      requireWindow.require = this.requireEx;
+      plugin.register(() => {
+        requireWindow.require = this.originalRequire;
+      });
+
+      requireWindow.requireAsync = this.requireAsync.bind(this);
+      plugin.register(() => delete requireWindow.requireAsync);
+
+      requireWindow.requireAsyncWrapper = this.requireAsyncWrapper.bind(this);
+      plugin.register(() => delete requireWindow.requireAsyncWrapper);
     });
-
-    requireWindow.requireAsync = this.requireAsync.bind(this);
-    plugin.register(() => delete requireWindow.requireAsync);
-
-    requireWindow.requireAsyncWrapper = this.requireAsyncWrapper.bind(this);
-    plugin.register(() => delete requireWindow.requireAsyncWrapper);
   }
 
   public async requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
