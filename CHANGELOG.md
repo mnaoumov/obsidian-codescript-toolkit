@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.1.2
+
+- Minor changes
+
 ## 11.1.1
 
 - Update libs (#26)
