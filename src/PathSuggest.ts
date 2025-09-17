@@ -25,7 +25,7 @@ type PathEntryType = 'file' | 'folder';
 class PathSuggest extends AbstractInputSuggest<PathEntry> {
   private pathEntries: null | PathEntry[] = null;
   private refreshTimeoutId: null | number = null;
-  public constructor(app: App, textInputEl: HTMLInputElement, private rootFn: () => string, private type: PathEntryType) {
+  public constructor(app: App, textInputEl: HTMLInputElement, private readonly rootFn: () => string, private readonly type: PathEntryType) {
     super(app, textInputEl);
   }
 

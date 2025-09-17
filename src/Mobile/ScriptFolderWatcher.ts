@@ -13,7 +13,7 @@ interface ModificationEntry {
 const MILLISECONDS_IN_SECOND = 1000;
 
 class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
-  private modificationTimes = new Map<string, number>();
+  private readonly modificationTimes = new Map<string, number>();
   private timeoutId: null | number = null;
 
   protected override async startWatcher(onChange: () => Promise<void>): Promise<boolean> {

@@ -173,7 +173,7 @@ export abstract class RequireHandler {
   protected vaultAbsolutePath!: string;
   private originalRequire!: NodeJS.Require;
   private pluginRequire!: PluginRequireFn;
-  private specialModuleFactories = new Map<string, () => unknown>();
+  private readonly specialModuleFactories = new Map<string, () => unknown>();
 
   public constructor() {
     this.initSpecialModuleFactories();
