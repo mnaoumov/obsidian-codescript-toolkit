@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.1.4
+
+- Fix requiring electron modules (#27)
+
 ## 11.1.3
 
 - Minor changes
