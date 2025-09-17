@@ -105,11 +105,11 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   protected requireAsarPackedModule(id: string): unknown {
-    return this.originalModulePrototypeRequire(id);
+    return this.originalModulePrototypeRequireWrapped(id);
   }
 
   protected override requireElectronModule(id: string): unknown {
-    return this.originalModulePrototypeRequire(id);
+    return this.originalModulePrototypeRequireWrapped(id);
   }
 
   protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
@@ -281,6 +281,10 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     const parentPath = this.getParentPathFromCallStack(CALLER_LINE_INDEX) ?? undefined;
     const options = normalizeOptionalProperties<{ parentPath?: string }>({ parentPath });
     return this.requireEx(id, options);
+  }
+
+  private originalModulePrototypeRequireWrapped(id: string): unknown {
+    return this.originalModulePrototypeRequire.call(window.module, id);
   }
 
   private readFile(path: string): string {
