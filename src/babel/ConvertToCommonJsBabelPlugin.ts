@@ -25,6 +25,7 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
         },
         plugins: [
           'transform-modules-commonjs',
+          'transform-export-namespace-from',
           [babelPluginTransformImportMeta(), { module: 'ES6' }]
         ],
         presets: ['typescript'],
