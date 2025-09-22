@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.1.5
+
+- Add transform-export-namespace-from (#30)
+
 ## 11.1.4
 
 - Fix requiring electron modules (#27)
