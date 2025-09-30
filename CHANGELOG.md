@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.1.6
+
+- chore: enable conventional commits
+
 ## 11.1.5
 
 - Add transform-export-namespace-from (#30)
