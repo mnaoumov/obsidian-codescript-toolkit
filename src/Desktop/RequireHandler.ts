@@ -41,7 +41,7 @@ import {
 } from '../RequireHandler.ts';
 
 class RequireHandlerImpl extends RequireHandler {
-  private originalModulePrototypeRequire!: RequireFn;
+  private originalModulePrototypeRequire?: RequireFn;
 
   public override register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
     super.register(plugin, pluginRequire);

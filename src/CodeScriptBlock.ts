@@ -13,7 +13,7 @@ export async function registerCodeScriptBlock(plugin: Plugin): Promise<void> {
 
   plugin.register(() => {
     window.CodeMirror.defineMode(CODE_SCRIPT_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'null'));
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- Need to delete language.
     delete prism.languages[CODE_SCRIPT_BLOCK_LANGUAGE];
   });
 }

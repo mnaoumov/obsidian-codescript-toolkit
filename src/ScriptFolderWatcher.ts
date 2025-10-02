@@ -3,7 +3,7 @@ import type { Promisable } from 'type-fest';
 import type { Plugin } from './Plugin.ts';
 
 export abstract class ScriptFolderWatcher {
-  protected plugin!: Plugin;
+  protected plugin?: Plugin;
   private wasRegisteredInPlugin = false;
 
   public async register(plugin: Plugin, onChange: () => Promise<void>): Promise<void> {
@@ -18,7 +18,7 @@ export abstract class ScriptFolderWatcher {
       await onChange();
     }
 
-    this.plugin.register(this.stopWatcher.bind(this));
+    this.plugin?.register(this.stopWatcher.bind(this));
   }
 
   protected abstract startWatcher(onChange: () => Promise<void>): Promisable<boolean>;

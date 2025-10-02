@@ -32,7 +32,7 @@ export async function cleanupStartupScript(plugin: Plugin): Promise<void> {
   }
 
   await startupScript.cleanup?.(plugin.app);
-  // eslint-disable-next-line require-atomic-updates
+  // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
   startupScript = null;
 }
 
@@ -46,7 +46,7 @@ export async function invokeStartupScript(plugin: Plugin): Promise<void> {
     return;
   }
 
-  // eslint-disable-next-line require-atomic-updates
+  // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
   startupScript = await requireVaultScriptAsync(startupScriptPath) as StartupScript;
   await startupScript.invoke(plugin.app);
 }
