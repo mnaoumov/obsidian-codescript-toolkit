@@ -192,7 +192,7 @@ export abstract class RequireHandler {
     this.currentModulesTimestampChain.clear();
     this.moduleDependencies.clear();
 
-    for (const key of Object.keys(this.modulesCache ?? {})) {
+    for (const key of Object.keys(this.modulesCache)) {
       if (key.startsWith('electron') || key.includes('app.asar')) {
         continue;
       }
@@ -213,10 +213,6 @@ export abstract class RequireHandler {
     this.modulesCache = this.requireEx.cache;
 
     plugin.registerDomWindowHandler((win) => {
-      if (!this.requireEx) {
-        return;
-      }
-
       const requireWindow = win as Partial<RequireWindow>;
 
       requireWindow.require = this.requireEx;
@@ -266,7 +262,7 @@ export abstract class RequireHandler {
     let cachedModuleEntry: NodeJS.Module | undefined = undefined;
     const start = performance.now();
     while (performance.now() - start < RELOAD_TIMEOUT_IN_MILLISECONDS) {
-      cachedModuleEntry = this.modulesCache?.[resolvedId];
+      cachedModuleEntry = this.modulesCache[resolvedId];
       if (!cachedModuleEntry || cachedModuleEntry.loaded) {
         break;
       }
@@ -340,7 +336,7 @@ export abstract class RequireHandler {
   protected abstract existsFolderAsync(path: string): Promise<boolean>;
 
   protected getCachedModule(id: string): unknown {
-    return this.modulesCache?.[id]?.loaded ? this.modulesCache?.[id].exports : null;
+    return this.modulesCache[id]?.loaded ? this.modulesCache[id].exports : null;
   }
 
   protected getPackageJsonPath(packageFolder: string): string {
@@ -405,7 +401,7 @@ await requireAsyncWrapper((require) => {
   }
 
   protected initModuleAndAddToCache(id: string, moduleInitializer: () => unknown): unknown {
-    if (!this.modulesCache?.[id] || this.modulesCache?.[id].loaded) {
+    if (!this.modulesCache[id] || this.modulesCache[id].loaded) {
       this.deleteCacheEntry(id);
       this.addToModuleCache(id, this.createEmptyModule(id), false);
     }
@@ -494,51 +490,24 @@ await requireAsyncWrapper((require) => {
       return { resolvedId: id, resolvedType: ResolvedType.SpecialModule };
     }
 
-    if (isUrl(id)) {
-      const FILE_URL_PREFIX = 'file:///';
-      if (id.toLowerCase().startsWith(FILE_URL_PREFIX)) {
-        return { resolvedId: id.slice(FILE_URL_PREFIX.length), resolvedType: ResolvedType.Path };
-      }
-
-      if (id.toLowerCase().startsWith(Platform.resourcePathPrefix)) {
-        return { resolvedId: id.slice(Platform.resourcePathPrefix.length), resolvedType: ResolvedType.Path };
-      }
-
-      return { resolvedId: id, resolvedType: ResolvedType.Url };
+    // Check for URL resolution
+    const urlResult = this.resolveUrl(id);
+    if (urlResult) {
+      return urlResult;
     }
 
-    if (id.startsWith(VAULT_ROOT_PREFIX)) {
-      return { resolvedId: join(this.vaultAbsolutePath ?? '', trimStart(id, VAULT_ROOT_PREFIX)), resolvedType: ResolvedType.Path };
-    }
-
-    const SYSTEM_ROOT_PATH_PREFIX = '~/';
-    if (id.startsWith(SYSTEM_ROOT_PATH_PREFIX)) {
-      return { resolvedId: `/${trimStart(id, SYSTEM_ROOT_PATH_PREFIX)}`, resolvedType: ResolvedType.Path };
-    }
-
-    const MODULES_ROOT_PATH_PREFIX = '/';
-    if (id.startsWith(MODULES_ROOT_PATH_PREFIX)) {
-      return {
-        resolvedId: join(this.vaultAbsolutePath ?? '', this.plugin?.settings.modulesRoot ?? '', trimStart(id, MODULES_ROOT_PATH_PREFIX)),
-        resolvedType: ResolvedType.Path
-      };
+    // Check for path prefix resolution
+    const prefixResult = this.resolvePathPrefix(id);
+    if (prefixResult) {
+      return prefixResult;
     }
 
     if (isAbsolute(id)) {
       return { resolvedId: id, resolvedType: ResolvedType.Path };
     }
 
-    parentPath = parentPath ? toPosixPath(parentPath) : this.getParentPathFromCallStack() ?? this.plugin?.app.workspace.getActiveFile()?.path ?? 'fakeRoot.js';
-    if (!isAbsolute(parentPath)) {
-      parentPath = join(this.vaultAbsolutePath ?? '', parentPath);
-    }
-    const parentFolder = dirname(parentPath);
-
-    if (id.startsWith('./') || id.startsWith('../')) {
-      return { resolvedId: join(parentFolder, id), resolvedType: ResolvedType.Path };
-    }
-
-    return { resolvedId: `${parentFolder}${MODULE_NAME_SEPARATOR}${id}`, resolvedType: ResolvedType.Module };
+    // Handle relative paths and modules
+    return this.resolveRelativeOrModule(id, parentPath);
   }
 
   private addToModuleCache(id: string, module: unknown, isLoaded = true): NodeJS.Module {
@@ -1044,7 +1013,7 @@ ${this.getRequireAsyncAdvice(true)}`);
       }
     }
 
-    return this.modulesCache?.[existingFilePath]?.exports;
+    return this.modulesCache[existingFilePath]?.exports;
   }
 
   private async requirePathImplAsync(path: string, moduleType?: ModuleType): Promise<unknown> {
@@ -1089,6 +1058,58 @@ ${this.getRequireAsyncAdvice(true)}`);
     arrayBuffer ??= await this.readFileBinaryAsync(path);
     const wasm = await WebAssembly.instantiate(arrayBuffer);
     return wasm.instance.exports;
+  }
+
+  private resolvePathPrefix(id: string): null | ResolveResult {
+    if (id.startsWith(VAULT_ROOT_PREFIX)) {
+      return { resolvedId: join(this.vaultAbsolutePath ?? '', trimStart(id, VAULT_ROOT_PREFIX)), resolvedType: ResolvedType.Path };
+    }
+
+    const SYSTEM_ROOT_PATH_PREFIX = '~/';
+    if (id.startsWith(SYSTEM_ROOT_PATH_PREFIX)) {
+      return { resolvedId: `/${trimStart(id, SYSTEM_ROOT_PATH_PREFIX)}`, resolvedType: ResolvedType.Path };
+    }
+
+    const MODULES_ROOT_PATH_PREFIX = '/';
+    if (id.startsWith(MODULES_ROOT_PATH_PREFIX)) {
+      return {
+        resolvedId: join(this.vaultAbsolutePath ?? '', this.plugin?.settings.modulesRoot ?? '', trimStart(id, MODULES_ROOT_PATH_PREFIX)),
+        resolvedType: ResolvedType.Path
+      };
+    }
+
+    return null;
+  }
+
+  private resolveRelativeOrModule(id: string, parentPath?: string): ResolveResult {
+    parentPath = parentPath ? toPosixPath(parentPath) : this.getParentPathFromCallStack() ?? this.plugin?.app.workspace.getActiveFile()?.path ?? 'fakeRoot.js';
+    if (!isAbsolute(parentPath)) {
+      parentPath = join(this.vaultAbsolutePath ?? '', parentPath);
+    }
+    const parentFolder = dirname(parentPath);
+
+    if (id.startsWith('./') || id.startsWith('../')) {
+      return { resolvedId: join(parentFolder, id), resolvedType: ResolvedType.Path };
+    }
+
+    return { resolvedId: `${parentFolder}${MODULE_NAME_SEPARATOR}${id}`, resolvedType: ResolvedType.Module };
+  }
+
+  private resolveUrl(id: string): null | ResolveResult {
+    if (!isUrl(id)) {
+      return null;
+    }
+
+    const FILE_URL_PREFIX = 'file:///';
+    if (id.toLowerCase().startsWith(FILE_URL_PREFIX)) {
+      return { resolvedId: id.slice(FILE_URL_PREFIX.length), resolvedType: ResolvedType.Path };
+    }
+
+    if (id.toLowerCase().startsWith(Platform.resourcePathPrefix)) {
+      return { resolvedId: id.slice(Platform.resourcePathPrefix.length), resolvedType: ResolvedType.Path };
+    }
+
+    return { resolvedId: id, resolvedType: ResolvedType.Url };
   }
 
   private wrapRequire(options: WrapRequireOptions): RequireExFn {
