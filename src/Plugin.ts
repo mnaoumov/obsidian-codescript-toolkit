@@ -30,11 +30,11 @@ import {
 import { unloadTempPlugins } from './TempPluginRegistry.ts';
 
 export class Plugin extends PluginBase<PluginTypes> {
-  private requireHandler!: RequireHandler;
-  private scriptFolderWatcher!: ScriptFolderWatcher;
+  private requireHandler?: RequireHandler;
+  private scriptFolderWatcher?: ScriptFolderWatcher;
 
   public async applyNewSettings(): Promise<void> {
-    await this.scriptFolderWatcher.register(this, () => registerInvocableScripts(this));
+    await this.scriptFolderWatcher?.register(this, () => registerInvocableScripts(this));
   }
 
   public override async onLoadSettings(settings: PluginSettingsWrapper<PluginSettings>, isInitialLoad: boolean): Promise<void> {

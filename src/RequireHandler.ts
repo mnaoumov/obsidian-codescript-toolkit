@@ -166,13 +166,13 @@ export const VAULT_ROOT_PREFIX = '//';
 export abstract class RequireHandler {
   protected readonly currentModulesTimestampChain = new Set<string>();
   protected readonly moduleDependencies = new Map<string, Set<string>>();
-  protected modulesCache!: NodeJS.Dict<NodeJS.Module>;
+  protected modulesCache?: NodeJS.Dict<NodeJS.Module>;
   protected readonly moduleTimestamps = new Map<string, number>();
-  protected plugin!: Plugin;
-  protected requireEx!: RequireExFn;
-  protected vaultAbsolutePath!: string;
-  private originalRequire!: NodeJS.Require;
-  private pluginRequire!: PluginRequireFn;
+  protected plugin?: Plugin;
+  protected requireEx?: RequireExFn;
+  protected vaultAbsolutePath?: string;
+  private originalRequire?: NodeJS.Require;
+  private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, () => unknown>();
 
   public constructor() {
@@ -456,7 +456,7 @@ await requireAsyncWrapper((require) => {
     const ctx: ScriptWrapperContext = {
       __dirname: dirname(options.path),
       __filename: options.path,
-      // eslint-disable-next-line import-x/no-commonjs
+      // eslint-disable-next-line import-x/no-commonjs -- Need to return exports.
       exports: module.exports,
       module,
       require: this.makeChildRequire(options.path),
@@ -465,7 +465,7 @@ await requireAsyncWrapper((require) => {
     };
     const promisable = scriptWrapper(ctx);
     return {
-      // eslint-disable-next-line import-x/no-commonjs
+      // eslint-disable-next-line import-x/no-commonjs -- Need to return exports.
       exportsFn: () => module.exports,
       promisable
     };
@@ -588,7 +588,7 @@ await requireAsyncWrapper((require) => {
   }
 
   private deleteCacheEntry(id: string): void {
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- Need to delete cache entry.
     delete this.modulesCache[id];
   }
 
