@@ -62,7 +62,7 @@ class RequireHandlerImpl extends RequireHandler {
         console.warn(`requireAsync('${id}') failed with error:`, e);
         console.warn('Trying a synchronous fallback.');
         this.currentModulesTimestampChain.clear();
-        return this.requireEx?.(id, options ?? {});
+        return this.requireEx(id, options ?? {});
       }
 
       throw e;
@@ -280,7 +280,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     const CALLER_LINE_INDEX = 5;
     const parentPath = this.getParentPathFromCallStack(CALLER_LINE_INDEX) ?? undefined;
     const options = normalizeOptionalProperties<{ parentPath?: string }>({ parentPath });
-    return this.requireEx?.(id, options);
+    return this.requireEx(id, options);
   }
 
   private originalModulePrototypeRequireWrapped(id: string): unknown {
@@ -383,7 +383,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
         this.currentModulesTimestampChain.clear();
       }
     }
-    return this.modulesCache?.[existingFilePath]?.exports;
+    return this.modulesCache[existingFilePath]?.exports;
   }
 
   private requirePathImpl(path: string, moduleType?: ModuleType): unknown {
