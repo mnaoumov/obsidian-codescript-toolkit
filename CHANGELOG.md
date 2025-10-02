@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 11.2.0
+
+- feat: add default code-button config
+  - fix #34
+
 ## 11.1.7
 
 - fix: build
