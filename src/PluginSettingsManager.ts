@@ -1,12 +1,14 @@
 import type { App } from 'obsidian';
 import type { MaybeReturn } from 'obsidian-dev-utils/Type';
 
+import { parseYaml } from 'obsidian';
 import { PluginSettingsManagerBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsManagerBase';
 import {
   extname,
   join
 } from 'obsidian-dev-utils/Path';
 
+import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
 import type { PluginTypes } from './PluginTypes.ts';
 
 import { PluginSettings } from './PluginSettings.ts';
@@ -17,6 +19,25 @@ interface LegacySettings {
 }
 
 export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes> {
+  public parseDefaultCodeButtonConfig(yaml?: string): null | Partial<CodeButtonBlockConfig> {
+    yaml ??= this.settingsWrapper.safeSettings.defaultCodeButtonConfig;
+
+    if (!yaml) {
+      return {};
+    }
+
+    const match = /^---\n(?:(?<YAML>(?:.|\n)*)\n)?---$/.exec(yaml);
+    if (!match) {
+      return null;
+    }
+
+    try {
+      return parseYaml(match.groups?.['YAML'] ?? '') as Partial<CodeButtonBlockConfig>;
+    } catch {
+      return null;
+    }
+  }
+
   protected override createDefaultSettings(): PluginSettings {
     return new PluginSettings();
   }
@@ -62,6 +83,12 @@ export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes
       const ext = extname(path);
       if (!EXTENSIONS.includes(ext)) {
         return `Only the following extensions are supported: ${EXTENSIONS.join(', ')}`;
+      }
+    });
+
+    this.registerValidator('defaultCodeButtonConfig', (value): MaybeReturn<string> => {
+      if (!this.parseDefaultCodeButtonConfig(value)) {
+        return 'Invalid YAML';
       }
     });
   }

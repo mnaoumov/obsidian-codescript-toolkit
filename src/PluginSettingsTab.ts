@@ -1,10 +1,15 @@
-import { Events } from 'obsidian';
+import {
+  Events,
+  stringifyYaml
+} from 'obsidian';
+import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
 import { appendCodeBlock } from 'obsidian-dev-utils/HTMLElement';
 import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsTabBase';
 import { SettingEx } from 'obsidian-dev-utils/obsidian/SettingEx';
 
 import type { PluginTypes } from './PluginTypes.ts';
 
+import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from './CodeButtonBlock.ts';
 import { addPathSuggest } from './PathSuggest.ts';
 
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
@@ -129,5 +134,34 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
       .addToggle((toggle) => {
         this.bind(toggle, 'shouldHandleProtocolUrls');
       });
+
+    new SettingEx(this.containerEl)
+      .setName('Default code button config')
+      .setDesc(createFragment((f) => {
+        f.appendText('Default configuration applied to ');
+        appendCodeBlock(f, '```code-button');
+        f.appendText(' blocks.');
+      }))
+      .addCodeHighlighter((codeHighlighter) => {
+        codeHighlighter.setLanguage('yaml');
+        codeHighlighter.inputEl.addClass('default-code-button-config-control');
+        this.bind(codeHighlighter, 'defaultCodeButtonConfig');
+      });
+
+    new SettingEx(this.containerEl)
+      .addButton((button) =>
+        button
+          .setButtonText('Reset to plugin default code button config')
+          .setWarning()
+          .onClick(() => {
+            invokeAsyncSafely(async () => {
+              await this.plugin.settingsManager.editAndSave((settings) => {
+                const yaml = stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG);
+                settings.defaultCodeButtonConfig = `---\n${yaml}---`;
+              });
+              this.display();
+            });
+          })
+      );
   }
 }

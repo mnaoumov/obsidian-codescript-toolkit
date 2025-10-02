@@ -12,6 +12,10 @@
   --console-log-entry-system-color: var(--mono-rgb-100);
   --console-log-container-border-color: var(--color-base-40);
   --console-log-container-background-color: var(--background-secondary-alt);
+
+  .code-highlighter-component textarea.default-code-button-config-control {
+    height: 18em;
+  }
 }
 
 .fix-require-modules.console-log-container {
