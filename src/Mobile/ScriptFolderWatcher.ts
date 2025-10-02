@@ -17,12 +17,12 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
   private timeoutId: null | number = null;
 
   protected override async startWatcher(onChange: () => Promise<void>): Promise<boolean> {
-    const invocableScriptsFolder = this.plugin.settings.getInvocableScriptsFolder();
+    const invocableScriptsFolder = this.plugin?.settings.getInvocableScriptsFolder();
     if (!invocableScriptsFolder) {
       return false;
     }
 
-    if (!(await this.plugin.app.vault.exists(invocableScriptsFolder))) {
+    if (!(await this.plugin?.app.vault.exists(invocableScriptsFolder))) {
       const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
       new Notice(message);
       console.error(message);
@@ -66,6 +66,9 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
   }
 
   private async watch(onChange: () => Promise<void>): Promise<void> {
+    if (!this.plugin) {
+      return;
+    }
     const modificationEntry = await this.checkFile(this.plugin.app, this.plugin.settings.getInvocableScriptsFolder());
     if (modificationEntry.isChanged) {
       await onChange();

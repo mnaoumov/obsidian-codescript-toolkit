@@ -166,11 +166,19 @@ export const VAULT_ROOT_PREFIX = '//';
 export abstract class RequireHandler {
   protected readonly currentModulesTimestampChain = new Set<string>();
   protected readonly moduleDependencies = new Map<string, Set<string>>();
-  protected modulesCache?: NodeJS.Dict<NodeJS.Module>;
+  protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
   protected plugin?: Plugin;
-  protected requireEx?: RequireExFn;
   protected vaultAbsolutePath?: string;
+
+  protected get requireEx(): RequireExFn {
+    if (!this._requireEx) {
+      throw new Error('requireEx is not set');
+    }
+    return this._requireEx;
+  }
+
+  private _requireEx?: RequireExFn;
   private originalRequire?: NodeJS.Require;
   private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, () => unknown>();
@@ -184,7 +192,7 @@ export abstract class RequireHandler {
     this.currentModulesTimestampChain.clear();
     this.moduleDependencies.clear();
 
-    for (const key of Object.keys(this.modulesCache)) {
+    for (const key of Object.keys(this.modulesCache ?? {})) {
       if (key.startsWith('electron') || key.includes('app.asar')) {
         continue;
       }
@@ -199,16 +207,23 @@ export abstract class RequireHandler {
     this.vaultAbsolutePath = toPosixPath(plugin.app.vault.adapter.basePath);
     this.originalRequire = window.require;
 
-    this.requireEx = Object.assign(this.require.bind(this), {
+    this._requireEx = Object.assign(this.require.bind(this), {
       cache: {}
     }, this.originalRequire) as RequireExFn;
     this.modulesCache = this.requireEx.cache;
 
     plugin.registerDomWindowHandler((win) => {
+      if (!this.requireEx) {
+        return;
+      }
+
       const requireWindow = win as Partial<RequireWindow>;
 
       requireWindow.require = this.requireEx;
       plugin.register(() => {
+        if (!this.originalRequire) {
+          return;
+        }
         requireWindow.require = this.originalRequire;
       });
 
@@ -251,7 +266,7 @@ export abstract class RequireHandler {
     let cachedModuleEntry: NodeJS.Module | undefined = undefined;
     const start = performance.now();
     while (performance.now() - start < RELOAD_TIMEOUT_IN_MILLISECONDS) {
-      cachedModuleEntry = this.modulesCache[resolvedId];
+      cachedModuleEntry = this.modulesCache?.[resolvedId];
       if (!cachedModuleEntry || cachedModuleEntry.loaded) {
         break;
       }
@@ -325,7 +340,7 @@ export abstract class RequireHandler {
   protected abstract existsFolderAsync(path: string): Promise<boolean>;
 
   protected getCachedModule(id: string): unknown {
-    return this.modulesCache[id]?.loaded ? this.modulesCache[id].exports : null;
+    return this.modulesCache?.[id]?.loaded ? this.modulesCache?.[id].exports : null;
   }
 
   protected getPackageJsonPath(packageFolder: string): string {
@@ -334,7 +349,7 @@ export abstract class RequireHandler {
 
   protected getParentPathFromCallStack(callerLineIndex = CALLER_LINE_INDEX): null | string {
     const callStackLines = new Error().stack?.split('\n') ?? [];
-    this.plugin.consoleDebug('callStackLines', { callStackLines });
+    this.plugin?.consoleDebug('callStackLines', { callStackLines });
     const callStackMatch = callStackLines.at(callerLineIndex)?.match(/^ {4}at .+? \((?<ParentPath>.+?):\d+:\d+\)$/);
     let parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
 
@@ -390,7 +405,7 @@ await requireAsyncWrapper((require) => {
   }
 
   protected initModuleAndAddToCache(id: string, moduleInitializer: () => unknown): unknown {
-    if (!this.modulesCache[id] || this.modulesCache[id].loaded) {
+    if (!this.modulesCache?.[id] || this.modulesCache?.[id].loaded) {
       this.deleteCacheEntry(id);
       this.addToModuleCache(id, this.createEmptyModule(id), false);
     }
@@ -493,7 +508,7 @@ await requireAsyncWrapper((require) => {
     }
 
     if (id.startsWith(VAULT_ROOT_PREFIX)) {
-      return { resolvedId: join(this.vaultAbsolutePath, trimStart(id, VAULT_ROOT_PREFIX)), resolvedType: ResolvedType.Path };
+      return { resolvedId: join(this.vaultAbsolutePath ?? '', trimStart(id, VAULT_ROOT_PREFIX)), resolvedType: ResolvedType.Path };
     }
 
     const SYSTEM_ROOT_PATH_PREFIX = '~/';
@@ -504,7 +519,7 @@ await requireAsyncWrapper((require) => {
     const MODULES_ROOT_PATH_PREFIX = '/';
     if (id.startsWith(MODULES_ROOT_PATH_PREFIX)) {
       return {
-        resolvedId: join(this.vaultAbsolutePath, this.plugin.settings.modulesRoot, trimStart(id, MODULES_ROOT_PATH_PREFIX)),
+        resolvedId: join(this.vaultAbsolutePath ?? '', this.plugin?.settings.modulesRoot ?? '', trimStart(id, MODULES_ROOT_PATH_PREFIX)),
         resolvedType: ResolvedType.Path
       };
     }
@@ -513,9 +528,9 @@ await requireAsyncWrapper((require) => {
       return { resolvedId: id, resolvedType: ResolvedType.Path };
     }
 
-    parentPath = parentPath ? toPosixPath(parentPath) : this.getParentPathFromCallStack() ?? this.plugin.app.workspace.getActiveFile()?.path ?? 'fakeRoot.js';
+    parentPath = parentPath ? toPosixPath(parentPath) : this.getParentPathFromCallStack() ?? this.plugin?.app.workspace.getActiveFile()?.path ?? 'fakeRoot.js';
     if (!isAbsolute(parentPath)) {
-      parentPath = join(this.vaultAbsolutePath, parentPath);
+      parentPath = join(this.vaultAbsolutePath ?? '', parentPath);
     }
     const parentFolder = dirname(parentPath);
 
@@ -722,7 +737,7 @@ await requireAsyncWrapper((require) => {
   }
 
   private async getRootFoldersAsync(folder: string): Promise<string[]> {
-    const modulesRootFolder = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath, this.plugin.settings.modulesRoot) : null;
+    const modulesRootFolder = this.plugin?.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
 
     const ans: string[] = [];
     for (const possibleFolder of new Set([folder, modulesRootFolder])) {
@@ -763,11 +778,11 @@ await requireAsyncWrapper((require) => {
   }
 
   private initSpecialModuleFactories(): void {
-    this.specialModuleFactories.set('obsidian/app', () => this.plugin.app);
+    this.specialModuleFactories.set('obsidian/app', () => this.plugin?.app);
     this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
-      this.specialModuleFactories.set(id, () => this.pluginRequire(id));
+      this.specialModuleFactories.set(id, () => this.pluginRequire?.(id));
     }
 
     for (const id of SPECIAL_MODULE_NAMES.nodeBuiltInModuleNames) {
@@ -1029,7 +1044,7 @@ ${this.getRequireAsyncAdvice(true)}`);
       }
     }
 
-    return this.modulesCache[existingFilePath]?.exports;
+    return this.modulesCache?.[existingFilePath]?.exports;
   }
 
   private async requirePathImplAsync(path: string, moduleType?: ModuleType): Promise<unknown> {
