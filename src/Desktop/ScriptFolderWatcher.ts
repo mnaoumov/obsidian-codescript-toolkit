@@ -14,19 +14,19 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
   private watcher: FSWatcher | null = null;
 
   protected override async startWatcher(onChange: () => Promise<void>): Promise<boolean> {
-    const invocableScriptsFolder = this.plugin.settings.getInvocableScriptsFolder();
+    const invocableScriptsFolder = this.plugin?.settings.getInvocableScriptsFolder();
     if (!invocableScriptsFolder) {
       return false;
     }
 
-    if (!(await this.plugin.app.vault.exists(invocableScriptsFolder))) {
+    if (!(await this.plugin?.app.vault.exists(invocableScriptsFolder))) {
       const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
       new Notice(message);
       console.error(message);
       return false;
     }
 
-    const invocableScriptsFolderFullPath = join(this.plugin.app.vault.adapter.basePath, invocableScriptsFolder);
+    const invocableScriptsFolderFullPath = join(this.plugin?.app.vault.adapter.basePath ?? '', invocableScriptsFolder);
     this.watcher = watch(invocableScriptsFolderFullPath, { recursive: true }, (eventType: WatchEventType): void => {
       if (eventType === 'rename') {
         invokeAsyncSafely(() => onChange());

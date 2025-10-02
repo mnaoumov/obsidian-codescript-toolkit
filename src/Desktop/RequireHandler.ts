@@ -58,11 +58,11 @@ class RequireHandlerImpl extends RequireHandler {
     try {
       return await super.requireAsync(id, options);
     } catch (e) {
-      if (this.plugin.settings.shouldUseSyncFallback) {
+      if (this.plugin?.settings.shouldUseSyncFallback) {
         console.warn(`requireAsync('${id}') failed with error:`, e);
         console.warn('Trying a synchronous fallback.');
         this.currentModulesTimestampChain.clear();
-        return this.requireEx(id, options ?? {});
+        return this.requireEx?.(id, options ?? {});
       }
 
       throw e;
@@ -128,7 +128,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   protected override requireNodeBuiltInModule(id: string): unknown {
-    return this.originalModulePrototypeRequire(id);
+    return this.originalModulePrototypeRequire?.(id);
   }
 
   protected override requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
@@ -236,7 +236,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
   private getRootFolders(folder: string): string[] {
-    const modulesRootFolder = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath, this.plugin.settings.modulesRoot) : null;
+    const modulesRootFolder = this.plugin?.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
 
     const ans: string[] = [];
     for (const possibleFolder of new Set([folder, modulesRootFolder])) {
@@ -280,11 +280,11 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     const CALLER_LINE_INDEX = 5;
     const parentPath = this.getParentPathFromCallStack(CALLER_LINE_INDEX) ?? undefined;
     const options = normalizeOptionalProperties<{ parentPath?: string }>({ parentPath });
-    return this.requireEx(id, options);
+    return this.requireEx?.(id, options);
   }
 
   private originalModulePrototypeRequireWrapped(id: string): unknown {
-    return this.originalModulePrototypeRequire.call(window.module, id);
+    return this.originalModulePrototypeRequire?.call(window.module, id);
   }
 
   private readFile(path: string): string {
@@ -365,7 +365,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   }
 
   private requireNodeBinary(path: string): unknown {
-    return this.originalModulePrototypeRequire(path);
+    return this.originalModulePrototypeRequire?.(path);
   }
 
   private requirePath(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
@@ -383,7 +383,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
         this.currentModulesTimestampChain.clear();
       }
     }
-    return this.modulesCache[existingFilePath]?.exports;
+    return this.modulesCache?.[existingFilePath]?.exports;
   }
 
   private requirePathImpl(path: string, moduleType?: ModuleType): unknown {

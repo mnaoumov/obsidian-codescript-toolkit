@@ -84,7 +84,7 @@ export class Plugin extends PluginBase<PluginTypes> {
 
     this.addCommand({
       callback: () => {
-        this.requireHandler.clearCache();
+        this.requireHandler?.clearCache();
       },
       id: 'clearCache',
       name: 'Clear cache'
