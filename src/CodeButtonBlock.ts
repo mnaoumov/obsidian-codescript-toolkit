@@ -49,7 +49,7 @@ interface HandleClickOptions {
 
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
 
-const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
+export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   caption: '(no caption)',
   isRaw: false,
   removeAfterExecution: {
@@ -261,6 +261,8 @@ ${code}
     }));
     return;
   }
+
+  config = { ...plugin.settingsManager.parseDefaultCodeButtonConfig(), ...config };
 
   if (config.isRaw) {
     for (const key of Object.keys(config) as (keyof CodeButtonBlockConfig)[]) {
