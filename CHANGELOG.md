@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 11.1.7
+
+- fix: build
+- chore: update libs
+
 ## 11.1.6
 
 - chore: enable conventional commits
