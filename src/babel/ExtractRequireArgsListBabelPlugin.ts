@@ -12,9 +12,9 @@ import {
 } from '@babel/types';
 import { nameof } from 'obsidian-dev-utils/ObjectUtils';
 
-import type { RequireOptions } from '../RequireHandler.ts';
+import type { RequireOptions } from '../types.ts';
 
-import { CacheInvalidationMode } from '../CacheInvalidationMode.ts';
+import { CacheInvalidationMode } from '../types.ts';
 import { BabelPluginBase } from './BabelPluginBase.ts';
 
 interface ExtractRequireArgsListData {

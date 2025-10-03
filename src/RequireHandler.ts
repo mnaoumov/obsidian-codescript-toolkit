@@ -32,6 +32,13 @@ import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
 import type { Plugin } from './Plugin.ts';
+import type {
+  require,
+  requireAsync,
+  requireAsyncWrapper,
+  RequireExFn,
+  RequireOptions
+} from './types.ts';
 
 import { SequentialBabelPlugin } from './babel/CombineBabelPlugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/ConvertToCommonJsBabelPlugin.ts';
@@ -43,10 +50,13 @@ import {
   CachedModuleProxyHandler,
   EMPTY_MODULE_SYMBOL
 } from './CachedModuleProxyHandler.ts';
-import { CacheInvalidationMode } from './CacheInvalidationMode.ts';
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from './CodeScriptBlock.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from './CodeScriptToolkitNoteSettings.ts';
 import { SPECIAL_MODULE_NAMES } from './SpecialModuleNames.ts';
+import {
+  CacheInvalidationMode,
+  ModuleType
+} from './types.ts';
 
 export enum ResolvedType {
   Module = 'module',
@@ -55,16 +65,10 @@ export enum ResolvedType {
   Url = 'url'
 }
 
-export type ModuleType = 'json' | 'jsTs' | 'md' | 'node' | 'wasm';
 export type PluginRequireFn = (id: string) => unknown;
-export type RequireAsyncWrapperFn = (requireFn: RequireAsyncWrapperArg) => Promise<unknown>;
-export type RequireFn = (id: string, options?: Partial<RequireOptions>) => unknown;
-
-export interface RequireOptions {
-  cacheInvalidationMode: CacheInvalidationMode;
-  moduleType?: ModuleType;
-  parentPath?: string;
-}
+export type RequireAsyncFn = typeof requireAsync;
+export type RequireAsyncWrapperFn = typeof requireAsyncWrapper;
+export type RequireFn = typeof require;
 
 interface EmptyModule {
   [EMPTY_MODULE_SYMBOL]: boolean;
@@ -78,10 +82,6 @@ interface ExtractCodeScriptResult {
 interface Module {
   exports: object;
 }
-
-type RequireAsyncFn = (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
-type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
-type RequireExFn = { parentPath?: string } & NodeJS.Require & RequireFn;
 
 interface RequireStringImplOptions {
   code: string;
@@ -1019,15 +1019,15 @@ ${this.getRequireAsyncAdvice(true)}`);
   private async requirePathImplAsync(path: string, moduleType?: ModuleType): Promise<unknown> {
     moduleType ??= getModuleTypeFromPath(path);
     switch (moduleType) {
-      case 'json':
+      case ModuleType.Json:
         return this.requireJsonAsync(path);
-      case 'jsTs':
+      case ModuleType.JsTs:
         return this.requireJsTsAsync(path);
-      case 'md':
+      case ModuleType.Markdown:
         return this.requireMdAsync(path);
-      case 'node':
+      case ModuleType.Node:
         return this.requireNodeBinaryAsync(path);
-      case 'wasm':
+      case ModuleType.Wasm:
         return this.requireWasmAsync(path);
       default:
         throw new Error(`Unknown module type: '${moduleType as string}'.`);
@@ -1039,15 +1039,15 @@ ${this.getRequireAsyncAdvice(true)}`);
     moduleType ??= getModuleTypeFromContentType(response.headers['content-type'], url);
 
     switch (moduleType) {
-      case 'json':
+      case ModuleType.Json:
         return this.requireJsonAsync(url, response.text);
-      case 'jsTs':
+      case ModuleType.JsTs:
         return this.requireJsTsAsync(url, response.text);
-      case 'md':
+      case ModuleType.Markdown:
         return this.requireMdAsync(url, response.text);
-      case 'node':
+      case ModuleType.Node:
         return this.requireNodeBinaryAsync(url, response.arrayBuffer);
-      case 'wasm':
+      case ModuleType.Wasm:
         return this.requireWasmAsync(url, response.arrayBuffer);
       default:
         throw new Error(`Unknown module type: '${moduleType as string}'.`);
@@ -1170,15 +1170,15 @@ export function getModuleTypeFromPath(path: string): ModuleType {
     case '.mjs':
     case '.mts':
     case '.ts':
-      return 'jsTs';
+      return ModuleType.JsTs;
     case '.json':
-      return 'json';
+      return ModuleType.Json;
     case '.md':
-      return 'md';
+      return ModuleType.Markdown;
     case '.node':
-      return 'node';
+      return ModuleType.Node;
     case '.wasm':
-      return 'wasm';
+      return ModuleType.Wasm;
     default:
       throw new Error(`Unsupported file extension: '${ext}'.`);
   }
@@ -1222,21 +1222,21 @@ function getModuleTypeFromContentType(contentType: string | undefined, url: stri
   switch (contentType) {
     case 'application/javascript':
     case 'application/typescript':
-      return 'jsTs';
+      return ModuleType.JsTs;
     case 'application/json':
-      return 'json';
+      return ModuleType.Json;
     case 'application/octet-stream':
-      return 'node';
+      return ModuleType.Node;
     case 'application/wasm':
-      return 'wasm';
+      return ModuleType.Wasm;
     case 'text/markdown':
-      return 'md';
+      return ModuleType.Markdown;
     default:
       console.warn(`URL: ${url} returned unsupported content type: ${contentType}.
 Assuming it's a JavaScript/TypeScript file.
 Consider passing moduleType explicitly:
 
 const module = await requireAsync(url, { moduleType: 'jsTs' });`);
-      return 'jsTs';
+      return ModuleType.JsTs;
   }
 }
