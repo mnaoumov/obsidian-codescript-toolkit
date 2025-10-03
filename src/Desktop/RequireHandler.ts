@@ -18,13 +18,11 @@ import { getRootFolder } from 'obsidian-dev-utils/ScriptUtils/Root';
 
 import type { Plugin } from '../Plugin.ts';
 import type {
-  ModuleType,
   PluginRequireFn,
-  RequireFn,
-  RequireOptions
+  RequireFn
 } from '../RequireHandler.ts';
+import type { RequireOptions } from '../types.ts';
 
-import { CacheInvalidationMode } from '../CacheInvalidationMode.ts';
 import {
   ENTRY_POINT,
   extractCodeScript,
@@ -39,6 +37,10 @@ import {
   SCOPED_MODULE_PREFIX,
   splitQuery
 } from '../RequireHandler.ts';
+import {
+  CacheInvalidationMode,
+  ModuleType
+} from '../types.ts';
 
 class RequireHandlerImpl extends RequireHandler {
   private originalModulePrototypeRequire?: RequireFn;
@@ -389,15 +391,15 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   private requirePathImpl(path: string, moduleType?: ModuleType): unknown {
     moduleType ??= getModuleTypeFromPath(path);
     switch (moduleType) {
-      case 'json':
+      case ModuleType.Json:
         return this.requireJson(path);
-      case 'jsTs':
+      case ModuleType.JsTs:
         return this.requireJsTs(path);
-      case 'md':
+      case ModuleType.Markdown:
         return this.requireMd(path);
-      case 'node':
+      case ModuleType.Node:
         return this.requireNodeBinary(path);
-      case 'wasm':
+      case ModuleType.Wasm:
         return this.requireWasm();
       default:
         throw new Error(`Unknown module type: '${moduleType as string}'.`);
