@@ -767,7 +767,7 @@ The config block is optional and all keys are optional. If the config key is mis
 
 To simplify adding new button you can use command `CodeScript Toolkit: Insert sample code button`.
 
-See [spec](./src/CodeButtonBlockConfig.ts) for all config keys.
+See [spec](../src/CodeButtonBlockConfig.ts) for all config keys.
 
 #### Code button context
 
@@ -775,7 +775,7 @@ During runtime execution of the code button block, the following variable is ava
 
 The variable contains all metadata and helper functions available during runtime execution.
 
-See [spec](./src/CodeButtonContext.ts) for all possible values.
+See [spec](../src/CodeButtonContext.ts) for all possible values.
 
 ### Console messages
 
