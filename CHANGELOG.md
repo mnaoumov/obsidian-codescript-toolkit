@@ -92,7 +92,7 @@
 
 ## 11.0.2
 
-- Workaround Clipper LF issue https://github.com/obsidianmd/obsidian-clipper/issues/577
+- Workaround [Clipper LF issue](https://github.com/obsidianmd/obsidian-clipper/issues/577)
 
 ## 11.0.1
 
@@ -263,7 +263,7 @@
 
 It starts to show the following error when you check for updates.
 
-```
+```text
 This does not seem to be an obsidian plugin with valid releases, as there are no releases available.
 ```
 
@@ -271,7 +271,7 @@ This does not seem to be an obsidian plugin with valid releases, as there are no
 
 `dataviewjs` queries with `require` modules
 
-````
+````markdown
 ```dataviewjs
 require('foo');
 ```
@@ -279,7 +279,7 @@ require('foo');
 
 stops working with an error
 
-```
+```text
 Evaluation Error: Error: Cannot find module 'foo'
 Require stack:
 - electron/js2c/renderer_init

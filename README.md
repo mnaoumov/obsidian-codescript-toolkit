@@ -74,23 +74,20 @@ However, for the backward compatibility, the previous id `fix-require-modules` i
 
 ## Support
 
+<!-- markdownlint-disable MD033 -->
 <a href="https://www.buymeacoffee.com/mnaoumov" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;"></a>
+<!-- markdownlint-enable MD033 -->
 
 ## License
 
 © [Michael Naumov](https://github.com/mnaoumov/)
 
-[App]: https://docs.obsidian.md/Reference/TypeScript+API/App
 [cjs]: https://nodejs.org/api/modules.html#modules-commonjs-modules
-[Command Palette]: https://help.obsidian.md/Plugins/Command+palette
 [CustomJS]: https://github.com/saml-dev/obsidian-custom-js
 [datacorejs]: https://blacksmithgu.github.io/datacore/code-views/
 [dataviewjs]: https://blacksmithgu.github.io/obsidian-dataview/api/intro/
 [DevTools Console]: https://developer.chrome.com/docs/devtools/console
-[dot folder]: https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments
-[import]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 [JavaScript]: https://developer.mozilla.org/en-US/docs/Web/JavaScript
-[Module Register]: https://nodejs.org/api/module.html#moduleregisterspecifier-parenturl-options
 [Modules]: https://github.com/polyipseity/obsidian-modules
 [Obsidian]: https://obsidian.md/
 [QuickAdd]: https://quickadd.obsidian.guide/

@@ -14,9 +14,11 @@
     "format:check": "obsidian-dev-utils format:check",
     "lint": "obsidian-dev-utils lint",
     "lint:fix": "obsidian-dev-utils lint:fix",
+    "lint:md": "markdownlint-cli2 .",
+    "lint:md:fix": "markdownlint-cli2 . --fix",
     "prepare": "husky",
     "spellcheck": "obsidian-dev-utils spellcheck",
-    "version": "obsidian-dev-utils version"
+    "version": "npm run lint:md && obsidian-dev-utils version"
   },
   "keywords": [],
   "author": "mnaoumov",
