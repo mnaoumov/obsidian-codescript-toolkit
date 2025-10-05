@@ -75,7 +75,7 @@ However, for the backward compatibility, the previous id `fix-require-modules` i
 ## Support
 
 <!-- markdownlint-disable MD033 -->
-<a href="https://www.buymeacoffee.com/mnaoumov" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;"></a>
+<a href="https://www.buymeacoffee.com/mnaoumov" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" width="217"></a>
 <!-- markdownlint-enable MD033 -->
 
 ## License
@@ -84,7 +84,7 @@ However, for the backward compatibility, the previous id `fix-require-modules` i
 
 [cjs]: https://nodejs.org/api/modules.html#modules-commonjs-modules
 [CustomJS]: https://github.com/saml-dev/obsidian-custom-js
-[datacorejs]: https://blacksmithgu.github.io/datacore/code-views/
+[datacorejs]: https://blacksmithgu.github.io/datacore/code-views
 [dataviewjs]: https://blacksmithgu.github.io/obsidian-dataview/api/intro/
 [DevTools Console]: https://developer.chrome.com/docs/devtools/console
 [JavaScript]: https://developer.mozilla.org/en-US/docs/Web/JavaScript

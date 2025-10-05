@@ -1036,7 +1036,7 @@ All characters has to be properly URL-escaped, e.g., you have to replace `␣` (
 
 Opening URL
 
-```
+```text
 obsidian://CodeScriptToolkit?module=/foo/bar.ts&functionName=baz&args='arg1','arg%20with%20space2',42,app.vault,%7Bbaz%3A'qux'%7D
 ```
 
@@ -1055,7 +1055,7 @@ If you omit `functionName` parameter, it will treated as `invoke`, which is usef
 
 Opening URL
 
-```
+```text
 obsidian://CodeScriptToolkit?code=await%20sleep(1000);%20console.log('foo%20bar')
 ```
 
@@ -1078,13 +1078,12 @@ If you plan to use scripts extensively, consider putting them in a [`dot folder`
 [cjs]: https://nodejs.org/api/modules.html#modules-commonjs-modules
 [Command Palette]: https://help.obsidian.md/Plugins/Command+palette
 [CustomJS]: https://github.com/saml-dev/obsidian-custom-js
-[datacorejs]: https://blacksmithgu.github.io/datacore/code-views/
+[datacorejs]: https://blacksmithgu.github.io/datacore/code-views
 [dataviewjs]: https://blacksmithgu.github.io/obsidian-dataview/api/intro/
 [DevTools Console]: https://developer.chrome.com/docs/devtools/console
 [dot folder]: https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments
 [import]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 [JavaScript]: https://developer.mozilla.org/en-US/docs/Web/JavaScript
-[Module Register]: https://nodejs.org/api/module.html#moduleregisterspecifier-parenturl-options
 [Modules]: https://github.com/polyipseity/obsidian-modules
 [Obsidian]: https://obsidian.md/
 [QuickAdd]: https://quickadd.obsidian.guide/
