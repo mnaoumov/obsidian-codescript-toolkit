@@ -27,6 +27,12 @@ To simplify adding new button you can use command `CodeScript Toolkit: Insert sa
 
 See [spec](../src/CodeButtonBlockConfig.ts) for all config keys.
 
+## Override default button config
+
+You can override default button config via plugin settings tab. It is useful if you find that you have multiple buttons with the same configuration.
+
+You still can override configured default button configuration in individual buttons.
+
 ## `isRaw` - Raw mode
 
 Code buttons in raw mode show only the output container. Button itself, console output, system messages are hidden.
@@ -52,7 +58,22 @@ shouldWrapConsole: false
 ---
 ```
 
-## `shouldAutoOutput`
+## `removeAfterExecution` - Remove after execution mode
+
+You can configure a button to remove itself after execution. Useful for scripts that needed to be executed only once.
+
+````markdown
+```code-button
+---
+removeAfterExecution:
+  shouldKeepGap: false
+  when: never
+---
+// Code
+```
+````
+
+## `shouldAutoOutput` - Auto output mode
 
 Code blocks automatically output the last evaluated expression like in `REPL` environments, such as [`DevTools Console`][DevTools Console].
 
@@ -80,7 +101,7 @@ shouldAutoOutput: false
 ```
 ````
 
-## `shouldAutoRun`
+## `shouldAutoRun` - Auto running code blocks mode
 
 Code blocks can be configured to run automatically when the note is switched to `Reading mode` / `Live Preview` using the `shouldAutoRun` setting.
 
@@ -93,7 +114,7 @@ shouldAutoRun: true
 ```
 ````
 
-## `shouldWrapConsole`
+## `shouldWrapConsole` - Console messages
 
 Code blocks intercept all calls to `console.debug()`, `console.error()`, `console.info()`, `console.log()`, `console.warn()` and display them in the results panel.
 
@@ -118,25 +139,6 @@ If you do not want to intercept console messages, you can set the `shouldWrapCon
 ```code-button
 ---
 shouldWrapConsole: false
----
-// Code
-```
-````
-
-## Remove after execution
-
-| Desktop | Mobile |
-| ------- | ------ |
-| ✅       | ✅      |
-
-You can configure a button to remove itself after execution:
-
-````markdown
-```code-button
----
-removeAfterExecution:
-  shouldKeepGap: false
-  when: never
 ---
 // Code
 ```
