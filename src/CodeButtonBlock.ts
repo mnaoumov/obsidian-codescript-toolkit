@@ -170,7 +170,16 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
         break;
     }
     if (shouldRemoveButton) {
-      await options.codeButtonContext.removeCodeButtonBlock(options.codeButtonContext.config.removeAfterExecution.shouldKeepGap);
+      if (options.codeButtonContext.markdownInfo) {
+        try {
+          await options.codeButtonContext.removeCodeButtonBlock(options.codeButtonContext.config.removeAfterExecution.shouldKeepGap);
+        } catch (error) {
+          printError(error);
+          wrappedConsole.appendToResultEl([error], 'error');
+        }
+      } else {
+        wrappedConsole.writeSystemMessage('❌ Cannot remove the code button block after execution, because it cannot be uniquely identified!');
+      }
     }
   }
 }
@@ -200,18 +209,10 @@ async function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLEl
     source
   });
 
-  if (!markdownInfo) {
-    new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
-      f.appendText('❌ Error!\nCould not uniquely identify the code block. Try to modify its content for it to differ from other code blocks in the note.');
-      addLinkToDocs(f);
-    }));
-    return;
-  }
-
   const frontMatterInfo = getFrontMatterInfo(source);
   const code = source.slice(frontMatterInfo.contentStart);
 
-  if (markdownInfo.args.length > 0) {
+  if (markdownInfo && markdownInfo.args.length > 0) {
     new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
       f.appendText('❌ Error!\nYour code block uses legacy button config.');
       addLinkToDocs(f);

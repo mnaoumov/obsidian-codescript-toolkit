@@ -72,7 +72,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-dev-utils/blob/main/src/obsidian/CodeBlockMarkdownInformation.ts}
    */
-  markdownInfo: CodeBlockMarkdownInformation;
+  markdownInfo: CodeBlockMarkdownInformation | null;
 
   /**
    * A markdown post processor context.
