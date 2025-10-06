@@ -26,7 +26,7 @@ import { registerTempPlugin } from './TempPluginRegistry.ts';
 
 interface CodeButtonContextImplConstructorOptions {
   config: CodeButtonBlockConfig;
-  markdownInfo: CodeBlockMarkdownInformation;
+  markdownInfo: CodeBlockMarkdownInformation | null;
   markdownPostProcessorContext: MarkdownPostProcessorContext;
   parentEl: HTMLElement;
   plugin: Plugin;
@@ -39,7 +39,7 @@ export class CodeButtonContextImpl implements CodeButtonContext {
   public readonly config: CodeButtonBlockConfig;
   public readonly console: Console;
   public readonly container: HTMLElement;
-  public readonly markdownInfo: CodeBlockMarkdownInformation;
+  public readonly markdownInfo: CodeBlockMarkdownInformation | null;
   public readonly markdownPostProcessorContext: MarkdownPostProcessorContext;
   public readonly parentEl: HTMLElement;
   public readonly source: string;
