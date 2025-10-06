@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 11.2.1
+
+- fix: allow buttons that cannot be uniquely identified
+  - fix: #35
+- docs: split features in separate files
+- chore: enable markdownlint
+- refactor: move types to a separate file to use in README
+
 ## 11.2.0
 
 - feat: add default code-button config
