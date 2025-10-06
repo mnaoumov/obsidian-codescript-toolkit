@@ -14,11 +14,11 @@
     "format:check": "obsidian-dev-utils format:check",
     "lint": "obsidian-dev-utils lint",
     "lint:fix": "obsidian-dev-utils lint:fix",
-    "lint:md": "markdownlint-cli2 .",
-    "lint:md:fix": "markdownlint-cli2 . --fix",
+    "lint:md": "obsidian-dev-utils lint:md",
+    "lint:md:fix": "obsidian-dev-utils lint:md:fix",
     "prepare": "husky",
     "spellcheck": "obsidian-dev-utils spellcheck",
-    "version": "npm run lint:md && obsidian-dev-utils version"
+    "version": "obsidian-dev-utils version"
   },
   "keywords": [],
   "author": "mnaoumov",
@@ -50,7 +50,7 @@
     "@antfu/utils": "9.2.0",
     "boolean": "npm:dry-uninstall",
     "dompurify": "3.0.1",
-    "type-fest": "5.0.1"
+    "type-fest": "latest"
   },
   "type": "module"
 }
