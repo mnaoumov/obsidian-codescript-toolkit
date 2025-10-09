@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 11.2.2
+
+- fix: override incompatible settings to isRaw
+  - fix #36
+
 ## 11.2.1
 
 - fix: allow buttons that cannot be uniquely identified
