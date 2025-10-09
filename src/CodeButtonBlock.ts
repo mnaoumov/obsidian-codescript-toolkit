@@ -62,14 +62,6 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   shouldWrapConsole: true
 };
 
-const FORBIDDEN_KEYS_FOR_RAW_MODE: (keyof CodeButtonBlockConfig)[] = [
-  'caption',
-  'shouldAutoOutput',
-  'shouldAutoRun',
-  'shouldShowSystemMessages',
-  'shouldWrapConsole'
-];
-
 let lastButtonIndex = 0;
 
 export function insertSampleCodeButton(editor: Editor): void {
@@ -266,16 +258,6 @@ ${code}
   config = { ...plugin.settingsManager.parseDefaultCodeButtonConfig(), ...config };
 
   if (config.isRaw) {
-    for (const key of Object.keys(config) as (keyof CodeButtonBlockConfig)[]) {
-      if (FORBIDDEN_KEYS_FOR_RAW_MODE.includes(key)) {
-        new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
-          f.appendText(`❌ Error!\nThe \`${key}\` setting is not allowed with \`isRaw: true\`.`);
-          addLinkToDocs(f);
-        }));
-        return;
-      }
-    }
-
     config.shouldAutoOutput = false;
     config.shouldAutoRun = true;
     config.shouldShowSystemMessages = false;
