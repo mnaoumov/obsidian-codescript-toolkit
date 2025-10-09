@@ -46,7 +46,7 @@ await codeButtonContext.renderMarkdown('**foo**');
 ```
 ````
 
-It implies the following full configuration:
+It implies the following full configuration (and overrides all incompatible settings if any set):
 
 ```yaml
 ---
