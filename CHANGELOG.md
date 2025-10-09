@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.2.3
+
+- chore: force build
+
 ## 11.2.2
 
 - fix: override incompatible settings to isRaw
