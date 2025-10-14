@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.2.4
+
+- fix: ensure sourcePath is correct after renames
+
 ## 11.2.3
 
 - chore: force build
