@@ -1,6 +1,7 @@
 import type {
   Editor,
-  MarkdownPostProcessorContext
+  MarkdownPostProcessorContext,
+  TFile
 } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
@@ -15,6 +16,7 @@ import {
   normalizeOptionalProperties,
   removeUndefinedProperties
 } from 'obsidian-dev-utils/ObjectUtils';
+import { getFile } from 'obsidian-dev-utils/obsidian/FileSystem';
 import {
   getCodeBlockMarkdownInfo,
   replaceCodeBlock
@@ -191,6 +193,7 @@ function makeWrapperScript(source: string, sourceFileName: string, sourceFolder:
 }
 
 async function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> {
+  const sourceFile = getFile(plugin.app, ctx.sourcePath);
   lastButtonIndex++;
   const resultEl = el.createDiv({ cls: 'fix-require-modules console-log-container' });
 
@@ -229,7 +232,7 @@ ${code}
             await replaceCodeBlock({
               app: plugin.app,
               codeBlockProvider: newCodeBlock,
-              ctx,
+              ctx: updateSourcePath(ctx, sourceFile),
               el,
               shouldPreserveLinePrefix: true,
               source
@@ -267,26 +270,11 @@ ${code}
   const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
   fullConfig.removeAfterExecution = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG.removeAfterExecution, ...config.removeAfterExecution };
 
-  const handleClickOptions: HandleClickOptions = {
-    buttonIndex: lastButtonIndex,
-    code,
-    codeButtonContext: new CodeButtonContextImpl({
-      config: fullConfig,
-      markdownInfo,
-      markdownPostProcessorContext: ctx,
-      parentEl: el,
-      plugin,
-      resultEl,
-      source
-    }),
-    escapedCaption: escapeForFileName(fullConfig.caption)
-  };
-
   if (!fullConfig.isRaw) {
     el.createEl('button', {
       cls: 'mod-cta',
       async onclick(): Promise<void> {
-        await handleClick(handleClickOptions);
+        await handleClick(createHandleClickOptions());
       },
       prepend: true,
       text: fullConfig.caption
@@ -294,7 +282,24 @@ ${code}
   }
 
   if (fullConfig.shouldAutoRun) {
-    invokeAsyncSafely(() => handleClick(handleClickOptions));
+    invokeAsyncSafely(() => handleClick(createHandleClickOptions()));
+  }
+
+  function createHandleClickOptions(): HandleClickOptions {
+    return {
+      buttonIndex: lastButtonIndex,
+      code,
+      codeButtonContext: new CodeButtonContextImpl({
+        config: fullConfig,
+        markdownInfo,
+        markdownPostProcessorContext: updateSourcePath(ctx, sourceFile),
+        parentEl: el,
+        plugin,
+        resultEl,
+        source
+      }),
+      escapedCaption: escapeForFileName(fullConfig.caption)
+    };
   }
 }
 
@@ -304,4 +309,11 @@ function registerCodeHighlighting(): void {
 
 function unregisterCodeHighlighting(): void {
   window.CodeMirror.defineMode(CODE_BUTTON_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'null'));
+}
+
+function updateSourcePath(ctx: MarkdownPostProcessorContext, sourceFile: TFile): MarkdownPostProcessorContext {
+  return {
+    ...ctx,
+    sourcePath: sourceFile.path
+  };
 }
