@@ -1,20 +1,16 @@
 import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
 
-import { normalizeOptionalProperties } from 'obsidian-dev-utils/ObjectUtils';
-import { registerPatch } from 'obsidian-dev-utils/obsidian/MonkeyAround';
-import { join } from 'obsidian-dev-utils/Path';
+import { FileSystemAdapter } from 'obsidian';
 import {
-  existsSync,
-  Module,
-  readFile,
-  readFileSync,
-  rm,
-  stat,
-  statSync,
-  tmpdir,
-  writeFile
-} from 'obsidian-dev-utils/ScriptUtils/NodeModules';
-import { getRootFolder } from 'obsidian-dev-utils/ScriptUtils/Root';
+  getPrototypeOf,
+  normalizeOptionalProperties
+} from 'obsidian-dev-utils/ObjectUtils';
+import { registerPatch } from 'obsidian-dev-utils/obsidian/MonkeyAround';
+import {
+  dirname,
+  join,
+  toPosixPath
+} from 'obsidian-dev-utils/Path';
 
 import type { Plugin } from '../Plugin.ts';
 import type {
@@ -45,10 +41,45 @@ import {
 class RequireHandlerImpl extends RequireHandler {
   private originalModulePrototypeRequire?: RequireFn;
 
+  private get fileSystemAdapter(): FileSystemAdapter {
+    const adapter = this.plugin?.app.vault.adapter;
+    if (!(adapter instanceof FileSystemAdapter)) {
+      throw new Error('Vault adapter is not a FileSystemAdapter.');
+    }
+
+    return adapter;
+  }
+
+  public override async existsFileAsync(path: string): Promise<boolean> {
+    return await Promise.resolve(this.existsFile(path));
+  }
+
+  public override async existsFolderAsync(path: string): Promise<boolean> {
+    return await Promise.resolve(this.existsFolder(path));
+  }
+
+  public override async getTimestampAsync(path: string): Promise<number> {
+    path = splitQuery(path).cleanStr;
+    return (await this.fileSystemAdapter.fsPromises.stat(path)).mtimeMs;
+  }
+
+  public override async readFileAsync(path: string): Promise<string> {
+    path = splitQuery(path).cleanStr;
+    return await this.fileSystemAdapter.fsPromises.readFile(path, 'utf8');
+  }
+
+  public override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
+    path = splitQuery(path).cleanStr;
+    const buffer = await this.fileSystemAdapter.fsPromises.readFile(path);
+    const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+    return arrayBuffer as ArrayBuffer;
+  }
+
   public override register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
     super.register(plugin, pluginRequire);
 
-    registerPatch(plugin, Module.prototype, {
+    const moduleProto = getPrototypeOf(window.module);
+    registerPatch(plugin, moduleProto, {
       require: (next: RequireFn): RequireFn => {
         this.originalModulePrototypeRequire = next;
         return this.modulePrototypeRequire.bind(this);
@@ -75,35 +106,10 @@ class RequireHandlerImpl extends RequireHandler {
     return type !== ResolvedType.Url;
   }
 
-  protected override async existsFileAsync(path: string): Promise<boolean> {
-    return await Promise.resolve(this.existsFile(path));
-  }
-
-  protected override async existsFolderAsync(path: string): Promise<boolean> {
-    return await Promise.resolve(this.existsFolder(path));
-  }
-
-  protected override async getTimestampAsync(path: string): Promise<number> {
-    path = splitQuery(path).cleanStr;
-    return (await stat(path)).mtimeMs;
-  }
-
   protected override handleCodeWithTopLevelAwait(path: string): void {
     throw new Error(`Cannot load module: ${path}.
 Top-level await is not supported in sync require.
 Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
-  }
-
-  protected override async readFileAsync(path: string): Promise<string> {
-    path = splitQuery(path).cleanStr;
-    return await readFile(path, 'utf8');
-  }
-
-  protected override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
-    path = splitQuery(path).cleanStr;
-    const buffer = await readFile(path);
-    const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-    return arrayBuffer as ArrayBuffer;
   }
 
   protected requireAsarPackedModule(id: string): unknown {
@@ -117,12 +123,16 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
     await Promise.resolve();
     if (arrayBuffer) {
-      const tmpFilePath = join(tmpdir(), `${String(Date.now())}.node`);
+      const tempDir = join(this.plugin?.app.vault.configDir ?? '', 'temp');
+      if (!this.existsFolder(tempDir)) {
+        await this.fileSystemAdapter.fsPromises.mkdir(tempDir);
+      }
+      const tmpFilePath = join(tempDir, `${String(Date.now())}.node`);
       await this.writeFileBinaryAsync(tmpFilePath, arrayBuffer);
       try {
         return this.requireNodeBinary(tmpFilePath);
       } finally {
-        await rm(tmpFilePath);
+        await this.fileSystemAdapter.fsPromises.rm(tmpFilePath);
       }
     }
 
@@ -152,12 +162,12 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
 
   private existsFile(path: string): boolean {
     path = splitQuery(path).cleanStr;
-    return existsSync(path) && statSync(path).isFile();
+    return this.fileSystemAdapter.fs.existsSync(path) && this.fileSystemAdapter.fs.statSync(path).isFile();
   }
 
   private existsFolder(path: string): boolean {
     path = splitQuery(path).cleanStr;
-    return existsSync(path) && statSync(path).isDirectory();
+    return this.fileSystemAdapter.fs.existsSync(path) && this.fileSystemAdapter.fs.statSync(path).isDirectory();
   }
 
   private findExistingFilePath(path: string): null | string {
@@ -237,6 +247,18 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return timestamp;
   }
 
+  private getRootFolder(cwd: string): null | string {
+    let currentFolder = toPosixPath(cwd);
+    while (currentFolder !== '.' && currentFolder !== '/') {
+      if (this.existsFile(join(currentFolder, 'package.json'))) {
+        return toPosixPath(currentFolder);
+      }
+      currentFolder = dirname(currentFolder);
+    }
+
+    return null;
+  }
+
   private getRootFolders(folder: string): string[] {
     const modulesRootFolder = this.plugin?.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
 
@@ -246,7 +268,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
         continue;
       }
 
-      const rootFolder = getRootFolder(possibleFolder);
+      const rootFolder = this.getRootFolder(possibleFolder);
       if (rootFolder === null) {
         continue;
       }
@@ -259,7 +281,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
 
   private getTimestamp(path: string): number {
     path = splitQuery(path).cleanStr;
-    return statSync(path).mtimeMs;
+    return this.fileSystemAdapter.fs.statSync(path).mtimeMs;
   }
 
   private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode: CacheInvalidationMode): string {
@@ -291,7 +313,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private readFile(path: string): string {
     path = splitQuery(path).cleanStr;
-    return readFileSync(path, 'utf8');
+    return this.fileSystemAdapter.fs.readFileSync(path, 'utf8');
   }
 
   private readPackageJson(path: string): PackageJson {
@@ -430,7 +452,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   private async writeFileBinaryAsync(path: string, arrayBuffer: ArrayBuffer): Promise<void> {
     path = splitQuery(path).cleanStr;
     const buffer = Buffer.from(arrayBuffer);
-    await writeFile(path, buffer);
+    await this.fileSystemAdapter.fsPromises.writeFile(path, buffer);
   }
 }
 
