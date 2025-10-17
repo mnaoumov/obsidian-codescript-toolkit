@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.2.5
+
+- fix: make working in app.emulateMobile(true)
+
 ## 11.2.4
 
 - fix: ensure sourcePath is correct after renames
