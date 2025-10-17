@@ -15,8 +15,34 @@ class RequireHandlerImpl extends RequireHandler {
     return adapter;
   }
 
-  protected override canRequireNonCached(): boolean {
+  public override canRequireNonCached(): boolean {
     return false;
+  }
+
+  public override requireAsarPackedModule(id: string): unknown {
+    throw new Error(`Could not require module: ${id}. ASAR packed modules are not available on mobile.`);
+  }
+
+  public override requireElectronModule(id: string): unknown {
+    throw new Error(`Could not require module: ${id}. Electron modules are not available on mobile.`);
+  }
+
+  public override async requireNodeBinaryAsync(id: string): Promise<unknown> {
+    await Promise.resolve();
+    throw new Error(`Cannot require module: ${id}. Node binary modules are not available on mobile.`);
+  }
+
+  public override requireNodeBuiltInModule(id: string): unknown {
+    if (id === 'crypto') {
+      console.warn('Crypto module is not available on mobile. Consider using window.scrypt instead.');
+      return null;
+    }
+
+    throw new Error(`Could not require module: ${id}. Node built-in modules are not available on mobile.`);
+  }
+
+  public override requireNonCached(id: string): unknown {
+    throw new Error(`Cannot require synchronously on mobile: '${id}'.`);
   }
 
   protected override async existsFileAsync(path: string): Promise<boolean> {
@@ -53,32 +79,6 @@ class RequireHandlerImpl extends RequireHandler {
   protected override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
     path = splitQuery(path).cleanStr;
     return await this.capacitorAdapter.fs.readBinary(path);
-  }
-
-  protected override requireAsarPackedModule(id: string): unknown {
-    throw new Error(`Could not require module: ${id}. ASAR packed modules are not available on mobile.`);
-  }
-
-  protected override requireElectronModule(id: string): unknown {
-    throw new Error(`Could not require module: ${id}. Electron modules are not available on mobile.`);
-  }
-
-  protected override async requireNodeBinaryAsync(): Promise<unknown> {
-    await Promise.resolve();
-    throw new Error('Cannot require node binary on mobile.');
-  }
-
-  protected override requireNodeBuiltInModule(id: string): unknown {
-    if (id === 'crypto') {
-      console.warn('Crypto module is not available on mobile. Consider using window.scrypt instead.');
-      return null;
-    }
-
-    throw new Error(`Could not require module: ${id}. Node built-in modules are not available on mobile.`);
-  }
-
-  protected override requireNonCached(id: string): unknown {
-    throw new Error(`Cannot require synchronously on mobile: '${id}'.`);
   }
 }
 

@@ -9,8 +9,14 @@ export interface PlatformDependencies {
 }
 
 export async function getPlatformDependencies(): Promise<PlatformDependencies> {
-  const module = Platform.isMobile
-    ? await import('./Mobile/Dependencies.ts')
-    : await import('./Desktop/Dependencies.ts');
+  let module: { platformDependencies: PlatformDependencies };
+  if (document.body.hasClass('emulate-mobile')) {
+    module = await import('./EmulateMobile/Dependencies.ts');
+  } else if (Platform.isMobile) {
+    module = await import('./Mobile/Dependencies.ts');
+  } else {
+    module = await import('./Desktop/Dependencies.ts');
+  }
+
   return module.platformDependencies;
 }
