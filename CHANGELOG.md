@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.2.9
+
+- fix: cache invalidation mode
+
 ## 11.2.8
 
 - fix: cache invalidation mode
