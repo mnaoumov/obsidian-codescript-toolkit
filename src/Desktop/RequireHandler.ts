@@ -82,7 +82,10 @@ class RequireHandlerImpl extends RequireHandler {
     registerPatch(plugin, moduleProto, {
       require: (next: RequireFn): RequireFn => {
         this.originalModulePrototypeRequire = next;
-        return this.modulePrototypeRequire.bind(this);
+        const that = this;
+        return function modulePrototypeRequirePatched(this: NodeJS.Module, id: string): unknown {
+          return that.modulePrototypeRequire(id, this);
+        };
       }
     });
   }
@@ -112,12 +115,12 @@ Top-level await is not supported in sync require.
 Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   }
 
-  protected requireAsarPackedModule(id: string): unknown {
-    return this.originalModulePrototypeRequireWrapped(id);
+  protected requireAsarPackedModule(id: string, options: Partial<RequireOptions>): unknown {
+    return this.originalModulePrototypeRequireWrapped(id, options);
   }
 
-  protected override requireElectronModule(id: string): unknown {
-    return this.originalModulePrototypeRequireWrapped(id);
+  protected override requireElectronModule(id: string, options: Partial<RequireOptions>): unknown {
+    return this.originalModulePrototypeRequireWrapped(id, options);
   }
 
   protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
@@ -143,16 +146,16 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return this.originalModulePrototypeRequire?.(id);
   }
 
-  protected override requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
+  protected override requireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown {
     switch (type) {
       case ResolvedType.Module: {
         const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return this.requireModule(moduleName, parentFolder, cacheInvalidationMode, moduleType);
+        return this.requireModule(moduleName, parentFolder, options.cacheInvalidationMode, options.moduleType);
       }
       case ResolvedType.Path:
-        return this.requirePath(id, cacheInvalidationMode, moduleType);
+        return this.requirePath(id, options.cacheInvalidationMode, options.moduleType);
       case ResolvedType.SpecialModule:
-        return this.requireSpecialModule(id);
+        return this.requireSpecialModule(id, options);
       case ResolvedType.Url:
         throw new Error(`Cannot require synchronously from URL. ${this.getRequireAsyncAdvice(true)}`);
       default:
@@ -181,7 +184,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return null;
   }
 
-  private getDependenciesTimestampChangedAndReloadIfNeeded(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): number {
+  private getDependenciesTimestampChangedAndReloadIfNeeded(path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): number {
     if (this.currentModulesTimestampChain.has(path)) {
       return this.moduleTimestamps.get(path) ?? 0;
     }
@@ -284,31 +287,36 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     return this.fileSystemAdapter.fs.statSync(path).mtimeMs;
   }
 
-  private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode: CacheInvalidationMode): string {
+  private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode?: CacheInvalidationMode): string {
     return `Module ${path} depends on URL ${resolvedId}.
-URL dependencies validation is not supported when cacheInvalidationMode=${cacheInvalidationMode}.
+URL dependencies validation is not supported when cacheInvalidationMode=${cacheInvalidationMode ?? 'undefined'}.
 Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.getRequireAsyncAdvice()}`;
   }
 
-  private modulePrototypeRequire(id: string): unknown {
+  private modulePrototypeRequire(id: string, module: NodeJS.Module): unknown {
     /**
      * The caller line index is 5 because the call stack is as follows:
      *
      * 0: Error
      * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
      * 2:     at RequireHandlerImpl.modulePrototypeRequire (plugin:fix-require-modules:?:?)
-     * 3:     at Module.wrapper [as require] (plugin:fix-require-modules:?:?)
-     * 4:     at require (node:internal/modules/helpers:?:?)
-     * 5:     at functionName (path/to/caller.js:?:?)
+     * 3:     at Module.modulePrototypeRequirePatched (plugin:fix-require-modules:?:?)
+     * 4:     at Module.wrapper [as require] (plugin:fix-require-modules:?:?)
+     * 5:     at require (node:internal/modules/helpers:?:?)
+     * 6:     at functionName (path/to/caller.js:?:?)
      */
-    const CALLER_LINE_INDEX = 5;
+    const CALLER_LINE_INDEX = 6;
     const parentPath = this.getParentPathFromCallStack(CALLER_LINE_INDEX) ?? undefined;
-    const options = normalizeOptionalProperties<{ parentPath?: string }>({ parentPath });
+    const options = normalizeOptionalProperties<RequireOptions>({
+      parentModule: module,
+      parentPath
+    });
     return this.requireEx(id, options);
   }
 
-  private originalModulePrototypeRequireWrapped(id: string): unknown {
-    return this.originalModulePrototypeRequire?.call(window.module, id);
+  private originalModulePrototypeRequireWrapped(id: string, options: Partial<RequireOptions>): unknown {
+    const module = options.parentModule ?? window.module;
+    return this.originalModulePrototypeRequire?.call(module, id, options);
   }
 
   private readFile(path: string): string {
@@ -340,7 +348,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     return this.requireString(code, `${path}.code-script.${codeScriptName ?? '(default)'}.ts`);
   }
 
-  private requireModule(moduleName: string, parentFolder: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
+  private requireModule(moduleName: string, parentFolder: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
@@ -392,7 +400,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     return this.originalModulePrototypeRequire?.(path);
   }
 
-  private requirePath(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown {
+  private requirePath(path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): unknown {
     const existingFilePath = this.findExistingFilePath(path);
     if (existingFilePath === null) {
       throw new Error(`File not found: '${path}'.`);

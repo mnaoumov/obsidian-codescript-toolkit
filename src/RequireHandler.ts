@@ -181,7 +181,7 @@ export abstract class RequireHandler {
   private _requireEx?: RequireExFn;
   private originalRequire?: NodeJS.Require;
   private pluginRequire?: PluginRequireFn;
-  private readonly specialModuleFactories = new Map<string, () => unknown>();
+  private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
 
   public constructor() {
     this.initSpecialModuleFactories();
@@ -240,7 +240,7 @@ export abstract class RequireHandler {
       ...options
     };
 
-    const specialModule = this.requireSpecialModule(id);
+    const specialModule = this.requireSpecialModule(id, fullOptions);
     if (specialModule !== undefined) {
       return specialModule;
     }
@@ -295,13 +295,13 @@ export abstract class RequireHandler {
     if (cleanResolvedId.endsWith('.md')) {
       return await this.initModuleAndAddToCacheAsync(
         resolvedId,
-        () => this.requireNonCachedAsync(resolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
+        () => this.requireNonCachedAsync(resolvedId, resolvedType, fullOptions)
       );
     }
 
     const module = await this.initModuleAndAddToCacheAsync(
       cleanResolvedId,
-      () => this.requireNonCachedAsync(cleanResolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
+      () => this.requireNonCachedAsync(cleanResolvedId, resolvedType, fullOptions)
     );
     if (resolvedId !== cleanResolvedId) {
       this.initModuleAndAddToCache(resolvedId, () => module);
@@ -329,7 +329,7 @@ export abstract class RequireHandler {
     }
   }
 
-  protected abstract canRequireNonCached(type: ResolvedType): boolean;
+  protected abstract canRequireNonCached(type: ResolvedType, options: Partial<RequireOptions>): boolean;
 
   protected abstract existsFileAsync(path: string): Promise<boolean>;
 
@@ -426,19 +426,23 @@ await requireAsyncWrapper((require) => {
 
   protected abstract readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
 
-  protected abstract requireAsarPackedModule(id: string): unknown;
+  protected abstract requireAsarPackedModule(id: string, options: Partial<RequireOptions>): unknown;
 
-  protected abstract requireElectronModule(id: string): unknown;
+  protected abstract requireElectronModule(id: string, options: Partial<RequireOptions>): unknown;
 
   protected abstract requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown>;
 
   protected abstract requireNodeBuiltInModule(id: string): unknown;
 
-  protected abstract requireNonCached(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): unknown;
+  protected abstract requireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown;
 
-  protected requireSpecialModule(id: string): unknown {
+  protected requireSpecialModule(id: string, options: Partial<RequireOptions>): unknown {
+    if (options.parentModule?.path.includes('app.asar')) {
+      return this.requireElectronModule(id, options);
+    }
+
     const cleanId = splitQuery(id).cleanStr;
-    return this.specialModuleFactories.get(cleanId)?.();
+    return this.specialModuleFactories.get(cleanId)?.(options);
   }
 
   protected requireStringImpl(options: RequireStringImplOptions): RequireStringImplResult {
@@ -590,7 +594,7 @@ await requireAsyncWrapper((require) => {
 
   private async getDependenciesTimestampChangedAndReloadIfNeededAsync(
     path: string,
-    cacheInvalidationMode: CacheInvalidationMode,
+    cacheInvalidationMode?: CacheInvalidationMode,
     moduleType?: ModuleType
   ): Promise<number> {
     if (this.currentModulesTimestampChain.has(path)) {
@@ -761,11 +765,11 @@ await requireAsyncWrapper((require) => {
     }
 
     for (const id of SPECIAL_MODULE_NAMES.electronModuleNames) {
-      this.specialModuleFactories.set(id, () => this.requireElectronModule(id));
+      this.specialModuleFactories.set(id, (options) => this.requireElectronModule(id, options));
     }
 
     for (const id of SPECIAL_MODULE_NAMES.asarPackedModuleNames) {
-      this.specialModuleFactories.set(id, () => this.requireAsarPackedModule(id));
+      this.specialModuleFactories.set(id, (options) => this.requireAsarPackedModule(id, options));
     }
 
     for (const id of SPECIAL_MODULE_NAMES.deprecatedObsidianBuiltInModuleNames) {
@@ -815,7 +819,7 @@ await requireAsyncWrapper((require) => {
       ...DEFAULT_OPTIONS,
       ...options
     };
-    const specialModule = this.requireSpecialModule(id);
+    const specialModule = this.requireSpecialModule(id, fullOptions);
     if (specialModule !== undefined) {
       return specialModule;
     }
@@ -852,7 +856,7 @@ await requireAsyncWrapper((require) => {
             return cachedModuleEntry.exports;
           }
 
-          if (!this.canRequireNonCached(resolvedType)) {
+          if (!this.canRequireNonCached(resolvedType, fullOptions)) {
             console.warn(`Cached module ${resolvedId} cannot be invalidated synchronously. The cached version will be used. `);
             return cachedModuleEntry.exports;
           }
@@ -862,7 +866,7 @@ await requireAsyncWrapper((require) => {
       }
     }
 
-    if (!this.canRequireNonCached(resolvedType)) {
+    if (!this.canRequireNonCached(resolvedType, fullOptions)) {
       throw new Error(`Cannot require '${resolvedId}' synchronously.
 ${this.getRequireAsyncAdvice(true)}`);
     }
@@ -870,12 +874,12 @@ ${this.getRequireAsyncAdvice(true)}`);
     if (cleanResolvedId.endsWith('.md')) {
       return this.initModuleAndAddToCache(
         resolvedId,
-        () => this.requireNonCached(resolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
+        () => this.requireNonCached(resolvedId, resolvedType, fullOptions)
       );
     }
     const module = this.initModuleAndAddToCache(
       cleanResolvedId,
-      () => this.requireNonCached(cleanResolvedId, resolvedType, fullOptions.cacheInvalidationMode, fullOptions.moduleType)
+      () => this.requireNonCached(cleanResolvedId, resolvedType, fullOptions)
     );
     if (resolvedId !== cleanResolvedId) {
       this.initModuleAndAddToCache(resolvedId, () => module);
@@ -930,7 +934,7 @@ ${this.getRequireAsyncAdvice(true)}`);
   private async requireModuleAsync(
     moduleName: string,
     parentFolder: string,
-    cacheInvalidationMode: CacheInvalidationMode,
+    cacheInvalidationMode?: CacheInvalidationMode,
     moduleType?: ModuleType
   ): Promise<unknown> {
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
@@ -980,24 +984,24 @@ ${this.getRequireAsyncAdvice(true)}`);
     throw new Error(`Could not resolve module: '${moduleName}'.`);
   }
 
-  private async requireNonCachedAsync(id: string, type: ResolvedType, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
+  private async requireNonCachedAsync(id: string, type: ResolvedType, options: Partial<RequireOptions>): Promise<unknown> {
     switch (type) {
       case ResolvedType.Module: {
         const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return await this.requireModuleAsync(moduleName, parentFolder, cacheInvalidationMode, moduleType);
+        return await this.requireModuleAsync(moduleName, parentFolder, options.cacheInvalidationMode, options.moduleType);
       }
       case ResolvedType.Path:
-        return await this.requirePathAsync(id, cacheInvalidationMode, moduleType);
+        return await this.requirePathAsync(id, options.cacheInvalidationMode, options.moduleType);
       case ResolvedType.SpecialModule:
-        return this.requireSpecialModule(id);
+        return this.requireSpecialModule(id, options);
       case ResolvedType.Url:
-        return await this.requireUrlAsync(id, moduleType);
+        return await this.requireUrlAsync(id, options.moduleType);
       default:
         throw new Error(`Unknown resolvedType: '${type as string}'.`);
     }
   }
 
-  private async requirePathAsync(path: string, cacheInvalidationMode: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
+  private async requirePathAsync(path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
     const existingFilePath = await this.findExistingFilePathAsync(path);
     if (existingFilePath === null) {
       throw new Error(`File not found: '${path}'.`);

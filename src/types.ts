@@ -88,7 +88,15 @@ export type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknow
 /**
  * An extended require function.
  */
-export type RequireExFn = { parentPath?: string } & NodeJS.Require & typeof require;
+export type RequireExFn =
+  & {
+    /**
+     * A parent path of the module to require.
+     */
+    parentPath?: string;
+  }
+  & NodeJS.Require
+  & typeof require;
 
 /**
  * Options for the require function.
@@ -97,12 +105,17 @@ export interface RequireOptions {
   /**
    * A cache invalidation mode.
    */
-  cacheInvalidationMode: CacheInvalidationMode;
+  cacheInvalidationMode?: CacheInvalidationMode;
 
   /**
    * A type of the module to require.
    */
   moduleType?: ModuleType;
+
+  /**
+   * A parent module.
+   */
+  parentModule?: NodeJS.Module;
 
   /**
    * A parent path of the module to require.
