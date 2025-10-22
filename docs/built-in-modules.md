@@ -31,6 +31,9 @@ new obsidian.Notice('My notice');
 
 const { Notice } = require('obsidian');
 new Notice('My notice');
+
+import { Notice } from 'obsidian';
+new Notice('My notice');
 ```
 
 [Obsidian]: https://obsidian.md/
