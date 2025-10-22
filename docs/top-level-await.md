@@ -6,7 +6,7 @@
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 
 ```js
-// top-level-await.js
+// topLevelAwait.js
 await Promise.resolve(); // top-level await
 export const dep = 42;
 
