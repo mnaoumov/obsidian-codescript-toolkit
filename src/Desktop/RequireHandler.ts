@@ -254,11 +254,13 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
           switch (cacheInvalidationMode) {
             case CacheInvalidationMode.Always:
               throw new Error(errorMessage);
+            case CacheInvalidationMode.Never:
+              break;
             case CacheInvalidationMode.WhenPossible:
               console.warn(errorMessage);
               break;
             default:
-              throw new Error(`Unknown cacheInvalidationMode: '${cacheInvalidationMode as string}'.`);
+              throw new Error(`Unknown cacheInvalidationMode: '${cacheInvalidationMode as unknown as string}'.`);
           }
           break;
         }
