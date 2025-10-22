@@ -13,6 +13,7 @@ This plugin is for you if you want to:
   - [`CustomJS`](https://github.com/saml-dev/obsidian-custom-js) scripts;
   - [`datacorejs` / `datacorejsx` / `datacorets` / `datacoretsx`](https://blacksmithgu.github.io/datacore/code-views) scripts;
   - [`dataviewjs`](https://blacksmithgu.github.io/obsidian-dataview/api/intro/) scripts;
+  - [`JS Engine`](https://www.moritzjung.dev/obsidian-js-engine-plugin-docs/) scripts;
   - [`Modules`](https://github.com/polyipseity/obsidian-modules) scripts;
   - [`QuickAdd`](https://quickadd.obsidian.guide/) scripts;
   - [`Templater`](https://silentvoid13.github.io/Templater/) scripts;
