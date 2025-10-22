@@ -39,6 +39,8 @@ import {
 } from '../types.ts';
 
 class RequireHandlerImpl extends RequireHandler {
+  private _fs?: typeof import('node:fs');
+  private _fsPromises?: typeof import('node:fs/promises');
   private originalModulePrototypeRequire?: RequireFn;
 
   private get fileSystemAdapter(): FileSystemAdapter {
@@ -48,6 +50,27 @@ class RequireHandlerImpl extends RequireHandler {
     }
 
     return adapter;
+  }
+
+  private get fs(): typeof import('node:fs') {
+    if (this._fs) {
+      return this._fs;
+    }
+
+    const fs = (this.originalModulePrototypeRequireWrapped('node:fs', {}) ?? this.fileSystemAdapter.fs) as typeof import('node:fs');
+    this._fs = fs;
+    return this._fs;
+  }
+
+  private get fsPromises(): typeof import('node:fs/promises') {
+    if (this._fsPromises) {
+      return this._fsPromises;
+    }
+
+    const fsPromises =
+      (this.originalModulePrototypeRequireWrapped('node:fs/promises', {}) ?? this.fileSystemAdapter.fsPromises) as typeof import('node:fs/promises');
+    this._fsPromises = fsPromises;
+    return this._fsPromises;
   }
 
   public override async existsFileAsync(path: string): Promise<boolean> {
@@ -60,17 +83,17 @@ class RequireHandlerImpl extends RequireHandler {
 
   public override async getTimestampAsync(path: string): Promise<number> {
     path = splitQuery(path).cleanStr;
-    return (await this.fileSystemAdapter.fsPromises.stat(path)).mtimeMs;
+    return (await this.fsPromises.stat(path)).mtimeMs;
   }
 
   public override async readFileAsync(path: string): Promise<string> {
     path = splitQuery(path).cleanStr;
-    return await this.fileSystemAdapter.fsPromises.readFile(path, 'utf8');
+    return await this.fsPromises.readFile(path, 'utf8');
   }
 
   public override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
     path = splitQuery(path).cleanStr;
-    const buffer = await this.fileSystemAdapter.fsPromises.readFile(path);
+    const buffer = await this.fsPromises.readFile(path);
     const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
     return arrayBuffer as ArrayBuffer;
   }
@@ -128,14 +151,14 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
     if (arrayBuffer) {
       const tempDir = join(this.plugin?.app.vault.configDir ?? '', 'temp');
       if (!this.existsFolder(tempDir)) {
-        await this.fileSystemAdapter.fsPromises.mkdir(tempDir);
+        await this.fsPromises.mkdir(tempDir);
       }
       const tmpFilePath = join(tempDir, `${String(Date.now())}.node`);
       await this.writeFileBinaryAsync(tmpFilePath, arrayBuffer);
       try {
         return this.requireNodeBinary(tmpFilePath);
       } finally {
-        await this.fileSystemAdapter.fsPromises.rm(tmpFilePath);
+        await this.fsPromises.rm(tmpFilePath);
       }
     }
 
@@ -165,12 +188,12 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
 
   private existsFile(path: string): boolean {
     path = splitQuery(path).cleanStr;
-    return this.fileSystemAdapter.fs.existsSync(path) && this.fileSystemAdapter.fs.statSync(path).isFile();
+    return this.fs.existsSync(path) && this.fs.statSync(path).isFile();
   }
 
   private existsFolder(path: string): boolean {
     path = splitQuery(path).cleanStr;
-    return this.fileSystemAdapter.fs.existsSync(path) && this.fileSystemAdapter.fs.statSync(path).isDirectory();
+    return this.fs.existsSync(path) && this.fs.statSync(path).isDirectory();
   }
 
   private findExistingFilePath(path: string): null | string {
@@ -284,7 +307,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
 
   private getTimestamp(path: string): number {
     path = splitQuery(path).cleanStr;
-    return this.fileSystemAdapter.fs.statSync(path).mtimeMs;
+    return this.fs.statSync(path).mtimeMs;
   }
 
   private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode?: CacheInvalidationMode): string {
@@ -321,7 +344,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
 
   private readFile(path: string): string {
     path = splitQuery(path).cleanStr;
-    return this.fileSystemAdapter.fs.readFileSync(path, 'utf8');
+    return this.fs.readFileSync(path, 'utf8');
   }
 
   private readPackageJson(path: string): PackageJson {
@@ -460,7 +483,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
   private async writeFileBinaryAsync(path: string, arrayBuffer: ArrayBuffer): Promise<void> {
     path = splitQuery(path).cleanStr;
     const buffer = Buffer.from(arrayBuffer);
-    await this.fileSystemAdapter.fsPromises.writeFile(path, buffer);
+    await this.fsPromises.writeFile(path, buffer);
   }
 }
 
