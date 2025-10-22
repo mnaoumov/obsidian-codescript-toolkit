@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.2.7
+
+- fix: require ASAR
+
 ## 11.2.6
 
 - fix: fix get-fonts require
