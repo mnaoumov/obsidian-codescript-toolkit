@@ -851,6 +851,8 @@ await requireAsyncWrapper((require) => {
       }
 
       switch (fullOptions.cacheInvalidationMode) {
+        case CacheInvalidationMode.Always:
+          throw new Error(`Cached module ${resolvedId} cannot be invalidated synchronously.`);
         case CacheInvalidationMode.Never:
           return cachedModuleEntry.exports;
         case CacheInvalidationMode.WhenPossible:
@@ -864,7 +866,7 @@ await requireAsyncWrapper((require) => {
           }
           break;
         default:
-          throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as string}'.`);
+          throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as unknown as string}'.`);
       }
     }
 
