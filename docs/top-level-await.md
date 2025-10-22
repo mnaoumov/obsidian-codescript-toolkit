@@ -11,7 +11,7 @@ await Promise.resolve(); // top-level await
 export const dep = 42;
 
 // script.js
-await requireAsync('./top-level-await.js');
+await requireAsync('./topLevelAwait.js');
 ```
 
 [require]: ./new-functions.md#require
