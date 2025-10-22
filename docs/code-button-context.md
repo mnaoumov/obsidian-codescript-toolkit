@@ -60,8 +60,8 @@ Within code block you have access to the following functions that modify the con
 ```code-button
 await codeButtonContext.insertAfterCodeButtonBlock('**foo**');
 await codeButtonContext.insertBeforeCodeButtonBlock('**bar**');
-await codeButtonContext.removeCodeBlock();
-await codeButtonContext.replaceCodeBlock(**baz**);
+await codeButtonContext.removeCodeButtonBlock();
+await codeButtonContext.replaceCodeButtonBlock(**baz**);
 ```
 ````
 
