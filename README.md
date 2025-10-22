@@ -9,13 +9,13 @@ This is a plugin for [`Obsidian`][Obsidian] that allows to do a lot of things wi
 This plugin is for you if you want to:
 
 - Write in any flavor of [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript] in:
-  - [`DevTools Console`][DevTools Console] within [`Obsidian`][Obsidian];
-  - [`CustomJS`][CustomJS] scripts;
-  - [`datacorejs` / `datacorejsx` / `datacorets` / `datacoretsx`][datacorejs] scripts;
-  - [`dataviewjs`][dataviewjs] scripts;
-  - [`Modules`][Modules] scripts;
-  - [`QuickAdd`][QuickAdd] scripts;
-  - [`Templater`][Templater] scripts;
+  - [`DevTools Console`](https://developer.chrome.com/docs/devtools/console) within [`Obsidian`][Obsidian];
+  - [`CustomJS`](https://github.com/saml-dev/obsidian-custom-js) scripts;
+  - [`datacorejs` / `datacorejsx` / `datacorets` / `datacoretsx`](https://blacksmithgu.github.io/datacore/code-views) scripts;
+  - [`dataviewjs`](https://blacksmithgu.github.io/obsidian-dataview/api/intro/) scripts;
+  - [`Modules`](https://github.com/polyipseity/obsidian-modules) scripts;
+  - [`QuickAdd`](https://quickadd.obsidian.guide/) scripts;
+  - [`Templater`](https://silentvoid13.github.io/Templater/) scripts;
   - etc.
 - Write modular scripts using modern [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript] syntax and patterns.
 - Prototype [`Obsidian`][Obsidian] plugins.
@@ -26,7 +26,7 @@ This plugin is for you if you want to:
 
 There are several very good plugins that allow to write [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript] scripts for [`Obsidian`][Obsidian], but they all have their own limitations and quirks.
 
-Most of those plugins support writing scripts in [`CommonJS` (`cjs`)][cjs] only, which is not so used nowadays.
+Most of those plugins support writing scripts in [`CommonJS` (`cjs`)](https://nodejs.org/api/modules.html#modules-commonjs-modules) only, which is not so used nowadays.
 
 None of those plugins provide you the developer experience as you would have in any other modern [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript] development environment.
 
@@ -64,7 +64,7 @@ For more details, refer to the [documentation](https://github.com/mnaoumov/obsid
 
 This plugin was formerly known as `Fix Require Modules`.
 
-The plugin quickly overgrew its original purpose and got way more features than just fixing [`require()`][require] calls. That's why it got a new name.
+The plugin quickly overgrew its original purpose and got way more features than just fixing [`require()`](https://nodejs.org/api/modules.html#requireid) calls. That's why it got a new name.
 
 However, for the backward compatibility, the previous id `fix-require-modules` is still used internally and you might find it
 
@@ -82,15 +82,6 @@ However, for the backward compatibility, the previous id `fix-require-modules` i
 
 © [Michael Naumov](https://github.com/mnaoumov/)
 
-[cjs]: https://nodejs.org/api/modules.html#modules-commonjs-modules
-[CustomJS]: https://github.com/saml-dev/obsidian-custom-js
-[datacorejs]: https://blacksmithgu.github.io/datacore/code-views
-[dataviewjs]: https://blacksmithgu.github.io/obsidian-dataview/api/intro/
-[DevTools Console]: https://developer.chrome.com/docs/devtools/console
 [JavaScript]: https://developer.mozilla.org/en-US/docs/Web/JavaScript
-[Modules]: https://github.com/polyipseity/obsidian-modules
 [Obsidian]: https://obsidian.md/
-[QuickAdd]: https://quickadd.obsidian.guide/
-[require]: https://nodejs.org/api/modules.html#requireid
-[Templater]: https://silentvoid13.github.io/Templater/
 [TypeScript]: https://www.typescriptlang.org/
