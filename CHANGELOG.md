@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 11.2.6
+
+- fix: fix get-fonts require
+- docs: add example
+- docs: add missing bold
+- docs: link to demo vault
+- docs: add JS Engine
+- docs: inline urls
+
 ## 11.2.5
 
 - fix: make working in app.emulateMobile(true)
