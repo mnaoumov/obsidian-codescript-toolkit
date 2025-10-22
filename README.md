@@ -37,6 +37,8 @@ This plugin aims to erase the line between the [`Obsidian`][Obsidian] world and 
 
 See [docs](./docs/usage.md).
 
+You can download [demo vault](https://github.com/mnaoumov/obsidian-codescript-toolkit-demo-vault/) to see usage examples.
+
 ## Installation
 
 The plugin is available in [the official Community Plugins repository](https://obsidian.md/plugins?id=fix-require-modules).
