@@ -280,6 +280,8 @@ export abstract class RequireHandler {
       }
 
       switch (fullOptions.cacheInvalidationMode) {
+        case CacheInvalidationMode.Always:
+          break;
         case CacheInvalidationMode.Never:
           return cachedModuleEntry.exports;
         case CacheInvalidationMode.WhenPossible:
@@ -288,7 +290,7 @@ export abstract class RequireHandler {
           }
           break;
         default:
-          throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as string}'.`);
+          throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as unknown as string}'.`);
       }
     }
 
