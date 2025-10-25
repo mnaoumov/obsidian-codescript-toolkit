@@ -47,11 +47,11 @@ await requireAsyncWrapper(async (require) => {
 
 ## Migrate to async
 
-As you can see in the [Features](./usage.md#features) section, most of the features of [`require()`](#require) don't work on Mobile. And some features of [`require()`] don't work on Desktop as well.
+As you can see in the [Features](./usage.md#features) section, most of the features of [`require()`](#require) don't work on Mobile. And some features of [`require()`](#require) don't work on Desktop as well.
 
-However, those features still can be used via migrating `require()` calls to `requireAsync()` or `requireAsyncWrapper()`.
+However, those features still can be used via migrating [`require()`](#require) calls to [`requireAsync()`](#requireAsync) or [`requireAsyncWrapper()`](#requireAsyncWrapper).
 
-E.g., to migrate the following `require()` calls:
+E.g., to migrate the following [`require()`](#require) calls:
 
 ```js
 const foo = require('/foo.js');
@@ -60,7 +60,7 @@ const baz = require('/foo.js').baz();
 const foo2 = require('/foo.js', { cacheInvalidationMode: 'never' });
 ```
 
-Corresponding `requireAsync()` calls would be:
+Corresponding [`requireAsync()`](#requireAsync) calls would be:
 
 ```js
 const foo = await requireAsync('/foo.js');
@@ -89,7 +89,7 @@ const foo2 = await requireAsync('/foo.js', { cacheInvalidationMode: 'never' });
 >
 > So `bar` will be assigned to `undefined`, while you were expecting `fooModule.bar`.
 
-You can also just wrap all your `require()` calls with `requireAsyncWrapper()`:
+You can also just wrap all your [`require()`](#require) calls with [`requireAsyncWrapper()`](#requireAsyncWrapper):
 
 ```js
 await requireAsyncWrapper((require) => {
@@ -112,7 +112,7 @@ await requireAsyncWrapper(async (require) => {
 });
 ```
 
-When wrapping with `requireAsyncWrapper()`, you need to be careful with variable scope.
+When wrapping with [`requireAsyncWrapper()`](#requireAsyncWrapper), you need to be careful with variable scope.
 
 E.g., the following usage is wrong, because variable `foo` is defined inside the function scope and not accessible outside.
 
