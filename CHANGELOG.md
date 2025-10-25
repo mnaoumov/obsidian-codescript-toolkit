@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.2.10
+
+- docs: migrate to async
+
 ## 11.2.9
 
 - fix: cache invalidation mode
