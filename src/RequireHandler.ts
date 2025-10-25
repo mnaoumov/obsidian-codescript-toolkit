@@ -378,22 +378,8 @@ export abstract class RequireHandler {
     return paths;
   }
 
-  protected getRequireAsyncAdvice(isNewSentence?: boolean): string {
-    let advice = `consider using
-
-const module = await requireAsync(id);
-
-or
-
-await requireAsyncWrapper((require) => {
-  const module = require(id);
-});`;
-
-    if (isNewSentence) {
-      advice = advice.charAt(0).toUpperCase() + advice.slice(1);
-    }
-
-    return advice;
+  protected getRequireAsyncAdvice(id: string): string {
+    return `You cannot use synchronous require('${id}'), as it is not supported on Mobile for most features and on Desktop for some features as well. In order to use it with desired feature, you need to slightly modify your code. See https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/new-functions.md#migrate-to-async to adjust your code to work for the desired feature.`;
   }
 
   protected abstract getTimestampAsync(path: string): Promise<number>;
@@ -871,8 +857,7 @@ await requireAsyncWrapper((require) => {
     }
 
     if (!this.canRequireNonCached(resolvedType, fullOptions)) {
-      throw new Error(`Cannot require '${resolvedId}' synchronously.
-${this.getRequireAsyncAdvice(true)}`);
+      throw new Error(this.getRequireAsyncAdvice(resolvedId));
     }
 
     if (cleanResolvedId.endsWith('.md')) {

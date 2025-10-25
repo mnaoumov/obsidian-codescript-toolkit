@@ -135,7 +135,8 @@ class RequireHandlerImpl extends RequireHandler {
   protected override handleCodeWithTopLevelAwait(path: string): void {
     throw new Error(`Cannot load module: ${path}.
 Top-level await is not supported in sync require.
-Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
+Consider putting them inside an async function.
+${this.getRequireAsyncAdvice(path)}`);
   }
 
   protected requireAsarPackedModule(id: string, options: Partial<RequireOptions>): unknown {
@@ -180,7 +181,7 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
       case ResolvedType.SpecialModule:
         return this.requireSpecialModule(id, options);
       case ResolvedType.Url:
-        throw new Error(`Cannot require synchronously from URL. ${this.getRequireAsyncAdvice(true)}`);
+        throw new Error(`Cannot require synchronously from URL. ${this.getRequireAsyncAdvice(id)}`);
       default:
         throw new Error(`Unknown type: '${type as string}'.`);
     }
@@ -315,7 +316,8 @@ Put them inside an async function or ${this.getRequireAsyncAdvice()}`);
   private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode?: CacheInvalidationMode): string {
     return `Module ${path} depends on URL ${resolvedId}.
 URL dependencies validation is not supported when cacheInvalidationMode=${cacheInvalidationMode ?? 'undefined'}.
-Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.getRequireAsyncAdvice()}`;
+Consider using cacheInvalidationMode=${CacheInvalidationMode.Never}.
+${this.getRequireAsyncAdvice(path)}`;
   }
 
   private modulePrototypeRequire(id: string, module: NodeJS.Module): unknown {
@@ -455,7 +457,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
       case ModuleType.Node:
         return this.requireNodeBinary(path);
       case ModuleType.Wasm:
-        return this.requireWasm();
+        return this.requireWasm(path);
       default:
         throw new Error(`Unknown module type: '${moduleType as string}'.`);
     }
@@ -478,8 +480,8 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never} or ${this.ge
     }
   }
 
-  private requireWasm(): unknown {
-    throw new Error(`Cannot require WASM synchronously. ${this.getRequireAsyncAdvice(true)}`);
+  private requireWasm(path: string): unknown {
+    throw new Error(`Cannot require WASM synchronously. ${this.getRequireAsyncAdvice(path)}`);
   }
 
   private async writeFileBinaryAsync(path: string, arrayBuffer: ArrayBuffer): Promise<void> {
