@@ -112,29 +112,31 @@ await requireAsyncWrapper(async (require) => {
 });
 ```
 
-When wrapping with [`requireAsyncWrapper()`](#requireAsyncWrapper), you need to be careful with variable scope.
-
-E.g., the following usage is wrong, because variable `foo` is defined inside the function scope and not accessible outside.
-
-```js
-await requireAsyncWrapper(async (require) => {
-  const foo = require('/foo.js');
-});
-
-foo.bar();
-```
-
-However, the following modification is correct.
-
-```js
-let foo;
-
-await requireAsyncWrapper(async (require) => {
-  foo = require('/foo.js');
-});
-
-foo.bar();
-```
+> [!WARNING]
+>
+> When wrapping with [`requireAsyncWrapper()`](#requireAsyncWrapper), you need to be careful with variable scope.
+>
+> E.g., the following usage is wrong, because variable `foo` is defined inside the function scope and not accessible outside.
+>
+> ```js
+> await requireAsyncWrapper(async (require) => {
+>   const foo = require('/foo.js');
+> });
+>
+> foo.bar();
+> ```
+>
+> However, the following modification is correct.
+>
+> ```js
+> let foo;
+>
+> await requireAsyncWrapper(async (require) => {
+>   foo = require('/foo.js');
+> });
+>
+> foo.bar();
+> ```
 
 [import]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 [Obsidian]: https://obsidian.md/
