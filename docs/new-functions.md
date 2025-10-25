@@ -69,7 +69,7 @@ const baz = (await requireAsync('/foo.js')).baz();
 const foo2 = await requireAsync('/foo.js', { cacheInvalidationMode: 'never' });
 ```
 
-> [!WARNING] Parenthesis
+> [!WARNING]
 >
 > It is important to use parenthesis with `await` carefully.
 >
