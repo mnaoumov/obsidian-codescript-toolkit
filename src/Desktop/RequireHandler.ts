@@ -322,7 +322,7 @@ ${this.getRequireAsyncAdvice(path)}`;
 
   private modulePrototypeRequire(id: string, module: NodeJS.Module): unknown {
     /**
-     * The caller line index is 5 because the call stack is as follows:
+     * The caller line index is 6 because the call stack is as follows:
      *
      * 0: Error
      * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
