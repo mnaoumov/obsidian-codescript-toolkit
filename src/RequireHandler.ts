@@ -850,7 +850,7 @@ export abstract class RequireHandler {
           }
 
           if (!this.canRequireNonCached(resolvedType, fullOptions)) {
-            console.warn(`Cached module ${resolvedId} cannot be invalidated synchronously. The cached version will be used. `);
+            console.warn(`Cached module ${resolvedId} cannot be invalidated synchronously when cacheInvalidationMode=${CacheInvalidationMode.WhenPossible}. The cached version will be used. ${this.getRequireAsyncAdvice(resolvedId)}`);
             return cachedModuleEntry.exports;
           }
           break;

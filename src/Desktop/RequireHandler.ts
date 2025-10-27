@@ -315,7 +315,7 @@ ${this.getRequireAsyncAdvice(path)}`);
 
   private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode?: CacheInvalidationMode): string {
     return `Module ${path} depends on URL ${resolvedId}.
-URL dependencies validation is not supported when cacheInvalidationMode=${cacheInvalidationMode ?? 'undefined'}.
+URL dependencies validation is not supported when cacheInvalidationMode=${cacheInvalidationMode ?? CacheInvalidationMode.WhenPossible}.
 Consider using cacheInvalidationMode=${CacheInvalidationMode.Never}.
 ${this.getRequireAsyncAdvice(path)}`;
   }
