@@ -838,7 +838,10 @@ export abstract class RequireHandler {
 
       switch (fullOptions.cacheInvalidationMode) {
         case CacheInvalidationMode.Always:
-          throw new Error(`Cached module ${resolvedId} cannot be invalidated synchronously.`);
+          if (!this.canRequireNonCached(resolvedType, fullOptions)) {
+            throw new Error(`Cached module ${resolvedId} cannot be invalidated synchronously when cacheInvalidationMode=${CacheInvalidationMode.Always}. ${this.getRequireAsyncAdvice(resolvedId)}`);
+          }
+          break;
         case CacheInvalidationMode.Never:
           return cachedModuleEntry.exports;
         case CacheInvalidationMode.WhenPossible:
@@ -854,10 +857,6 @@ export abstract class RequireHandler {
         default:
           throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as unknown as string}'.`);
       }
-    }
-
-    if (!this.canRequireNonCached(resolvedType, fullOptions)) {
-      throw new Error(this.getRequireAsyncAdvice(resolvedId));
     }
 
     if (cleanResolvedId.endsWith('.md')) {
