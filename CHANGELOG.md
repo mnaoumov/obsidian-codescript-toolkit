@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 11.3.0
+
+- docs: fix links
+- chore: lint
+- feat: improve warning for whenPossible
+- fix: misleading comment
+- fix: proper support for CacheInvalidationMode.Always
+- docs: warning
+- docs: callouts for GitHub
+- docs: better links
+
 ## 11.2.10
 
 - docs: migrate to async
