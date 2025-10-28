@@ -11,5 +11,5 @@ You can require content of `.asar` files like if they were folders.
 require('./foo.asar/bar.js');
 ```
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

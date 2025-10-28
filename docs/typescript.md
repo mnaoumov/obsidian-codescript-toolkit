@@ -53,6 +53,6 @@ require('./path/to/script.mts');
 
 [JavaScript]: https://developer.mozilla.org/en-US/docs/Web/JavaScript
 [Obsidian]: https://obsidian.md/
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync
 [TypeScript]: https://www.typescriptlang.org/

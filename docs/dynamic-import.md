@@ -27,4 +27,4 @@ However due to the technical limitations, it's not possible to extend dynamic [`
 So if you need fully functional variant, use [`requireAsync()`][requireAsync] instead.
 
 [import]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
-[requireAsync]: ./new-functions.md#requireasync
+[requireAsync]: ./core-functions.md#requireasync

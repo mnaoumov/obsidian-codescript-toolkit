@@ -19,5 +19,5 @@ require('./some/relative/path.js', { parentPath: 'path/to/current/script.js' });
 require('./some/relative/path.js', { parentPath: 'path/to/current/note.md' });
 ```
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

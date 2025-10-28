@@ -20,5 +20,5 @@ require('./path/to/script.mjs');
 ```
 
 [cjs]: https://nodejs.org/api/modules.html#modules-commonjs-modules
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

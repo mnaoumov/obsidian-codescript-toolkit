@@ -13,5 +13,5 @@ In order to distinguish them from [root-relative path](./root-relative-path.md),
 require('~/path/from/system/root.js');
 ```
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

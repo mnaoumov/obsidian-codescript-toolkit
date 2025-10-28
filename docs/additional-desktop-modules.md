@@ -5,7 +5,7 @@
 | **[`require()`][require]**           | ✅       | ❌      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ❌      |
 
-[`Obsidian`][Obsidian] on desktop is shipped with some additional modules that you can [`require()`](./new-functions.md#require).
+[`Obsidian`][Obsidian] on desktop is shipped with some additional modules that you can [`require()`](./core-functions.md#require).
 
 ```js
 // bundled with Electron app
@@ -20,5 +20,5 @@ require('get-fonts');
 ```
 
 [Obsidian]: https://obsidian.md/
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

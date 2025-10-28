@@ -19,5 +19,5 @@ Possible values:
 - `node` - [Node binaries](./node-binaries.md).
 - `wasm` - [WebAssembly (WASM)](./wasm.md).
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

@@ -1,6 +1,6 @@
-# New functions
+# Core functions
 
-The plugin adds the following functions to the global scope:
+The plugin adds (or extends existing) the following functions to the global scope:
 
 - `require()`
 - `requireAsync()`
@@ -42,6 +42,18 @@ or
 await requireAsyncWrapper(async (require) => {
   require(anyFeature);
   await someAsyncFn();
+});
+```
+
+## Performance tip
+
+The plugin is using [Smart caching](./smart-caching.md) feature, but if you have a code that is executed many times, you can try to speed it up via disabling cache invalidation. See the previous link to understand if it fits your needs.
+
+```js
+require('/someScript.js', { cacheInvalidationMode: 'never' });
+await requireAsync('/someScript.js', { cacheInvalidationMode: 'never' });
+await requireAsyncWrapper((require) => {
+  require('/someScript.js', { cacheInvalidationMode: 'never' });
 });
 ```
 

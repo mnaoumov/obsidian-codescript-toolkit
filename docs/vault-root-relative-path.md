@@ -11,5 +11,5 @@ Adds support for vault-root-relative paths:
 require('//path/from/vault/root.js');
 ```
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

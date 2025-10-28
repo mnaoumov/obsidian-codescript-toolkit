@@ -46,5 +46,5 @@ codeScriptToolkit:
 - `invocableCodeScriptName` - name of the code block to be used when running the note via [Invoke Scripts](./invoke-scripts.md).
 - `isInvocable` - whether to add the current note into the list for [Invoke Scripts](./invoke-scripts.md) commands.
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync
