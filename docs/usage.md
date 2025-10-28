@@ -2,15 +2,15 @@
 
 The detailed explanation of all usage scenarios
 
-## New functions
+## Core functions
 
-The plugin adds the following functions to the global scope:
+The plugin adds (or extends existing) the following functions to the global scope:
 
 - `require()`
 - `requireAsync()`
 - `requireAsyncWrapper()`
 
-[See details](./new-functions.md).
+[See details](./core-functions.md).
 
 ## Features
 
@@ -61,6 +61,6 @@ If you plan to use scripts extensively, consider putting them in a [`dot folder`
 
 [dot folder]: https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments
 [Obsidian]: https://obsidian.md/
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
-[requireAsyncWrapper]: ./new-functions.md#requireasyncwrapper
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync
+[requireAsyncWrapper]: ./core-functions.md#requireasyncwrapper

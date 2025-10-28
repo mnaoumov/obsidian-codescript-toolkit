@@ -21,5 +21,5 @@ await requireAsync('https://some-site.com/some-script.js', {
 });
 ```
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

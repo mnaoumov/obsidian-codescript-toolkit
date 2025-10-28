@@ -26,5 +26,5 @@ require('./someScript.js?someQuery'); // cacheInvalidationMode: 'never'
 require('https://some-site.com/some-script.js?someQuery'); // cacheInvalidationMode: 'whenPossible'
 ```
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

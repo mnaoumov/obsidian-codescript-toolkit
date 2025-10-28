@@ -12,5 +12,5 @@ require('obsidian/specialModuleNames');
 ```
 
 [Obsidian]: https://obsidian.md/
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

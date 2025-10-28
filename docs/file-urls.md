@@ -11,5 +11,5 @@ You can require files using file URLs:
 require('file:///C:/path/to/vault/then/to/script.js');
 ```
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

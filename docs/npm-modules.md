@@ -13,5 +13,5 @@ require('npm-package-name');
 
 See [Tips](./usage.md#tips) how to avoid performance issues.
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

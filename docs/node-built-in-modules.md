@@ -12,5 +12,5 @@ require('fs');
 require('node:fs');
 ```
 
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync

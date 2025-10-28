@@ -21,5 +21,5 @@ require('obsidian/app');
 
 [App]: https://docs.obsidian.md/Reference/TypeScript+API/App
 [Obsidian]: https://obsidian.md/
-[require]: ./new-functions.md#require
-[requireAsync]: ./new-functions.md#requireasync
+[require]: ./core-functions.md#require
+[requireAsync]: ./core-functions.md#requireasync
