@@ -29,7 +29,21 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
     const invocableScriptsFolderFullPath = join(this.plugin?.app.vault.adapter.basePath ?? '', invocableScriptsFolder);
     this.watcher = watch(invocableScriptsFolderFullPath, { recursive: true }, (eventType: WatchEventType): void => {
       if (eventType === 'rename') {
-        invokeAsyncSafely(() => onChange());
+        invokeAsyncSafely(async () => {
+          const RETRY_COUNT = 5;
+          const RETRY_DELAY_IN_MILLISECONDS = 100;
+          let lastError: unknown = null;
+          for (let i = 0; i < RETRY_COUNT; i++) {
+            try {
+              await onChange();
+              return;
+            } catch (error) {
+              await sleep(RETRY_DELAY_IN_MILLISECONDS);
+              lastError = error;
+            }
+          }
+          throw lastError;
+        });
       }
     });
 
