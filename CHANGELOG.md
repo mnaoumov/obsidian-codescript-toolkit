@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 11.3.1
+
+- fix: intermittent watcher errors
+  - re #42
+- docs: add performance tip
+
 ## 11.3.0
 
 - docs: fix links
