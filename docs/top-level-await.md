@@ -1,7 +1,7 @@
 # Top-level await
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ❌       | ❌      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 

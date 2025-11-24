@@ -1,7 +1,7 @@
 # WebAssembly (WASM)
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ❌       | ❌      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 

@@ -1,7 +1,7 @@
 # Built-in Modules
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ✅       | ✅      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 

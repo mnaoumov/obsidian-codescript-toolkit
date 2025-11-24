@@ -1,7 +1,7 @@
 # Node binaries
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ✅       | ❌      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ❌      |
 
