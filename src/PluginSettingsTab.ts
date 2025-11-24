@@ -34,6 +34,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
             events.trigger('modulesRootChanged');
           }
         })
+          // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
           .setPlaceholder('path/to/script/modules/root');
 
         addPathSuggest(this.plugin.app, text.inputEl, () => '', 'folder');
@@ -51,6 +52,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
       }))
       .addText((text) => {
         this.bind(text, 'invocableScriptsFolder')
+          // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
           .setPlaceholder('path/to/invocable/scripts/folder');
 
         const suggest = addPathSuggest(this.plugin.app, text.inputEl, () => this.plugin.settings.modulesRoot, 'folder');
@@ -88,7 +90,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
       .addButton((button) =>
         button
           .setButtonText('Configure')
-          .setTooltip('Configure Hotkeys')
+          .setTooltip('Configure hotkeys')
           .onClick(() => {
             const hotkeysTab = this.app.setting.openTabById('hotkeys');
             hotkeysTab.searchComponent.setValue(`${this.plugin.manifest.name}:`);
@@ -97,6 +99,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
       );
 
     new SettingEx(this.containerEl)
+      // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
       .setName('Mobile: Changes checking interval')
       .setDesc(createFragment((f) => {
         f.appendText('Interval in seconds to check for changes in the invocable scripts folder ');
@@ -109,6 +112,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
       });
 
     new SettingEx(this.containerEl)
+      // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
       .setName('Desktop: Synchronous fallback')
       .setDesc(createFragment((f) => {
         f.appendText('Whether to use a synchronous ');

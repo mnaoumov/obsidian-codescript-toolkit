@@ -95,7 +95,7 @@ class RequireHandlerImpl extends RequireHandler {
     path = splitQuery(path).cleanStr;
     const buffer = await this.fsPromises.readFile(path);
     const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-    return arrayBuffer as ArrayBuffer;
+    return arrayBuffer;
   }
 
   public override register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
