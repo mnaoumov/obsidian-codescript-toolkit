@@ -52,6 +52,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   private readonly resultEl: HTMLElement;
 
   public constructor(options: CodeButtonContextImplConstructorOptions) {
+    super();
     this.app = options.plugin.app;
     this.config = options.config;
     this.markdownInfo = options.markdownInfo;
