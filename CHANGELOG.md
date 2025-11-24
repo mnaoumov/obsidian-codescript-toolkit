@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.3.2
+
+- chore: update libs
+
 ## 11.3.1
 
 - fix: intermittent watcher errors
