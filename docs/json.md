@@ -1,7 +1,7 @@
 # JSON files
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ✅       | ✅      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 

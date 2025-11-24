@@ -1,7 +1,7 @@
 # Resource URLs
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ✅       | ❌      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 

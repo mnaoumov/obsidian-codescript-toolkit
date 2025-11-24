@@ -1,7 +1,7 @@
 # System root path (Linux, MacOS)
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ✅       | ❌      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 

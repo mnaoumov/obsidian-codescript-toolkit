@@ -1,7 +1,7 @@
 # Override module type
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ✅       | ✅      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 

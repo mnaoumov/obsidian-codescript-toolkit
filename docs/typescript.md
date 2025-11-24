@@ -1,7 +1,7 @@
 # [`TypeScript`][TypeScript] modules
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ✅       | ❌      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 

@@ -1,7 +1,7 @@
 # [`ECMAScript Modules` (`esm`)](https://nodejs.org/api/esm.html)
 
-|                                       | Desktop | Mobile |
-| ------------------------------------- | ------- | ------ |
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
 | **[`require()`][require]**           | ✅       | ❌      |
 | **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
 
