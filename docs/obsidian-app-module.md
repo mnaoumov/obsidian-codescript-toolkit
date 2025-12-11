@@ -16,8 +16,41 @@ Currently this global variable is still available, but it's better not rely on i
 This plugin gives you a safer alternative:
 
 ```js
-require('obsidian/app');
+const app = require('obsidian/app');
+
+// or
+
+import app from 'obsidian/app';
 ```
+
+If you want to add `obsidian/app` to your TypeScript scripts and validate them via `tsc` or TypeScript IDE, you need to add additional type definition.
+
+```ts
+// types.d.ts
+declare module 'obsidian/app' {
+  import type { App } from 'obsidian';
+
+  const app: App;
+  export default app;
+}
+```
+
+> [!WARNING]
+>
+> You should avoid using `obsidian/app` module, and prefer to pass `app` variable explicitly.
+>
+> ```ts
+> // BAD
+> export function fn(): void {
+>   const app = require('obsidian/app');
+>   console.log(app.plugins);
+> }
+>
+> // GOOD
+> export function fn(app: App): void {
+>   console.log(app.plugins);
+> }
+> ```
 
 [App]: https://docs.obsidian.md/Reference/TypeScript+API/App
 [Obsidian]: https://obsidian.md/
