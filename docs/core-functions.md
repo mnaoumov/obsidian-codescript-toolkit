@@ -18,6 +18,35 @@ Explanation of their function arguments will be shown in the [Features](./usage.
 
 This plugin brings the advanced version of [`require()`][require] to both Desktop and Mobile.
 
+### [`esm`](https://nodejs.org/api/esm.html) import format
+
+Single-argument `require()` version
+
+```ts
+export declare function require(id: string): unknown;
+```
+
+can be written in `esm` import format.
+
+```js
+// cjs
+const foo = require('foo');
+const { bar, baz } = require('qux');
+
+// esm
+import foo from 'foo';
+import { bar, baz } from 'qux';
+```
+
+`esm` import format can be used in almost every context, except:
+
+- [`DevTools Console`](https://developer.chrome.com/docs/devtools/console) within [`Obsidian`][Obsidian];
+- [`CustomJS`](https://github.com/saml-dev/obsidian-custom-js) scripts;
+- [`datacorejs` / `datacorejsx` / `datacorets` / `datacoretsx`](https://blacksmithgu.github.io/datacore/code-views) scripts;
+- [`dataviewjs`](https://blacksmithgu.github.io/obsidian-dataview/api/intro/) scripts;
+- [`QuickAdd`](https://quickadd.obsidian.guide/) scripts;
+- [`Templater`](https://silentvoid13.github.io/Templater/) scripts;
+
 ## `requireAsync()`
 
 Combines all features of [`require()`][require] and dynamic [`import()`][import].
