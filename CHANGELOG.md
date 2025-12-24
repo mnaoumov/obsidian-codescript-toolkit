@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 11.3.3
+
+- chore: lint
+- chore: update libs
+- docs: update
+
 ## 11.3.2
 
 - chore: update libs
