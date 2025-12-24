@@ -2,8 +2,8 @@
 
 |                                      | Desktop | Mobile |
 | ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅       | ❌      |
-| **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
+| **[`require()`][require]**           | ✅      | ❌     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
 Fixes `Cannot find module` errors for relative paths:
 

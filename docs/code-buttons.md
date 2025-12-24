@@ -2,7 +2,7 @@
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✅       | ✅      |
+| ✅      | ✅     |
 
 Create code buttons that execute [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript]:
 

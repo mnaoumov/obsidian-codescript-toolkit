@@ -2,8 +2,8 @@
 
 |                                      | Desktop | Mobile |
 | ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅       | ❌      |
-| **[`requireAsync()`][requireAsync]** | ✅       | ❌      |
+| **[`require()`][require]**           | ✅      | ❌     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ❌     |
 
 You can require Node built-in modules such as `fs` with an optional prefix `node:`.
 

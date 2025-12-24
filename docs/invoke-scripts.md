@@ -2,7 +2,7 @@
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✅       | ✅      |
+| ✅      | ✅     |
 
 Configure a script folder so every script in it can be invoked using the [`Command Palette`][Command Palette]. Use `CodeScript Toolkit: Invoke script: <<Choose>>` for more predictable lists:
 

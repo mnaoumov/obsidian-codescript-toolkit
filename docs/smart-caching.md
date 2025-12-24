@@ -2,8 +2,8 @@
 
 |                                      | Desktop | Mobile |
 | ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅       | ✅      |
-| **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
+| **[`require()`][require]**           | ✅      | ✅     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
 Modules are cached for performance, but the cache is invalidated if the script or its dependencies change.
 

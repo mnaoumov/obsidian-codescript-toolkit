@@ -2,8 +2,8 @@
 
 |                                      | Desktop | Mobile |
 | ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ❌       | ❌      |
-| **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
+| **[`require()`][require]**           | ❌      | ❌     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
 ```js
 await requireAsync('https://some-site.com/some-script.js');

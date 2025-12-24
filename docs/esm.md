@@ -2,8 +2,8 @@
 
 |                                      | Desktop | Mobile |
 | ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅       | ❌      |
-| **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
+| **[`require()`][require]**           | ✅      | ❌     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
 Originally, [`require()`][require] only supported [`CommonJS` (`cjs`)][cjs] modules and would throw `require() of ES Module path/to/script.mjs not supported. Instead change the require of path/to/script.mjs to a dynamic import() which is available in all CommonJS modules`. This plugin adds support for ECMAScript modules:
 

@@ -2,8 +2,8 @@
 
 |                                      | Desktop | Mobile |
 | ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅       | ❌      |
-| **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
+| **[`require()`][require]**           | ✅      | ❌     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
 You can require NPM modules installed into your configured scripts root folder.
 

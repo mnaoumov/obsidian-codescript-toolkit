@@ -2,7 +2,7 @@
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✅       | ❌      |
+| ✅      | ❌     |
 
 Assign hotkeys to frequently used scripts:
 

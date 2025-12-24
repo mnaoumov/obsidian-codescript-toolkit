@@ -26,7 +26,7 @@ export class ConsoleWrapper {
 
     const originalConsole = console;
     for (const method of ['log', 'debug', 'error', 'info', 'warn'] as ConsoleMethod[]) {
-      wrappedConsole[method] = (...args): void => {
+      wrappedConsole[method] = (...args: unknown[]): void => {
         originalConsole[method](...args);
         this.appendToResultEl(args, method);
       };

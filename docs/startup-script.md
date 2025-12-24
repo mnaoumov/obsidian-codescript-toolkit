@@ -2,7 +2,7 @@
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✅       | ✅      |
+| ✅      | ✅     |
 
 Invoke any script when [`Obsidian`][Obsidian] loads via a configuration setting.
 
