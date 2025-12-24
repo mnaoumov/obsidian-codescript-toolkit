@@ -2,7 +2,7 @@
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✅*      | ✅*     |
+| ✅*     | ✅*    |
 
 Dynamic [`import()`][import] was **partially** modified to be an alias to [`requireAsync()`][requireAsync]
 

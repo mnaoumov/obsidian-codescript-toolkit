@@ -2,8 +2,8 @@
 
 |                                      | Desktop | Mobile |
 | ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅       | ❌      |
-| **[`requireAsync()`][requireAsync]** | ✅       | ❌      |
+| **[`require()`][require]**           | ✅      | ❌     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ❌     |
 
 [`Obsidian`][Obsidian] on desktop is shipped with some additional modules that you can [`require()`](./core-functions.md#require).
 

@@ -55,7 +55,7 @@ Most of the examples below will be shown using [`require()`][require], but you c
 
 | Desktop | Mobile |
 | ------- | ------ |
-| ✅       | ✅      |
+| ✅      | ✅     |
 
 If you plan to use scripts extensively, consider putting them in a [`dot folder`][dot folder], such as `.scripts` within your vault. [`Obsidian`][Obsidian] doesn't track changes within [`dot folders`][dot folder] and won't re-index your `node_modules` folder repeatedly.
 
