@@ -7,7 +7,7 @@ import {
 
 class RequireHandlerImpl extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {
-    const adapter = this.plugin?.app.vault.adapter;
+    const adapter = this.plugin.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {
       throw new Error('Vault adapter is not a CapacitorAdapter.');
     }
