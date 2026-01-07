@@ -53,7 +53,7 @@ import {
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from './CodeScriptBlock.ts';
 import { createCodeScriptToolkitModule } from './CodeScriptToolkitModuleImpl.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from './CodeScriptToolkitNoteSettings.ts';
-import { registerObsidianDevUtils } from './ObsidianDevUtils.ts';
+import { registerObsidianDevUtilsModule } from './ObsidianDevUtilsModule.ts';
 import { SPECIAL_MODULE_NAMES } from './SpecialModuleNames.ts';
 import {
   CacheInvalidationMode,
@@ -749,7 +749,7 @@ export abstract class RequireHandler {
     this.specialModuleFactories.set('obsidian/app', () => this.plugin.app);
     this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
     this.specialModuleFactories.set('codescript-toolkit', () => createCodeScriptToolkitModule(this.plugin));
-    await registerObsidianDevUtils(this.specialModuleFactories);
+    await registerObsidianDevUtilsModule(this.specialModuleFactories);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
       this.specialModuleFactories.set(id, () => this.pluginRequire?.(id));
