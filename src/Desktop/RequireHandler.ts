@@ -44,7 +44,7 @@ class RequireHandlerImpl extends RequireHandler {
   private originalModulePrototypeRequire?: RequireFn;
 
   private get fileSystemAdapter(): FileSystemAdapter {
-    const adapter = this.plugin?.app.vault.adapter;
+    const adapter = this.plugin.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) {
       throw new Error('Vault adapter is not a FileSystemAdapter.');
     }
@@ -117,7 +117,7 @@ class RequireHandlerImpl extends RequireHandler {
     try {
       return await super.requireAsync(id, options);
     } catch (e) {
-      if (this.plugin?.settings.shouldUseSyncFallback) {
+      if (this.plugin.settings.shouldUseSyncFallback) {
         console.warn(`requireAsync('${id}') failed with error:`, e);
         console.warn('Trying a synchronous fallback.');
         this.currentModulesTimestampChain.clear();
@@ -150,7 +150,7 @@ ${this.getRequireAsyncAdvice(path)}`);
   protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
     await Promise.resolve();
     if (arrayBuffer) {
-      const tempDir = join(this.plugin?.app.vault.configDir ?? '', 'temp');
+      const tempDir = join(this.plugin.app.vault.configDir, 'temp');
       if (!this.existsFolder(tempDir)) {
         await this.fsPromises.mkdir(tempDir);
       }
@@ -289,7 +289,7 @@ ${this.getRequireAsyncAdvice(path)}`);
   }
 
   private getRootFolders(folder: string): string[] {
-    const modulesRootFolder = this.plugin?.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
+    const modulesRootFolder = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
 
     const ans: string[] = [];
     for (const possibleFolder of new Set([folder, modulesRootFolder])) {
