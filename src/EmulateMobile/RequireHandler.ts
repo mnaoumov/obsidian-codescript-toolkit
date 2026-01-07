@@ -6,10 +6,10 @@ import { requireHandler as mobileRequireHandler } from '../Mobile/RequireHandler
 import { RequireHandler } from '../RequireHandler.ts';
 
 class RequireHandlerImpl extends RequireHandler {
-  public override register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
-    super.register(plugin, pluginRequire);
-    desktopRequireHandler.register(plugin, pluginRequire);
-    mobileRequireHandler.register(plugin, pluginRequire);
+  public override async register(plugin: Plugin, pluginRequire: PluginRequireFn): Promise<void> {
+    await super.register(plugin, pluginRequire);
+    await desktopRequireHandler.register(plugin, pluginRequire);
+    await mobileRequireHandler.register(plugin, pluginRequire);
   }
 
   protected override canRequireNonCached(): boolean {

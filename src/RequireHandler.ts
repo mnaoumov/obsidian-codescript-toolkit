@@ -52,6 +52,7 @@ import {
 } from './CachedModuleProxyHandler.ts';
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from './CodeScriptBlock.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from './CodeScriptToolkitNoteSettings.ts';
+import { registerObsidianDevUtils } from './ObsidianDevUtils.ts';
 import { SPECIAL_MODULE_NAMES } from './SpecialModuleNames.ts';
 import {
   CacheInvalidationMode,
@@ -183,10 +184,6 @@ export abstract class RequireHandler {
   private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
 
-  public constructor() {
-    this.initSpecialModuleFactories();
-  }
-
   public clearCache(): void {
     this.moduleTimestamps.clear();
     this.currentModulesTimestampChain.clear();
@@ -201,7 +198,9 @@ export abstract class RequireHandler {
     }
   }
 
-  public register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
+  public async register(plugin: Plugin, pluginRequire: PluginRequireFn): Promise<void> {
+    await this.initSpecialModuleFactories();
+
     this.plugin = plugin;
     this.pluginRequire = pluginRequire;
     this.vaultAbsolutePath = toPosixPath(plugin.app.vault.adapter.basePath);
@@ -738,9 +737,10 @@ export abstract class RequireHandler {
     }
   }
 
-  private initSpecialModuleFactories(): void {
+  private async initSpecialModuleFactories(): Promise<void> {
     this.specialModuleFactories.set('obsidian/app', () => this.plugin?.app);
     this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
+    await registerObsidianDevUtils(this.specialModuleFactories);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
       this.specialModuleFactories.set(id, () => this.pluginRequire?.(id));

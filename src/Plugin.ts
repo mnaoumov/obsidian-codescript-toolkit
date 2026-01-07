@@ -72,7 +72,7 @@ export class Plugin extends PluginBase<PluginTypes> {
     const platformDependencies = await getPlatformDependencies();
     this.scriptFolderWatcher = platformDependencies.scriptFolderWatcher;
     this.requireHandler = platformDependencies.requireHandler;
-    this.requireHandler.register(this, require);
+    await this.requireHandler.register(this, require);
 
     registerCodeButtonBlock(this);
     await registerCodeScriptBlock(this);
