@@ -98,8 +98,8 @@ class RequireHandlerImpl extends RequireHandler {
     return arrayBuffer;
   }
 
-  public override register(plugin: Plugin, pluginRequire: PluginRequireFn): void {
-    super.register(plugin, pluginRequire);
+  public override async register(plugin: Plugin, pluginRequire: PluginRequireFn): Promise<void> {
+    await super.register(plugin, pluginRequire);
 
     const moduleProto = getPrototypeOf(window.module);
     registerPatch(plugin, moduleProto, {
