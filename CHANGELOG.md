@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 11.4.0
+
+- docs: fix link
+- refactor: rename registerObsidianDevUtilsModule
+- feat: add codescript-toolkit module
+- feat: add CSS to temp plugin
+- docs: update docs
+- feat: add obsidian-dev-utils lib re <https://github.com/mnaoumov/obsidian-dev-utils/issues/37>
+- chore: update libs
+
 ## 11.3.3
 
 - chore: lint
