@@ -7,7 +7,7 @@ import type { Plugin } from './Plugin.ts';
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
-export function registerTempPlugin(tempPluginClass: TempPluginClass, plugin: Plugin): void {
+export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginClass, cssText?: string): void {
   const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
   const app = plugin.app;
   const id = `__temp-plugin-${tempPluginClassName}`;
@@ -32,11 +32,19 @@ export function registerTempPlugin(tempPluginClass: TempPluginClass, plugin: Plu
     tempPlugins.delete(id);
     plugin.removeCommand(unloadCommandId);
     new Notice(`Unloaded Temp Plugin: ${tempPluginClassName}.`);
+    document.getElementById(id)?.remove();
   });
 
   tempPlugins.set(id, tempPlugin);
   plugin.addChild(tempPlugin);
   new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
+  if (cssText) {
+    // eslint-disable-next-line obsidianmd/no-forbidden-elements -- Need dynamic `style` element.
+    document.head.createEl('style', {
+      attr: { id },
+      text: cssText
+    });
+  }
 
   plugin.addCommand({
     callback: () => {

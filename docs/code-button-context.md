@@ -42,6 +42,12 @@ The loaded temp plugins can be unloaded using the `CodeScript Toolkit: Unload te
 
 Also all temp plugins are unloaded when current plugin is unloaded.
 
+You can also add custom CSS that is loaded and unloaded together with temp plugin:
+
+```js
+codeButtonContext.registerTempPlugin(MyPlugin, '* { color: red; }');
+```
+
 ## `codeButtonContext.renderMarkdown()`
 
 Within code block you have access to the `codeButtonContext.renderMarkdown()` function that renders markdown in the results panel.

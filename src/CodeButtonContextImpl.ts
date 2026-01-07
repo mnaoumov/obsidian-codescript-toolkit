@@ -92,8 +92,8 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     });
   }
 
-  public registerTempPlugin(tempPluginClass: TempPluginClass): void {
-    registerTempPlugin(tempPluginClass, this.plugin);
+  public registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
+    registerTempPlugin(this.plugin, tempPluginClass, cssText);
   }
 
   public async removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void> {
