@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 11.4.1
+
+- fix: exclude @types folder
+- chore: update libs
+
 ## 11.4.0
 
 - docs: fix link
