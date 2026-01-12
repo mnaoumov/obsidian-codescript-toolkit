@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.5.1
+
+- chore: update libs
+
 ## 11.5.0
 
 - feat: expose unregisterTempPlugin

@@ -1,6 +1,6 @@
 {
   "name": "fix-require-modules",
-  "version": "11.5.0",
+  "version": "11.5.1",
   "description": "Allows to do a lot of things with JavaScript/TypeScript scripts from inside the Obsidian itself.",
   "scripts": {
     "build": "obsidian-dev-utils build",
