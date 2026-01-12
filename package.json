@@ -30,7 +30,7 @@
     "@commitlint/config-conventional": "^20.3.1",
     "@commitlint/types": "^20.3.1",
     "@types/babel__standalone": "latest",
-    "@types/node": "latest",
+    "@types/node": "25.0.3",
     "babel-plugin-transform-import-meta": "latest",
     "commitizen": "^4.3.1",
     "cz-conventional-changelog": "^3.3.0",
