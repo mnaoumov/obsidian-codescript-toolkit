@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 11.5.0
+
+- feat: expose unregisterTempPlugin
+- feat: handle errors during temp plugin load/unload
+- chore: update libs
+
 ## 11.4.1
 
 - fix: exclude @types folder
