@@ -14,8 +14,8 @@ import type { PluginTypes } from './PluginTypes.ts';
 import { PluginSettings } from './PluginSettings.ts';
 import { EXTENSIONS } from './RequireHandler.ts';
 
-interface LegacySettings {
-  invocableScriptsDirectory: string;
+class LegacySettings {
+  public invocableScriptsDirectory = '';
 }
 
 export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes> {
@@ -42,13 +42,12 @@ export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes
     return new PluginSettings();
   }
 
-  protected override async onLoadRecord(record: Record<string, unknown>): Promise<void> {
-    await super.onLoadRecord(record);
-    const legacySettings = record as Partial<LegacySettings> & Partial<PluginSettings>;
-    if (legacySettings.invocableScriptsDirectory) {
-      legacySettings.invocableScriptsFolder = legacySettings.invocableScriptsDirectory;
-      delete legacySettings.invocableScriptsDirectory;
-    }
+  protected override registerLegacySettingsConverters(): void {
+    this.registerLegacySettingsConverter(LegacySettings, (legacySettings) => {
+      if (legacySettings.invocableScriptsDirectory) {
+        legacySettings.invocableScriptsFolder = legacySettings.invocableScriptsDirectory;
+      }
+    });
   }
 
   protected override registerValidators(): void {
