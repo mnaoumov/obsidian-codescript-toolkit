@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 11.5.2
+
+- chore: update libs
+- refactor: registerLegacySettingsConverters
+
 ## 11.5.1
 
 - chore: update libs
