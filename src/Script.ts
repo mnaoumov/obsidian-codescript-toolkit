@@ -2,8 +2,6 @@ import type { App } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 import { Notice } from 'obsidian';
-import { printError } from 'obsidian-dev-utils/Error';
-import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/FileSystem';
 import { selectItem } from 'obsidian-dev-utils/obsidian/Modals/SelectItem';
 import {
   basename,
@@ -13,9 +11,14 @@ import {
 import type { Plugin } from './Plugin.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './CodeScriptToolkitNoteSettings.ts';
+import {
+  invoke,
+  INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX,
+  InvokeScriptCommand
+} from './Commands/InvokeScriptCommand.ts';
 import { requireVaultScriptAsync } from './RequireHandlerUtils.ts';
 
-interface Script {
+export interface Script {
   invoke(app: App): Promisable<void>;
 }
 
@@ -52,8 +55,7 @@ export async function invokeStartupScript(plugin: Plugin): Promise<void> {
 }
 
 export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
-  const COMMAND_NAME_PREFIX = 'invokeScriptFile-';
-  const commands = plugin.app.commands.listCommands().filter((c) => c.id.startsWith(`${plugin.manifest.id}:${COMMAND_NAME_PREFIX}`));
+  const commands = plugin.app.commands.listCommands().filter((c) => c.id.startsWith(`${plugin.manifest.id}:${INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX}`));
   for (const command of commands) {
     plugin.app.commands.removeCommand(command.id);
   }
@@ -74,13 +76,7 @@ export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
   const scriptFiles = await getAllScriptFiles(plugin.app, plugin.settings.getInvocableScriptsFolder(), '');
 
   for (const scriptFile of scriptFiles) {
-    plugin.addCommand({
-      callback: async () => {
-        await invoke(plugin, join(invocableScriptsFolder, scriptFile));
-      },
-      id: `${COMMAND_NAME_PREFIX}${scriptFile}`,
-      name: `Invoke Script: ${scriptFile}`
-    });
+    new InvokeScriptCommand(plugin, scriptFile).register();
   }
 }
 
@@ -140,38 +136,6 @@ async function getAllScriptFiles(app: App, scriptsFolder: string, folder: string
 
 function getSortedBaseNames(fullNames: string[]): string[] {
   return fullNames.map((file) => basename(file)).sort((a, b) => a.localeCompare(b));
-}
-
-async function invoke(plugin: Plugin, scriptPath: string, isStartup?: boolean): Promise<void> {
-  const app = plugin.app;
-  const scriptString = isStartup ? 'startup script' : 'script';
-  plugin.consoleDebug(`Invoking ${scriptString}: ${scriptPath}.`);
-  try {
-    if (!await app.vault.adapter.exists(scriptPath)) {
-      throw new Error(`Script not found: '${scriptPath}'.`);
-    }
-
-    if (isMarkdownFile(app, scriptPath)) {
-      const settings = await getCodeScriptToolkitNoteSettings(app, scriptPath);
-      if (!settings.isInvocable) {
-        throw new Error(`Script is not invocable: '${scriptPath}'.`);
-      }
-      if (settings.invocableCodeScriptName) {
-        scriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
-      }
-    }
-    const script = await requireVaultScriptAsync(scriptPath) as Partial<Script>;
-    const invokeFn = script.invoke?.bind(script);
-    if (typeof invokeFn !== 'function') {
-      throw new Error(`${scriptPath} does not export invoke() function`);
-    }
-    await invokeFn(app);
-    plugin.consoleDebug(`${scriptString} ${scriptPath} executed successfully`);
-  } catch (error) {
-    new Notice(`Error invoking ${scriptString} ${scriptPath}
-See console for details...`);
-    printError(new Error(`Error invoking ${scriptString} ${scriptPath}`, { cause: error }));
-  }
 }
 
 async function isInvocableMarkdownFile(app: App, path: string): Promise<boolean> {

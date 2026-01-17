@@ -1,9 +1,6 @@
 import type { PluginSettingsWrapper } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsWrapper';
 
-import {
-  convertAsyncToSync,
-  invokeAsyncSafely
-} from 'obsidian-dev-utils/Async';
+import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginBase';
 
 import type { PluginSettings } from './PluginSettings.ts';
@@ -11,11 +8,12 @@ import type { PluginTypes } from './PluginTypes.ts';
 import type { RequireHandler } from './RequireHandler.ts';
 import type { ScriptFolderWatcher } from './ScriptFolderWatcher.ts';
 
-import {
-  insertSampleCodeButton,
-  registerCodeButtonBlock
-} from './CodeButtonBlock.ts';
+import { registerCodeButtonBlock } from './CodeButtonBlock.ts';
 import { registerCodeScriptBlock } from './CodeScriptBlock.ts';
+import { ClearCacheCommand } from './Commands/ClearCacheCommand.ts';
+import { InvokeScriptChooseCommand } from './Commands/InvokeScriptChooseCommand.ts';
+import { ReloadStartupScriptCommand } from './Commands/ReloadStartupScriptCommand.ts';
+import { UnloadTempPluginsCommand } from './Commands/UnloadTempPluginsCommand.ts';
 import { getPlatformDependencies } from './PlatformDependencies.ts';
 import { PluginSettingsManager } from './PluginSettingsManager.ts';
 import { PluginSettingsTab } from './PluginSettingsTab.ts';
@@ -23,11 +21,8 @@ import { ProtocolHandlerComponent } from './ProtocolHandlerComponent.ts';
 import {
   cleanupStartupScript,
   invokeStartupScript,
-  registerInvocableScripts,
-  reloadStartupScript,
-  selectAndInvokeScript
+  registerInvocableScripts
 } from './Script.ts';
-import { unloadTempPlugins } from './TempPluginRegistry.ts';
 
 export class Plugin extends PluginBase<PluginTypes> {
   private requireHandler?: RequireHandler;
@@ -76,38 +71,11 @@ export class Plugin extends PluginBase<PluginTypes> {
 
     registerCodeButtonBlock(this);
     await registerCodeScriptBlock(this);
-    this.addCommand({
-      callback: () => selectAndInvokeScript(this),
-      id: 'invokeScript',
-      name: 'Invoke script: <<Choose>>'
-    });
 
-    this.addCommand({
-      callback: () => {
-        this.requireHandler?.clearCache();
-      },
-      id: 'clearCache',
-      name: 'Clear cache'
-    });
-
-    this.addCommand({
-      callback: unloadTempPlugins,
-      id: 'unload-temp-plugins',
-      name: 'Unload temp plugins'
-    });
-
-    this.addCommand({
-      callback: convertAsyncToSync(() => reloadStartupScript(this)),
-      id: 'reload-startup-script',
-      name: 'Reload startup script'
-    });
-
-    this.addCommand({
-      editorCallback: insertSampleCodeButton,
-      id: 'insert-sample-code-button',
-      name: 'Insert sample code button'
-    });
-
+    new InvokeScriptChooseCommand(this).register();
+    new ClearCacheCommand(this).register();
+    new UnloadTempPluginsCommand(this).register();
+    new ReloadStartupScriptCommand(this).register();
     this.addChild(new ProtocolHandlerComponent(this));
   }
 }

@@ -7,6 +7,8 @@ import { printError } from 'obsidian-dev-utils/Error';
 import type { TempPluginClass } from './CodeButtonContext.ts';
 import type { Plugin } from './Plugin.ts';
 
+import { UnloadTempPluginCommand } from './Commands/UnloadTempPluginCommand.ts';
+
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
 export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginClass, cssText?: string): void {
@@ -58,7 +60,8 @@ export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginCl
       });
     }
 
-    const unregisterCommandId = `unregister-temp-plugin-${tempPluginClassName}`;
+    const unloadTempPluginCommand = new UnloadTempPluginCommand(plugin, tempPlugin, tempPluginClassName);
+    unloadTempPluginCommand.register();
 
     const originalUnload = tempPlugin.unload.bind(tempPlugin);
     tempPlugin.unload = (): void => {
@@ -69,18 +72,10 @@ export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginCl
         printError(error);
       }
       tempPlugins.delete(id);
-      plugin.removeCommand(unregisterCommandId);
+      plugin.removeCommand(unloadTempPluginCommand.originalId);
       new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       styleEl?.remove();
     };
-
-    plugin.addCommand({
-      callback: () => {
-        tempPlugin.unload();
-      },
-      id: unregisterCommandId,
-      name: `Unregister Temp Plugin: ${tempPluginClassName}`
-    });
   });
 }
 
