@@ -1,7 +1,7 @@
 {
   "id": "fix-require-modules",
   "name": "CodeScript Toolkit",
-  "version": "11.5.2",
+  "version": "11.5.3",
   "minAppVersion": "1.11.4",
   "description": "Allows to do a lot of things with JavaScript/TypeScript scripts from inside the Obsidian itself",
   "author": "mnaoumov",
