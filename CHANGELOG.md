@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 11.5.4
+
+- chore: update libs re #46
+
 ## 11.5.3
 
 - refactor: commands
