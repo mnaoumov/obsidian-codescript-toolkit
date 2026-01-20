@@ -12,10 +12,10 @@ import type { Plugin } from './Plugin.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './CodeScriptToolkitNoteSettings.ts';
 import {
-  invoke,
-  INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX,
-  InvokeScriptCommand
-} from './Commands/InvokeScriptCommand.ts';
+  invokeScriptPath,
+  InvokeScriptPathCommand,
+  unregisterInvocableCommands
+} from './Commands/InvokeScriptPathCommand.ts';
 import { requireVaultScriptAsync } from './RequireHandlerUtils.ts';
 
 export interface Script {
@@ -55,10 +55,7 @@ export async function invokeStartupScript(plugin: Plugin): Promise<void> {
 }
 
 export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
-  const commands = plugin.app.commands.listCommands().filter((c) => c.id.startsWith(`${plugin.manifest.id}:${INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX}`));
-  for (const command of commands) {
-    plugin.app.commands.removeCommand(command.id);
-  }
+  unregisterInvocableCommands(plugin.app);
 
   const invocableScriptsFolder = plugin.settings.getInvocableScriptsFolder();
 
@@ -73,10 +70,10 @@ export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
     return;
   }
 
-  const scriptFiles = await getAllScriptFiles(plugin.app, plugin.settings.getInvocableScriptsFolder(), '');
+  const scriptPaths = await getAllScriptPaths(plugin.app, plugin.settings.getInvocableScriptsFolder(), '');
 
-  for (const scriptFile of scriptFiles) {
-    new InvokeScriptCommand(plugin, scriptFile).register();
+  for (const scriptPath of scriptPaths) {
+    await new InvokeScriptPathCommand(plugin, scriptPath).register();
   }
 }
 
@@ -88,34 +85,34 @@ export async function reloadStartupScript(plugin: Plugin): Promise<void> {
 export async function selectAndInvokeScript(plugin: Plugin): Promise<void> {
   const app = plugin.app;
   const invocableScriptsFolder = plugin.settings.getInvocableScriptsFolder();
-  let scriptFiles: string[];
+  let scriptPaths: string[];
 
   if (!invocableScriptsFolder) {
-    scriptFiles = ['Error: No Invocable scripts folder specified in the settings'];
+    scriptPaths = ['Error: No Invocable scripts folder specified in the settings'];
   } else if (await app.vault.adapter.exists(invocableScriptsFolder)) {
-    scriptFiles = await getAllScriptFiles(app, invocableScriptsFolder, '');
+    scriptPaths = await getAllScriptPaths(app, invocableScriptsFolder, '');
   } else {
-    scriptFiles = [`Error: Invocable scripts folder not found: ${invocableScriptsFolder}`];
+    scriptPaths = [`Error: Invocable scripts folder not found: ${invocableScriptsFolder}`];
   }
 
-  const scriptFile = await selectItem({
+  const scriptPath = await selectItem({
     app,
-    items: scriptFiles,
+    items: scriptPaths,
     itemTextFunc: (script) => script,
     placeholder: 'Choose a script to invoke'
   });
 
-  if (scriptFile === null) {
+  if (scriptPath === null) {
     plugin.consoleDebug('No script selected');
     return;
   }
 
-  if (!scriptFile.startsWith('Error:')) {
-    await invoke(plugin, join(invocableScriptsFolder, scriptFile));
+  if (!scriptPath.startsWith('Error:')) {
+    await invokeScriptPath(plugin, scriptPath);
   }
 }
 
-async function getAllScriptFiles(app: App, scriptsFolder: string, folder: string): Promise<string[]> {
+async function getAllScriptPaths(app: App, scriptsFolder: string, folder: string): Promise<string[]> {
   const adapter = app.vault.adapter;
   const files: string[] = [];
   const listedFiles = await adapter.list(join(scriptsFolder, folder));
@@ -127,7 +124,7 @@ async function getAllScriptFiles(app: App, scriptsFolder: string, folder: string
     }
   }
   for (const folderName of getSortedBaseNames(listedFiles.folders)) {
-    const subFiles = await getAllScriptFiles(app, scriptsFolder, join(folder, folderName));
+    const subFiles = await getAllScriptPaths(app, scriptsFolder, join(folder, folderName));
     files.push(...subFiles);
   }
 
