@@ -1,7 +1,4 @@
-import type {
-  FSWatcher,
-  WatchEventType
-} from 'obsidian-dev-utils/ScriptUtils/NodeModules';
+import type { FSWatcher } from 'obsidian-dev-utils/ScriptUtils/NodeModules';
 
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
@@ -27,24 +24,17 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
     }
 
     const invocableScriptsFolderFullPath = join(this.plugin?.app.vault.adapter.basePath ?? '', invocableScriptsFolder);
-    this.watcher = watch(invocableScriptsFolderFullPath, { recursive: true }, (eventType: WatchEventType): void => {
-      if (eventType === 'rename') {
-        invokeAsyncSafely(async () => {
-          const RETRY_COUNT = 5;
-          const RETRY_DELAY_IN_MILLISECONDS = 100;
-          let lastError: unknown = null;
-          for (let i = 0; i < RETRY_COUNT; i++) {
-            try {
-              await onChange();
-              return;
-            } catch (error) {
-              await sleep(RETRY_DELAY_IN_MILLISECONDS);
-              lastError = error;
-            }
-          }
-          throw lastError;
-        });
-      }
+    this.watcher = watch(invocableScriptsFolderFullPath, { recursive: true }, (): void => {
+      invokeAsyncSafely(async () => {
+        try {
+          this.stopWatcher();
+          await onChange();
+        } finally {
+          const DELAY_BEFORE_RESTART_IN_MILLISECONDS = 100;
+          await sleep(DELAY_BEFORE_RESTART_IN_MILLISECONDS);
+          await this.startWatcher(onChange);
+        }
+      });
     });
 
     return true;
