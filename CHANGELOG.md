@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 11.6.0
+
+- docs: invokeCommand
+- feat: allow register commands re #45
+- feat: reload entire scripts if script changed
+
 ## 11.5.4
 
 - chore: update libs re #46
