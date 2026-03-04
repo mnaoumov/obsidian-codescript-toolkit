@@ -22,10 +22,7 @@ import {
   trimEnd,
   trimStart
 } from 'obsidian-dev-utils/String';
-import {
-  assertAllTypeKeys,
-  typeToDummyParam
-} from 'obsidian-dev-utils/Type';
+import { typeAsserter } from 'obsidian-dev-utils/Type';
 import { isUrl } from 'obsidian-dev-utils/url';
 import { remark } from 'remark';
 import remarkParse from 'remark-parse';
@@ -153,7 +150,7 @@ export const PATH_SUFFIXES = ['', ...EXTENSIONS, ...EXTENSIONS.map((ext) => `/in
 export const PRIVATE_MODULE_PREFIX = '#';
 export const RELATIVE_MODULE_PATH_SEPARATOR = '/';
 export const SCOPED_MODULE_PREFIX = '@';
-const SCRIPT_WRAPPER_CONTEXT_KEYS = assertAllTypeKeys(typeToDummyParam<ScriptWrapperContext>(), [
+const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertAllKeys([
   '__dirname',
   '__filename',
   'require',
