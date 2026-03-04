@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 11.7.0
+
+- feat: allow disabling checking for changes re #48
+- chore: update libs
+
 ## 11.6.0
 
 - docs: invokeCommand
