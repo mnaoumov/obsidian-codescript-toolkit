@@ -98,6 +98,10 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
           })
       );
 
+    const MAX_INTERVAL_FOR_SET_TIMEOUT = 2147483647;
+    const MILLISECONDS_IN_SECOND = 1000;
+    const MAX_CHECKING_INTERVAL_IN_SECONDS = MAX_INTERVAL_FOR_SET_TIMEOUT / MILLISECONDS_IN_SECOND;
+
     new SettingEx(this.containerEl)
       // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
       .setName('Mobile: Changes checking interval')
@@ -105,10 +109,15 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
         f.appendText('Interval in seconds to check for changes in the invocable scripts folder ');
         f.createEl('strong', { text: '(only on mobile)' });
         f.appendText('.');
+        f.createEl('br');
+        f.appendText('Set ');
+        appendCodeBlock(f, '0');
+        f.appendText(' to disable checking for changes.');
       }))
       .addNumber((text) => {
         this.bind(text, 'mobileChangesCheckingIntervalInSeconds')
-          .setMin(1);
+          .setMin(0)
+          .setMax(MAX_CHECKING_INTERVAL_IN_SECONDS);
       });
 
     new SettingEx(this.containerEl)

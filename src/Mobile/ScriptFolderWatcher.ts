@@ -69,6 +69,11 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
     if (!this.plugin) {
       return;
     }
+
+    if (this.plugin.settings.mobileChangesCheckingIntervalInSeconds === 0) {
+      return;
+    }
+
     const modificationEntry = await this.checkFile(this.plugin.app, this.plugin.settings.getInvocableScriptsFolder());
     if (modificationEntry.isChanged) {
       await onChange();
