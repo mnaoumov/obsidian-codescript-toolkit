@@ -3,8 +3,8 @@
 > formerly known as `Fix Require Modules`, see [Rebranding](#rebranding) section for more details
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mnaoumov)
-[![GitHub release](https://img.shields.io/github/v/release/mnaoumov/obsidian-code-script-toolkit)](https://github.com/mnaoumov/obsidian-code-script-toolkit/releases)
-[![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/obsidian-code-script-toolkit/total)](https://github.com/mnaoumov/obsidian-code-script-toolkit/releases)
+[![GitHub release](https://img.shields.io/github/v/release/mnaoumov/obsidian-codescript-toolkit)](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases)
+[![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/obsidian-codescript-toolkit/total)](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases)
 
 This is a plugin for [`Obsidian`][Obsidian] that allows to do a lot of things with [`JavaScript`][JavaScript]/[`TypeScript`][TypeScript] scripts from inside the [`Obsidian`][Obsidian] itself.
 
