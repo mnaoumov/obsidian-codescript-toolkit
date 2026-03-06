@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 11.7.1
+
+- chore: fix typo
+- chore: update template
+
 ## 11.7.0
 
 - feat: allow disabling checking for changes re #48
