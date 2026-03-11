@@ -5,7 +5,7 @@
 | **[`require()`][require]**           | ✅      | ✅     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-You can access helper functions of [Obsidian Dev Utils](https://github.com/mnaoumov/obsidian-dev-utils/) (except [ScriptUtils](https://github.com/mnaoumov/obsidian-dev-utils/tree/main/src/ScriptUtils))
+You can access helper functions of [Obsidian Dev Utils](https://github.com/mnaoumov/obsidian-dev-utils/) (except [script-utils](https://github.com/mnaoumov/obsidian-dev-utils/tree/main/src/script-utils))
 
 ```js
 require('obsidian-dev-utils');
