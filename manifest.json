@@ -3,7 +3,7 @@
   "name": "CodeScript Toolkit",
   "version": "11.7.1",
   "minAppVersion": "1.12.4",
-  "description": "Allows to do a lot of things with JavaScript/TypeScript scripts from inside the Obsidian itself",
+  "description": "Allows to do a lot of things with JavaScript/TypeScript scripts from inside the app.",
   "author": "mnaoumov",
   "authorUrl": "https://github.com/mnaoumov/",
   "isDesktopOnly": false,
