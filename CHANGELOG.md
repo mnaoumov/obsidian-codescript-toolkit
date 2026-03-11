@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 11.7.2
+
+- docs: fix url
+- fix: description
+- chore: ignore claude
+- chore: add English language requirement to issue templates Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+
 ## 11.7.1
 
 - chore: fix typo
