@@ -2,7 +2,7 @@ import type { App } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 import { Notice } from 'obsidian';
-import { selectItem } from 'obsidian-dev-utils/obsidian/Modals/SelectItem';
+import { selectItem } from 'obsidian-dev-utils/obsidian/modals/select-item';
 import {
   basename,
   join

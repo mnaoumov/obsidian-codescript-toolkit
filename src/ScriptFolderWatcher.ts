@@ -1,14 +1,21 @@
 import type { Promisable } from 'type-fest';
 
+import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
+
 import type { Plugin } from './Plugin.ts';
 
 export abstract class ScriptFolderWatcher {
-  protected plugin?: Plugin;
+  protected get plugin(): Plugin {
+    return ensureNonNullable(this._plugin);
+  }
+
+  private _plugin?: Plugin;
+
   private wasRegisteredInPlugin = false;
 
   public async register(plugin: Plugin, onChange: () => Promise<void>): Promise<void> {
     if (!this.wasRegisteredInPlugin) {
-      this.plugin = plugin;
+      this._plugin = plugin;
       this.plugin.register(this.stopWatcher.bind(this));
       this.wasRegisteredInPlugin = true;
     }
@@ -18,7 +25,7 @@ export abstract class ScriptFolderWatcher {
       await onChange();
     }
 
-    this.plugin?.register(this.stopWatcher.bind(this));
+    this.plugin.register(this.stopWatcher.bind(this));
   }
 
   protected abstract startWatcher(onChange: () => Promise<void>): Promisable<boolean>;

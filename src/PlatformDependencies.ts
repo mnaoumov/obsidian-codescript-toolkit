@@ -8,8 +8,12 @@ export interface PlatformDependencies {
   scriptFolderWatcher: ScriptFolderWatcher;
 }
 
+interface PlatformDependenciesModule {
+  platformDependencies: PlatformDependencies;
+}
+
 export async function getPlatformDependencies(): Promise<PlatformDependencies> {
-  let module: { platformDependencies: PlatformDependencies };
+  let module: PlatformDependenciesModule;
   if (document.body.hasClass('emulate-mobile')) {
     module = await import('./EmulateMobile/Dependencies.ts');
   } else if (Platform.isMobile) {

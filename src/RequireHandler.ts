@@ -1,5 +1,5 @@
 import type { Code } from 'mdast';
-import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
+import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 import type { Promisable } from 'type-fest';
 
 import { debuggableEval } from 'debuggable-eval';
@@ -9,6 +9,7 @@ import {
 } from 'obsidian';
 import { noop } from 'obsidian-dev-utils/function';
 import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
+import { AllWindowsEventHandler } from 'obsidian-dev-utils/obsidian/components/all-windows-event-handler';
 import {
   basename,
   dirname,
@@ -24,12 +25,14 @@ import {
 } from 'obsidian-dev-utils/string';
 import { typeAsserter } from 'obsidian-dev-utils/type';
 import { isUrl } from 'obsidian-dev-utils/url';
+import { getDataAdapterEx } from 'obsidian-typings/implementations';
 import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
 import type { Plugin } from './Plugin.ts';
 import type {
+  ParentPathOptions,
   require,
   requireAsync,
   requireAsyncWrapper,
@@ -207,16 +210,15 @@ export abstract class RequireHandler {
     this._plugin = plugin;
     await this.initSpecialModuleFactories();
 
+    const adapter = getDataAdapterEx(plugin.app);
     this.pluginRequire = pluginRequire;
-    this.vaultAbsolutePath = toPosixPath(plugin.app.vault.adapter.basePath);
+    this.vaultAbsolutePath = toPosixPath(adapter.basePath);
     this.originalRequire = window.require;
-
     this._requireEx = Object.assign(this.require.bind(this), {
       cache: {}
     }, this.originalRequire) as RequireExFn;
     this.modulesCache = this.requireEx.cache;
-
-    plugin.registerDomWindowHandler((win) => {
+    new AllWindowsEventHandler(plugin.app, plugin).registerAllWindowsHandler((win) => {
       const requireWindow = win as Partial<RequireWindow>;
 
       requireWindow.require = this.requireEx;
@@ -919,7 +921,7 @@ export abstract class RequireHandler {
 
   private async requireJsonAsync(path: string, jsonStr?: string): Promise<unknown> {
     jsonStr ??= await this.readFileAsync(splitQuery(path).cleanStr);
-    return JSON.parse(jsonStr) as unknown;
+    return JSON.parse(jsonStr);
   }
 
   private async requireJsTsAsync(path: string, code?: string): Promise<unknown> {
@@ -1128,7 +1130,7 @@ export abstract class RequireHandler {
     return Object.assign(
       wrapped,
       options.require,
-      normalizeOptionalProperties<{ parentPath?: string }>({ parentPath: options.optionsToPrepend?.parentPath })
+      normalizeOptionalProperties<ParentPathOptions>({ parentPath: options.optionsToPrepend?.parentPath })
     ) as RequireExFn;
   }
 }

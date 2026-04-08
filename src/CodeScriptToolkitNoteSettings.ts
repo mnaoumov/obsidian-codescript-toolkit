@@ -1,8 +1,8 @@
 import type { App } from 'obsidian';
 
-import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/FileSystem';
-import { parseFrontmatter } from 'obsidian-dev-utils/obsidian/Frontmatter';
-import { getFrontmatterSafe } from 'obsidian-dev-utils/obsidian/MetadataCache';
+import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
+import { parseFrontmatter } from 'obsidian-dev-utils/obsidian/frontmatter';
+import { getFrontmatterSafe } from 'obsidian-dev-utils/obsidian/metadata-cache';
 
 interface CodeScriptToolkitNoteSettingsFrontmatter {
   codeScriptToolkit?: CodeScriptToolkitNoteSettings;
