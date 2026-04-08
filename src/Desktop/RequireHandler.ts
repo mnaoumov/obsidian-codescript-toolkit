@@ -1,4 +1,4 @@
-import type { PackageJson } from 'obsidian-dev-utils/ScriptUtils/Npm';
+import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 
 import { FileSystemAdapter } from 'obsidian';
 import {

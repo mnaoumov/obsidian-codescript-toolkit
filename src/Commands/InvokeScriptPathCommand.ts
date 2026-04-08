@@ -6,7 +6,7 @@ import {
 } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
-import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/FileSystem';
+import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
 import { join } from 'obsidian-dev-utils/path';
 
 import type { Plugin } from '../Plugin.ts';

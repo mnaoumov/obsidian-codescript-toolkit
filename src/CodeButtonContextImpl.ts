@@ -3,19 +3,19 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
-import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/CodeBlockMarkdownInformation';
+import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 
 import {
   Component,
   MarkdownRenderer
 } from 'obsidian';
-import { getFile } from 'obsidian-dev-utils/obsidian/FileSystem';
+import { getFile } from 'obsidian-dev-utils/obsidian/file-system';
 import {
   insertAfterCodeBlock,
   insertBeforeCodeBlock,
   removeCodeBlock,
   replaceCodeBlock
-} from 'obsidian-dev-utils/obsidian/MarkdownCodeBlockProcessor';
+} from 'obsidian-dev-utils/obsidian/markdown-code-block-processor';
 
 import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
 import type {

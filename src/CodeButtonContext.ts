@@ -5,7 +5,7 @@ import type {
   PluginManifest,
   TFile
 } from 'obsidian';
-import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/CodeBlockMarkdownInformation';
+import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 
 import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
 

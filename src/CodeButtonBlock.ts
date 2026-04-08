@@ -16,17 +16,18 @@ import {
   normalizeOptionalProperties,
   removeUndefinedProperties
 } from 'obsidian-dev-utils/object-utils';
-import { getFile } from 'obsidian-dev-utils/obsidian/FileSystem';
+import { getFile } from 'obsidian-dev-utils/obsidian/file-system';
 import {
   getCodeBlockMarkdownInfo,
   replaceCodeBlock
-} from 'obsidian-dev-utils/obsidian/MarkdownCodeBlockProcessor';
-import { getOsAndObsidianUnsafePathCharsRegExp } from 'obsidian-dev-utils/obsidian/Validation';
+} from 'obsidian-dev-utils/obsidian/markdown-code-block-processor';
+import { getOsAndObsidianUnsafePathCharsRegExp } from 'obsidian-dev-utils/obsidian/validation';
 import {
   basename,
   dirname
 } from 'obsidian-dev-utils/path';
 import { indent } from 'obsidian-dev-utils/string';
+import { getDataAdapterEx } from 'obsidian-typings/implementations';
 
 import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
 import type { CodeButtonContext } from './CodeButtonContext.ts';
@@ -120,6 +121,8 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
     wrappedConsole.writeSystemMessage('⏳ Executing...');
   }
 
+  const adapter = getDataAdapterEx(options.codeButtonContext.app);
+
   let isSuccess = false;
   try {
     const script = makeWrapperScript(
@@ -130,7 +133,7 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync(
       script,
-      `${options.codeButtonContext.app.vault.adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
+      `${adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
         String(options.buttonIndex)
       }.${options.escapedCaption}.ts`
     ) as CodeButtonBlockScriptWrapper;

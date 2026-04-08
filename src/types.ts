@@ -29,7 +29,7 @@ export declare function requireAsyncWrapper(requireFn: RequireAsyncWrapperArg): 
 /**
  * A cache invalidation mode.
  */
-// eslint-disable-next-line perfectionist/sort-modules -- I need functions on top of the file.
+// eslint-disable-next-line perfectionist/sort-modules -- We need to keep functions on top.
 export enum CacheInvalidationMode {
   /**
    * Always invalidate the cache.
@@ -78,6 +78,13 @@ export enum ModuleType {
 }
 
 /**
+ * Options for the parent path.
+ */
+export interface ParentPathOptions {
+  parentPath?: string;
+}
+
+/**
  * A wrapper for the require function.
  *
  * @param require - The require function.
@@ -89,13 +96,8 @@ export type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknow
  * An extended require function.
  */
 export type RequireExFn =
-  & {
-    /**
-     * A parent path of the module to require.
-     */
-    parentPath?: string;
-  }
   & NodeJS.Require
+  & ParentPathOptions
   & typeof require;
 
 /**
