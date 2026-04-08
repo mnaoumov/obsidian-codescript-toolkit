@@ -6,7 +6,7 @@ import { selectItem } from 'obsidian-dev-utils/obsidian/Modals/SelectItem';
 import {
   basename,
   join
-} from 'obsidian-dev-utils/Path';
+} from 'obsidian-dev-utils/path';
 
 import type { Plugin } from './Plugin.ts';
 

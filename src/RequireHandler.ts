@@ -7,8 +7,8 @@ import {
   Platform,
   requestUrl
 } from 'obsidian';
-import { noop } from 'obsidian-dev-utils/Function';
-import { normalizeOptionalProperties } from 'obsidian-dev-utils/ObjectUtils';
+import { noop } from 'obsidian-dev-utils/function';
+import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
 import {
   basename,
   dirname,
@@ -16,13 +16,13 @@ import {
   isAbsolute,
   join,
   toPosixPath
-} from 'obsidian-dev-utils/Path';
+} from 'obsidian-dev-utils/path';
 import {
   replaceAll,
   trimEnd,
   trimStart
-} from 'obsidian-dev-utils/String';
-import { typeAsserter } from 'obsidian-dev-utils/Type';
+} from 'obsidian-dev-utils/string';
+import { typeAsserter } from 'obsidian-dev-utils/type';
 import { isUrl } from 'obsidian-dev-utils/url';
 import { remark } from 'remark';
 import remarkParse from 'remark-parse';

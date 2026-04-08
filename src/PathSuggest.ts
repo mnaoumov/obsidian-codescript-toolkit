@@ -5,7 +5,7 @@ import {
   basename,
   extname,
   relative
-} from 'obsidian-dev-utils/Path';
+} from 'obsidian-dev-utils/path';
 
 import { EXTENSIONS } from './RequireHandler.ts';
 

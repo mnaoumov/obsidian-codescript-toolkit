@@ -1,4 +1,4 @@
-import { join } from 'obsidian-dev-utils/Path';
+import { join } from 'obsidian-dev-utils/path';
 
 export class PluginSettings {
   public defaultCodeButtonConfig = '';

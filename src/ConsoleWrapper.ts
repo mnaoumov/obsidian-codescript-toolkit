@@ -1,9 +1,9 @@
-import { errorToString } from 'obsidian-dev-utils/Error';
-import { noop } from 'obsidian-dev-utils/Function';
+import { errorToString } from 'obsidian-dev-utils/error';
+import { noop } from 'obsidian-dev-utils/function';
 import {
   FunctionHandlingMode,
   toJson
-} from 'obsidian-dev-utils/ObjectUtils';
+} from 'obsidian-dev-utils/object-utils';
 
 type ConsoleMethod = 'debug' | 'error' | 'info' | 'log' | 'warn';
 

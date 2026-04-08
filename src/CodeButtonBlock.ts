@@ -10,12 +10,12 @@ import {
   parseYaml,
   stringifyYaml
 } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
-import { printError } from 'obsidian-dev-utils/Error';
+import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
+import { printError } from 'obsidian-dev-utils/error';
 import {
   normalizeOptionalProperties,
   removeUndefinedProperties
-} from 'obsidian-dev-utils/ObjectUtils';
+} from 'obsidian-dev-utils/object-utils';
 import { getFile } from 'obsidian-dev-utils/obsidian/FileSystem';
 import {
   getCodeBlockMarkdownInfo,
@@ -25,8 +25,8 @@ import { getOsAndObsidianUnsafePathCharsRegExp } from 'obsidian-dev-utils/obsidi
 import {
   basename,
   dirname
-} from 'obsidian-dev-utils/Path';
-import { indent } from 'obsidian-dev-utils/String';
+} from 'obsidian-dev-utils/path';
+import { indent } from 'obsidian-dev-utils/string';
 
 import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
 import type { CodeButtonContext } from './CodeButtonContext.ts';
