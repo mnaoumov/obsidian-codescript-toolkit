@@ -1,7 +1,7 @@
 // eslint-disable-next-line import-x/no-namespace -- Need entire module.
 import * as obsidianDevUtils from 'obsidian-dev-utils';
-import { getNestedPropertyValue } from 'obsidian-dev-utils/ObjectUtils';
-import { trimStart } from 'obsidian-dev-utils/String';
+import { getNestedPropertyValue } from 'obsidian-dev-utils/object-utils';
+import { trimStart } from 'obsidian-dev-utils/string';
 
 import type { RequireOptions } from './types.ts';
 

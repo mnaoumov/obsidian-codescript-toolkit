@@ -1,8 +1,8 @@
 import type { Plugin as ObsidianPlugin } from 'obsidian';
 
 import { Notice } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
-import { printError } from 'obsidian-dev-utils/Error';
+import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
+import { printError } from 'obsidian-dev-utils/error';
 
 import type { TempPluginClass } from './CodeButtonContext.ts';
 import type { Plugin } from './Plugin.ts';

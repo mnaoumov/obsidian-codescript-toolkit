@@ -1,12 +1,12 @@
 import type { App } from 'obsidian';
-import type { MaybeReturn } from 'obsidian-dev-utils/Type';
+import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { parseYaml } from 'obsidian';
-import { PluginSettingsManagerBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsManagerBase';
+import { PluginSettingsManagerBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-manager-base';
 import {
   extname,
   join
-} from 'obsidian-dev-utils/Path';
+} from 'obsidian-dev-utils/path';
 
 import type { CodeButtonBlockConfig } from './CodeButtonBlockConfig.ts';
 import type { PluginTypes } from './PluginTypes.ts';

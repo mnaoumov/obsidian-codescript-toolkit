@@ -1,7 +1,7 @@
 import type { App } from 'obsidian';
 
 import { Notice } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
+import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 
 import { ScriptFolderWatcher } from '../ScriptFolderWatcher.ts';
 

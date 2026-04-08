@@ -4,13 +4,13 @@ import { FileSystemAdapter } from 'obsidian';
 import {
   getPrototypeOf,
   normalizeOptionalProperties
-} from 'obsidian-dev-utils/ObjectUtils';
-import { registerPatch } from 'obsidian-dev-utils/obsidian/MonkeyAround';
+} from 'obsidian-dev-utils/object-utils';
+import { registerPatch } from 'obsidian-dev-utils/obsidian/monkey-around';
 import {
   dirname,
   join,
   toPosixPath
-} from 'obsidian-dev-utils/Path';
+} from 'obsidian-dev-utils/path';
 
 import type { Plugin } from '../Plugin.ts';
 import type {

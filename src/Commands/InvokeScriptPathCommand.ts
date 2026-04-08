@@ -4,10 +4,10 @@ import {
   App,
   Notice
 } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
-import { printError } from 'obsidian-dev-utils/Error';
+import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
+import { printError } from 'obsidian-dev-utils/error';
 import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/FileSystem';
-import { join } from 'obsidian-dev-utils/Path';
+import { join } from 'obsidian-dev-utils/path';
 
 import type { Plugin } from '../Plugin.ts';
 import type { Script } from '../Script.ts';

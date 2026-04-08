@@ -6,7 +6,7 @@ import type {
 import type { Visitor } from '@babel/traverse';
 
 import { transform as babelTransform } from '@babel/standalone';
-import { noop } from 'obsidian-dev-utils/Function';
+import { noop } from 'obsidian-dev-utils/function';
 
 export interface TransformResult<Data> {
   data: Data;

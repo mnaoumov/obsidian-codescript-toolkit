@@ -1,9 +1,9 @@
-import type { FSWatcher } from 'obsidian-dev-utils/ScriptUtils/NodeModules';
+import type { FSWatcher } from 'node:fs';
 
 import { Notice } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
-import { join } from 'obsidian-dev-utils/Path';
-import { watch } from 'obsidian-dev-utils/ScriptUtils/NodeModules';
+import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
+import { join } from 'obsidian-dev-utils/path';
+import { watch } from 'node:fs';
 
 import { ScriptFolderWatcher } from '../ScriptFolderWatcher.ts';
 

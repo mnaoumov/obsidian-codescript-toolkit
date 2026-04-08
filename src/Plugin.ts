@@ -1,7 +1,7 @@
 import type { PluginSettingsWrapper } from 'obsidian-dev-utils/obsidian/Plugin/PluginSettingsWrapper';
 
-import { invokeAsyncSafely } from 'obsidian-dev-utils/Async';
-import { PluginBase } from 'obsidian-dev-utils/obsidian/Plugin/PluginBase';
+import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
+import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-base';
 
 import type { PluginSettings } from './PluginSettings.ts';
 import type { PluginTypes } from './PluginTypes.ts';

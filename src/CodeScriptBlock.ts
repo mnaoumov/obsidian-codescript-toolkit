@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-import { throwExpression } from 'obsidian-dev-utils/Error';
+import { throwExpression } from 'obsidian-dev-utils/error';
 import { loadPrism } from 'obsidian-typings/implementations';
 
 export const CODE_SCRIPT_BLOCK_LANGUAGE = 'code-script';

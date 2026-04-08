@@ -9,8 +9,8 @@ You can access helper functions of [Obsidian Dev Utils](https://github.com/mnaou
 
 ```js
 require('obsidian-dev-utils');
-require('obsidian-dev-utils/Async');
-require('obsidian-dev-utils/obsidian/Modals/Alert');
+require('obsidian-dev-utils/async');
+require('obsidian-dev-utils/obsidian/modals/alert');
 ```
 
 [require]: ./core-functions.md#require

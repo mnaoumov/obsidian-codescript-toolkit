@@ -10,7 +10,7 @@ import {
   isProgram,
   isStringLiteral
 } from '@babel/types';
-import { nameof } from 'obsidian-dev-utils/ObjectUtils';
+import { nameof } from 'obsidian-dev-utils/object-utils';
 
 import type { RequireOptions } from '../types.ts';
 
