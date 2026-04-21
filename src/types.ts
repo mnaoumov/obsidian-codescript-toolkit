@@ -1,3 +1,4 @@
+import type { TFile } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 /**
@@ -7,7 +8,7 @@ import type { Promisable } from 'type-fest';
  * @param options - The options for the require function.
  * @returns The module.
  */
-export declare function require(id: string, options?: Partial<RequireOptions>): unknown;
+export declare function require(id: string | TFile, options?: Partial<RequireOptions>): unknown;
 
 /**
  * Require a module asynchronously.
@@ -16,7 +17,7 @@ export declare function require(id: string, options?: Partial<RequireOptions>): 
  * @param options - The options for the require function.
  * @returns The module.
  */
-export declare function requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown>;
+export declare function requireAsync(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown>;
 
 /**
  * Wrap a synchronous require function with an asynchronous require function.

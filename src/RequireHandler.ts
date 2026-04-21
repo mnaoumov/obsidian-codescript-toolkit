@@ -7,7 +7,8 @@ import { debuggableEval } from 'debuggable-eval';
 import {
   parseLinktext,
   Platform,
-  requestUrl
+  requestUrl,
+  TFile
 } from 'obsidian';
 import { noop } from 'obsidian-dev-utils/function';
 import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
@@ -228,6 +229,8 @@ export abstract class RequireHandler {
         if (!this.originalRequire) {
           return;
         }
+        // @ts-expect-error - we intentionally widen require to accept TFile
+        // Runtime remains compatible because string is still supported
         requireWindow.require = this.originalRequire;
       });
 
@@ -239,7 +242,7 @@ export abstract class RequireHandler {
     });
   }
 
-  public async requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
+  public async requireAsync(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown> {
     const DEFAULT_OPTIONS: RequireOptions = {
       cacheInvalidationMode: CacheInvalidationMode.WhenPossible
     };
@@ -247,6 +250,10 @@ export abstract class RequireHandler {
       ...DEFAULT_OPTIONS,
       ...options
     };
+
+    if (id instanceof TFile) {
+      id = VAULT_ROOT_PREFIX + id.path;
+    }
 
     const specialModule = this.requireSpecialModule(id, fullOptions);
     if (specialModule !== undefined) {
@@ -804,7 +811,7 @@ export abstract class RequireHandler {
     const that = this;
     return wrapped;
 
-    async function wrapped(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
+    async function wrapped(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown> {
       const newOptions = normalizeOptionalProperties<Partial<RequireOptions>>({ parentPath, ...options });
       return await that.requireAsync(id, newOptions);
     }
@@ -815,7 +822,7 @@ export abstract class RequireHandler {
     return JSON.parse(content) as PackageJson;
   }
 
-  private require(id: string, options?: Partial<RequireOptions>): unknown {
+  private require(id: string | TFile, options?: Partial<RequireOptions>): unknown {
     const DEFAULT_OPTIONS: RequireOptions = {
       cacheInvalidationMode: CacheInvalidationMode.WhenPossible
     };
@@ -823,6 +830,9 @@ export abstract class RequireHandler {
       ...DEFAULT_OPTIONS,
       ...options
     };
+    if (id instanceof TFile) {
+      id = VAULT_ROOT_PREFIX + id.path;
+    }
     const specialModule = this.requireSpecialModule(id, fullOptions);
     if (specialModule !== undefined) {
       return specialModule;

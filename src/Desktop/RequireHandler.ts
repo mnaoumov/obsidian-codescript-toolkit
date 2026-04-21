@@ -1,6 +1,9 @@
 import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 
-import { FileSystemAdapter } from 'obsidian';
+import {
+  FileSystemAdapter,
+  TFile
+} from 'obsidian';
 import {
   getPrototypeOf,
   normalizeOptionalProperties
@@ -103,10 +106,11 @@ class RequireHandlerImpl extends RequireHandler {
 
     const moduleProto = getPrototypeOf(window.module);
     registerPatch(plugin, moduleProto, {
+      // @ts-expect-error - patched require adds TFile support beyond original signature
       require: (next: RequireFn): RequireFn => {
         this.originalModulePrototypeRequire = next;
         const that = this;
-        return function modulePrototypeRequirePatched(this: NodeJS.Module, id: string): unknown {
+        return function modulePrototypeRequirePatched(this: NodeJS.Module, id: string | TFile): unknown {
           return that.modulePrototypeRequire(id, this);
         };
       }
@@ -320,7 +324,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never}.
 ${this.getRequireAsyncAdvice(path)}`;
   }
 
-  private modulePrototypeRequire(id: string, module: NodeJS.Module): unknown {
+  private modulePrototypeRequire(id: string | TFile, module: NodeJS.Module): unknown {
     /**
      * The caller line index is 6 because the call stack is as follows:
      *
