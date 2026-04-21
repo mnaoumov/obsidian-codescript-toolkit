@@ -3,7 +3,9 @@ import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 import type { Promisable } from 'type-fest';
 
 import { debuggableEval } from 'debuggable-eval';
+// Spell-checker:ignore parseLinktext
 import {
+  parseLinktext,
   Platform,
   requestUrl
 } from 'obsidian';
@@ -498,6 +500,12 @@ export abstract class RequireHandler {
     const prefixResult = this.resolvePathPrefix(id);
     if (prefixResult) {
       return prefixResult;
+    }
+
+    // Check for wiki-link resolution
+    const wikiLinkResult = this.resolveWikiLink(id);
+    if (wikiLinkResult) {
+      return wikiLinkResult;
     }
 
     if (isAbsolute(id)) {
@@ -1118,6 +1126,29 @@ export abstract class RequireHandler {
     }
 
     return { resolvedId: id, resolvedType: ResolvedType.Url };
+  }
+
+  private resolveWikiLink(id: string): null | ResolveResult {
+    const WIKI_LINK_PREFIX = '[[';
+    const WIKI_LINK_SUFFIX = ']]';
+    if (!(id.startsWith(WIKI_LINK_PREFIX) && id.endsWith(WIKI_LINK_SUFFIX))) {
+      return null;
+    }
+    const link = id.slice(WIKI_LINK_PREFIX.length, -WIKI_LINK_SUFFIX.length).trim();
+    if (!link) {
+      throw new Error('Wiki-link is empty.');
+    }
+    if (link.includes(WIKI_LINK_SUFFIX)) {
+      throw new Error(`Wiki-link contains "${WIKI_LINK_SUFFIX}" which is invalid.`);
+    }
+    const { cleanStr: cleanLink, query } = splitQuery(link);
+    const { path } = parseLinktext(cleanLink);
+    // Spell-checker:ignore getFirstLinkpathDest
+    const file = this.plugin.app.metadataCache.getFirstLinkpathDest(path, '');
+    if (!file) {
+      throw new Error('Wiki-link does not point to a valid file.');
+    }
+    return { resolvedId: join(this.vaultAbsolutePath ?? '', file.path + query), resolvedType: ResolvedType.Path };
   }
 
   private wrapRequire(options: WrapRequireOptions): RequireExFn {
