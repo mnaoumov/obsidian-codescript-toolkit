@@ -51,7 +51,9 @@ export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginCl
     }
 
     let styleEl: HTMLStyleElement | null = null;
-    new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
+    if (!plugin.settings.disableTempPluginLoadingNotifications) {
+      new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
+    }
     if (cssText) {
       // eslint-disable-next-line obsidianmd/no-forbidden-elements -- Need dynamic `style` element.
       styleEl = document.head.createEl('style', {
@@ -73,7 +75,9 @@ export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginCl
       }
       tempPlugins.delete(id);
       plugin.removeCommand(unloadTempPluginCommand.originalId);
-      new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
+      if (!plugin.settings.disableTempPluginLoadingNotifications) {
+        new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
+      }
       styleEl?.remove();
     };
   });

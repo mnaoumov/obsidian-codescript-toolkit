@@ -2,6 +2,7 @@ import { join } from 'obsidian-dev-utils/path';
 
 export class PluginSettings {
   public defaultCodeButtonConfig = '';
+  public disableTempPluginLoadingNotifications = false;
   public invocableScriptsFolder = '';
   // eslint-disable-next-line no-magic-numbers -- Magic numbers are OK in settings.
   public mobileChangesCheckingIntervalInSeconds = 30;

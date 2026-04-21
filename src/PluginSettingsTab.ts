@@ -149,6 +149,21 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
       });
 
     new SettingEx(this.containerEl)
+      .setName('Disable temp plugin loading notifications')
+      .setDesc(createFragment((f) => {
+        f.appendText('Whether to disable ');
+        appendCodeBlock(f, 'Loaded Temp Plugin');
+        f.appendText(' and ');
+        appendCodeBlock(f, 'Unregistered Temp Plugin');
+        f.appendText(' notifications.');
+        f.createEl('br');
+        f.appendText('Does not apply to error-related notifications.');
+      }))
+      .addToggle((toggle) => {
+        this.bind(toggle, 'disableTempPluginLoadingNotifications');
+      });
+
+    new SettingEx(this.containerEl)
       .setName('Default code button config')
       .setDesc(createFragment((f) => {
         f.appendText('Default configuration applied to ');
