@@ -10,9 +10,16 @@ import type { Plugin } from './Plugin.ts';
 import { UnloadTempPluginCommand } from './Commands/UnloadTempPluginCommand.ts';
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
+const defaultTempPluginClassName = '_AnonymousPlugin';
+
+export function getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin {
+  const tempPluginClassName = (typeof tempPluginClass === 'string' ? tempPluginClass : tempPluginClass.name) || defaultTempPluginClassName;
+  const id = makeTempPluginId(tempPluginClassName);
+  return tempPlugins.get(id) ?? null;
+}
 
 export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginClass, cssText?: string): void {
-  const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
+  const tempPluginClassName = tempPluginClass.name || defaultTempPluginClassName;
   const app = plugin.app;
   const id = makeTempPluginId(tempPluginClassName);
 

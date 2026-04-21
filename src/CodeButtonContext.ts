@@ -46,6 +46,15 @@ export interface CodeButtonContext {
   container: HTMLElement;
 
   /**
+   * Get a temp plugin.
+   *
+   * @param tempPluginClass - The class or its name for the temp plugin.
+   *
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#temp-plugins}
+   */
+  getTempPlugin(tempPluginClass: string | TempPluginClass): null | Plugin;
+
+  /**
    * Insert markdown after the code button block.
    *
    * @param markdown - The markdown to insert.
