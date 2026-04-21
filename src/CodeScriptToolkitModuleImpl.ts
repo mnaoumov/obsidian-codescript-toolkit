@@ -18,7 +18,7 @@ export function createCodeScriptToolkitModule(plugin: Plugin): CodeScriptToolkit
     registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
       registerTempPlugin(plugin, tempPluginClass, cssText);
     },
-    unregisterTempPlugin(tempPluginClassName: string): void {
+    unregisterTempPlugin(tempPluginClassName: string | TempPluginClass): void {
       unregisterTempPlugin(tempPluginClassName);
     }
   };

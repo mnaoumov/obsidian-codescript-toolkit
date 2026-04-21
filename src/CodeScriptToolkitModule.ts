@@ -23,5 +23,5 @@ export interface CodeScriptToolkitModule {
    * Unregister a temporary plugin.
    * @param tempPluginClassName - The class name of the temporary plugin.
    */
-  unregisterTempPlugin(tempPluginClassName: string): void;
+  unregisterTempPlugin(tempPluginClassName: string | TempPluginClass): void;
 }

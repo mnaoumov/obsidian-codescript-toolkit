@@ -96,7 +96,8 @@ export function unloadTempPlugins(): void {
   }
 }
 
-export function unregisterTempPlugin(tempPluginClassName: string): void {
+export function unregisterTempPlugin(tempPluginClass: string | TempPluginClass): void {
+  const tempPluginClassName = (typeof tempPluginClass === 'string' ? tempPluginClass : tempPluginClass.name) || defaultTempPluginClassName;
   const id = makeTempPluginId(tempPluginClassName);
   const tempPlugin = tempPlugins.get(id);
   if (tempPlugin) {
