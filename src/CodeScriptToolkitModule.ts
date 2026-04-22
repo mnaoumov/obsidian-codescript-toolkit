@@ -17,7 +17,7 @@ export interface CodeScriptToolkitModule {
    * @param tempPluginClass - The class of the temporary plugin.
    * @param cssText - The CSS text of the temporary plugin (optional).
    */
-  registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void;
+  registerTempPlugin<T extends Plugin = Plugin>(tempPluginClass: TempPluginClass<T>, cssText?: string): Promise<null | T>;
 
   /**
    * Unregister a temporary plugin.

@@ -1,13 +1,13 @@
 import type { Plugin as ObsidianPlugin } from 'obsidian';
 
 import { Notice } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
 
 import type { TempPluginClass } from './CodeButtonContext.ts';
 import type { Plugin } from './Plugin.ts';
 
 import { UnloadTempPluginCommand } from './Commands/UnloadTempPluginCommand.ts';
+import { clear } from 'node:console';
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
 const defaultTempPluginClassName = '_AnonymousPlugin';
@@ -18,7 +18,7 @@ export function getTempPlugin(tempPluginClass: string | TempPluginClass): null |
   return tempPlugins.get(id) ?? null;
 }
 
-export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginClass, cssText?: string): void {
+export async function registerTempPlugin<T extends ObsidianPlugin = ObsidianPlugin>(plugin: Plugin, tempPluginClass: TempPluginClass<T>, cssText?: string): Promise<null | T> {
   const tempPluginClassName = tempPluginClass.name || defaultTempPluginClassName;
   const app = plugin.app;
   const id = makeTempPluginId(tempPluginClassName);
@@ -39,55 +39,76 @@ export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginCl
 
   tempPlugins.set(id, tempPlugin);
 
+  let styleEl: HTMLStyleElement | null = null;
+  let unloadTempPluginCommand: null | UnloadTempPluginCommand = null;
+
+  const originalUnload = tempPlugin.unload.bind(tempPlugin);
+  tempPlugin.unload = (): void => {
+    tempPlugins.delete(id);
+    if (unloadTempPluginCommand) {
+      plugin.removeCommand(unloadTempPluginCommand.originalId);
+    }
+    styleEl?.remove();
+    try {
+      originalUnload();
+    } catch (error) {
+      new Notice(`Failed to unload Temp Plugin: ${tempPluginClassName}. See console for details.`);
+      printError(error);
+    }
+    if (!plugin.settings.disableTempPluginLoadingNotifications) {
+      new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
+    }
+  };
+
   type LoadFn = () => Promise<void>;
 
   const loadFn = tempPlugin.load.bind(tempPlugin) as LoadFn;
 
-  invokeAsyncSafely(async () => {
-    let isLoaded = false;
-    try {
-      await loadFn();
-      isLoaded = true;
-    } catch (error) {
-      new Notice(`Failed to load Temp Plugin: ${tempPluginClassName}. See console for details.`);
-      printError(error);
-    }
+  function onError(error: unknown): null {
+    new Notice(`Failed to load Temp Plugin: ${tempPluginClassName}. See console for details.`);
+    printError(error);
+    tempPlugin.unload();
+    return null;
+  }
 
-    if (!isLoaded) {
-      return;
-    }
+  const obsidianPluginTimeout = 3000;
+  const loadTimeout = setTimeout(() => {
+    new Notice(`Temp Plugin "${tempPluginClassName}" is taking long to load.`);
+  }, obsidianPluginTimeout);
 
-    let styleEl: HTMLStyleElement | null = null;
-    if (!plugin.settings.disableTempPluginLoadingNotifications) {
-      new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
-    }
-    if (cssText) {
-      // eslint-disable-next-line obsidianmd/no-forbidden-elements -- Need dynamic `style` element.
-      styleEl = document.head.createEl('style', {
-        attr: { id },
-        text: cssText
-      });
-    }
+  let loadPromise: Promise<void>;
+  try {
+    loadPromise = loadFn();
+  } catch (error) {
+    clearTimeout(loadTimeout);
+    return onError(error);
+  }
 
-    const unloadTempPluginCommand = new UnloadTempPluginCommand(plugin, tempPlugin, tempPluginClassName);
-    unloadTempPluginCommand.register();
+  // Add styles after sync load but before async load to mimic Obsidian's behavior
+  if (cssText) {
+    // eslint-disable-next-line obsidianmd/no-forbidden-elements -- Need dynamic `style` element.
+    styleEl = document.head.createEl('style', {
+      attr: { id },
+      text: cssText
+    });
+  }
 
-    const originalUnload = tempPlugin.unload.bind(tempPlugin);
-    tempPlugin.unload = (): void => {
-      try {
-        originalUnload();
-      } catch (error) {
-        new Notice(`Failed to unload Temp Plugin: ${tempPluginClassName}. See console for details.`);
-        printError(error);
-      }
-      tempPlugins.delete(id);
-      plugin.removeCommand(unloadTempPluginCommand.originalId);
-      if (!plugin.settings.disableTempPluginLoadingNotifications) {
-        new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
-      }
-      styleEl?.remove();
-    };
-  });
+  try {
+    await loadPromise;
+  } catch (error) {
+    return onError(error);
+  } finally {
+    clearTimeout(loadTimeout);
+  }
+
+  unloadTempPluginCommand = new UnloadTempPluginCommand(plugin, tempPlugin, tempPluginClassName);
+  unloadTempPluginCommand.register();
+
+  if (!plugin.settings.disableTempPluginLoadingNotifications) {
+    new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
+  }
+
+  return tempPlugin;
 }
 
 export function unloadTempPlugins(): void {

@@ -15,8 +15,8 @@ export function createCodeScriptToolkitModule(plugin: Plugin): CodeScriptToolkit
     getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin {
       return getTempPlugin(tempPluginClass);
     },
-    registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
-      registerTempPlugin(plugin, tempPluginClass, cssText);
+    registerTempPlugin<T extends ObsidianPlugin = ObsidianPlugin>(tempPluginClass: TempPluginClass<T>, cssText?: string): Promise<null | T> {
+      return registerTempPlugin(plugin, tempPluginClass, cssText);
     },
     unregisterTempPlugin(tempPluginClassName: string | TempPluginClass): void {
       unregisterTempPlugin(tempPluginClassName);
