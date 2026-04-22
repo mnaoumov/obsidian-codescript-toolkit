@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 11.7.3
+
+- docs: add TFile
+- docs: add wiki-link
+- feat: make register temp plugin await plugin load, return it and unload it in case of errors
+- fix: unregister default temp plugin if none is provided
+- feat: allow importing TFile
+- feat: allow importing files through wiki-links
+- feat: allow getting temp plugins through code button context and codescript-toolkit module
+- feat: add setting to disable temp plugin loading notifications
+
 ## 11.7.2
 
 - docs: fix url
