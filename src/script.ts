@@ -30,33 +30,33 @@ interface StartupScript extends Script {
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 let startupScript: null | StartupScript = null;
 
-export async function cleanupStartupScript(plugin: CodeScriptToolkitComponent): Promise<void> {
+export async function cleanupStartupScript(app: App): Promise<void> {
   if (!startupScript) {
     return;
   }
 
-  await startupScript.cleanup?.(plugin.app);
+  await startupScript.cleanup?.(app);
   // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
   startupScript = null;
 }
 
-export async function invokeStartupScript(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
+export async function invokeStartupScript(app: App, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
   if (startupScript) {
     throw new Error('Startup script already invoked');
   }
 
-  const startupScriptPath = await validateStartupScript(plugin, pluginSettingsComponent);
+  const startupScriptPath = await validateStartupScript(app, pluginSettingsComponent);
   if (!startupScriptPath) {
     return;
   }
 
   // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
-  startupScript = await requireVaultScriptAsync(pluginSettingsComponent, startupScriptPath) as StartupScript;
-  await startupScript.invoke(plugin.app);
+  startupScript = await requireVaultScriptAsync(app, pluginSettingsComponent, startupScriptPath) as StartupScript;
+  await startupScript.invoke(app);
 }
 
-export async function registerInvocableScripts(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
-  unregisterInvocableCommands(plugin.app);
+export async function registerInvocableScripts(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
+  unregisterInvocableCommands(app);
 
   const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
 
@@ -64,27 +64,26 @@ export async function registerInvocableScripts(plugin: CodeScriptToolkitComponen
     return;
   }
 
-  if (!await plugin.app.vault.adapter.exists(invocableScriptsFolder)) {
+  if (!await app.vault.adapter.exists(invocableScriptsFolder)) {
     const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
     new Notice(message);
     console.error(message);
     return;
   }
 
-  const scriptPaths = await getAllScriptPaths(plugin.app, pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
+  const scriptPaths = await getAllScriptPaths(app, pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
 
   for (const scriptPath of scriptPaths) {
-    await new InvokeScriptPathCommand(plugin, scriptPath, pluginSettingsComponent).register();
+    await new InvokeScriptPathCommand(plugin, scriptPath, pluginSettingsComponent, app).register();
   }
 }
 
-export async function reloadStartupScript(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
-  await cleanupStartupScript(plugin);
-  await invokeStartupScript(plugin, pluginSettingsComponent);
+export async function reloadStartupScript(pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
+  await cleanupStartupScript(app);
+  await invokeStartupScript(app, pluginSettingsComponent);
 }
 
-export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
-  const app = plugin.app;
+export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
   const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
   let scriptPaths: string[];
 
@@ -109,7 +108,7 @@ export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent, 
   }
 
   if (!scriptPath.startsWith('Error:')) {
-    invokeScriptPath(plugin, scriptPath);
+    invokeScriptPath(plugin, scriptPath, app);
   }
 }
 
@@ -141,7 +140,7 @@ async function isInvocableMarkdownFile(app: App, path: string): Promise<boolean>
 }
 
 async function validateStartupScript(
-  plugin: CodeScriptToolkitComponent,
+  app: App,
   pluginSettingsComponent: PluginSettingsComponent,
   shouldWarnOnNotConfigured = false
 ): Promise<null | string> {
@@ -155,7 +154,7 @@ async function validateStartupScript(
     return null;
   }
 
-  if (!await plugin.app.vault.exists(startupScriptPath)) {
+  if (!await app.vault.exists(startupScriptPath)) {
     const message = `Startup script not found: ${startupScriptPath}`;
     new Notice(message);
     console.error(message);

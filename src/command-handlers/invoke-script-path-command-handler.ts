@@ -32,13 +32,14 @@ export class InvokeScriptPathCommand {
   public constructor(
     private readonly plugin: CodeScriptToolkitComponent,
     private readonly relativeScriptPath: string,
-    private readonly pluginSettingsComponent: PluginSettingsComponent
+    private readonly pluginSettingsComponent: PluginSettingsComponent,
+    private readonly app: App
   ) {}
 
   public async register(): Promise<void> {
     let scriptOrCommand: Partial<ScriptOrCommand>;
     try {
-      scriptOrCommand = await getScriptOrCommand(this.plugin, this.relativeScriptPath, this.pluginSettingsComponent);
+      scriptOrCommand = await getScriptOrCommand(this.app, this.relativeScriptPath, this.pluginSettingsComponent);
     } catch (error) {
       printError(new Error(`Error requiring script: ${this.relativeScriptPath}`, { cause: error }));
       return;
@@ -60,7 +61,7 @@ export class InvokeScriptPathCommand {
 
   private extractInvokeCommand(script: ScriptOrCommand): InvokeCommand {
     const baseInvokeCommand = {
-      app: this.plugin.app,
+      app: this.app,
       icon: 'play',
       id: `${INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX}${this.relativeScriptPath}`,
       name: `Invoke script: ${this.relativeScriptPath}`
@@ -79,7 +80,7 @@ export class InvokeScriptPathCommand {
         callback: (): void => {
           invokeAsyncSafely(async () => {
             try {
-              await script.invoke?.(this.plugin.app);
+              await script.invoke?.(this.app);
               this.plugin.consoleDebug(`${this.relativeScriptPath} invocable script executed successfully`);
             } catch (error) {
               printError(new Error(`Error invoking ${this.relativeScriptPath}`, { cause: error }));
@@ -94,14 +95,14 @@ export class InvokeScriptPathCommand {
   }
 }
 
-export function invokeScriptPath(plugin: CodeScriptToolkitComponent, relativeScriptPath: string): void {
+export function invokeScriptPath(plugin: CodeScriptToolkitComponent, relativeScriptPath: string, app: App): void {
   plugin.consoleDebug(`Invoking script: ${relativeScriptPath}.`);
 
   const commandId = relativeScriptPathCommandIdMap.get(relativeScriptPath);
   if (!commandId) {
     throw new Error(`No command registered for script path: ${relativeScriptPath}`);
   }
-  const command = plugin.app.commands.findCommand(commandId);
+  const command = app.commands.findCommand(commandId);
   if (!command) {
     throw new Error(`No command registered for script path: ${relativeScriptPath}`);
   }
@@ -144,11 +145,10 @@ export function unregisterInvocableCommands(app: App): void {
 }
 
 async function getScriptOrCommand(
-  plugin: CodeScriptToolkitComponent,
+  app: App,
   relativeScriptPath: string,
   pluginSettingsComponent: PluginSettingsComponent
 ): Promise<ScriptOrCommand> {
-  const app = plugin.app;
   let vaultScriptPath = join(pluginSettingsComponent.settings.getInvocableScriptsFolder(), relativeScriptPath);
   if (!await app.vault.adapter.exists(vaultScriptPath)) {
     throw new Error(`Script not found: '${relativeScriptPath}'.`);
@@ -163,7 +163,7 @@ async function getScriptOrCommand(
       vaultScriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
     }
   }
-  return await requireVaultScriptAsync(pluginSettingsComponent, vaultScriptPath) as Partial<ScriptOrCommand>;
+  return await requireVaultScriptAsync(app, pluginSettingsComponent, vaultScriptPath) as Partial<ScriptOrCommand>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- We need T to get proper prop type.

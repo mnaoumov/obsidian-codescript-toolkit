@@ -1,3 +1,5 @@
+import type { App } from 'obsidian';
+
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { DesktopRequireHandler } from '../desktop/require-handler.ts';
 import type { MobileRequireHandler } from '../mobile/require-handler.ts';
@@ -8,14 +10,14 @@ import { createRequireHandler as createDesktopRequireHandler } from '../desktop/
 import { createRequireHandler as createMobileRequireHandler } from '../mobile/require-handler.ts';
 import { RequireHandler } from '../require-handler.ts';
 
-class RequireHandlerImpl extends RequireHandler {
+export class EmulateMobileRequireHandler extends RequireHandler {
   private readonly desktopRequireHandler: DesktopRequireHandler;
   private readonly mobileRequireHandler: MobileRequireHandler;
 
-  public constructor(pluginSettingsComponent: PluginSettingsComponent) {
-    super(pluginSettingsComponent);
-    this.desktopRequireHandler = createDesktopRequireHandler(this.pluginSettingsComponent);
-    this.mobileRequireHandler = createMobileRequireHandler(this.pluginSettingsComponent);
+  public constructor(app: App, pluginSettingsComponent: PluginSettingsComponent) {
+    super(app, pluginSettingsComponent);
+    this.desktopRequireHandler = createDesktopRequireHandler(app, pluginSettingsComponent);
+    this.mobileRequireHandler = createMobileRequireHandler(app, pluginSettingsComponent);
   }
 
   public override register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
@@ -69,6 +71,6 @@ class RequireHandlerImpl extends RequireHandler {
   }
 }
 
-export function createRequireHandler(pluginSettingsComponent: PluginSettingsComponent): RequireHandler {
-  return new RequireHandlerImpl(pluginSettingsComponent);
+export function createRequireHandler(app: App, pluginSettingsComponent: PluginSettingsComponent): EmulateMobileRequireHandler {
+  return new EmulateMobileRequireHandler(app, pluginSettingsComponent);
 }

@@ -1,8 +1,10 @@
+import type { App } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 export abstract class ScriptFolderWatcher {
   protected get plugin(): CodeScriptToolkitComponent {
@@ -12,6 +14,8 @@ export abstract class ScriptFolderWatcher {
   private _plugin?: CodeScriptToolkitComponent;
 
   private wasRegisteredInPlugin = false;
+
+  public constructor(protected readonly app: App, protected readonly pluginSettingsComponent: PluginSettingsComponent) {}
 
   public async register(plugin: CodeScriptToolkitComponent, onChange: () => Promise<void>): Promise<void> {
     if (!this.wasRegisteredInPlugin) {

@@ -18,9 +18,6 @@ export class MobileScriptFolderWatcher extends ScriptFolderWatcher {
   private readonly modificationTimes = new Map<string, number>();
 
   private timeoutId: null | number = null;
-  public constructor(private readonly pluginSettingsComponent: PluginSettingsComponent) {
-    super();
-  }
 
   protected override async startWatcher(onChange: () => Promise<void>): Promise<boolean> {
     const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();
@@ -28,7 +25,7 @@ export class MobileScriptFolderWatcher extends ScriptFolderWatcher {
       return false;
     }
 
-    if (!(await this.plugin.app.vault.exists(invocableScriptsFolder))) {
+    if (!(await this.app.vault.exists(invocableScriptsFolder))) {
       const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
       new Notice(message);
       console.error(message);
@@ -76,7 +73,7 @@ export class MobileScriptFolderWatcher extends ScriptFolderWatcher {
       return;
     }
 
-    const modificationEntry = await this.checkFile(this.plugin.app, this.pluginSettingsComponent.settings.getInvocableScriptsFolder());
+    const modificationEntry = await this.checkFile(this.app, this.pluginSettingsComponent.settings.getInvocableScriptsFolder());
     if (modificationEntry.isChanged) {
       await onChange();
     }
@@ -90,6 +87,6 @@ export class MobileScriptFolderWatcher extends ScriptFolderWatcher {
   }
 }
 
-export function createScriptFolderWatcher(pluginSettingsComponent: PluginSettingsComponent): MobileScriptFolderWatcher {
-  return new MobileScriptFolderWatcher(pluginSettingsComponent);
+export function createScriptFolderWatcher(app: App, pluginSettingsComponent: PluginSettingsComponent): MobileScriptFolderWatcher {
+  return new MobileScriptFolderWatcher(app, pluginSettingsComponent);
 }

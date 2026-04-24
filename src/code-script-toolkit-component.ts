@@ -33,7 +33,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   private scriptFolderWatcher?: ScriptFolderWatcher;
 
   public constructor(
-    public readonly app: App,
+    private readonly app: App,
     private readonly pluginSettingsComponent: PluginSettingsComponent,
     private readonly consoleDebugComponent: ConsoleDebugComponent,
     public readonly plugin: Plugin
@@ -46,7 +46,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   }
 
   public async applyNewSettings(): Promise<void> {
-    await this.scriptFolderWatcher?.register(this, () => registerInvocableScripts(this, this.pluginSettingsComponent));
+    await this.scriptFolderWatcher?.register(this, () => registerInvocableScripts(this, this.pluginSettingsComponent, this.app));
   }
 
   public consoleDebug(message: string, ...args: unknown[]): void {
@@ -54,8 +54,8 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   }
 
   public async onLayoutReady(): Promise<void> {
-    await invokeStartupScript(this, this.pluginSettingsComponent);
-    this.register(() => cleanupStartupScript(this));
+    await invokeStartupScript(this.app, this.pluginSettingsComponent);
+    this.register(() => cleanupStartupScript(this.app));
 
     registerAsyncEvent(this, this.pluginSettingsComponent.on('loadSettings', this.applyNewSettings.bind(this)));
     registerAsyncEvent(this, this.pluginSettingsComponent.on('saveSettings', this.applyNewSettings.bind(this)));
@@ -64,11 +64,11 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   public override async onload(): Promise<void> {
     await super.onload();
     const platformDependencies = await getPlatformDependencies();
-    this.scriptFolderWatcher = platformDependencies.createScriptFolderWatcher(this.pluginSettingsComponent);
-    this.requireHandler = platformDependencies.createRequireHandler(this.pluginSettingsComponent);
+    this.scriptFolderWatcher = platformDependencies.createScriptFolderWatcher(this.app, this.pluginSettingsComponent);
+    this.requireHandler = platformDependencies.createRequireHandler(this.app, this.pluginSettingsComponent);
     this.requireHandler.register(this, require);
 
-    registerCodeButtonBlock(this, this.pluginSettingsComponent);
+    registerCodeButtonBlock(this, this.pluginSettingsComponent, this.app);
     await registerCodeScriptBlock(this);
   }
 

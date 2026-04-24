@@ -1,12 +1,15 @@
-import { Platform } from 'obsidian';
+import {
+  App,
+  Platform
+} from 'obsidian';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandler } from './require-handler.ts';
 import type { ScriptFolderWatcher } from './script-folder-watcher.ts';
 
 export interface PlatformDependencies {
-  createRequireHandler(pluginSettingsComponent: PluginSettingsComponent): RequireHandler;
-  createScriptFolderWatcher(pluginSettingsComponent: PluginSettingsComponent): ScriptFolderWatcher;
+  createRequireHandler(app: App, pluginSettingsComponent: PluginSettingsComponent): RequireHandler;
+  createScriptFolderWatcher(app: App, pluginSettingsComponent: PluginSettingsComponent): ScriptFolderWatcher;
 }
 
 interface PlatformDependenciesModule {

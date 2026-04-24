@@ -28,6 +28,7 @@ import { ConsoleWrapper } from './console-wrapper.ts';
 import { registerTempPlugin } from './temp-plugin-registry.ts';
 
 interface CodeButtonContextImplConstructorOptions {
+  app: App;
   config: CodeButtonBlockConfig;
   markdownInfo: CodeBlockMarkdownInformation | null;
   markdownPostProcessorContext: MarkdownPostProcessorContext;
@@ -53,7 +54,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
 
   public constructor(options: CodeButtonContextImplConstructorOptions) {
     super();
-    this.app = options.plugin.app;
+    this.app = options.app;
     this.config = options.config;
     this.markdownInfo = options.markdownInfo;
     this.markdownPostProcessorContext = options.markdownPostProcessorContext;
@@ -93,7 +94,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   }
 
   public registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
-    registerTempPlugin(this.plugin, tempPluginClass, cssText);
+    registerTempPlugin(this.app, this.plugin, tempPluginClass, cssText);
   }
 
   public async removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void> {

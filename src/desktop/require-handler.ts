@@ -1,6 +1,9 @@
 import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 
-import { FileSystemAdapter } from 'obsidian';
+import {
+  App,
+  FileSystemAdapter
+} from 'obsidian';
 import {
   getPrototypeOf,
   normalizeOptionalProperties
@@ -45,7 +48,7 @@ export class DesktopRequireHandler extends RequireHandler {
   private originalModulePrototypeRequire?: RequireFn;
 
   private get fileSystemAdapter(): FileSystemAdapter {
-    const adapter = this.plugin.app.vault.adapter;
+    const adapter = this.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) {
       throw new Error('Vault adapter is not a FileSystemAdapter.');
     }
@@ -152,7 +155,7 @@ ${this.getRequireAsyncAdvice(path)}`);
   protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
     await Promise.resolve();
     if (arrayBuffer) {
-      const tempDir = join(this.plugin.app.vault.configDir, 'temp');
+      const tempDir = join(this.app.vault.configDir, 'temp');
       if (!this.existsFolder(tempDir)) {
         await this.fsPromises.mkdir(tempDir);
       }
@@ -496,6 +499,6 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 }
 
-export function createRequireHandler(pluginSettingsComponent: PluginSettingsComponent): DesktopRequireHandler {
-  return new DesktopRequireHandler(pluginSettingsComponent);
+export function createRequireHandler(app: App, pluginSettingsComponent: PluginSettingsComponent): DesktopRequireHandler {
+  return new DesktopRequireHandler(app, pluginSettingsComponent);
 }

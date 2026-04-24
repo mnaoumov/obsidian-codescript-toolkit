@@ -1,4 +1,7 @@
-import { CapacitorAdapter } from 'obsidian';
+import {
+  App,
+  CapacitorAdapter
+} from 'obsidian';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 
@@ -9,7 +12,7 @@ import {
 
 export class MobileRequireHandler extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {
-    const adapter = this.plugin.app.vault.adapter;
+    const adapter = this.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {
       throw new Error('Vault adapter is not a CapacitorAdapter.');
     }
@@ -84,6 +87,6 @@ export class MobileRequireHandler extends RequireHandler {
   }
 }
 
-export function createRequireHandler(pluginSettingsComponent: PluginSettingsComponent): MobileRequireHandler {
-  return new MobileRequireHandler(pluginSettingsComponent);
+export function createRequireHandler(app: App, pluginSettingsComponent: PluginSettingsComponent): MobileRequireHandler {
+  return new MobileRequireHandler(app, pluginSettingsComponent);
 }

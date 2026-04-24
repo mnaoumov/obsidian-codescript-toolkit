@@ -1,4 +1,7 @@
-import type { Plugin as ObsidianPlugin } from 'obsidian';
+import type {
+  App,
+  Plugin as ObsidianPlugin
+} from 'obsidian';
 
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
@@ -12,9 +15,8 @@ import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-p
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
-export function registerTempPlugin(plugin: CodeScriptToolkitComponent, tempPluginClass: TempPluginClass, cssText?: string): void {
+export function registerTempPlugin(app: App, plugin: CodeScriptToolkitComponent, tempPluginClass: TempPluginClass, cssText?: string): void {
   const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
-  const app = plugin.app;
   const id = makeTempPluginId(tempPluginClassName);
 
   const existingPlugin = tempPlugins.get(id);

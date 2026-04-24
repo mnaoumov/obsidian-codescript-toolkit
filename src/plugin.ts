@@ -31,13 +31,13 @@ export class Plugin extends PluginBase {
       )
     );
     this.addChild(
-      new CommandHandlerComponent(this, new InvokeScriptChooseCommandHandler(codeScriptToolkitComponent, this.manifest.name, pluginSettingsComponent))
+      new CommandHandlerComponent(this, new InvokeScriptChooseCommandHandler(codeScriptToolkitComponent, this.manifest.name, pluginSettingsComponent, this.app))
     );
     this.addChild(new CommandHandlerComponent(this, new UnloadTempPluginsCommandHandler(this.manifest.name)));
-    this.addChild(new CommandHandlerComponent(this, new ClearCacheCommandHandler(this.manifest.name, pluginSettingsComponent)));
+    this.addChild(new CommandHandlerComponent(this, new ClearCacheCommandHandler(this.manifest.name, pluginSettingsComponent, this.app)));
     this.addChild(
-      new CommandHandlerComponent(this, new ReloadStartupScriptCommandHandler(codeScriptToolkitComponent, this.manifest.name, pluginSettingsComponent))
+      new CommandHandlerComponent(this, new ReloadStartupScriptCommandHandler(this.app, this.manifest.name, pluginSettingsComponent))
     );
-    this.addChild(new ProtocolHandlerComponent(codeScriptToolkitComponent, pluginSettingsComponent));
+    this.addChild(new ProtocolHandlerComponent(codeScriptToolkitComponent, pluginSettingsComponent, this.app));
   }
 }

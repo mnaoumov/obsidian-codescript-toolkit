@@ -1,4 +1,5 @@
 import type {
+  App,
   Editor,
   MarkdownPostProcessorContext,
   TFile
@@ -86,11 +87,11 @@ ${config}---
   editor.replaceSelection(newCodeBlock);
 }
 
-export function registerCodeButtonBlock(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): void {
+export function registerCodeButtonBlock(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent, app: App): void {
   registerCodeHighlighting();
   plugin.register(unregisterCodeHighlighting);
   plugin.registerMarkdownCodeBlockProcessor(CODE_BUTTON_BLOCK_LANGUAGE, (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
-    invokeAsyncSafely(() => processCodeButtonBlock(plugin, pluginSettingsComponent, source, el, ctx));
+    invokeAsyncSafely(() => processCodeButtonBlock(plugin, pluginSettingsComponent, source, el, ctx, app));
   });
 }
 
@@ -115,7 +116,7 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
   return undefined;
 }
 
-async function handleClick(options: HandleClickOptions, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
+async function handleClick(options: HandleClickOptions, pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
   options.codeButtonContext.container.empty();
   const wrappedConsole = new ConsoleWrapper(options.codeButtonContext.container);
   if (options.codeButtonContext.config.shouldShowSystemMessages) {
@@ -133,6 +134,7 @@ async function handleClick(options: HandleClickOptions, pluginSettingsComponent:
       options.codeButtonContext.config.shouldAutoOutput
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync(
+      app,
       pluginSettingsComponent,
       script,
       `${adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
@@ -202,14 +204,15 @@ async function processCodeButtonBlock(
   pluginSettingsComponent: PluginSettingsComponent,
   source: string,
   el: HTMLElement,
-  ctx: MarkdownPostProcessorContext
+  ctx: MarkdownPostProcessorContext,
+  app: App
 ): Promise<void> {
-  const sourceFile = getFile(plugin.app, ctx.sourcePath);
+  const sourceFile = getFile(app, ctx.sourcePath);
   lastButtonIndex++;
   const resultEl = el.createDiv({ cls: 'fix-require-modules console-log-container' });
 
   const markdownInfo = await getCodeBlockMarkdownInfo({
-    app: plugin.app,
+    app,
     ctx,
     el,
     source
@@ -241,7 +244,7 @@ ${stringifyYaml(config)}---
 ${code}
 \`\`\``;
             await replaceCodeBlock({
-              app: plugin.app,
+              app,
               codeBlockProvider: newCodeBlock,
               ctx: updateSourcePath(ctx, sourceFile),
               el,
@@ -285,7 +288,7 @@ ${code}
     el.createEl('button', {
       cls: 'mod-cta',
       async onclick(): Promise<void> {
-        await handleClick(createHandleClickOptions(), pluginSettingsComponent);
+        await handleClick(createHandleClickOptions(), pluginSettingsComponent, app);
       },
       prepend: true,
       text: fullConfig.caption
@@ -293,7 +296,7 @@ ${code}
   }
 
   if (fullConfig.shouldAutoRun) {
-    invokeAsyncSafely(() => handleClick(createHandleClickOptions(), pluginSettingsComponent));
+    invokeAsyncSafely(() => handleClick(createHandleClickOptions(), pluginSettingsComponent, app));
   }
 
   function createHandleClickOptions(): HandleClickOptions {
@@ -301,6 +304,7 @@ ${code}
       buttonIndex: lastButtonIndex,
       code,
       codeButtonContext: new CodeButtonContextImpl({
+        app,
         config: fullConfig,
         markdownInfo,
         markdownPostProcessorContext: updateSourcePath(ctx, sourceFile),

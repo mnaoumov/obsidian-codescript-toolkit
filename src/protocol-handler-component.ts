@@ -1,4 +1,7 @@
-import type { ObsidianProtocolData } from 'obsidian';
+import type {
+  App,
+  ObsidianProtocolData
+} from 'obsidian';
 
 import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
@@ -26,7 +29,11 @@ interface WindowWithRequireAsync {
 }
 
 export class ProtocolHandlerComponent extends Component {
-  public constructor(private readonly plugin: CodeScriptToolkitComponent, private readonly pluginSettingsComponent: PluginSettingsComponent) {
+  public constructor(
+    private readonly plugin: CodeScriptToolkitComponent,
+    private readonly pluginSettingsComponent: PluginSettingsComponent,
+    private readonly app: App
+  ) {
     super();
   }
 
@@ -69,7 +76,7 @@ export class ProtocolHandlerComponent extends Component {
       });
     }
 
-    await requireStringAsync(this.pluginSettingsComponent, parsedQuery.code, 'dynamic-script-from-url-handler.ts');
+    await requireStringAsync(this.app, this.pluginSettingsComponent, parsedQuery.code, 'dynamic-script-from-url-handler.ts');
   }
 }
 

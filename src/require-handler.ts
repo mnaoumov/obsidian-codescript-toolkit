@@ -4,6 +4,7 @@ import type { Promisable } from 'type-fest';
 
 import { debuggableEval } from 'debuggable-eval';
 import {
+  App,
   Platform,
   requestUrl
 } from 'obsidian';
@@ -193,7 +194,7 @@ export abstract class RequireHandler {
   private originalRequire?: NodeJS.Require;
   private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
-  public constructor(protected readonly pluginSettingsComponent: PluginSettingsComponent) {
+  public constructor(protected readonly app: App, protected readonly pluginSettingsComponent: PluginSettingsComponent) {
   }
 
   public clearCache(): void {
@@ -214,7 +215,7 @@ export abstract class RequireHandler {
     this._plugin = plugin;
     this.initSpecialModuleFactories();
 
-    const adapter = getDataAdapterEx(plugin.app);
+    const adapter = getDataAdapterEx(this.app);
     this.pluginRequire = pluginRequire;
     this.vaultAbsolutePath = toPosixPath(adapter.basePath);
     // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
@@ -223,7 +224,7 @@ export abstract class RequireHandler {
       cache: {}
     }, this.originalRequire) as RequireExFn;
     this.modulesCache = this.requireEx.cache;
-    new AllWindowsEventHandler(plugin.app, plugin).registerAllWindowsHandler((win) => {
+    new AllWindowsEventHandler(this.app, plugin).registerAllWindowsHandler((win) => {
       const requireWindow = win as Partial<RequireWindow>;
 
       requireWindow.require = this.requireEx;
@@ -752,9 +753,9 @@ export abstract class RequireHandler {
   }
 
   private initSpecialModuleFactories(): void {
-    this.specialModuleFactories.set('obsidian/app', () => this.plugin.app);
+    this.specialModuleFactories.set('obsidian/app', () => this.app);
     this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
-    this.specialModuleFactories.set('codescript-toolkit', () => createCodeScriptToolkitModule(this.plugin));
+    this.specialModuleFactories.set('codescript-toolkit', () => createCodeScriptToolkitModule(this.app, this.plugin));
     registerObsidianDevUtilsModule(this.specialModuleFactories);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
@@ -1097,7 +1098,7 @@ export abstract class RequireHandler {
   }
 
   private resolveRelativeOrModule(id: string, parentPath?: string): ResolveResult {
-    parentPath = parentPath ? toPosixPath(parentPath) : this.getParentPathFromCallStack() ?? this.plugin.app.workspace.getActiveFile()?.path ?? 'fakeRoot.js';
+    parentPath = parentPath ? toPosixPath(parentPath) : this.getParentPathFromCallStack() ?? this.app.workspace.getActiveFile()?.path ?? 'fakeRoot.js';
     if (!isAbsolute(parentPath)) {
       parentPath = join(this.vaultAbsolutePath ?? '', parentPath);
     }
