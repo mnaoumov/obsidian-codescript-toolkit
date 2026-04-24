@@ -1,15 +1,15 @@
+import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { PluginRequireFn } from '../require-handler.ts';
 
 import { requireHandler as desktopRequireHandler } from '../desktop/require-handler.ts';
 import { requireHandler as mobileRequireHandler } from '../mobile/require-handler.ts';
 import { RequireHandler } from '../require-handler.ts';
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 
 class RequireHandlerImpl extends RequireHandler {
-  public override async register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): Promise<void> {
-    await super.register(plugin, pluginRequire);
-    await desktopRequireHandler.register(plugin, pluginRequire);
-    await mobileRequireHandler.register(plugin, pluginRequire);
+  public override register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
+    super.register(plugin, pluginRequire);
+    desktopRequireHandler.register(plugin, pluginRequire);
+    mobileRequireHandler.register(plugin, pluginRequire);
   }
 
   protected override canRequireNonCached(): boolean {

@@ -3,12 +3,12 @@ import type { Plugin as ObsidianPlugin } from 'obsidian';
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
+import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 
 import type { TempPluginClass } from './code-button-context.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 import { UnloadTempPluginCommandHandler } from './commands/unload-temp-plugin-command.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
-import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
@@ -54,7 +54,7 @@ export function registerTempPlugin(plugin: CodeScriptToolkitComponent, tempPlugi
     let styleEl: HTMLStyleElement | null = null;
     new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
     if (cssText) {
-      // eslint-disable-next-line obsidianmd/no-forbidden-elements -- Need dynamic `style` element.
+      // eslint-disable-next-line obsidianmd/no-forbidden-elements, obsidianmd/prefer-active-doc -- Need dynamic `style` element. Need main document.
       styleEl = document.head.createEl('style', {
         attr: { id },
         text: cssText

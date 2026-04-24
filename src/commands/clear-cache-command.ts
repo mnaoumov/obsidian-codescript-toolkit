@@ -1,5 +1,6 @@
-import { getPlatformDependencies } from '../platform-dependencies.ts';
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
+
+import { getPlatformDependencies } from '../platform-dependencies.ts';
 
 export class ClearCacheCommandHandler extends GlobalCommandHandler {
   public constructor(pluginName: string) {

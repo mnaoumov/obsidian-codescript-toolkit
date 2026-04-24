@@ -8,6 +8,8 @@ import {
   join
 } from 'obsidian-dev-utils/path';
 
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
+
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import {
   invokeScriptPath,
@@ -15,7 +17,6 @@ import {
   unregisterInvocableCommands
 } from './commands/invoke-script-path-command.ts';
 import { requireVaultScriptAsync } from './require-handler-utils.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 export interface Script {
   invoke(app: App): Promisable<void>;
@@ -107,7 +108,7 @@ export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent):
   }
 
   if (!scriptPath.startsWith('Error:')) {
-    await invokeScriptPath(plugin, scriptPath);
+    invokeScriptPath(plugin, scriptPath);
   }
 }
 

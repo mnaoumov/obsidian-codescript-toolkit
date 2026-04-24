@@ -1,7 +1,9 @@
 import type { App } from 'obsidian';
+import type { PluginSettingsComponentParams } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { parseYaml } from 'obsidian';
+import { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
 import {
   extname,
   join
@@ -11,7 +13,6 @@ import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 
 import { PluginSettings } from './plugin-settings.ts';
 import { EXTENSIONS } from './require-handler.ts';
-import { PluginSettingsComponentBase, type PluginSettingsComponentParams } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
 
 class LegacySettings {
   public invocableScriptsDirectory = '';

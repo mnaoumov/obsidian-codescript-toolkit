@@ -1,6 +1,8 @@
-import { reloadStartupScript } from '../script.ts';
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
+
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
+
+import { reloadStartupScript } from '../script.ts';
 
 export class ReloadStartupScriptCommandHandler extends GlobalCommandHandler {
   public constructor(private readonly plugin: CodeScriptToolkitComponent, pluginName: string) {

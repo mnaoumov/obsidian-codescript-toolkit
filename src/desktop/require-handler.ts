@@ -12,6 +12,7 @@ import {
   toPosixPath
 } from 'obsidian-dev-utils/path';
 
+import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type {
   PluginRequireFn,
   RequireFn
@@ -36,7 +37,6 @@ import {
   CacheInvalidationMode,
   ModuleType
 } from '../types.ts';
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 
 class RequireHandlerImpl extends RequireHandler {
   private _fs?: typeof import('node:fs');
@@ -98,9 +98,10 @@ class RequireHandlerImpl extends RequireHandler {
     return arrayBuffer;
   }
 
-  public override async register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): Promise<void> {
-    await super.register(plugin, pluginRequire);
+  public override register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
+    super.register(plugin, pluginRequire);
 
+    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
     const moduleProto = getPrototypeOf(window.module);
     registerPatch(plugin, moduleProto, {
       require: (next: RequireFn): RequireFn => {
@@ -261,7 +262,7 @@ ${this.getRequireAsyncAdvice(path)}`);
               console.warn(errorMessage);
               break;
             default:
-              throw new Error(`Unknown cacheInvalidationMode: '${cacheInvalidationMode as unknown as string}'.`);
+              throw new Error(`Unknown cacheInvalidationMode: '${String(cacheInvalidationMode)}'.`);
           }
           break;
         }
@@ -342,6 +343,7 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 
   private originalModulePrototypeRequireWrapped(id: string, options: Partial<RequireOptions>): unknown {
+    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
     const module = options.parentModule ?? window.module;
     return this.originalModulePrototypeRequire?.call(module, id, options);
   }

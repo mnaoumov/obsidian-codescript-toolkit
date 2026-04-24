@@ -1,21 +1,23 @@
+import type { PluginSettingsTabBaseParams } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
+
 import {
   Events,
   stringifyYaml
 } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { appendCodeBlock } from 'obsidian-dev-utils/html-element';
-import { PluginSettingsTabBase, type PluginSettingsTabBaseParams } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
+import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
 import { SettingEx } from 'obsidian-dev-utils/obsidian/setting-ex';
+
+import type { PluginSettings } from './plugin-settings.ts';
 
 import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from './code-button-block.ts';
 import { addPathSuggest } from './path-suggest.ts';
-import type { PluginSettings } from './plugin-settings.ts';
 
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
   public constructor(params: PluginSettingsTabBaseParams<PluginSettings>, private readonly pluginName: string) {
     super(params);
   }
-
 
   public override display(): void {
     super.display();
@@ -107,11 +109,10 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
     const MAX_CHECKING_INTERVAL_IN_SECONDS = MAX_INTERVAL_FOR_SET_TIMEOUT / MILLISECONDS_IN_SECOND;
 
     new SettingEx(this.containerEl)
-      // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
       .setName('Mobile: Changes checking interval')
       .setDesc(createFragment((f) => {
         f.appendText('Interval in seconds to check for changes in the invocable scripts folder ');
-        f.createEl('strong', { text: '(only on mobile)' });
+        f.createEl('strong', { text: '(Only on mobile)' });
         f.appendText('.');
         f.createEl('br');
         f.appendText('Set ');
@@ -125,7 +126,6 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
       });
 
     new SettingEx(this.containerEl)
-      // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
       .setName('Desktop: Synchronous fallback')
       .setDesc(createFragment((f) => {
         f.appendText('Whether to use a synchronous ');
@@ -133,7 +133,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
         f.appendText('fallback if ');
         appendCodeBlock(f, 'requireAsync()');
         f.appendText(' failed ');
-        f.createEl('strong', { text: '(only on desktop)' });
+        f.createEl('strong', { text: '(Only on desktop)' });
         f.appendText('.');
       }))
       .addToggle((toggle) => {

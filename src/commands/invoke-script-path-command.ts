@@ -9,11 +9,11 @@ import { printError } from 'obsidian-dev-utils/error';
 import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
 import { join } from 'obsidian-dev-utils/path';
 
+import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { Script } from '../script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from '../code-script-toolkit-note-settings.ts';
 import { requireVaultScriptAsync } from '../require-handler-utils.ts';
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 
 export const INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX = 'invoke-script-file-';
 
@@ -89,7 +89,7 @@ export class InvokeScriptPathCommand {
   }
 }
 
-export async function invokeScriptPath(plugin: CodeScriptToolkitComponent, relativeScriptPath: string): Promise<void> {
+export function invokeScriptPath(plugin: CodeScriptToolkitComponent, relativeScriptPath: string): void {
   plugin.consoleDebug(`Invoking script: ${relativeScriptPath}.`);
 
   const commandId = relativeScriptPathCommandIdMap.get(relativeScriptPath);

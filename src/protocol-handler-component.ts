@@ -3,9 +3,11 @@ import type { ObsidianProtocolData } from 'obsidian';
 import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { toJson } from 'obsidian-dev-utils/object-utils';
+import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
+
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 import { requireStringAsync } from './require-handler-utils.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
@@ -71,8 +73,9 @@ export class ProtocolHandlerComponent extends Component {
 }
 
 async function invokeModuleFn(moduleSpecifier: string, functionName: string, args: unknown[]): Promise<void> {
-  const windowWithRequireAsync = window as unknown as WindowWithRequireAsync;
-  const module = await windowWithRequireAsync.requireAsync(moduleSpecifier);
+  // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
+  const windowWithRequireAsync = window as Partial<WindowWithRequireAsync>;
+  const module = await ensureNonNullable(windowWithRequireAsync.requireAsync)(moduleSpecifier);
   const fn = module[functionName];
   if (typeof fn === 'undefined') {
     throw new Error(`Function ${functionName} in module ${moduleSpecifier} is not defined.`);

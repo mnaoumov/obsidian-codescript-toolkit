@@ -31,6 +31,7 @@ import { getDataAdapterEx } from 'obsidian-typings/implementations';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
@@ -39,7 +40,6 @@ import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-p
 import { CodeButtonContextImpl } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { requireStringAsync } from './require-handler-utils.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
@@ -307,10 +307,12 @@ ${code}
 }
 
 function registerCodeHighlighting(): void {
+  // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
   window.CodeMirror.defineMode(CODE_BUTTON_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'text/typescript'));
 }
 
 function unregisterCodeHighlighting(): void {
+  // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
   window.CodeMirror.defineMode(CODE_BUTTON_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'null'));
 }
 

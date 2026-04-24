@@ -1,11 +1,10 @@
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
-import { selectAndInvokeScript } from '../script.ts';
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
+import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
+
+import { selectAndInvokeScript } from '../script.ts';
+
 export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
-  protected override async execute(): Promise<void> {
-    await selectAndInvokeScript(this.plugin);
-  }
   public constructor(private readonly plugin: CodeScriptToolkitComponent, pluginName: string) {
     super({
       icon: 'circle-play',
@@ -13,5 +12,9 @@ export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
       name: 'Invoke script: <<Choose>>',
       pluginName
     });
+  }
+
+  protected override async execute(): Promise<void> {
+    await selectAndInvokeScript(this.plugin);
   }
 }

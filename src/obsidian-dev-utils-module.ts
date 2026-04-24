@@ -16,7 +16,7 @@ const PROPERTY_PATH_SEPARATOR = '.';
 const ROOT_EXPORT_PATH = '.';
 const WILDCARD_EXPORT_PATH = '*';
 
-export async function registerObsidianDevUtilsModule(specialModuleFactories: Map<string, (options: Partial<RequireOptions>) => unknown>): Promise<void> {
+export function registerObsidianDevUtilsModule(specialModuleFactories: Map<string, (options: Partial<RequireOptions>) => unknown>): void {
   specialModuleFactories.set(LIB_NAME, () => obsidianDevUtils);
 
   for (const exportPath of Object.keys(packageJson.exports)) {

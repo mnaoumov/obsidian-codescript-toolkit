@@ -1,22 +1,49 @@
-import { AsyncComponentBase } from "obsidian-dev-utils/obsidian/components/async-component";
-import type { LayoutReadyComponent } from "obsidian-dev-utils/obsidian/plugin/components/layout-ready-component";
-import { cleanupStartupScript, invokeStartupScript, registerInvocableScripts } from "./script.ts";
-import type { App, Command, MarkdownPostProcessor, MarkdownPostProcessorContext, ObsidianProtocolHandler } from "obsidian";
-import type { ReadonlyPluginSettings } from "obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component";
-import type { PluginSettingsComponent } from "./plugin-settings-component.ts";
-import type { PluginSettings } from "./plugin-settings.ts";
-import { registerCodeButtonBlock } from "./code-button-block.ts";
-import { registerCodeScriptBlock } from "./code-script-block.ts";
-import { getPlatformDependencies } from "./platform-dependencies.ts";
-import type { RequireHandler } from "./require-handler.ts";
-import type { ScriptFolderWatcher } from "./script-folder-watcher.ts";
-import type { ConsoleDebugComponent } from "obsidian-dev-utils/obsidian/plugin/components/console-debug-component";
-import type { Plugin } from "obsidian";
-import type { CodeButtonBlockConfig } from "./code-button-block-config.ts";
-import { registerAsyncEvent } from "obsidian-dev-utils/obsidian/components/async-events-component";
+import type {
+  App,
+  Command,
+  MarkdownPostProcessor,
+  MarkdownPostProcessorContext,
+  ObsidianProtocolHandler,
+  Plugin
+} from 'obsidian';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
+import type { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/plugin/components/layout-ready-component';
+import type { ReadonlyPluginSettings } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
+import type { MaybeReturn } from 'obsidian-dev-utils/type';
+
+import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
+import { registerAsyncEvent } from 'obsidian-dev-utils/obsidian/components/async-events-component';
+
+import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { PluginSettings } from './plugin-settings.ts';
+import type { RequireHandler } from './require-handler.ts';
+import type { ScriptFolderWatcher } from './script-folder-watcher.ts';
+
+import { registerCodeButtonBlock } from './code-button-block.ts';
+import { registerCodeScriptBlock } from './code-script-block.ts';
+import { getPlatformDependencies } from './platform-dependencies.ts';
+import {
+  cleanupStartupScript,
+  invokeStartupScript,
+  registerInvocableScripts
+} from './script.ts';
 
 export class CodeScriptToolkitComponent extends AsyncComponentBase implements LayoutReadyComponent {
-  public constructor(public readonly app: App, private readonly pluginSettingsComponent: PluginSettingsComponent, private readonly consoleDebugComponent: ConsoleDebugComponent, public readonly plugin: Plugin) {
+  public get settings(): ReadonlyPluginSettings<PluginSettings> {
+    return this.pluginSettingsComponent.settings;
+  }
+
+  private requireHandler?: RequireHandler;
+
+  private scriptFolderWatcher?: ScriptFolderWatcher;
+
+  public constructor(
+    public readonly app: App,
+    private readonly pluginSettingsComponent: PluginSettingsComponent,
+    private readonly consoleDebugComponent: ConsoleDebugComponent,
+    public readonly plugin: Plugin
+  ) {
     super();
   }
 
@@ -24,12 +51,12 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     return this.plugin.addCommand(command);
   }
 
-  public removeCommand(commandId: string): void {
-    this.plugin.removeCommand(commandId);
+  public async applyNewSettings(): Promise<void> {
+    await this.scriptFolderWatcher?.register(this, () => registerInvocableScripts(this));
   }
 
-  public registerObsidianProtocolHandler(action: string, handler: ObsidianProtocolHandler): void {
-    this.plugin.registerObsidianProtocolHandler(action, handler);
+  public consoleDebug(message: string, ...args: unknown[]): void {
+    this.consoleDebugComponent.debug(message, ...args);
   }
 
   public async onLayoutReady(): Promise<void> {
@@ -40,37 +67,34 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     registerAsyncEvent(this, this.pluginSettingsComponent.on('saveSettings', this.applyNewSettings.bind(this)));
   }
 
-  public get settings(): ReadonlyPluginSettings<PluginSettings> {
-    return this.pluginSettingsComponent.settings;
-  }
+  public override async onload(): Promise<void> {
+    await super.onload();
+    const platformDependencies = await getPlatformDependencies();
+    this.scriptFolderWatcher = platformDependencies.scriptFolderWatcher;
+    this.requireHandler = platformDependencies.requireHandler;
+    this.requireHandler.register(this, require);
 
-  public registerMarkdownCodeBlockProcessor(language: string, handler: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => Promise<any> | void, sortOrder?: number): MarkdownPostProcessor {
-    return this.plugin.registerMarkdownCodeBlockProcessor(language, handler, sortOrder);
+    registerCodeButtonBlock(this);
+    await registerCodeScriptBlock(this);
   }
 
   public parseDefaultCodeButtonConfig(): null | Partial<CodeButtonBlockConfig> {
     return this.pluginSettingsComponent.parseDefaultCodeButtonConfig();
   }
 
-  private requireHandler?: RequireHandler;
-  private scriptFolderWatcher?: ScriptFolderWatcher;
-
-  public async applyNewSettings(): Promise<void> {
-    await this.scriptFolderWatcher?.register(this, () => registerInvocableScripts(this));
+  public registerMarkdownCodeBlockProcessor(
+    language: string,
+    handler: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => MaybeReturn<Promise<unknown>>,
+    sortOrder?: number
+  ): MarkdownPostProcessor {
+    return this.plugin.registerMarkdownCodeBlockProcessor(language, handler, sortOrder);
   }
 
-  public consoleDebug(message: string, ...args: unknown[]): void{
-    this.consoleDebugComponent.debug(message, ...args);
+  public registerObsidianProtocolHandler(action: string, handler: ObsidianProtocolHandler): void {
+    this.plugin.registerObsidianProtocolHandler(action, handler);
   }
 
-  public override async onload(): Promise<void> {
-    await super.onload();
-    const platformDependencies = await getPlatformDependencies();
-    this.scriptFolderWatcher = platformDependencies.scriptFolderWatcher;
-    this.requireHandler = platformDependencies.requireHandler;
-    await this.requireHandler.register(this, require);
-
-    registerCodeButtonBlock(this);
-    await registerCodeScriptBlock(this);
+  public removeCommand(commandId: string): void {
+    this.plugin.removeCommand(commandId);
   }
 }

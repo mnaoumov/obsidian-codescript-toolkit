@@ -3,7 +3,6 @@ import type { TransformResult } from './babel-plugin-base.ts';
 import { BabelPluginBase } from './babel-plugin-base.ts';
 
 type MapDataListToPlugins<DataList extends unknown[]> = {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments -- Required: DataList[Data] resolves to `unknown` at the constraint level but carries specific types when DataList is instantiated with a concrete tuple.
   [Data in keyof DataList]: BabelPluginBase<DataList[Data]>;
 };
 

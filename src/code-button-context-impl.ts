@@ -22,10 +22,10 @@ import type {
   CodeButtonContext,
   TempPluginClass
 } from './code-button-context.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { registerTempPlugin } from './temp-plugin-registry.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 interface CodeButtonContextImplConstructorOptions {
   config: CodeButtonBlockConfig;

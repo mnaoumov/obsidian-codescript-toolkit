@@ -1,4 +1,5 @@
 import type { Plugin as ObsidianPlugin } from 'obsidian';
+
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
 export class UnloadTempPluginCommandHandler extends GlobalCommandHandler {
@@ -11,7 +12,7 @@ export class UnloadTempPluginCommandHandler extends GlobalCommandHandler {
     });
   }
 
-  public override async execute(): Promise<void> {
+  public override execute(): void {
     this.tempPlugin.unload();
   }
 }

@@ -30,6 +30,7 @@ import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import type {
   ParentPathOptions,
   require,
@@ -58,7 +59,6 @@ import {
   CacheInvalidationMode,
   ModuleType
 } from './types.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 export enum ResolvedType {
   Module = 'module',
@@ -206,13 +206,14 @@ export abstract class RequireHandler {
     }
   }
 
-  public async register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): Promise<void> {
+  public register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
     this._plugin = plugin;
-    await this.initSpecialModuleFactories();
+    this.initSpecialModuleFactories();
 
     const adapter = getDataAdapterEx(plugin.app);
     this.pluginRequire = pluginRequire;
     this.vaultAbsolutePath = toPosixPath(adapter.basePath);
+    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
     this.originalRequire = window.require;
     this._requireEx = Object.assign(this.require.bind(this), {
       cache: {}
@@ -296,7 +297,7 @@ export abstract class RequireHandler {
           }
           break;
         default:
-          throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as unknown as string}'.`);
+          throw new Error(`Unknown cacheInvalidationMode: '${String(fullOptions.cacheInvalidationMode)}'.`);
       }
     }
 
@@ -744,11 +745,11 @@ export abstract class RequireHandler {
     }
   }
 
-  private async initSpecialModuleFactories(): Promise<void> {
+  private initSpecialModuleFactories(): void {
     this.specialModuleFactories.set('obsidian/app', () => this.plugin.app);
     this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
     this.specialModuleFactories.set('codescript-toolkit', () => createCodeScriptToolkitModule(this.plugin));
-    await registerObsidianDevUtilsModule(this.specialModuleFactories);
+    registerObsidianDevUtilsModule(this.specialModuleFactories);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
       this.specialModuleFactories.set(id, () => this.pluginRequire?.(id));
@@ -871,7 +872,7 @@ export abstract class RequireHandler {
           }
           break;
         default:
-          throw new Error(`Unknown cacheInvalidationMode: '${fullOptions.cacheInvalidationMode as unknown as string}'.`);
+          throw new Error(`Unknown cacheInvalidationMode: '${String(fullOptions.cacheInvalidationMode)}'.`);
       }
     }
 
