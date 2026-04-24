@@ -16,93 +16,93 @@
   .code-highlighter-component textarea.default-code-button-config-control {
     height: 18em;
   }
-}
 
-.fix-require-modules.console-log-container {
-  font-family: "Courier New", monospace;
-  line-height: 1.5;
-  border: 1px solid var(--console-log-container-border-color);
-  border-radius: 6px;
-  background-color: var(--console-log-container-background-color);
-  padding: 10px;
-  margin: 10px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  white-space: pre-wrap;
+  &.console-log-container {
+    font-family: "Courier New", monospace;
+    line-height: 1.5;
+    border: 1px solid var(--console-log-container-border-color);
+    border-radius: 6px;
+    background-color: var(--console-log-container-background-color);
+    padding: 10px;
+    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: pre-wrap;
 
-  .system-message {
-    background-color: var(--console-log-entry-system-background-color);
-    color: var(--console-log-entry-system-color);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-style: italic;
-    font-weight: bold;
-    margin-bottom: 10px;
-
-    a {
-      color: var(--console-log-container-background-color);
+    .system-message {
+      background-color: var(--console-log-entry-system-background-color);
+      color: var(--console-log-entry-system-color);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-style: italic;
       font-weight: bold;
+      margin-bottom: 10px;
+
+      a {
+        color: var(--console-log-container-background-color);
+        font-weight: bold;
+      }
     }
-  }
 
-  .console-log-entry {
-    padding: 5px 10px;
-    margin: 5px 0;
-    border-radius: 3px;
+    .console-log-entry {
+      padding: 5px 10px;
+      margin: 5px 0;
+      border-radius: 3px;
 
-    &::before {
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 5px;
+      &::before {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 5px;
+      }
     }
-  }
 
-  .console-log-entry-log {
-    color: var(--console-log-entry-log-color);
-  }
-
-  .console-log-entry-debug {
-    color: var(--console-log-entry-debug-color);
-    background-color: var(--console-log-entry-debug-background-color);
-    padding: 2px 4px;
-    border-radius: 3px;
-
-    &::before {
-      content: "🐞 ";
+    .console-log-entry-log {
+      color: var(--console-log-entry-log-color);
     }
-  }
 
-  .console-log-entry-info {
-    color: var(--console-log-entry-info-color);
-    background-color: var(--console-log-entry-info-background-color);
-    padding: 2px 4px;
-    border-radius: 3px;
+    .console-log-entry-debug {
+      color: var(--console-log-entry-debug-color);
+      background-color: var(--console-log-entry-debug-background-color);
+      padding: 2px 4px;
+      border-radius: 3px;
 
-    &::before {
-      content: "ℹ ";
+      &::before {
+        content: "🐞 ";
+      }
     }
-  }
 
-  .console-log-entry-warn {
-    color: var(--console-log-entry-warn-color);
-    background-color: var(--console-log-entry-warn-background-color);
-    font-weight: bold;
-    padding: 2px 4px;
-    border-radius: 3px;
+    .console-log-entry-info {
+      color: var(--console-log-entry-info-color);
+      background-color: var(--console-log-entry-info-background-color);
+      padding: 2px 4px;
+      border-radius: 3px;
 
-    &::before {
-      content: "⚠ ";
+      &::before {
+        content: "ℹ ";
+      }
     }
-  }
 
-  .console-log-entry-error {
-    color: var(--console-log-entry-error-color);
-    background-color: var(--console-log-entry-error-background-color);
-    font-weight: bold;
-    padding: 2px 4px;
-    border-radius: 3px;
+    .console-log-entry-warn {
+      color: var(--console-log-entry-warn-color);
+      background-color: var(--console-log-entry-warn-background-color);
+      font-weight: bold;
+      padding: 2px 4px;
+      border-radius: 3px;
 
-    &::before {
-      content: "❌ ";
+      &::before {
+        content: "⚠ ";
+      }
+    }
+
+    .console-log-entry-error {
+      color: var(--console-log-entry-error-color);
+      background-color: var(--console-log-entry-error-background-color);
+      font-weight: bold;
+      padding: 2px 4px;
+      border-radius: 3px;
+
+      &::before {
+        content: "❌ ";
+      }
     }
   }
 }
