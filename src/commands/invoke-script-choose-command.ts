@@ -1,0 +1,31 @@
+import { CommandInvocationBase } from 'obsidian-dev-utils/obsidian/commands/command-base';
+import { NonEditorCommandBase } from 'obsidian-dev-utils/obsidian/commands/non-editor-command-base';
+
+import type { Plugin } from '../plugin.ts';
+
+import { selectAndInvokeScript } from '../script.ts';
+
+class InvokeScriptChooseCommandInvocation extends CommandInvocationBase<Plugin> {
+  public constructor(plugin: Plugin) {
+    super(plugin);
+  }
+
+  public override async execute(): Promise<void> {
+    await selectAndInvokeScript(this.plugin);
+  }
+}
+
+export class InvokeScriptChooseCommand extends NonEditorCommandBase<Plugin> {
+  public constructor(plugin: Plugin) {
+    super({
+      icon: 'circle-play',
+      id: 'invoke-script',
+      name: 'Invoke script: <<Choose>>',
+      plugin
+    });
+  }
+
+  protected override createCommandInvocation(): CommandInvocationBase {
+    return new InvokeScriptChooseCommandInvocation(this.plugin);
+  }
+}
