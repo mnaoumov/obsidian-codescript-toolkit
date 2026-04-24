@@ -12,7 +12,6 @@ import {
   toPosixPath
 } from 'obsidian-dev-utils/path';
 
-import type { Plugin } from '../plugin.ts';
 import type {
   PluginRequireFn,
   RequireFn
@@ -37,6 +36,7 @@ import {
   CacheInvalidationMode,
   ModuleType
 } from '../types.ts';
+import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 
 class RequireHandlerImpl extends RequireHandler {
   private _fs?: typeof import('node:fs');
@@ -98,7 +98,7 @@ class RequireHandlerImpl extends RequireHandler {
     return arrayBuffer;
   }
 
-  public override async register(plugin: Plugin, pluginRequire: PluginRequireFn): Promise<void> {
+  public override async register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): Promise<void> {
     await super.register(plugin, pluginRequire);
 
     const moduleProto = getPrototypeOf(window.module);

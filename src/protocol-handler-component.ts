@@ -4,9 +4,8 @@ import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { toJson } from 'obsidian-dev-utils/object-utils';
 
-import type { Plugin } from './plugin.ts';
-
 import { requireStringAsync } from './require-handler-utils.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
@@ -24,7 +23,7 @@ interface WindowWithRequireAsync {
 }
 
 export class ProtocolHandlerComponent extends Component {
-  public constructor(private readonly plugin: Plugin) {
+  public constructor(private readonly plugin: CodeScriptToolkitComponent) {
     super();
   }
 

@@ -4,15 +4,19 @@ import {
 } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { appendCodeBlock } from 'obsidian-dev-utils/html-element';
-import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab-base';
+import { PluginSettingsTabBase, type PluginSettingsTabBaseParams } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
 import { SettingEx } from 'obsidian-dev-utils/obsidian/setting-ex';
-
-import type { PluginTypes } from './plugin-types.ts';
 
 import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from './code-button-block.ts';
 import { addPathSuggest } from './path-suggest.ts';
+import type { PluginSettings } from './plugin-settings.ts';
 
-export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
+export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
+  public constructor(params: PluginSettingsTabBaseParams<PluginSettings>, private readonly pluginName: string) {
+    super(params);
+  }
+
+
   public override display(): void {
     super.display();
     this.containerEl.empty();
@@ -37,7 +41,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
           // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
           .setPlaceholder('path/to/script/modules/root');
 
-        addPathSuggest(this.plugin.app, text.inputEl, () => '', 'folder');
+        addPathSuggest(this.app, text.inputEl, () => '', 'folder');
       });
 
     new SettingEx(this.containerEl)
@@ -55,7 +59,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
           // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
           .setPlaceholder('path/to/invocable/scripts/folder');
 
-        const suggest = addPathSuggest(this.plugin.app, text.inputEl, () => this.plugin.settings.modulesRoot, 'folder');
+        const suggest = addPathSuggest(this.app, text.inputEl, () => this.pluginSettingsComponent.settings.modulesRoot, 'folder');
 
         events.on('modulesRootChanged', () => {
           text.onChanged();
@@ -76,7 +80,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
       .addText((text) => {
         this.bind(text, 'startupScriptPath')
           .setPlaceholder('path/to/startup.ts');
-        const suggest = addPathSuggest(this.plugin.app, text.inputEl, () => this.plugin.settings.modulesRoot, 'file');
+        const suggest = addPathSuggest(this.app, text.inputEl, () => this.pluginSettingsComponent.settings.modulesRoot, 'file');
 
         events.on('modulesRootChanged', () => {
           text.onChanged();
@@ -93,7 +97,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
           .setTooltip('Configure hotkeys')
           .onClick(() => {
             const hotkeysTab = this.app.setting.openTabById('hotkeys');
-            hotkeysTab.searchComponent.setValue(`${this.plugin.manifest.name}:`);
+            hotkeysTab.searchComponent.setValue(`${this.pluginName}:`);
             hotkeysTab.updateHotkeyVisibility();
           })
       );
@@ -168,7 +172,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginTypes> {
           .setWarning()
           .onClick(() => {
             invokeAsyncSafely(async () => {
-              await this.plugin.settingsManager.editAndSave((settings) => {
+              await this.pluginSettingsComponent.editAndSave((settings) => {
                 const yaml = stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG);
                 settings.defaultCodeButtonConfig = `---\n${yaml}---`;
               });

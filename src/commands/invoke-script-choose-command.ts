@@ -1,31 +1,17 @@
-import { CommandInvocationBase } from 'obsidian-dev-utils/obsidian/commands/command-base';
-import { NonEditorCommandBase } from 'obsidian-dev-utils/obsidian/commands/non-editor-command-base';
-
-import type { Plugin } from '../plugin.ts';
-
+import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import { selectAndInvokeScript } from '../script.ts';
+import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
-class InvokeScriptChooseCommandInvocation extends CommandInvocationBase<Plugin> {
-  public constructor(plugin: Plugin) {
-    super(plugin);
-  }
-
-  public override async execute(): Promise<void> {
+export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
+  protected override async execute(): Promise<void> {
     await selectAndInvokeScript(this.plugin);
   }
-}
-
-export class InvokeScriptChooseCommand extends NonEditorCommandBase<Plugin> {
-  public constructor(plugin: Plugin) {
+  public constructor(private readonly plugin: CodeScriptToolkitComponent, pluginName: string) {
     super({
       icon: 'circle-play',
       id: 'invoke-script',
       name: 'Invoke script: <<Choose>>',
-      plugin
+      pluginName
     });
-  }
-
-  protected override createCommandInvocation(): CommandInvocationBase {
-    return new InvokeScriptChooseCommandInvocation(this.plugin);
   }
 }

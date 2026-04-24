@@ -1,31 +1,17 @@
 import type { Plugin as ObsidianPlugin } from 'obsidian';
+import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
-import { CommandInvocationBase } from 'obsidian-dev-utils/obsidian/commands/command-base';
-import { NonEditorCommandBase } from 'obsidian-dev-utils/obsidian/commands/non-editor-command-base';
-
-import type { Plugin } from '../plugin.ts';
-
-class UnloadTempPluginCommandInvocation extends CommandInvocationBase<Plugin> {
-  public constructor(plugin: Plugin, private readonly tempPlugin: ObsidianPlugin) {
-    super(plugin);
-  }
-
-  public override async execute(): Promise<void> {
-    this.tempPlugin.unload();
-  }
-}
-
-export class UnloadTempPluginCommand extends NonEditorCommandBase<Plugin> {
-  public constructor(plugin: Plugin, private readonly tempPlugin: ObsidianPlugin, tempPluginClassName: string) {
+export class UnloadTempPluginCommandHandler extends GlobalCommandHandler {
+  public constructor(private readonly tempPlugin: ObsidianPlugin, tempPluginClassName: string, pluginName: string) {
     super({
       icon: 'unlink',
       id: `unregister-temp-plugin-${tempPluginClassName}`,
       name: `Unregister Temp Plugin: ${tempPluginClassName}`,
-      plugin
+      pluginName
     });
   }
 
-  protected override createCommandInvocation(): CommandInvocationBase {
-    return new UnloadTempPluginCommandInvocation(this.plugin, this.tempPlugin);
+  public override async execute(): Promise<void> {
+    this.tempPlugin.unload();
   }
 }

@@ -9,11 +9,11 @@ import { printError } from 'obsidian-dev-utils/error';
 import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
 import { join } from 'obsidian-dev-utils/path';
 
-import type { Plugin } from '../plugin.ts';
 import type { Script } from '../script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from '../code-script-toolkit-note-settings.ts';
 import { requireVaultScriptAsync } from '../require-handler-utils.ts';
+import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 
 export const INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX = 'invoke-script-file-';
 
@@ -28,7 +28,7 @@ interface ScriptOrCommand extends Partial<Script> {
 const relativeScriptPathCommandIdMap = new Map<string, string>();
 
 export class InvokeScriptPathCommand {
-  public constructor(private readonly plugin: Plugin, private readonly relativeScriptPath: string) {}
+  public constructor(private readonly plugin: CodeScriptToolkitComponent, private readonly relativeScriptPath: string) {}
 
   public async register(): Promise<void> {
     let scriptOrCommand: Partial<ScriptOrCommand>;
@@ -89,7 +89,7 @@ export class InvokeScriptPathCommand {
   }
 }
 
-export async function invokeScriptPath(plugin: Plugin, relativeScriptPath: string): Promise<void> {
+export async function invokeScriptPath(plugin: CodeScriptToolkitComponent, relativeScriptPath: string): Promise<void> {
   plugin.consoleDebug(`Invoking script: ${relativeScriptPath}.`);
 
   const commandId = relativeScriptPathCommandIdMap.get(relativeScriptPath);
@@ -138,7 +138,7 @@ export function unregisterInvocableCommands(app: App): void {
   relativeScriptPathCommandIdMap.clear();
 }
 
-async function getScriptOrCommand(plugin: Plugin, relativeScriptPath: string): Promise<ScriptOrCommand> {
+async function getScriptOrCommand(plugin: CodeScriptToolkitComponent, relativeScriptPath: string): Promise<ScriptOrCommand> {
   const app = plugin.app;
   let vaultScriptPath = join(plugin.settings.getInvocableScriptsFolder(), relativeScriptPath);
   if (!await app.vault.adapter.exists(vaultScriptPath)) {

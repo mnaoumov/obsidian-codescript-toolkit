@@ -1,10 +1,10 @@
-import { Plugin } from 'obsidian';
 import { throwExpression } from 'obsidian-dev-utils/error';
 import { loadPrism } from 'obsidian-typings/implementations';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 export const CODE_SCRIPT_BLOCK_LANGUAGE = 'code-script';
 
-export async function registerCodeScriptBlock(plugin: Plugin): Promise<void> {
+export async function registerCodeScriptBlock(plugin: CodeScriptToolkitComponent): Promise<void> {
   window.CodeMirror.defineMode(CODE_SCRIPT_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'text/typescript'));
   const prism = await loadPrism();
   prism.languages[CODE_SCRIPT_BLOCK_LANGUAGE] = prism.languages['typescript'] ?? throwExpression(new Error('Prism typescript language not found.'));

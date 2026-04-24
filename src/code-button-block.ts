@@ -31,7 +31,6 @@ import { getDataAdapterEx } from 'obsidian-typings/implementations';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
-import type { Plugin } from './plugin.ts';
 
 import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
@@ -40,6 +39,7 @@ import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-p
 import { CodeButtonContextImpl } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { requireStringAsync } from './require-handler-utils.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
@@ -85,7 +85,7 @@ ${config}---
   editor.replaceSelection(newCodeBlock);
 }
 
-export function registerCodeButtonBlock(plugin: Plugin): void {
+export function registerCodeButtonBlock(plugin: CodeScriptToolkitComponent): void {
   registerCodeHighlighting();
   plugin.register(unregisterCodeHighlighting);
   plugin.registerMarkdownCodeBlockProcessor(CODE_BUTTON_BLOCK_LANGUAGE, (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
@@ -195,7 +195,7 @@ function makeWrapperScript(source: string, sourceFileName: string, sourceFolder:
   return result.transformedCode;
 }
 
-async function processCodeButtonBlock(plugin: Plugin, source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> {
+async function processCodeButtonBlock(plugin: CodeScriptToolkitComponent, source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> {
   const sourceFile = getFile(plugin.app, ctx.sourcePath);
   lastButtonIndex++;
   const resultEl = el.createDiv({ cls: 'fix-require-modules console-log-container' });
@@ -261,7 +261,7 @@ ${code}
     return;
   }
 
-  config = { ...plugin.settingsManager.parseDefaultCodeButtonConfig(), ...config };
+  config = { ...plugin.parseDefaultCodeButtonConfig(), ...config };
 
   if (config.isRaw) {
     config.shouldAutoOutput = false;

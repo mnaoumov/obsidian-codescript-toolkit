@@ -2,18 +2,18 @@ import type { Promisable } from 'type-fest';
 
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
-import type { Plugin } from './plugin.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 export abstract class ScriptFolderWatcher {
-  protected get plugin(): Plugin {
+  protected get plugin(): CodeScriptToolkitComponent {
     return ensureNonNullable(this._plugin);
   }
 
-  private _plugin?: Plugin;
+  private _plugin?: CodeScriptToolkitComponent;
 
   private wasRegisteredInPlugin = false;
 
-  public async register(plugin: Plugin, onChange: () => Promise<void>): Promise<void> {
+  public async register(plugin: CodeScriptToolkitComponent, onChange: () => Promise<void>): Promise<void> {
     if (!this.wasRegisteredInPlugin) {
       this._plugin = plugin;
       this.plugin.register(this.stopWatcher.bind(this));

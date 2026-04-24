@@ -8,8 +8,6 @@ import {
   join
 } from 'obsidian-dev-utils/path';
 
-import type { Plugin } from './plugin.ts';
-
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import {
   invokeScriptPath,
@@ -17,6 +15,7 @@ import {
   unregisterInvocableCommands
 } from './commands/invoke-script-path-command.ts';
 import { requireVaultScriptAsync } from './require-handler-utils.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 export interface Script {
   invoke(app: App): Promisable<void>;
@@ -29,7 +28,7 @@ interface StartupScript extends Script {
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 let startupScript: null | StartupScript = null;
 
-export async function cleanupStartupScript(plugin: Plugin): Promise<void> {
+export async function cleanupStartupScript(plugin: CodeScriptToolkitComponent): Promise<void> {
   if (!startupScript) {
     return;
   }
@@ -39,7 +38,7 @@ export async function cleanupStartupScript(plugin: Plugin): Promise<void> {
   startupScript = null;
 }
 
-export async function invokeStartupScript(plugin: Plugin): Promise<void> {
+export async function invokeStartupScript(plugin: CodeScriptToolkitComponent): Promise<void> {
   if (startupScript) {
     throw new Error('Startup script already invoked');
   }
@@ -54,7 +53,7 @@ export async function invokeStartupScript(plugin: Plugin): Promise<void> {
   await startupScript.invoke(plugin.app);
 }
 
-export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
+export async function registerInvocableScripts(plugin: CodeScriptToolkitComponent): Promise<void> {
   unregisterInvocableCommands(plugin.app);
 
   const invocableScriptsFolder = plugin.settings.getInvocableScriptsFolder();
@@ -77,12 +76,12 @@ export async function registerInvocableScripts(plugin: Plugin): Promise<void> {
   }
 }
 
-export async function reloadStartupScript(plugin: Plugin): Promise<void> {
+export async function reloadStartupScript(plugin: CodeScriptToolkitComponent): Promise<void> {
   await cleanupStartupScript(plugin);
   await invokeStartupScript(plugin);
 }
 
-export async function selectAndInvokeScript(plugin: Plugin): Promise<void> {
+export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent): Promise<void> {
   const app = plugin.app;
   const invocableScriptsFolder = plugin.settings.getInvocableScriptsFolder();
   let scriptPaths: string[];
@@ -139,7 +138,7 @@ async function isInvocableMarkdownFile(app: App, path: string): Promise<boolean>
   return (await getCodeScriptToolkitNoteSettings(app, path)).isInvocable;
 }
 
-async function validateStartupScript(plugin: Plugin, shouldWarnOnNotConfigured = false): Promise<null | string> {
+async function validateStartupScript(plugin: CodeScriptToolkitComponent, shouldWarnOnNotConfigured = false): Promise<null | string> {
   const startupScriptPath = plugin.settings.getStartupScriptPath();
   if (!startupScriptPath) {
     if (shouldWarnOnNotConfigured) {

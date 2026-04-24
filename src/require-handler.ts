@@ -30,7 +30,6 @@ import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
-import type { Plugin } from './plugin.ts';
 import type {
   ParentPathOptions,
   require,
@@ -59,6 +58,7 @@ import {
   CacheInvalidationMode,
   ModuleType
 } from './types.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 export enum ResolvedType {
   Module = 'module',
@@ -171,7 +171,7 @@ export abstract class RequireHandler {
   protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
   protected vaultAbsolutePath?: string;
-  protected get plugin(): Plugin {
+  protected get plugin(): CodeScriptToolkitComponent {
     if (!this._plugin) {
       throw new Error('Plugin is not registered.');
     }
@@ -185,7 +185,7 @@ export abstract class RequireHandler {
     return this._requireEx;
   }
 
-  private _plugin?: Plugin;
+  private _plugin?: CodeScriptToolkitComponent;
 
   private _requireEx?: RequireExFn;
   private originalRequire?: NodeJS.Require;
@@ -206,7 +206,7 @@ export abstract class RequireHandler {
     }
   }
 
-  public async register(plugin: Plugin, pluginRequire: PluginRequireFn): Promise<void> {
+  public async register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): Promise<void> {
     this._plugin = plugin;
     await this.initSpecialModuleFactories();
 

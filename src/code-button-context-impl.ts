@@ -22,17 +22,17 @@ import type {
   CodeButtonContext,
   TempPluginClass
 } from './code-button-context.ts';
-import type { Plugin } from './plugin.ts';
 
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { registerTempPlugin } from './temp-plugin-registry.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 interface CodeButtonContextImplConstructorOptions {
   config: CodeButtonBlockConfig;
   markdownInfo: CodeBlockMarkdownInformation | null;
   markdownPostProcessorContext: MarkdownPostProcessorContext;
   parentEl: HTMLElement;
-  plugin: Plugin;
+  plugin: CodeScriptToolkitComponent;
   resultEl: HTMLElement;
   source: string;
 }
@@ -48,7 +48,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   public readonly source: string;
   public readonly sourceFile: TFile;
 
-  private readonly plugin: Plugin;
+  private readonly plugin: CodeScriptToolkitComponent;
   private readonly resultEl: HTMLElement;
 
   public constructor(options: CodeButtonContextImplConstructorOptions) {

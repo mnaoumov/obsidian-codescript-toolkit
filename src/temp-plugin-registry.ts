@@ -5,13 +5,14 @@ import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
 
 import type { TempPluginClass } from './code-button-context.ts';
-import type { Plugin } from './plugin.ts';
 
-import { UnloadTempPluginCommand } from './commands/unload-temp-plugin-command.ts';
+import { UnloadTempPluginCommandHandler } from './commands/unload-temp-plugin-command.ts';
+import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
+import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
-export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginClass, cssText?: string): void {
+export function registerTempPlugin(plugin: CodeScriptToolkitComponent, tempPluginClass: TempPluginClass, cssText?: string): void {
   const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
   const app = plugin.app;
   const id = makeTempPluginId(tempPluginClassName);
@@ -60,8 +61,9 @@ export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginCl
       });
     }
 
-    const unloadTempPluginCommand = new UnloadTempPluginCommand(plugin, tempPlugin, tempPluginClassName);
-    unloadTempPluginCommand.register();
+    const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler(tempPlugin, tempPluginClassName, plugin.plugin.manifest.name);
+    const commandId = unloadTempPluginCommandHandler.buildCommand().id;
+    plugin.addChild(new CommandHandlerComponent(plugin.plugin, unloadTempPluginCommandHandler));
 
     const originalUnload = tempPlugin.unload.bind(tempPlugin);
     tempPlugin.unload = (): void => {
@@ -72,7 +74,7 @@ export function registerTempPlugin(plugin: Plugin, tempPluginClass: TempPluginCl
         printError(error);
       }
       tempPlugins.delete(id);
-      plugin.removeCommand(unloadTempPluginCommand.originalId);
+      plugin.removeCommand(commandId);
       new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       styleEl?.remove();
     };

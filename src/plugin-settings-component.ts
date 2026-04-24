@@ -2,25 +2,28 @@ import type { App } from 'obsidian';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { parseYaml } from 'obsidian';
-import { PluginSettingsManagerBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-manager-base';
 import {
   extname,
   join
 } from 'obsidian-dev-utils/path';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
-import type { PluginTypes } from './plugin-types.ts';
 
 import { PluginSettings } from './plugin-settings.ts';
 import { EXTENSIONS } from './require-handler.ts';
+import { PluginSettingsComponentBase, type PluginSettingsComponentParams } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
 
 class LegacySettings {
   public invocableScriptsDirectory = '';
 }
 
-export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes> {
+export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginSettings> {
+  public constructor(pluginSettingsParams: PluginSettingsComponentParams, private readonly app: App) {
+    super(pluginSettingsParams);
+  }
+
   public parseDefaultCodeButtonConfig(yaml?: string): null | Partial<CodeButtonBlockConfig> {
-    yaml ??= this.settingsWrapper.safeSettings.defaultCodeButtonConfig;
+    yaml ??= this.settings.defaultCodeButtonConfig;
 
     if (!yaml) {
       return {};
@@ -65,7 +68,7 @@ export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes
       }
 
       const path = join(settings.modulesRoot, value);
-      return await validatePath(this.plugin.app, path, 'folder');
+      return await validatePath(this.app, path, 'folder');
     });
 
     this.registerValidator('startupScriptPath', async (value, settings): Promise<MaybeReturn<string>> => {
@@ -74,7 +77,7 @@ export class PluginSettingsManager extends PluginSettingsManagerBase<PluginTypes
       }
 
       const path = join(settings.modulesRoot, value);
-      const ans = await validatePath(this.plugin.app, path, 'file');
+      const ans = await validatePath(this.app, path, 'file');
       if (ans) {
         return ans;
       }
