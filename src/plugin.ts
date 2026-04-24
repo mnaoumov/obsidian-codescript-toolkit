@@ -8,10 +8,10 @@ import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/plugin/c
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 
 import { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
-import { ClearCacheCommandHandler } from './commands/clear-cache-command.ts';
-import { InvokeScriptChooseCommandHandler } from './commands/invoke-script-choose-command.ts';
-import { ReloadStartupScriptCommandHandler } from './commands/reload-startup-script-command.ts';
-import { UnloadTempPluginsCommandHandler } from './commands/unload-temp-plugins-command.ts';
+import { ClearCacheCommandHandler } from './command-handlers/clear-cache-command-handler.ts';
+import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-script-choose-command-handler.ts';
+import { ReloadStartupScriptCommandHandler } from './command-handlers/reload-startup-script-command-handler.ts';
+import { UnloadTempPluginsCommandHandler } from './command-handlers/unload-temp-plugins-command-handler.ts';
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';

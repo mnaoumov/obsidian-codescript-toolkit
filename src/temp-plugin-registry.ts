@@ -8,7 +8,7 @@ import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-han
 import type { TempPluginClass } from './code-button-context.ts';
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
-import { UnloadTempPluginCommandHandler } from './commands/unload-temp-plugin-command.ts';
+import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-plugin-command-handler.ts';
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
 

@@ -16,7 +16,7 @@ import {
   invokeScriptPath,
   InvokeScriptPathCommand,
   unregisterInvocableCommands
-} from './commands/invoke-script-path-command.ts';
+} from './command-handlers/invoke-script-path-command-handler.ts';
 import { requireVaultScriptAsync } from './require-handler-utils.ts';
 
 export interface Script {
