@@ -28,18 +28,40 @@ interface ScriptOrCommand extends Partial<Script> {
 
 const relativeScriptPathCommandIdMap = new Map<string, string>();
 
+interface GetScriptOrCommandParams {
+  readonly app: App;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly relativeScriptPath: string;
+}
+
+interface InvokeScriptPathCommandConstructorParams {
+  app: App;
+  plugin: CodeScriptToolkitComponent;
+  pluginSettingsComponent: PluginSettingsComponent;
+  relativeScriptPath: string;
+}
+
 export class InvokeScriptPathCommand {
-  public constructor(
-    private readonly plugin: CodeScriptToolkitComponent,
-    private readonly relativeScriptPath: string,
-    private readonly pluginSettingsComponent: PluginSettingsComponent,
-    private readonly app: App
-  ) {}
+  private readonly app: App;
+  private readonly plugin: CodeScriptToolkitComponent;
+  private readonly pluginSettingsComponent: PluginSettingsComponent;
+  private readonly relativeScriptPath: string;
+
+  public constructor(params: InvokeScriptPathCommandConstructorParams) {
+    this.app = params.app;
+    this.plugin = params.plugin;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
+    this.relativeScriptPath = params.relativeScriptPath;
+  }
 
   public async register(): Promise<void> {
     let scriptOrCommand: Partial<ScriptOrCommand>;
     try {
-      scriptOrCommand = await getScriptOrCommand(this.app, this.relativeScriptPath, this.pluginSettingsComponent);
+      scriptOrCommand = await getScriptOrCommand({
+        app: this.app,
+        pluginSettingsComponent: this.pluginSettingsComponent,
+        relativeScriptPath: this.relativeScriptPath
+      });
     } catch (error) {
       printError(new Error(`Error requiring script: ${this.relativeScriptPath}`, { cause: error }));
       return;
@@ -144,11 +166,8 @@ export function unregisterInvocableCommands(app: App): void {
   relativeScriptPathCommandIdMap.clear();
 }
 
-async function getScriptOrCommand(
-  app: App,
-  relativeScriptPath: string,
-  pluginSettingsComponent: PluginSettingsComponent
-): Promise<ScriptOrCommand> {
+async function getScriptOrCommand(params: GetScriptOrCommandParams): Promise<ScriptOrCommand> {
+  const { app, pluginSettingsComponent, relativeScriptPath } = params;
   let vaultScriptPath = join(pluginSettingsComponent.settings.getInvocableScriptsFolder(), relativeScriptPath);
   if (!await app.vault.adapter.exists(vaultScriptPath)) {
     throw new Error(`Script not found: '${relativeScriptPath}'.`);
@@ -163,7 +182,11 @@ async function getScriptOrCommand(
       vaultScriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
     }
   }
-  return await requireVaultScriptAsync(app, pluginSettingsComponent, vaultScriptPath) as Partial<ScriptOrCommand>;
+  return await requireVaultScriptAsync({
+    app,
+    id: vaultScriptPath,
+    pluginSettingsComponent
+  }) as Partial<ScriptOrCommand>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- We need T to get proper prop type.

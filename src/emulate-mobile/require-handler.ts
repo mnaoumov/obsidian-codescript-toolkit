@@ -1,10 +1,10 @@
-import type { App } from 'obsidian';
-
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { DesktopRequireHandler } from '../desktop/require-handler.ts';
 import type { MobileRequireHandler } from '../mobile/require-handler.ts';
-import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
-import type { PluginRequireFn } from '../require-handler.ts';
+import type {
+  PluginRequireFn,
+  RequireHandlerConstructorParams
+} from '../require-handler.ts';
 
 import { createRequireHandler as createDesktopRequireHandler } from '../desktop/require-handler.ts';
 import { createRequireHandler as createMobileRequireHandler } from '../mobile/require-handler.ts';
@@ -14,10 +14,10 @@ export class EmulateMobileRequireHandler extends RequireHandler {
   private readonly desktopRequireHandler: DesktopRequireHandler;
   private readonly mobileRequireHandler: MobileRequireHandler;
 
-  public constructor(app: App, pluginSettingsComponent: PluginSettingsComponent) {
-    super(app, pluginSettingsComponent);
-    this.desktopRequireHandler = createDesktopRequireHandler(app, pluginSettingsComponent);
-    this.mobileRequireHandler = createMobileRequireHandler(app, pluginSettingsComponent);
+  public constructor(params: RequireHandlerConstructorParams) {
+    super(params);
+    this.desktopRequireHandler = createDesktopRequireHandler(params);
+    this.mobileRequireHandler = createMobileRequireHandler(params);
   }
 
   public override register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
@@ -71,6 +71,6 @@ export class EmulateMobileRequireHandler extends RequireHandler {
   }
 }
 
-export function createRequireHandler(app: App, pluginSettingsComponent: PluginSettingsComponent): EmulateMobileRequireHandler {
-  return new EmulateMobileRequireHandler(app, pluginSettingsComponent);
+export function createRequireHandler(params: RequireHandlerConstructorParams): EmulateMobileRequireHandler {
+  return new EmulateMobileRequireHandler(params);
 }

@@ -1,9 +1,6 @@
 import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 
-import {
-  App,
-  FileSystemAdapter
-} from 'obsidian';
+import { FileSystemAdapter } from 'obsidian';
 import {
   getPrototypeOf,
   normalizeOptionalProperties
@@ -16,10 +13,10 @@ import {
 } from 'obsidian-dev-utils/path';
 
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
-import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type {
   PluginRequireFn,
-  RequireFn
+  RequireFn,
+  RequireHandlerConstructorParams
 } from '../require-handler.ts';
 import type { RequireOptions } from '../types.ts';
 
@@ -105,7 +102,6 @@ export class DesktopRequireHandler extends RequireHandler {
   public override register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
     super.register(plugin, pluginRequire);
 
-    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
     const moduleProto = getPrototypeOf(window.module);
     registerPatch(plugin, moduleProto, {
       require: (next: RequireFn): RequireFn => {
@@ -349,7 +345,6 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 
   private originalModulePrototypeRequireWrapped(id: string, options: Partial<RequireOptions>): unknown {
-    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
     const module = options.parentModule ?? window.module;
     return this.originalModulePrototypeRequire?.call(module, id, options);
   }
@@ -499,6 +494,6 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 }
 
-export function createRequireHandler(app: App, pluginSettingsComponent: PluginSettingsComponent): DesktopRequireHandler {
-  return new DesktopRequireHandler(app, pluginSettingsComponent);
+export function createRequireHandler(params: RequireHandlerConstructorParams): DesktopRequireHandler {
+  return new DesktopRequireHandler(params);
 }

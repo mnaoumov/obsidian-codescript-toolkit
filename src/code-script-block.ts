@@ -6,13 +6,11 @@ import type { CodeScriptToolkitComponent } from './code-script-toolkit-component
 export const CODE_SCRIPT_BLOCK_LANGUAGE = 'code-script';
 
 export async function registerCodeScriptBlock(plugin: CodeScriptToolkitComponent): Promise<void> {
-  // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
   window.CodeMirror.defineMode(CODE_SCRIPT_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'text/typescript'));
   const prism = await loadPrism();
   prism.languages[CODE_SCRIPT_BLOCK_LANGUAGE] = prism.languages['typescript'] ?? throwExpression(new Error('Prism typescript language not found.'));
 
   plugin.register(() => {
-    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
     window.CodeMirror.defineMode(CODE_SCRIPT_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'null'));
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- Need to delete language.
     delete prism.languages[CODE_SCRIPT_BLOCK_LANGUAGE];

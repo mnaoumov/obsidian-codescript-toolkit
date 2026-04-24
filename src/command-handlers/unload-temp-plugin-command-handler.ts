@@ -2,14 +2,23 @@ import type { Plugin as ObsidianPlugin } from 'obsidian';
 
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
+interface UnloadTempPluginCommandHandlerConstructorParams {
+  pluginName: string;
+  tempPlugin: ObsidianPlugin;
+  tempPluginClassName: string;
+}
+
 export class UnloadTempPluginCommandHandler extends GlobalCommandHandler {
-  public constructor(private readonly tempPlugin: ObsidianPlugin, tempPluginClassName: string, pluginName: string) {
+  private readonly tempPlugin: ObsidianPlugin;
+
+  public constructor(params: UnloadTempPluginCommandHandlerConstructorParams) {
     super({
       icon: 'unlink',
-      id: `unregister-temp-plugin-${tempPluginClassName}`,
-      name: `Unregister Temp Plugin: ${tempPluginClassName}`,
-      pluginName
+      id: `unregister-temp-plugin-${params.tempPluginClassName}`,
+      name: `Unregister Temp Plugin: ${params.tempPluginClassName}`,
+      pluginName: params.pluginName
     });
+    this.tempPlugin = params.tempPlugin;
   }
 
   public override execute(): void {

@@ -27,7 +27,7 @@ import type { CodeScriptToolkitComponent } from './code-script-toolkit-component
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { registerTempPlugin } from './temp-plugin-registry.ts';
 
-interface CodeButtonContextImplConstructorOptions {
+interface CodeButtonContextImplConstructorParams {
   app: App;
   config: CodeButtonBlockConfig;
   markdownInfo: CodeBlockMarkdownInformation | null;
@@ -52,20 +52,20 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   private readonly plugin: CodeScriptToolkitComponent;
   private readonly resultEl: HTMLElement;
 
-  public constructor(options: CodeButtonContextImplConstructorOptions) {
+  public constructor(params: CodeButtonContextImplConstructorParams) {
     super();
-    this.app = options.app;
-    this.config = options.config;
-    this.markdownInfo = options.markdownInfo;
-    this.markdownPostProcessorContext = options.markdownPostProcessorContext;
-    this.parentEl = options.parentEl;
-    this.plugin = options.plugin;
-    this.resultEl = options.resultEl;
-    this.source = options.source;
+    this.app = params.app;
+    this.config = params.config;
+    this.markdownInfo = params.markdownInfo;
+    this.markdownPostProcessorContext = params.markdownPostProcessorContext;
+    this.parentEl = params.parentEl;
+    this.plugin = params.plugin;
+    this.resultEl = params.resultEl;
+    this.source = params.source;
 
-    this.sourceFile = getFile(this.app, options.markdownPostProcessorContext.sourcePath);
+    this.sourceFile = getFile(this.app, params.markdownPostProcessorContext.sourcePath);
     this.container = this.config.isRaw ? this.parentEl : this.resultEl;
-    const wrappedConsole = new ConsoleWrapper(this.container);
+    const wrappedConsole = new ConsoleWrapper({ resultEl: this.container });
     this.console = wrappedConsole.getConsoleInstance(this.config.shouldWrapConsole);
   }
 

@@ -19,8 +19,15 @@ import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 export class Plugin extends PluginBase {
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
-    const pluginSettingsComponent = this.addChild(new PluginSettingsComponent(this, app));
-    const codeScriptToolkitComponent = this.addChild(new CodeScriptToolkitComponent(app, pluginSettingsComponent, this.consoleDebugComponent, this));
+    const pluginSettingsComponent = this.addChild(new PluginSettingsComponent({ app, loadData: this.loadData.bind(this), saveData: this.saveData.bind(this) }));
+    const codeScriptToolkitComponent = this.addChild(
+      new CodeScriptToolkitComponent({
+        app,
+        consoleDebugComponent: this.consoleDebugComponent,
+        plugin: this,
+        pluginSettingsComponent
+      })
+    );
     this.addChild(
       new PluginSettingsTabComponent(
         this,
@@ -31,13 +38,43 @@ export class Plugin extends PluginBase {
       )
     );
     this.addChild(
-      new CommandHandlerComponent(this, new InvokeScriptChooseCommandHandler(codeScriptToolkitComponent, this.manifest.name, pluginSettingsComponent, this.app))
+      new CommandHandlerComponent(
+        this,
+        new InvokeScriptChooseCommandHandler({
+          app: this.app,
+          plugin: codeScriptToolkitComponent,
+          pluginName: this.manifest.name,
+          pluginSettingsComponent
+        })
+      )
     );
     this.addChild(new CommandHandlerComponent(this, new UnloadTempPluginsCommandHandler(this.manifest.name)));
-    this.addChild(new CommandHandlerComponent(this, new ClearCacheCommandHandler(this.manifest.name, pluginSettingsComponent, this.app)));
     this.addChild(
-      new CommandHandlerComponent(this, new ReloadStartupScriptCommandHandler(this.app, this.manifest.name, pluginSettingsComponent))
+      new CommandHandlerComponent(
+        this,
+        new ClearCacheCommandHandler({
+          app: this.app,
+          pluginName: this.manifest.name,
+          pluginSettingsComponent
+        })
+      )
     );
-    this.addChild(new ProtocolHandlerComponent(codeScriptToolkitComponent, pluginSettingsComponent, this.app));
+    this.addChild(
+      new CommandHandlerComponent(
+        this,
+        new ReloadStartupScriptCommandHandler({
+          app: this.app,
+          pluginName: this.manifest.name,
+          pluginSettingsComponent
+        })
+      )
+    );
+    this.addChild(
+      new ProtocolHandlerComponent({
+        app: this.app,
+        plugin: codeScriptToolkitComponent,
+        pluginSettingsComponent
+      })
+    );
   }
 }

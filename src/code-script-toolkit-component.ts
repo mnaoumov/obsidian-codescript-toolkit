@@ -27,18 +27,29 @@ import {
   registerInvocableScripts
 } from './script.ts';
 
+interface CodeScriptToolkitComponentConstructorParams {
+  app: App;
+  consoleDebugComponent: ConsoleDebugComponent;
+  plugin: Plugin;
+  pluginSettingsComponent: PluginSettingsComponent;
+}
+
 export class CodeScriptToolkitComponent extends AsyncComponentBase implements LayoutReadyComponent {
+  public readonly plugin: Plugin;
+  private readonly app: App;
+  private readonly consoleDebugComponent: ConsoleDebugComponent;
+  private readonly pluginSettingsComponent: PluginSettingsComponent;
+
   private requireHandler?: RequireHandler;
 
   private scriptFolderWatcher?: ScriptFolderWatcher;
 
-  public constructor(
-    private readonly app: App,
-    private readonly pluginSettingsComponent: PluginSettingsComponent,
-    private readonly consoleDebugComponent: ConsoleDebugComponent,
-    public readonly plugin: Plugin
-  ) {
+  public constructor(params: CodeScriptToolkitComponentConstructorParams) {
     super();
+    this.app = params.app;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
+    this.consoleDebugComponent = params.consoleDebugComponent;
+    this.plugin = params.plugin;
   }
 
   public addCommand(command: Command): Command {
@@ -64,8 +75,8 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   public override async onload(): Promise<void> {
     await super.onload();
     const platformDependencies = await getPlatformDependencies();
-    this.scriptFolderWatcher = platformDependencies.createScriptFolderWatcher(this.app, this.pluginSettingsComponent);
-    this.requireHandler = platformDependencies.createRequireHandler(this.app, this.pluginSettingsComponent);
+    this.scriptFolderWatcher = platformDependencies.createScriptFolderWatcher({ app: this.app, pluginSettingsComponent: this.pluginSettingsComponent });
+    this.requireHandler = platformDependencies.createRequireHandler({ app: this.app, pluginSettingsComponent: this.pluginSettingsComponent });
     this.requireHandler.register(this, require);
 
     registerCodeButtonBlock(this, this.pluginSettingsComponent, this.app);

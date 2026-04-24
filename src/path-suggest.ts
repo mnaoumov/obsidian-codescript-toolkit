@@ -9,10 +9,6 @@ import {
 
 import { EXTENSIONS } from './require-handler.ts';
 
-export function addPathSuggest(app: App, textInputEl: HTMLInputElement, rootFn: () => string, type: 'file' | 'folder'): PathSuggest {
-  return new PathSuggest(app, textInputEl, rootFn, type);
-}
-
 const CACHE_DURATION_IN_MILLISECONDS = 30000;
 
 interface PathEntry {
@@ -22,11 +18,23 @@ interface PathEntry {
 
 type PathEntryType = 'file' | 'folder';
 
-class PathSuggest extends AbstractInputSuggest<PathEntry> {
+interface PathSuggestConstructorParams {
+  app: App;
+  rootFn: () => string;
+  textInputEl: HTMLInputElement;
+  type: PathEntryType;
+}
+
+export class PathSuggest extends AbstractInputSuggest<PathEntry> {
   private pathEntries: null | PathEntry[] = null;
   private refreshTimeoutId: null | number = null;
-  public constructor(app: App, textInputEl: HTMLInputElement, private readonly rootFn: () => string, private readonly type: PathEntryType) {
-    super(app, textInputEl);
+
+  private readonly rootFn: () => string;
+  private readonly type: PathEntryType;
+  public constructor(params: PathSuggestConstructorParams) {
+    super(params.app, params.textInputEl);
+    this.rootFn = params.rootFn;
+    this.type = params.type;
   }
 
   public override async getSuggestions(input: string): Promise<PathEntry[]> {

@@ -17,6 +17,12 @@ const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
 type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
 
+interface ProtocolHandlerComponentConstructorParams {
+  app: App;
+  plugin: CodeScriptToolkitComponent;
+  pluginSettingsComponent: PluginSettingsComponent;
+}
+
 interface Query {
   args?: string;
   code?: string;
@@ -29,12 +35,15 @@ interface WindowWithRequireAsync {
 }
 
 export class ProtocolHandlerComponent extends Component {
-  public constructor(
-    private readonly plugin: CodeScriptToolkitComponent,
-    private readonly pluginSettingsComponent: PluginSettingsComponent,
-    private readonly app: App
-  ) {
+  private readonly app: App;
+  private readonly plugin: CodeScriptToolkitComponent;
+  private readonly pluginSettingsComponent: PluginSettingsComponent;
+
+  public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();
+    this.app = params.app;
+    this.plugin = params.plugin;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
 
   public override onload(): void {
@@ -76,12 +85,16 @@ export class ProtocolHandlerComponent extends Component {
       });
     }
 
-    await requireStringAsync(this.app, this.pluginSettingsComponent, parsedQuery.code, 'dynamic-script-from-url-handler.ts');
+    await requireStringAsync({
+      app: this.app,
+      path: 'dynamic-script-from-url-handler.ts',
+      pluginSettingsComponent: this.pluginSettingsComponent,
+      source: parsedQuery.code
+    });
   }
 }
 
 async function invokeModuleFn(moduleSpecifier: string, functionName: string, args: unknown[]): Promise<void> {
-  // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
   const windowWithRequireAsync = window as Partial<WindowWithRequireAsync>;
   const module = await ensureNonNullable(windowWithRequireAsync.requireAsync)(moduleSpecifier);
   const fn = module[functionName];

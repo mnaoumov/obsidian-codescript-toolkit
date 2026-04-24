@@ -51,7 +51,7 @@ export async function invokeStartupScript(app: App, pluginSettingsComponent: Plu
   }
 
   // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
-  startupScript = await requireVaultScriptAsync(app, pluginSettingsComponent, startupScriptPath) as StartupScript;
+  startupScript = await requireVaultScriptAsync({ app, id: startupScriptPath, pluginSettingsComponent }) as StartupScript;
   await startupScript.invoke(app);
 }
 
@@ -74,7 +74,7 @@ export async function registerInvocableScripts(plugin: CodeScriptToolkitComponen
   const scriptPaths = await getAllScriptPaths(app, pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
 
   for (const scriptPath of scriptPaths) {
-    await new InvokeScriptPathCommand(plugin, scriptPath, pluginSettingsComponent, app).register();
+    await new InvokeScriptPathCommand({ app, plugin, pluginSettingsComponent, relativeScriptPath: scriptPath }).register();
   }
 }
 

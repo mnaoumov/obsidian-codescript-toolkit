@@ -3,7 +3,7 @@ import type { App } from 'obsidian';
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 
-import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { ScriptFolderWatcherConstructorParams } from '../script-folder-watcher.ts';
 
 import { ScriptFolderWatcher } from '../script-folder-watcher.ts';
 
@@ -87,6 +87,6 @@ export class MobileScriptFolderWatcher extends ScriptFolderWatcher {
   }
 }
 
-export function createScriptFolderWatcher(app: App, pluginSettingsComponent: PluginSettingsComponent): MobileScriptFolderWatcher {
-  return new MobileScriptFolderWatcher(app, pluginSettingsComponent);
+export function createScriptFolderWatcher(params: ScriptFolderWatcherConstructorParams): MobileScriptFolderWatcher {
+  return new MobileScriptFolderWatcher(params);
 }

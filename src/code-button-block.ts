@@ -118,7 +118,7 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
 
 async function handleClick(options: HandleClickOptions, pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
   options.codeButtonContext.container.empty();
-  const wrappedConsole = new ConsoleWrapper(options.codeButtonContext.container);
+  const wrappedConsole = new ConsoleWrapper({ resultEl: options.codeButtonContext.container });
   if (options.codeButtonContext.config.shouldShowSystemMessages) {
     wrappedConsole.writeSystemMessage('⏳ Executing...');
   }
@@ -133,14 +133,14 @@ async function handleClick(options: HandleClickOptions, pluginSettingsComponent:
       dirname(options.codeButtonContext.sourceFile.path),
       options.codeButtonContext.config.shouldAutoOutput
     );
-    const codeButtonBlockScriptWrapper = await requireStringAsync(
+    const codeButtonBlockScriptWrapper = await requireStringAsync({
       app,
-      pluginSettingsComponent,
-      script,
-      `${adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
+      path: `${adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
         String(options.buttonIndex)
-      }.${options.escapedCaption}.ts`
-    ) as CodeButtonBlockScriptWrapper;
+      }.${options.escapedCaption}.ts`,
+      pluginSettingsComponent,
+      source: script
+    }) as CodeButtonBlockScriptWrapper;
     await codeButtonBlockScriptWrapper(options.codeButtonContext);
     if (options.codeButtonContext.config.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('✅ Executed successfully');
@@ -222,7 +222,7 @@ async function processCodeButtonBlock(
   const code = source.slice(frontMatterInfo.contentStart);
 
   if (markdownInfo && markdownInfo.args.length > 0) {
-    new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+    new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
       f.appendText('❌ Error!\nYour code block uses legacy button config.');
       addLinkToDocs(f);
       f.createEl('button', {
@@ -264,7 +264,7 @@ ${code}
     config = parseYaml(frontMatterInfo.frontmatter) as (Partial<CodeButtonBlockConfig> | undefined) ?? {};
   } catch (error) {
     console.error(error);
-    new ConsoleWrapper(resultEl).writeSystemMessage(createFragment((f) => {
+    new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
       f.appendText('❌ Error!\nYour code block config is not a valid YAML.');
       addLinkToDocs(f);
       f.appendText('See the YAML parsing error in the console.');
@@ -319,12 +319,10 @@ ${code}
 }
 
 function registerCodeHighlighting(): void {
-  // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
   window.CodeMirror.defineMode(CODE_BUTTON_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'text/typescript'));
 }
 
 function unregisterCodeHighlighting(): void {
-  // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
   window.CodeMirror.defineMode(CODE_BUTTON_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'null'));
 }
 

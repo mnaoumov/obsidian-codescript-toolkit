@@ -1,5 +1,4 @@
 import { errorToString } from 'obsidian-dev-utils/error';
-import { noop } from 'obsidian-dev-utils/function';
 import {
   FunctionHandlingMode,
   toJson
@@ -7,9 +6,15 @@ import {
 
 type ConsoleMethod = 'debug' | 'error' | 'info' | 'log' | 'warn';
 
+interface ConsoleWrapperConstructorParams {
+  resultEl: HTMLElement;
+}
+
 export class ConsoleWrapper {
-  public constructor(private readonly resultEl: HTMLElement) {
-    noop();
+  private readonly resultEl: HTMLElement;
+
+  public constructor(params: ConsoleWrapperConstructorParams) {
+    this.resultEl = params.resultEl;
   }
 
   public appendToResultEl(args: unknown[], method: ConsoleMethod): void {

@@ -1,5 +1,7 @@
 import type { App } from 'obsidian';
-import type { PluginSettingsComponentParams } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
+import type {
+  PluginSettingsComponentParams as PluginSettingsComponentParamsBase
+} from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { parseYaml } from 'obsidian';
@@ -14,13 +16,20 @@ import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import { PluginSettings } from './plugin-settings.ts';
 import { EXTENSIONS } from './require-handler.ts';
 
+interface PluginSettingsComponentConstructorParams extends PluginSettingsComponentParamsBase {
+  app: App;
+}
+
 class LegacySettings {
   public invocableScriptsDirectory = '';
 }
 
 export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginSettings> {
-  public constructor(pluginSettingsParams: PluginSettingsComponentParams, private readonly app: App) {
-    super(pluginSettingsParams);
+  private readonly app: App;
+
+  public constructor(params: PluginSettingsComponentConstructorParams) {
+    super(params);
+    this.app = params.app;
   }
 
   public parseDefaultCodeButtonConfig(yaml?: string): null | Partial<CodeButtonBlockConfig> {

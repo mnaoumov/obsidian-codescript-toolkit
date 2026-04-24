@@ -12,7 +12,7 @@ import { SettingEx } from 'obsidian-dev-utils/obsidian/setting-ex';
 import type { PluginSettings } from './plugin-settings.ts';
 
 import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from './code-button-block.ts';
-import { addPathSuggest } from './path-suggest.ts';
+import { PathSuggest } from './path-suggest.ts';
 
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
   public constructor(params: PluginSettingsTabBaseParams<PluginSettings>, private readonly pluginName: string) {
@@ -43,7 +43,12 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
           // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
           .setPlaceholder('path/to/script/modules/root');
 
-        addPathSuggest(this.app, text.inputEl, () => '', 'folder');
+        new PathSuggest({
+          app: this.app,
+          rootFn: (): string => '',
+          textInputEl: text.inputEl,
+          type: 'folder'
+        });
       });
 
     new SettingEx(this.containerEl)
@@ -61,7 +66,12 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
           // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
           .setPlaceholder('path/to/invocable/scripts/folder');
 
-        const suggest = addPathSuggest(this.app, text.inputEl, () => this.pluginSettingsComponent.settings.modulesRoot, 'folder');
+        const suggest = new PathSuggest({
+          app: this.app,
+          rootFn: (): string => this.pluginSettingsComponent.settings.modulesRoot,
+          textInputEl: text.inputEl,
+          type: 'folder'
+        });
 
         events.on('modulesRootChanged', () => {
           text.onChanged();
@@ -82,7 +92,12 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
       .addText((text) => {
         this.bind(text, 'startupScriptPath')
           .setPlaceholder('path/to/startup.ts');
-        const suggest = addPathSuggest(this.app, text.inputEl, () => this.pluginSettingsComponent.settings.modulesRoot, 'file');
+        const suggest = new PathSuggest({
+          app: this.app,
+          rootFn: (): string => this.pluginSettingsComponent.settings.modulesRoot,
+          textInputEl: text.inputEl,
+          type: 'file'
+        });
 
         events.on('modulesRootChanged', () => {
           text.onChanged();

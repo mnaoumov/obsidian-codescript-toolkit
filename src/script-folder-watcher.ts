@@ -6,7 +6,15 @@ import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
+export interface ScriptFolderWatcherConstructorParams {
+  readonly app: App;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+}
+
 export abstract class ScriptFolderWatcher {
+  protected readonly app: App;
+  protected readonly pluginSettingsComponent: PluginSettingsComponent;
+
   protected get plugin(): CodeScriptToolkitComponent {
     return ensureNonNullable(this._plugin);
   }
@@ -15,7 +23,10 @@ export abstract class ScriptFolderWatcher {
 
   private wasRegisteredInPlugin = false;
 
-  public constructor(protected readonly app: App, protected readonly pluginSettingsComponent: PluginSettingsComponent) {}
+  public constructor(params: ScriptFolderWatcherConstructorParams) {
+    this.app = params.app;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
+  }
 
   public async register(plugin: CodeScriptToolkitComponent, onChange: () => Promise<void>): Promise<void> {
     if (!this.wasRegisteredInPlugin) {

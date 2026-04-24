@@ -167,11 +167,18 @@ const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertA
 const WILDCARD_MODULE_CONDITION_SUFFIX = '/*';
 export const VAULT_ROOT_PREFIX = '//';
 
+export interface RequireHandlerConstructorParams {
+  readonly app: App;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+}
+
 export abstract class RequireHandler {
+  protected readonly app: App;
   protected readonly currentModulesTimestampChain = new Set<string>();
   protected readonly moduleDependencies = new Map<string, Set<string>>();
   protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
+  protected readonly pluginSettingsComponent: PluginSettingsComponent;
   protected vaultAbsolutePath?: string;
   protected get plugin(): CodeScriptToolkitComponent {
     if (!this._plugin) {
@@ -194,7 +201,9 @@ export abstract class RequireHandler {
   private originalRequire?: NodeJS.Require;
   private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
-  public constructor(protected readonly app: App, protected readonly pluginSettingsComponent: PluginSettingsComponent) {
+  public constructor(params: RequireHandlerConstructorParams) {
+    this.app = params.app;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
 
   public clearCache(): void {
@@ -218,7 +227,7 @@ export abstract class RequireHandler {
     const adapter = getDataAdapterEx(this.app);
     this.pluginRequire = pluginRequire;
     this.vaultAbsolutePath = toPosixPath(adapter.basePath);
-    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main window.
+
     this.originalRequire = window.require;
     this._requireEx = Object.assign(this.require.bind(this), {
       cache: {}
@@ -452,7 +461,7 @@ export abstract class RequireHandler {
 
     const transformResult = new SequentialBabelPlugin([
       new ConvertToCommonJsBabelPlugin(),
-      new WrapInRequireFunctionBabelPlugin(options.shouldWrapInAsyncFunction, SCRIPT_WRAPPER_CONTEXT_KEYS),
+      new WrapInRequireFunctionBabelPlugin({ contextKeys: SCRIPT_WRAPPER_CONTEXT_KEYS, isAsync: options.shouldWrapInAsyncFunction }),
       new ReplaceDynamicImportBabelPlugin(),
       new FixSourceMapBabelPlugin(url)
     ]).transform(options.code, filename, folder);

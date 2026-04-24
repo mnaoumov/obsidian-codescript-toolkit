@@ -14,9 +14,19 @@ import {
 import { BabelPluginBase } from './babel-plugin-base.ts';
 import { objectPatternFromKeys } from './utils.ts';
 
+interface WrapInRequireFunctionBabelPluginConstructorParams {
+  contextKeys: readonly string[];
+  isAsync: boolean;
+}
+
 export class WrapInRequireFunctionBabelPlugin extends BabelPluginBase {
-  public constructor(private readonly isAsync: boolean, private readonly contextKeys: readonly string[]) {
+  private readonly contextKeys: readonly string[];
+  private readonly isAsync: boolean;
+
+  public constructor(params: WrapInRequireFunctionBabelPluginConstructorParams) {
     super({});
+    this.contextKeys = params.contextKeys;
+    this.isAsync = params.isAsync;
   }
 
   public override getVisitor(): Visitor<PluginPass> {

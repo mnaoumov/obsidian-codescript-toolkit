@@ -3,15 +3,12 @@ import type { FSWatcher } from 'node:fs';
 
 // eslint-disable-next-line import/no-nodejs-modules, import-x/no-nodejs-modules -- Deliberate, executes only on desktop.
 import { watch } from 'node:fs';
-import {
-  App,
-  Notice
-} from 'obsidian';
+import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { join } from 'obsidian-dev-utils/path';
 import { getDataAdapterEx } from 'obsidian-typings/implementations';
 
-import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { ScriptFolderWatcherConstructorParams } from '../script-folder-watcher.ts';
 
 import { ScriptFolderWatcher } from '../script-folder-watcher.ts';
 
@@ -58,6 +55,6 @@ export class DesktopScriptFolderWatcher extends ScriptFolderWatcher {
   }
 }
 
-export function createScriptFolderWatcher(app: App, pluginSettingsComponent: PluginSettingsComponent): ScriptFolderWatcher {
-  return new DesktopScriptFolderWatcher(app, pluginSettingsComponent);
+export function createScriptFolderWatcher(params: ScriptFolderWatcherConstructorParams): ScriptFolderWatcher {
+  return new DesktopScriptFolderWatcher(params);
 }

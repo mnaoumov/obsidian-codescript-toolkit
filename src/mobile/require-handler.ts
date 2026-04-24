@@ -1,9 +1,6 @@
-import {
-  App,
-  CapacitorAdapter
-} from 'obsidian';
+import { CapacitorAdapter } from 'obsidian';
 
-import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { RequireHandlerConstructorParams } from '../require-handler.ts';
 
 import {
   RequireHandler,
@@ -87,6 +84,6 @@ export class MobileRequireHandler extends RequireHandler {
   }
 }
 
-export function createRequireHandler(app: App, pluginSettingsComponent: PluginSettingsComponent): MobileRequireHandler {
-  return new MobileRequireHandler(app, pluginSettingsComponent);
+export function createRequireHandler(params: RequireHandlerConstructorParams): MobileRequireHandler {
+  return new MobileRequireHandler(params);
 }

@@ -7,19 +7,28 @@ import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 
 import { selectAndInvokeScript } from '../script.ts';
 
+interface InvokeScriptChooseCommandHandlerConstructorParams {
+  app: App;
+  plugin: CodeScriptToolkitComponent;
+  pluginName: string;
+  pluginSettingsComponent: PluginSettingsComponent;
+}
+
 export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
-  public constructor(
-    private readonly plugin: CodeScriptToolkitComponent,
-    pluginName: string,
-    private readonly pluginSettingsComponent: PluginSettingsComponent,
-    private readonly app: App
-  ) {
+  private readonly app: App;
+  private readonly plugin: CodeScriptToolkitComponent;
+  private readonly pluginSettingsComponent: PluginSettingsComponent;
+
+  public constructor(params: InvokeScriptChooseCommandHandlerConstructorParams) {
     super({
       icon: 'circle-play',
       id: 'invoke-script',
       name: 'Invoke script: <<Choose>>',
-      pluginName
+      pluginName: params.pluginName
     });
+    this.app = params.app;
+    this.plugin = params.plugin;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
 
   protected override async execute(): Promise<void> {
