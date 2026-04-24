@@ -1,60 +1,74 @@
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
+import type { DesktopRequireHandler } from '../desktop/require-handler.ts';
+import type { MobileRequireHandler } from '../mobile/require-handler.ts';
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { PluginRequireFn } from '../require-handler.ts';
 
-import { requireHandler as desktopRequireHandler } from '../desktop/require-handler.ts';
-import { requireHandler as mobileRequireHandler } from '../mobile/require-handler.ts';
+import { createRequireHandler as createDesktopRequireHandler } from '../desktop/require-handler.ts';
+import { createRequireHandler as createMobileRequireHandler } from '../mobile/require-handler.ts';
 import { RequireHandler } from '../require-handler.ts';
 
 class RequireHandlerImpl extends RequireHandler {
+  private readonly desktopRequireHandler: DesktopRequireHandler;
+  private readonly mobileRequireHandler: MobileRequireHandler;
+
+  public constructor(pluginSettingsComponent: PluginSettingsComponent) {
+    super(pluginSettingsComponent);
+    this.desktopRequireHandler = createDesktopRequireHandler(this.pluginSettingsComponent);
+    this.mobileRequireHandler = createMobileRequireHandler(this.pluginSettingsComponent);
+  }
+
   public override register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
     super.register(plugin, pluginRequire);
-    desktopRequireHandler.register(plugin, pluginRequire);
-    mobileRequireHandler.register(plugin, pluginRequire);
+    this.desktopRequireHandler.register(plugin, pluginRequire);
+    this.mobileRequireHandler.register(plugin, pluginRequire);
   }
 
   protected override canRequireNonCached(): boolean {
-    return mobileRequireHandler.canRequireNonCached();
+    return this.mobileRequireHandler.canRequireNonCached();
   }
 
   protected override async existsFileAsync(path: string): Promise<boolean> {
-    return desktopRequireHandler.existsFileAsync(path);
+    return this.desktopRequireHandler.existsFileAsync(path);
   }
 
   protected override async existsFolderAsync(path: string): Promise<boolean> {
-    return desktopRequireHandler.existsFolderAsync(path);
+    return this.desktopRequireHandler.existsFolderAsync(path);
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
-    return desktopRequireHandler.getTimestampAsync(path);
+    return this.desktopRequireHandler.getTimestampAsync(path);
   }
 
   protected override async readFileAsync(path: string): Promise<string> {
-    return desktopRequireHandler.readFileAsync(path);
+    return this.desktopRequireHandler.readFileAsync(path);
   }
 
   protected override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
-    return desktopRequireHandler.readFileBinaryAsync(path);
+    return this.desktopRequireHandler.readFileBinaryAsync(path);
   }
 
   protected override requireAsarPackedModule(id: string): unknown {
-    return mobileRequireHandler.requireAsarPackedModule(id);
+    return this.mobileRequireHandler.requireAsarPackedModule(id);
   }
 
   protected override requireElectronModule(id: string): unknown {
-    return mobileRequireHandler.requireElectronModule(id);
+    return this.mobileRequireHandler.requireElectronModule(id);
   }
 
   protected override async requireNodeBinaryAsync(id: string): Promise<unknown> {
-    return mobileRequireHandler.requireNodeBinaryAsync(id);
+    return this.mobileRequireHandler.requireNodeBinaryAsync(id);
   }
 
   protected override requireNodeBuiltInModule(id: string): unknown {
-    return mobileRequireHandler.requireNodeBuiltInModule(id);
+    return this.mobileRequireHandler.requireNodeBuiltInModule(id);
   }
 
   protected override requireNonCached(id: string): unknown {
-    return mobileRequireHandler.requireNonCached(id);
+    return this.mobileRequireHandler.requireNonCached(id);
   }
 }
 
-export const requireHandler = new RequireHandlerImpl();
+export function createRequireHandler(pluginSettingsComponent: PluginSettingsComponent): RequireHandler {
+  return new RequireHandlerImpl(pluginSettingsComponent);
+}

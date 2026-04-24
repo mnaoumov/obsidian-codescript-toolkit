@@ -13,6 +13,7 @@ import {
 } from 'obsidian-dev-utils/path';
 
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type {
   PluginRequireFn,
   RequireFn
@@ -38,7 +39,7 @@ import {
   ModuleType
 } from '../types.ts';
 
-class RequireHandlerImpl extends RequireHandler {
+export class DesktopRequireHandler extends RequireHandler {
   private _fs?: typeof import('node:fs');
   private _fsPromises?: typeof import('node:fs/promises');
   private originalModulePrototypeRequire?: RequireFn;
@@ -118,7 +119,7 @@ class RequireHandlerImpl extends RequireHandler {
     try {
       return await super.requireAsync(id, options);
     } catch (e) {
-      if (this.plugin.settings.shouldUseSyncFallback) {
+      if (this.pluginSettingsComponent.settings.shouldUseSyncFallback) {
         console.warn(`requireAsync('${id}') failed with error:`, e);
         console.warn('Trying a synchronous fallback.');
         this.currentModulesTimestampChain.clear();
@@ -290,7 +291,9 @@ ${this.getRequireAsyncAdvice(path)}`);
   }
 
   private getRootFolders(folder: string): string[] {
-    const modulesRootFolder = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
+    const modulesRootFolder = this.pluginSettingsComponent.settings.modulesRoot
+      ? join(this.vaultAbsolutePath ?? '', this.pluginSettingsComponent.settings.modulesRoot)
+      : null;
 
     const ans: string[] = [];
     for (const possibleFolder of new Set([folder, modulesRootFolder])) {
@@ -493,4 +496,6 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 }
 
-export const requireHandler = new RequireHandlerImpl();
+export function createRequireHandler(pluginSettingsComponent: PluginSettingsComponent): DesktopRequireHandler {
+  return new DesktopRequireHandler(pluginSettingsComponent);
+}

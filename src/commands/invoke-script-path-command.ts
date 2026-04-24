@@ -10,6 +10,7 @@ import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
 import { join } from 'obsidian-dev-utils/path';
 
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { Script } from '../script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from '../code-script-toolkit-note-settings.ts';
@@ -28,12 +29,16 @@ interface ScriptOrCommand extends Partial<Script> {
 const relativeScriptPathCommandIdMap = new Map<string, string>();
 
 export class InvokeScriptPathCommand {
-  public constructor(private readonly plugin: CodeScriptToolkitComponent, private readonly relativeScriptPath: string) {}
+  public constructor(
+    private readonly plugin: CodeScriptToolkitComponent,
+    private readonly relativeScriptPath: string,
+    private readonly pluginSettingsComponent: PluginSettingsComponent
+  ) {}
 
   public async register(): Promise<void> {
     let scriptOrCommand: Partial<ScriptOrCommand>;
     try {
-      scriptOrCommand = await getScriptOrCommand(this.plugin, this.relativeScriptPath);
+      scriptOrCommand = await getScriptOrCommand(this.plugin, this.relativeScriptPath, this.pluginSettingsComponent);
     } catch (error) {
       printError(new Error(`Error requiring script: ${this.relativeScriptPath}`, { cause: error }));
       return;
@@ -138,9 +143,13 @@ export function unregisterInvocableCommands(app: App): void {
   relativeScriptPathCommandIdMap.clear();
 }
 
-async function getScriptOrCommand(plugin: CodeScriptToolkitComponent, relativeScriptPath: string): Promise<ScriptOrCommand> {
+async function getScriptOrCommand(
+  plugin: CodeScriptToolkitComponent,
+  relativeScriptPath: string,
+  pluginSettingsComponent: PluginSettingsComponent
+): Promise<ScriptOrCommand> {
   const app = plugin.app;
-  let vaultScriptPath = join(plugin.settings.getInvocableScriptsFolder(), relativeScriptPath);
+  let vaultScriptPath = join(pluginSettingsComponent.settings.getInvocableScriptsFolder(), relativeScriptPath);
   if (!await app.vault.adapter.exists(vaultScriptPath)) {
     throw new Error(`Script not found: '${relativeScriptPath}'.`);
   }
@@ -154,7 +163,7 @@ async function getScriptOrCommand(plugin: CodeScriptToolkitComponent, relativeSc
       vaultScriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
     }
   }
-  return await requireVaultScriptAsync(vaultScriptPath) as Partial<ScriptOrCommand>;
+  return await requireVaultScriptAsync(pluginSettingsComponent, vaultScriptPath) as Partial<ScriptOrCommand>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- We need T to get proper prop type.

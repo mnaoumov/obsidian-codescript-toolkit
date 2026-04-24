@@ -8,13 +8,19 @@ import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { join } from 'obsidian-dev-utils/path';
 import { getDataAdapterEx } from 'obsidian-typings/implementations';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+
 import { ScriptFolderWatcher } from '../script-folder-watcher.ts';
 
 class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
   private watcher: FSWatcher | null = null;
 
+  public constructor(private readonly pluginSettingsComponent: PluginSettingsComponent) {
+    super();
+  }
+
   protected override async startWatcher(onChange: () => Promise<void>): Promise<boolean> {
-    const invocableScriptsFolder = this.plugin.settings.getInvocableScriptsFolder();
+    const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();
     if (!invocableScriptsFolder) {
       return false;
     }
@@ -53,4 +59,6 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
   }
 }
 
-export const scriptFolderWatcher: ScriptFolderWatcher = new ScriptFolderWatcherImpl();
+export function createScriptFolderWatcher(pluginSettingsComponent: PluginSettingsComponent): ScriptFolderWatcher {
+  return new ScriptFolderWatcherImpl(pluginSettingsComponent);
+}

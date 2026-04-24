@@ -31,6 +31,7 @@ import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type {
   ParentPathOptions,
   require,
@@ -188,9 +189,12 @@ export abstract class RequireHandler {
   private _plugin?: CodeScriptToolkitComponent;
 
   private _requireEx?: RequireExFn;
+
   private originalRequire?: NodeJS.Require;
   private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
+  public constructor(protected readonly pluginSettingsComponent: PluginSettingsComponent) {
+  }
 
   public clearCache(): void {
     this.moduleTimestamps.clear();
@@ -705,7 +709,9 @@ export abstract class RequireHandler {
   }
 
   private async getRootFoldersAsync(folder: string): Promise<string[]> {
-    const modulesRootFolder = this.plugin.settings.modulesRoot ? join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot) : null;
+    const modulesRootFolder = this.pluginSettingsComponent.settings.modulesRoot
+      ? join(this.vaultAbsolutePath ?? '', this.pluginSettingsComponent.settings.modulesRoot)
+      : null;
 
     const ans: string[] = [];
     for (const possibleFolder of new Set([folder, modulesRootFolder])) {
@@ -1082,7 +1088,7 @@ export abstract class RequireHandler {
     const MODULES_ROOT_PATH_PREFIX = '/';
     if (id.startsWith(MODULES_ROOT_PATH_PREFIX)) {
       return {
-        resolvedId: join(this.vaultAbsolutePath ?? '', this.plugin.settings.modulesRoot, trimStart(id, MODULES_ROOT_PATH_PREFIX)),
+        resolvedId: join(this.vaultAbsolutePath ?? '', this.pluginSettingsComponent.settings.modulesRoot, trimStart(id, MODULES_ROOT_PATH_PREFIX)),
         resolvedType: ResolvedType.Path
       };
     }

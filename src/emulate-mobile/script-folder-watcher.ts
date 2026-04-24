@@ -1,3 +1,3 @@
-import { scriptFolderWatcher } from '../mobile/script-folder-watcher.ts';
+import { createScriptFolderWatcher } from '../mobile/script-folder-watcher.ts';
 
-export { scriptFolderWatcher };
+export { createScriptFolderWatcher };

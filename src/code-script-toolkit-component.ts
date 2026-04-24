@@ -8,7 +8,6 @@ import type {
 } from 'obsidian';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/plugin/components/layout-ready-component';
-import type { ReadonlyPluginSettings } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
@@ -16,7 +15,6 @@ import { registerAsyncEvent } from 'obsidian-dev-utils/obsidian/components/async
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { PluginSettings } from './plugin-settings.ts';
 import type { RequireHandler } from './require-handler.ts';
 import type { ScriptFolderWatcher } from './script-folder-watcher.ts';
 
@@ -30,10 +28,6 @@ import {
 } from './script.ts';
 
 export class CodeScriptToolkitComponent extends AsyncComponentBase implements LayoutReadyComponent {
-  public get settings(): ReadonlyPluginSettings<PluginSettings> {
-    return this.pluginSettingsComponent.settings;
-  }
-
   private requireHandler?: RequireHandler;
 
   private scriptFolderWatcher?: ScriptFolderWatcher;
@@ -52,7 +46,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   }
 
   public async applyNewSettings(): Promise<void> {
-    await this.scriptFolderWatcher?.register(this, () => registerInvocableScripts(this));
+    await this.scriptFolderWatcher?.register(this, () => registerInvocableScripts(this, this.pluginSettingsComponent));
   }
 
   public consoleDebug(message: string, ...args: unknown[]): void {
@@ -60,7 +54,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   }
 
   public async onLayoutReady(): Promise<void> {
-    await invokeStartupScript(this);
+    await invokeStartupScript(this, this.pluginSettingsComponent);
     this.register(() => cleanupStartupScript(this));
 
     registerAsyncEvent(this, this.pluginSettingsComponent.on('loadSettings', this.applyNewSettings.bind(this)));
@@ -70,11 +64,11 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   public override async onload(): Promise<void> {
     await super.onload();
     const platformDependencies = await getPlatformDependencies();
-    this.scriptFolderWatcher = platformDependencies.scriptFolderWatcher;
-    this.requireHandler = platformDependencies.requireHandler;
+    this.scriptFolderWatcher = platformDependencies.createScriptFolderWatcher(this.pluginSettingsComponent);
+    this.requireHandler = platformDependencies.createRequireHandler(this.pluginSettingsComponent);
     this.requireHandler.register(this, require);
 
-    registerCodeButtonBlock(this);
+    registerCodeButtonBlock(this, this.pluginSettingsComponent);
     await registerCodeScriptBlock(this);
   }
 

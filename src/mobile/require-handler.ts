@@ -1,11 +1,13 @@
 import { CapacitorAdapter } from 'obsidian';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+
 import {
   RequireHandler,
   splitQuery
 } from '../require-handler.ts';
 
-class RequireHandlerImpl extends RequireHandler {
+export class MobileRequireHandler extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {
     const adapter = this.plugin.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {
@@ -82,4 +84,6 @@ class RequireHandlerImpl extends RequireHandler {
   }
 }
 
-export const requireHandler = new RequireHandlerImpl();
+export function createRequireHandler(pluginSettingsComponent: PluginSettingsComponent): MobileRequireHandler {
+  return new MobileRequireHandler(pluginSettingsComponent);
+}

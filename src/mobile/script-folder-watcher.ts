@@ -3,6 +3,8 @@ import type { App } from 'obsidian';
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+
 import { ScriptFolderWatcher } from '../script-folder-watcher.ts';
 
 interface ModificationEntry {
@@ -12,12 +14,16 @@ interface ModificationEntry {
 
 const MILLISECONDS_IN_SECOND = 1000;
 
-class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
+export class MobileScriptFolderWatcher extends ScriptFolderWatcher {
   private readonly modificationTimes = new Map<string, number>();
+
   private timeoutId: null | number = null;
+  public constructor(private readonly pluginSettingsComponent: PluginSettingsComponent) {
+    super();
+  }
 
   protected override async startWatcher(onChange: () => Promise<void>): Promise<boolean> {
-    const invocableScriptsFolder = this.plugin.settings.getInvocableScriptsFolder();
+    const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();
     if (!invocableScriptsFolder) {
       return false;
     }
@@ -66,11 +72,11 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
   }
 
   private async watch(onChange: () => Promise<void>): Promise<void> {
-    if (this.plugin.settings.mobileChangesCheckingIntervalInSeconds === 0) {
+    if (this.pluginSettingsComponent.settings.mobileChangesCheckingIntervalInSeconds === 0) {
       return;
     }
 
-    const modificationEntry = await this.checkFile(this.plugin.app, this.plugin.settings.getInvocableScriptsFolder());
+    const modificationEntry = await this.checkFile(this.plugin.app, this.pluginSettingsComponent.settings.getInvocableScriptsFolder());
     if (modificationEntry.isChanged) {
       await onChange();
     }
@@ -79,9 +85,11 @@ class ScriptFolderWatcherImpl extends ScriptFolderWatcher {
       () => {
         invokeAsyncSafely(() => this.watch(onChange));
       },
-      this.plugin.settings.mobileChangesCheckingIntervalInSeconds * MILLISECONDS_IN_SECOND
+      this.pluginSettingsComponent.settings.mobileChangesCheckingIntervalInSeconds * MILLISECONDS_IN_SECOND
     );
   }
 }
 
-export const scriptFolderWatcher = new ScriptFolderWatcherImpl();
+export function createScriptFolderWatcher(pluginSettingsComponent: PluginSettingsComponent): MobileScriptFolderWatcher {
+  return new MobileScriptFolderWatcher(pluginSettingsComponent);
+}

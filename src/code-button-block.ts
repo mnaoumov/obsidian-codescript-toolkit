@@ -32,6 +32,7 @@ import { getDataAdapterEx } from 'obsidian-typings/implementations';
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
@@ -85,11 +86,11 @@ ${config}---
   editor.replaceSelection(newCodeBlock);
 }
 
-export function registerCodeButtonBlock(plugin: CodeScriptToolkitComponent): void {
+export function registerCodeButtonBlock(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): void {
   registerCodeHighlighting();
   plugin.register(unregisterCodeHighlighting);
   plugin.registerMarkdownCodeBlockProcessor(CODE_BUTTON_BLOCK_LANGUAGE, (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
-    invokeAsyncSafely(() => processCodeButtonBlock(plugin, source, el, ctx));
+    invokeAsyncSafely(() => processCodeButtonBlock(plugin, pluginSettingsComponent, source, el, ctx));
   });
 }
 
@@ -114,7 +115,7 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
   return undefined;
 }
 
-async function handleClick(options: HandleClickOptions): Promise<void> {
+async function handleClick(options: HandleClickOptions, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
   options.codeButtonContext.container.empty();
   const wrappedConsole = new ConsoleWrapper(options.codeButtonContext.container);
   if (options.codeButtonContext.config.shouldShowSystemMessages) {
@@ -132,6 +133,7 @@ async function handleClick(options: HandleClickOptions): Promise<void> {
       options.codeButtonContext.config.shouldAutoOutput
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync(
+      pluginSettingsComponent,
       script,
       `${adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
         String(options.buttonIndex)
@@ -195,7 +197,13 @@ function makeWrapperScript(source: string, sourceFileName: string, sourceFolder:
   return result.transformedCode;
 }
 
-async function processCodeButtonBlock(plugin: CodeScriptToolkitComponent, source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> {
+async function processCodeButtonBlock(
+  plugin: CodeScriptToolkitComponent,
+  pluginSettingsComponent: PluginSettingsComponent,
+  source: string,
+  el: HTMLElement,
+  ctx: MarkdownPostProcessorContext
+): Promise<void> {
   const sourceFile = getFile(plugin.app, ctx.sourcePath);
   lastButtonIndex++;
   const resultEl = el.createDiv({ cls: 'fix-require-modules console-log-container' });
@@ -277,7 +285,7 @@ ${code}
     el.createEl('button', {
       cls: 'mod-cta',
       async onclick(): Promise<void> {
-        await handleClick(createHandleClickOptions());
+        await handleClick(createHandleClickOptions(), pluginSettingsComponent);
       },
       prepend: true,
       text: fullConfig.caption
@@ -285,7 +293,7 @@ ${code}
   }
 
   if (fullConfig.shouldAutoRun) {
-    invokeAsyncSafely(() => handleClick(createHandleClickOptions()));
+    invokeAsyncSafely(() => handleClick(createHandleClickOptions(), pluginSettingsComponent));
   }
 
   function createHandleClickOptions(): HandleClickOptions {

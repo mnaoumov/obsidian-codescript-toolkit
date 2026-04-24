@@ -6,6 +6,7 @@ import { toJson } from 'obsidian-dev-utils/object-utils';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { requireStringAsync } from './require-handler-utils.ts';
 
@@ -25,7 +26,7 @@ interface WindowWithRequireAsync {
 }
 
 export class ProtocolHandlerComponent extends Component {
-  public constructor(private readonly plugin: CodeScriptToolkitComponent) {
+  public constructor(private readonly plugin: CodeScriptToolkitComponent, private readonly pluginSettingsComponent: PluginSettingsComponent) {
     super();
   }
 
@@ -34,7 +35,7 @@ export class ProtocolHandlerComponent extends Component {
   }
 
   private async processQuery(query: ObsidianProtocolData): Promise<void> {
-    if (!this.plugin.settings.shouldHandleProtocolUrls) {
+    if (!this.pluginSettingsComponent.settings.shouldHandleProtocolUrls) {
       console.warn('Handling of protocol URLs is disabled in plugin settings.');
       return;
     }
@@ -68,7 +69,7 @@ export class ProtocolHandlerComponent extends Component {
       });
     }
 
-    await requireStringAsync(parsedQuery.code, 'dynamic-script-from-url-handler.ts');
+    await requireStringAsync(this.pluginSettingsComponent, parsedQuery.code, 'dynamic-script-from-url-handler.ts');
   }
 }
 

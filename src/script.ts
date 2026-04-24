@@ -9,6 +9,7 @@ import {
 } from 'obsidian-dev-utils/path';
 
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import {
@@ -39,25 +40,25 @@ export async function cleanupStartupScript(plugin: CodeScriptToolkitComponent): 
   startupScript = null;
 }
 
-export async function invokeStartupScript(plugin: CodeScriptToolkitComponent): Promise<void> {
+export async function invokeStartupScript(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
   if (startupScript) {
     throw new Error('Startup script already invoked');
   }
 
-  const startupScriptPath = await validateStartupScript(plugin);
+  const startupScriptPath = await validateStartupScript(plugin, pluginSettingsComponent);
   if (!startupScriptPath) {
     return;
   }
 
   // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
-  startupScript = await requireVaultScriptAsync(startupScriptPath) as StartupScript;
+  startupScript = await requireVaultScriptAsync(pluginSettingsComponent, startupScriptPath) as StartupScript;
   await startupScript.invoke(plugin.app);
 }
 
-export async function registerInvocableScripts(plugin: CodeScriptToolkitComponent): Promise<void> {
+export async function registerInvocableScripts(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
   unregisterInvocableCommands(plugin.app);
 
-  const invocableScriptsFolder = plugin.settings.getInvocableScriptsFolder();
+  const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
 
   if (!invocableScriptsFolder) {
     return;
@@ -70,21 +71,21 @@ export async function registerInvocableScripts(plugin: CodeScriptToolkitComponen
     return;
   }
 
-  const scriptPaths = await getAllScriptPaths(plugin.app, plugin.settings.getInvocableScriptsFolder(), '');
+  const scriptPaths = await getAllScriptPaths(plugin.app, pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
 
   for (const scriptPath of scriptPaths) {
-    await new InvokeScriptPathCommand(plugin, scriptPath).register();
+    await new InvokeScriptPathCommand(plugin, scriptPath, pluginSettingsComponent).register();
   }
 }
 
-export async function reloadStartupScript(plugin: CodeScriptToolkitComponent): Promise<void> {
+export async function reloadStartupScript(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
   await cleanupStartupScript(plugin);
-  await invokeStartupScript(plugin);
+  await invokeStartupScript(plugin, pluginSettingsComponent);
 }
 
-export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent): Promise<void> {
+export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
   const app = plugin.app;
-  const invocableScriptsFolder = plugin.settings.getInvocableScriptsFolder();
+  const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
   let scriptPaths: string[];
 
   if (!invocableScriptsFolder) {
@@ -139,8 +140,12 @@ async function isInvocableMarkdownFile(app: App, path: string): Promise<boolean>
   return (await getCodeScriptToolkitNoteSettings(app, path)).isInvocable;
 }
 
-async function validateStartupScript(plugin: CodeScriptToolkitComponent, shouldWarnOnNotConfigured = false): Promise<null | string> {
-  const startupScriptPath = plugin.settings.getStartupScriptPath();
+async function validateStartupScript(
+  plugin: CodeScriptToolkitComponent,
+  pluginSettingsComponent: PluginSettingsComponent,
+  shouldWarnOnNotConfigured = false
+): Promise<null | string> {
+  const startupScriptPath = pluginSettingsComponent.settings.getStartupScriptPath();
   if (!startupScriptPath) {
     if (shouldWarnOnNotConfigured) {
       const message = 'Startup script is not configured';
