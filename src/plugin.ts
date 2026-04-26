@@ -29,45 +29,51 @@ export class Plugin extends PluginBase {
       })
     );
     this.addChild(
-      new PluginSettingsTabComponent(
-        this,
-        new PluginSettingsTab({
+      new PluginSettingsTabComponent({
+        plugin: this,
+        pluginSettingsTab: new PluginSettingsTab({
           plugin: this,
+          pluginName: this.manifest.name,
           pluginSettingsComponent
-        }, this.manifest.name)
-      )
+        })
+      })
     );
     this.addChild(
-      new CommandHandlerComponent(
-        this,
-        new InvokeScriptChooseCommandHandler({
+      new CommandHandlerComponent({
+        commandHandler: new InvokeScriptChooseCommandHandler({
           app: this.app,
           plugin: codeScriptToolkitComponent,
           pluginName: this.manifest.name,
           pluginSettingsComponent
-        })
-      )
+        }),
+        plugin: this
+      })
     );
-    this.addChild(new CommandHandlerComponent(this, new UnloadTempPluginsCommandHandler(this.manifest.name)));
     this.addChild(
-      new CommandHandlerComponent(
-        this,
-        new ClearCacheCommandHandler({
+      new CommandHandlerComponent({
+        commandHandler: new UnloadTempPluginsCommandHandler(this.manifest.name),
+        plugin: this
+      })
+    );
+    this.addChild(
+      new CommandHandlerComponent({
+        commandHandler: new ClearCacheCommandHandler({
           app: this.app,
           pluginName: this.manifest.name,
           pluginSettingsComponent
-        })
-      )
+        }),
+        plugin: this
+      })
     );
     this.addChild(
-      new CommandHandlerComponent(
-        this,
-        new ReloadStartupScriptCommandHandler({
+      new CommandHandlerComponent({
+        commandHandler: new ReloadStartupScriptCommandHandler({
           app: this.app,
           pluginName: this.manifest.name,
           pluginSettingsComponent
-        })
-      )
+        }),
+        plugin: this
+      })
     );
     this.addChild(
       new ProtocolHandlerComponent({

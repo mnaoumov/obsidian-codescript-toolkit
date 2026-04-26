@@ -1,6 +1,6 @@
 import type { App } from 'obsidian';
 import type {
-  PluginSettingsComponentParams as PluginSettingsComponentParamsBase
+  PluginSettingsComponentConstructorParams as PluginSettingsComponentConstructorParamsBase
 } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
@@ -16,7 +16,7 @@ import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import { PluginSettings } from './plugin-settings.ts';
 import { EXTENSIONS } from './require-handler.ts';
 
-interface PluginSettingsComponentConstructorParams extends PluginSettingsComponentParamsBase {
+interface PluginSettingsComponentConstructorParams extends PluginSettingsComponentConstructorParamsBase {
   app: App;
 }
 

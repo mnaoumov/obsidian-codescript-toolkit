@@ -65,7 +65,7 @@ export function registerTempPlugin(app: App, plugin: CodeScriptToolkitComponent,
 
     const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler({ pluginName: plugin.plugin.manifest.name, tempPlugin, tempPluginClassName });
     const commandId = unloadTempPluginCommandHandler.buildCommand().id;
-    plugin.addChild(new CommandHandlerComponent(plugin.plugin, unloadTempPluginCommandHandler));
+    plugin.addChild(new CommandHandlerComponent({ commandHandler: unloadTempPluginCommandHandler, plugin: plugin.plugin }));
 
     const originalUnload = tempPlugin.unload.bind(tempPlugin);
     tempPlugin.unload = (): void => {

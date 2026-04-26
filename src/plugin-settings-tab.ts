@@ -1,4 +1,4 @@
-import type { PluginSettingsTabBaseParams } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
+import type { PluginSettingsTabBaseConstructorParams } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
 
 import {
   Events,
@@ -14,9 +14,16 @@ import type { PluginSettings } from './plugin-settings.ts';
 import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from './code-button-block.ts';
 import { PathSuggest } from './path-suggest.ts';
 
+interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstructorParams<PluginSettings> {
+  pluginName: string;
+}
+
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
-  public constructor(params: PluginSettingsTabBaseParams<PluginSettings>, private readonly pluginName: string) {
+  private readonly pluginName: string;
+
+  public constructor(params: PluginSettingsTabConstructorParams) {
     super(params);
+    this.pluginName = params.pluginName;
   }
 
   public override display(): void {
