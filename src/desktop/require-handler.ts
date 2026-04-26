@@ -99,11 +99,11 @@ export class DesktopRequireHandler extends RequireHandler {
     return arrayBuffer;
   }
 
-  public override register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
-    super.register(plugin, pluginRequire);
+  public override register(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
+    super.register(codeScriptToolkitComponent, pluginRequire);
 
     const moduleProto = getPrototypeOf(window.module);
-    registerPatch(plugin, moduleProto, {
+    registerPatch(codeScriptToolkitComponent, moduleProto, {
       require: (next: RequireFn): RequireFn => {
         this.originalModulePrototypeRequire = next;
         const that = this;

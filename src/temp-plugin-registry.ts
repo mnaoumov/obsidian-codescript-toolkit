@@ -15,7 +15,7 @@ import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-p
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
-export function registerTempPlugin(app: App, plugin: CodeScriptToolkitComponent, tempPluginClass: TempPluginClass, cssText?: string): void {
+export function registerTempPlugin(app: App, codeScriptToolkitComponent: CodeScriptToolkitComponent, tempPluginClass: TempPluginClass, cssText?: string): void {
   const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
   const id = makeTempPluginId(tempPluginClassName);
 
@@ -63,9 +63,15 @@ export function registerTempPlugin(app: App, plugin: CodeScriptToolkitComponent,
       });
     }
 
-    const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler({ pluginName: plugin.plugin.manifest.name, tempPlugin, tempPluginClassName });
+    const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler({
+      pluginName: codeScriptToolkitComponent.plugin.manifest.name,
+      tempPlugin,
+      tempPluginClassName
+    });
     const commandId = unloadTempPluginCommandHandler.buildCommand().id;
-    plugin.addChild(new CommandHandlerComponent({ commandHandler: unloadTempPluginCommandHandler, plugin: plugin.plugin }));
+    codeScriptToolkitComponent.addChild(
+      new CommandHandlerComponent({ commandHandler: unloadTempPluginCommandHandler, plugin: codeScriptToolkitComponent.plugin })
+    );
 
     const originalUnload = tempPlugin.unload.bind(tempPlugin);
     tempPlugin.unload = (): void => {
@@ -76,7 +82,7 @@ export function registerTempPlugin(app: App, plugin: CodeScriptToolkitComponent,
         printError(error);
       }
       tempPlugins.delete(id);
-      plugin.removeCommand(commandId);
+      codeScriptToolkitComponent.removeCommand(commandId);
       new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       styleEl?.remove();
     };

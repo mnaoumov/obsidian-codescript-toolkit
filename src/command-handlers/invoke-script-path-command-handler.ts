@@ -36,20 +36,20 @@ interface GetScriptOrCommandParams {
 
 interface InvokeScriptPathCommandConstructorParams {
   app: App;
-  plugin: CodeScriptToolkitComponent;
+  codeScriptToolkitComponent: CodeScriptToolkitComponent;
   pluginSettingsComponent: PluginSettingsComponent;
   relativeScriptPath: string;
 }
 
 export class InvokeScriptPathCommand {
   private readonly app: App;
-  private readonly plugin: CodeScriptToolkitComponent;
+  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly relativeScriptPath: string;
 
   public constructor(params: InvokeScriptPathCommandConstructorParams) {
     this.app = params.app;
-    this.plugin = params.plugin;
+    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.relativeScriptPath = params.relativeScriptPath;
   }
@@ -73,7 +73,7 @@ export class InvokeScriptPathCommand {
     rebind(invokeCommand, 'editorCallback');
     rebind(invokeCommand, 'editorCheckCallback');
     try {
-      this.plugin.addCommand(invokeCommand);
+      this.codeScriptToolkitComponent.addCommand(invokeCommand);
       rebind(invokeCommand, 'checkCallback');
       relativeScriptPathCommandIdMap.set(this.relativeScriptPath, invokeCommand.id);
     } catch (error) {
@@ -103,7 +103,7 @@ export class InvokeScriptPathCommand {
           invokeAsyncSafely(async () => {
             try {
               await script.invoke?.(this.app);
-              this.plugin.consoleDebug(`${this.relativeScriptPath} invocable script executed successfully`);
+              this.codeScriptToolkitComponent.consoleDebug(`${this.relativeScriptPath} invocable script executed successfully`);
             } catch (error) {
               printError(new Error(`Error invoking ${this.relativeScriptPath}`, { cause: error }));
               new Notice(`Error invoking ${this.relativeScriptPath}. See console for details.`);
@@ -117,8 +117,8 @@ export class InvokeScriptPathCommand {
   }
 }
 
-export function invokeScriptPath(plugin: CodeScriptToolkitComponent, relativeScriptPath: string, app: App): void {
-  plugin.consoleDebug(`Invoking script: ${relativeScriptPath}.`);
+export function invokeScriptPath(codeScriptToolkitComponent: CodeScriptToolkitComponent, relativeScriptPath: string, app: App): void {
+  codeScriptToolkitComponent.consoleDebug(`Invoking script: ${relativeScriptPath}.`);
 
   const commandId = relativeScriptPathCommandIdMap.get(relativeScriptPath);
   if (!commandId) {
@@ -143,7 +143,7 @@ export function invokeScriptPath(plugin: CodeScriptToolkitComponent, relativeScr
 
     try {
       command.checkCallback(false);
-      plugin.consoleDebug(`${relativeScriptPath} command executed successfully`);
+      codeScriptToolkitComponent.consoleDebug(`${relativeScriptPath} command executed successfully`);
     } catch (error) {
       printError(new Error(`Error invoking ${relativeScriptPath} command`, { cause: error }));
       new Notice(`Error invoking ${relativeScriptPath} command. See console for details.`);
@@ -151,7 +151,7 @@ export function invokeScriptPath(plugin: CodeScriptToolkitComponent, relativeScr
   } else if (command.callback) {
     try {
       command.callback();
-      plugin.consoleDebug(`${relativeScriptPath} command executed successfully`);
+      codeScriptToolkitComponent.consoleDebug(`${relativeScriptPath} command executed successfully`);
     } catch (error) {
       printError(new Error(`Error invoking ${relativeScriptPath} command`, { cause: error }));
       new Notice(`Error invoking ${relativeScriptPath} command. See console for details.`);

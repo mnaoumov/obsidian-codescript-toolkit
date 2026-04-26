@@ -181,10 +181,10 @@ export abstract class RequireHandler {
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
   protected vaultAbsolutePath?: string;
   protected get plugin(): CodeScriptToolkitComponent {
-    if (!this._plugin) {
+    if (!this._codeScriptToolkitComponent) {
       throw new Error('Plugin is not registered.');
     }
-    return this._plugin;
+    return this._codeScriptToolkitComponent;
   }
 
   protected get requireEx(): RequireExFn {
@@ -194,7 +194,7 @@ export abstract class RequireHandler {
     return this._requireEx;
   }
 
-  private _plugin?: CodeScriptToolkitComponent;
+  private _codeScriptToolkitComponent?: CodeScriptToolkitComponent;
 
   private _requireEx?: RequireExFn;
 
@@ -220,8 +220,8 @@ export abstract class RequireHandler {
     }
   }
 
-  public register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
-    this._plugin = plugin;
+  public register(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
+    this._codeScriptToolkitComponent = codeScriptToolkitComponent;
     this.initSpecialModuleFactories();
 
     const adapter = getDataAdapterEx(this.app);
@@ -233,11 +233,11 @@ export abstract class RequireHandler {
       cache: {}
     }, this.originalRequire) as RequireExFn;
     this.modulesCache = this.requireEx.cache;
-    new AllWindowsEventHandler(this.app, plugin).registerAllWindowsHandler((win) => {
+    new AllWindowsEventHandler(this.app, codeScriptToolkitComponent).registerAllWindowsHandler((win) => {
       const requireWindow = win as Partial<RequireWindow>;
 
       requireWindow.require = this.requireEx;
-      plugin.register(() => {
+      codeScriptToolkitComponent.register(() => {
         if (!this.originalRequire) {
           return;
         }
@@ -245,10 +245,10 @@ export abstract class RequireHandler {
       });
 
       requireWindow.requireAsync = this.requireAsync.bind(this);
-      plugin.register(() => delete requireWindow.requireAsync);
+      codeScriptToolkitComponent.register(() => delete requireWindow.requireAsync);
 
       requireWindow.requireAsyncWrapper = this.requireAsyncWrapper.bind(this);
-      plugin.register(() => delete requireWindow.requireAsyncWrapper);
+      codeScriptToolkitComponent.register(() => delete requireWindow.requireAsyncWrapper);
     });
   }
 

@@ -29,11 +29,11 @@ import { registerTempPlugin } from './temp-plugin-registry.ts';
 
 interface CodeButtonContextImplConstructorParams {
   app: App;
+  codeScriptToolkitComponent: CodeScriptToolkitComponent;
   config: CodeButtonBlockConfig;
   markdownInfo: CodeBlockMarkdownInformation | null;
   markdownPostProcessorContext: MarkdownPostProcessorContext;
   parentEl: HTMLElement;
-  plugin: CodeScriptToolkitComponent;
   resultEl: HTMLElement;
   source: string;
 }
@@ -49,7 +49,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   public readonly source: string;
   public readonly sourceFile: TFile;
 
-  private readonly plugin: CodeScriptToolkitComponent;
+  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly resultEl: HTMLElement;
 
   public constructor(params: CodeButtonContextImplConstructorParams) {
@@ -59,7 +59,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     this.markdownInfo = params.markdownInfo;
     this.markdownPostProcessorContext = params.markdownPostProcessorContext;
     this.parentEl = params.parentEl;
-    this.plugin = params.plugin;
+    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.resultEl = params.resultEl;
     this.source = params.source;
 
@@ -94,7 +94,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   }
 
   public registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
-    registerTempPlugin(this.app, this.plugin, tempPluginClass, cssText);
+    registerTempPlugin(this.app, this.codeScriptToolkitComponent, tempPluginClass, cssText);
   }
 
   public async removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void> {

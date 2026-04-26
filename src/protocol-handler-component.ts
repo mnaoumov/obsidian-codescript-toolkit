@@ -19,7 +19,7 @@ type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
 
 interface ProtocolHandlerComponentConstructorParams {
   app: App;
-  plugin: CodeScriptToolkitComponent;
+  codeScriptToolkitComponent: CodeScriptToolkitComponent;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -36,18 +36,18 @@ interface WindowWithRequireAsync {
 
 export class ProtocolHandlerComponent extends Component {
   private readonly app: App;
-  private readonly plugin: CodeScriptToolkitComponent;
+  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
 
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();
     this.app = params.app;
-    this.plugin = params.plugin;
+    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
 
   public override onload(): void {
-    this.plugin.registerObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, convertAsyncToSync(this.processQuery.bind(this)));
+    this.codeScriptToolkitComponent.registerObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, convertAsyncToSync(this.processQuery.bind(this)));
   }
 
   private async processQuery(query: ObsidianProtocolData): Promise<void> {
@@ -70,7 +70,7 @@ export class ProtocolHandlerComponent extends Component {
       parsedQuery.functionName ??= 'invoke';
       parsedQuery.args ??= parsedQuery.functionName === 'invoke' ? 'app' : '';
 
-      this.plugin.consoleDebug('Invoking script file from URL action:', {
+      this.codeScriptToolkitComponent.consoleDebug('Invoking script file from URL action:', {
         args: parsedQuery.args,
         functionName: parsedQuery.functionName,
         module: parsedQuery.module
@@ -80,7 +80,7 @@ export class ProtocolHandlerComponent extends Component {
     } else {
       parsedQuery.code ??= '';
 
-      this.plugin.consoleDebug('Invoking code from URL action:', {
+      this.codeScriptToolkitComponent.consoleDebug('Invoking code from URL action:', {
         code: parsedQuery.code
       });
     }

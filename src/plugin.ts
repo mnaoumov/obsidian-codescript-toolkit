@@ -42,7 +42,7 @@ export class Plugin extends PluginBase {
       new CommandHandlerComponent({
         commandHandler: new InvokeScriptChooseCommandHandler({
           app: this.app,
-          plugin: codeScriptToolkitComponent,
+          codeScriptToolkitComponent,
           pluginName: this.manifest.name,
           pluginSettingsComponent
         }),
@@ -78,7 +78,7 @@ export class Plugin extends PluginBase {
     this.addChild(
       new ProtocolHandlerComponent({
         app: this.app,
-        plugin: codeScriptToolkitComponent,
+        codeScriptToolkitComponent,
         pluginSettingsComponent
       })
     );

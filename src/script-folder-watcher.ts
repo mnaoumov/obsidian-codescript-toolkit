@@ -16,10 +16,10 @@ export abstract class ScriptFolderWatcher {
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
 
   protected get plugin(): CodeScriptToolkitComponent {
-    return ensureNonNullable(this._plugin);
+    return ensureNonNullable(this._codeScriptToolkitComponent);
   }
 
-  private _plugin?: CodeScriptToolkitComponent;
+  private _codeScriptToolkitComponent?: CodeScriptToolkitComponent;
 
   private wasRegisteredInPlugin = false;
 
@@ -28,9 +28,9 @@ export abstract class ScriptFolderWatcher {
     this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
 
-  public async register(plugin: CodeScriptToolkitComponent, onChange: () => Promise<void>): Promise<void> {
+  public async register(codeScriptToolkitComponent: CodeScriptToolkitComponent, onChange: () => Promise<void>): Promise<void> {
     if (!this.wasRegisteredInPlugin) {
-      this._plugin = plugin;
+      this._codeScriptToolkitComponent = codeScriptToolkitComponent;
       this.plugin.register(this.stopWatcher.bind(this));
       this.wasRegisteredInPlugin = true;
     }

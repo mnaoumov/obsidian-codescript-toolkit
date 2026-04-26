@@ -9,10 +9,10 @@ import {
   unregisterTempPlugin
 } from './temp-plugin-registry.ts';
 
-export function createCodeScriptToolkitModule(app: App, plugin: CodeScriptToolkitComponent): CodeScriptToolkitModule {
+export function createCodeScriptToolkitModule(app: App, codeScriptToolkitComponent: CodeScriptToolkitComponent): CodeScriptToolkitModule {
   return {
     registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
-      registerTempPlugin(app, plugin, tempPluginClass, cssText);
+      registerTempPlugin(app, codeScriptToolkitComponent, tempPluginClass, cssText);
     },
     unregisterTempPlugin(tempPluginClassName: string): void {
       unregisterTempPlugin(tempPluginClassName);

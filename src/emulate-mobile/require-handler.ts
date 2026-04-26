@@ -20,10 +20,10 @@ export class EmulateMobileRequireHandler extends RequireHandler {
     this.mobileRequireHandler = createMobileRequireHandler(params);
   }
 
-  public override register(plugin: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
-    super.register(plugin, pluginRequire);
-    this.desktopRequireHandler.register(plugin, pluginRequire);
-    this.mobileRequireHandler.register(plugin, pluginRequire);
+  public override register(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
+    super.register(codeScriptToolkitComponent, pluginRequire);
+    this.desktopRequireHandler.register(codeScriptToolkitComponent, pluginRequire);
+    this.mobileRequireHandler.register(codeScriptToolkitComponent, pluginRequire);
   }
 
   protected override canRequireNonCached(): boolean {

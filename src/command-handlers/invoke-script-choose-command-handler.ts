@@ -9,14 +9,14 @@ import { selectAndInvokeScript } from '../script.ts';
 
 interface InvokeScriptChooseCommandHandlerConstructorParams {
   app: App;
-  plugin: CodeScriptToolkitComponent;
+  codeScriptToolkitComponent: CodeScriptToolkitComponent;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
 export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
   private readonly app: App;
-  private readonly plugin: CodeScriptToolkitComponent;
+  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
 
   public constructor(params: InvokeScriptChooseCommandHandlerConstructorParams) {
@@ -27,11 +27,11 @@ export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
       pluginName: params.pluginName
     });
     this.app = params.app;
-    this.plugin = params.plugin;
+    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
 
   protected override async execute(): Promise<void> {
-    await selectAndInvokeScript(this.plugin, this.pluginSettingsComponent, this.app);
+    await selectAndInvokeScript(this.codeScriptToolkitComponent, this.pluginSettingsComponent, this.app);
   }
 }

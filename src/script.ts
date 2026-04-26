@@ -55,7 +55,11 @@ export async function invokeStartupScript(app: App, pluginSettingsComponent: Plu
   await startupScript.invoke(app);
 }
 
-export async function registerInvocableScripts(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
+export async function registerInvocableScripts(
+  codeScriptToolkitComponent: CodeScriptToolkitComponent,
+  pluginSettingsComponent: PluginSettingsComponent,
+  app: App
+): Promise<void> {
   unregisterInvocableCommands(app);
 
   const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
@@ -74,7 +78,7 @@ export async function registerInvocableScripts(plugin: CodeScriptToolkitComponen
   const scriptPaths = await getAllScriptPaths(app, pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
 
   for (const scriptPath of scriptPaths) {
-    await new InvokeScriptPathCommand({ app, plugin, pluginSettingsComponent, relativeScriptPath: scriptPath }).register();
+    await new InvokeScriptPathCommand({ app, codeScriptToolkitComponent, pluginSettingsComponent, relativeScriptPath: scriptPath }).register();
   }
 }
 
@@ -83,7 +87,11 @@ export async function reloadStartupScript(pluginSettingsComponent: PluginSetting
   await invokeStartupScript(app, pluginSettingsComponent);
 }
 
-export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
+export async function selectAndInvokeScript(
+  codeScriptToolkitComponent: CodeScriptToolkitComponent,
+  pluginSettingsComponent: PluginSettingsComponent,
+  app: App
+): Promise<void> {
   const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
   let scriptPaths: string[];
 
@@ -103,12 +111,12 @@ export async function selectAndInvokeScript(plugin: CodeScriptToolkitComponent, 
   });
 
   if (scriptPath === null) {
-    plugin.consoleDebug('No script selected');
+    codeScriptToolkitComponent.consoleDebug('No script selected');
     return;
   }
 
   if (!scriptPath.startsWith('Error:')) {
-    invokeScriptPath(plugin, scriptPath, app);
+    invokeScriptPath(codeScriptToolkitComponent, scriptPath, app);
   }
 }
 

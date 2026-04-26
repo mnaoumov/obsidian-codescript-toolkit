@@ -87,12 +87,19 @@ ${config}---
   editor.replaceSelection(newCodeBlock);
 }
 
-export function registerCodeButtonBlock(plugin: CodeScriptToolkitComponent, pluginSettingsComponent: PluginSettingsComponent, app: App): void {
+export function registerCodeButtonBlock(
+  codeScriptToolkitComponent: CodeScriptToolkitComponent,
+  pluginSettingsComponent: PluginSettingsComponent,
+  app: App
+): void {
   registerCodeHighlighting();
-  plugin.register(unregisterCodeHighlighting);
-  plugin.registerMarkdownCodeBlockProcessor(CODE_BUTTON_BLOCK_LANGUAGE, (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
-    invokeAsyncSafely(() => processCodeButtonBlock(plugin, pluginSettingsComponent, source, el, ctx, app));
-  });
+  codeScriptToolkitComponent.register(unregisterCodeHighlighting);
+  codeScriptToolkitComponent.registerMarkdownCodeBlockProcessor(
+    CODE_BUTTON_BLOCK_LANGUAGE,
+    (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
+      invokeAsyncSafely(() => processCodeButtonBlock(codeScriptToolkitComponent, pluginSettingsComponent, source, el, ctx, app));
+    }
+  );
 }
 
 function addLinkToDocs(f: DocumentFragment): void {
@@ -200,7 +207,7 @@ function makeWrapperScript(source: string, sourceFileName: string, sourceFolder:
 }
 
 async function processCodeButtonBlock(
-  plugin: CodeScriptToolkitComponent,
+  codeScriptToolkitComponent: CodeScriptToolkitComponent,
   pluginSettingsComponent: PluginSettingsComponent,
   source: string,
   el: HTMLElement,
@@ -272,7 +279,7 @@ ${code}
     return;
   }
 
-  config = { ...plugin.parseDefaultCodeButtonConfig(), ...config };
+  config = { ...codeScriptToolkitComponent.parseDefaultCodeButtonConfig(), ...config };
 
   if (config.isRaw) {
     config.shouldAutoOutput = false;
@@ -305,11 +312,11 @@ ${code}
       code,
       codeButtonContext: new CodeButtonContextImpl({
         app,
+        codeScriptToolkitComponent,
         config: fullConfig,
         markdownInfo,
         markdownPostProcessorContext: updateSourcePath(ctx, sourceFile),
         parentEl: el,
-        plugin,
         resultEl,
         source
       }),
