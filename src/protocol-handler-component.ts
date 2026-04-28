@@ -5,6 +5,7 @@ import type {
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 
 import { Component } from 'obsidian';
@@ -15,7 +16,6 @@ import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { requireStringAsync } from './require-handler-utils.ts';
-import type { ObsidianProtocolHandlerRegistrar } from './obsidian-protocol-handler-registrar.ts';
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
@@ -27,9 +27,9 @@ interface ProtocolHandlerComponentConstructorParams {
   commandRegistrar: CommandRegistrar;
   consoleDebugComponent: ConsoleDebugComponent;
   menuEventRegistrar: MenuEventRegistrar;
+  obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
-  obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
 }
 
 interface Query {
@@ -49,9 +49,9 @@ export class ProtocolHandlerComponent extends Component {
   private readonly commandRegistrar: CommandRegistrar;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly menuEventRegistrar: MenuEventRegistrar;
+  private readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
 
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();

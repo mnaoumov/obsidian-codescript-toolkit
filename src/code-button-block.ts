@@ -6,6 +6,7 @@ import type {
 } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { Promisable } from 'type-fest';
@@ -47,7 +48,6 @@ import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-p
 import { CodeButtonContextImpl } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { requireStringAsync } from './require-handler-utils.ts';
-import type { MarkdownCodeBlockProcessorRegistrar } from './markdown-code-block-processor-registrar.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
@@ -102,10 +102,10 @@ interface RegisterCodeButtonBlockParams {
   readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
 }
 
 export function insertSampleCodeButton(editor: Editor): void {
