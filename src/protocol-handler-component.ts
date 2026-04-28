@@ -12,10 +12,10 @@ import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { toJson } from 'obsidian-dev-utils/object-utils';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { requireStringAsync } from './require-handler-utils.ts';
+import type { ObsidianProtocolHandlerRegistrar } from './obsidian-protocol-handler-registrar.ts';
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
@@ -24,12 +24,12 @@ type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
 interface ProtocolHandlerComponentConstructorParams {
   activeFileProvider: ActiveFileProvider;
   app: App;
-  codeScriptToolkitComponent: CodeScriptToolkitComponent;
   commandRegistrar: CommandRegistrar;
   consoleDebugComponent: ConsoleDebugComponent;
   menuEventRegistrar: MenuEventRegistrar;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
+  obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
 }
 
 interface Query {
@@ -46,27 +46,27 @@ interface WindowWithRequireAsync {
 export class ProtocolHandlerComponent extends Component {
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
-  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly commandRegistrar: CommandRegistrar;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
+  private readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
 
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();
     this.app = params.app;
-    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    this.obsidianProtocolHandlerRegistrar = params.obsidianProtocolHandlerRegistrar;
   }
 
   public override onload(): void {
-    this.codeScriptToolkitComponent.registerObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, convertAsyncToSync(this.processQuery.bind(this)));
+    this.obsidianProtocolHandlerRegistrar.registerObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, convertAsyncToSync(this.processQuery.bind(this)));
   }
 
   private async processQuery(query: ObsidianProtocolData): Promise<void> {

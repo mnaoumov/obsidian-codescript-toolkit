@@ -1,6 +1,5 @@
 import type {
   App,
-  ObsidianProtocolHandler,
   Plugin
 } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
@@ -109,10 +108,6 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       markdownCodeBlockProcessorRegistrar: this.markdownCodeBlockProcessorRegistrar
     });
     await registerCodeScriptBlock(this);
-  }
-
-  public registerObsidianProtocolHandler(action: string, handler: ObsidianProtocolHandler): void {
-    this.plugin.registerObsidianProtocolHandler(action, handler);
   }
 
   public removeCommand(commandId: string): void {

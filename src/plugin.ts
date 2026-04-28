@@ -20,6 +20,7 @@ import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 import { PluginMarkdownCodeBlockProcessorRegistrar } from './markdown-code-block-processor-registrar.ts';
+import { PluginObsidianProtocolHandlerRegistrar } from './obsidian-protocol-handler-registrar.ts';
 
 export class Plugin extends PluginBase {
   public constructor(app: App, manifest: PluginManifest) {
@@ -96,12 +97,12 @@ export class Plugin extends PluginBase {
       new ProtocolHandlerComponent({
         activeFileProvider,
         app: this.app,
-        codeScriptToolkitComponent,
         commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
         menuEventRegistrar,
         pluginName: this.manifest.name,
-        pluginSettingsComponent
+        pluginSettingsComponent,
+        obsidianProtocolHandlerRegistrar: new PluginObsidianProtocolHandlerRegistrar(this)
       })
     );
   }
