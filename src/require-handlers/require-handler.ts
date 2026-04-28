@@ -172,6 +172,12 @@ const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertA
 const WILDCARD_MODULE_CONDITION_SUFFIX = '/*';
 export const VAULT_ROOT_PREFIX = '//';
 
+export interface RequireHandler extends AsyncComponentBase {
+  clearCache(): void;
+  requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown>;
+  requireStringAsync(code: string, path: string, urlSuffix?: string): Promise<unknown>;
+}
+
 export interface RequireHandlerConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
@@ -183,7 +189,7 @@ export interface RequireHandlerConstructorParams {
   readonly tempPluginRegistry: TempPluginRegistry;
 }
 
-export abstract class RequireHandler extends AsyncComponentBase {
+export abstract class RequireHandlerBase extends AsyncComponentBase implements RequireHandler {
   protected readonly activeFileProvider: ActiveFileProvider;
   protected readonly app: App;
   protected readonly commandRegistrar: CommandRegistrar;

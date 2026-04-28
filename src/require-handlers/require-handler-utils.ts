@@ -39,9 +39,9 @@ interface RequireVaultScriptAsyncParams {
 }
 
 export async function requireStringAsync(params: RequireStringAsyncParams): Promise<unknown> {
-  return params.requireHandlerFactory.platformRequireHandler.requireStringAsync(params.source, params.path, params.urlSuffix);
+  return params.requireHandlerFactory.requireStringAsync(params.source, params.path, params.urlSuffix);
 }
 
 export async function requireVaultScriptAsync(params: RequireVaultScriptAsyncParams): Promise<unknown> {
-  return params.requireHandlerFactory.platformRequireHandler.requireAsync(VAULT_ROOT_PREFIX + params.id);
+  return params.requireHandlerFactory.requireAsync(VAULT_ROOT_PREFIX + params.id);
 }

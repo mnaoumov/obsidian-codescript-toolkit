@@ -12,6 +12,6 @@ export class ClearCacheCommandHandler extends GlobalCommandHandler {
   }
 
   public override execute(): void {
-    this.requireHandlerFactory.platformRequireHandler.clearCache();
+    this.requireHandlerFactory.clearCache();
   }
 }

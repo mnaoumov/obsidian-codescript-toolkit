@@ -7,9 +7,9 @@ import type {
 
 import { createRequireHandler as createDesktopRequireHandler } from './require-handler-desktop.ts';
 import { createRequireHandler as createMobileRequireHandler } from './require-handler-mobile.ts';
-import { RequireHandler } from './require-handler.ts';
+import { RequireHandlerBase } from './require-handler.ts';
 
-export class RequireHandlerEmulateMobile extends RequireHandler {
+export class RequireHandlerEmulateMobile extends RequireHandlerBase {
   private readonly desktopRequireHandler: RequireHandlerDesktop;
   private readonly mobileRequireHandler: RequireHandlerMobile;
 

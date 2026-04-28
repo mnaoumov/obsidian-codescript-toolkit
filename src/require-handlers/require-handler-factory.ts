@@ -2,20 +2,25 @@ import { Platform } from 'obsidian';
 import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
+import type { RequireOptions } from '../types.ts';
 import type {
   RequireHandler,
   RequireHandlerConstructorParams
 } from './require-handler.ts';
 
-export class RequireHandlerFactory extends AsyncComponentBase {
-  public get platformRequireHandler(): RequireHandler {
+export class RequireHandlerFactory extends AsyncComponentBase implements RequireHandler {
+  private _platformRequireHandler?: RequireHandler;
+
+  private get platformRequireHandler(): RequireHandler {
     return ensureNonNullable(this._platformRequireHandler);
   }
 
-  private _platformRequireHandler?: RequireHandler;
-
   public constructor(private readonly params: RequireHandlerConstructorParams) {
     super();
+  }
+
+  public clearCache(): void {
+    this.platformRequireHandler.clearCache();
   }
 
   public override async onload(): Promise<void> {
@@ -34,5 +39,13 @@ export class RequireHandlerFactory extends AsyncComponentBase {
     }
 
     this.addChild(this._platformRequireHandler);
+  }
+
+  public requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
+    return this.platformRequireHandler.requireAsync(id, options);
+  }
+
+  public requireStringAsync(code: string, path: string, urlSuffix?: string): Promise<unknown> {
+    return this.platformRequireHandler.requireStringAsync(code, path, urlSuffix);
   }
 }

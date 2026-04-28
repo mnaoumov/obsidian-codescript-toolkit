@@ -3,11 +3,11 @@ import { CapacitorAdapter } from 'obsidian';
 import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
 import {
-  RequireHandler,
+  RequireHandlerBase,
   splitQuery
 } from './require-handler.ts';
 
-export class RequireHandlerMobile extends RequireHandler {
+export class RequireHandlerMobile extends RequireHandlerBase {
   private get capacitorAdapter(): CapacitorAdapter {
     const adapter = this.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {

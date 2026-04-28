@@ -32,13 +32,13 @@ import {
   PATH_SUFFIXES,
   PRIVATE_MODULE_PREFIX,
   RELATIVE_MODULE_PATH_SEPARATOR,
-  RequireHandler,
+  RequireHandlerBase,
   ResolvedType,
   SCOPED_MODULE_PREFIX,
   splitQuery
 } from './require-handler.ts';
 
-export class RequireHandlerDesktop extends RequireHandler {
+export class RequireHandlerDesktop extends RequireHandlerBase {
   private _fs?: typeof import('node:fs');
   private _fsPromises?: typeof import('node:fs/promises');
   private originalModulePrototypeRequire?: RequireFn;
