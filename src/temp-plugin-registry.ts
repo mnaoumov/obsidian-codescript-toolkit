@@ -18,8 +18,6 @@ import type { RegisterTempPluginParams } from './code-button-context.ts';
 
 import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-plugin-command-handler.ts';
 
-const tempPlugins = new Map<string, ObsidianPlugin>();
-
 interface TempPluginRegistryConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
@@ -29,6 +27,7 @@ interface TempPluginRegistryConstructorParams {
 }
 
 export class TempPluginRegistry extends Component {
+  private readonly tempPlugins = new Map<string, ObsidianPlugin>();
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly commandRegistrar: CommandRegistrar;
@@ -48,7 +47,7 @@ export class TempPluginRegistry extends Component {
     const tempPluginClassName = params.tempPluginClass.name || '_AnonymousPlugin';
     const id = makeTempPluginId(tempPluginClassName);
 
-    const existingPlugin = tempPlugins.get(id);
+    const existingPlugin = this.tempPlugins.get(id);
     if (existingPlugin) {
       existingPlugin.unload();
     }
@@ -62,7 +61,7 @@ export class TempPluginRegistry extends Component {
       version: '0.0.0'
     });
 
-    tempPlugins.set(id, tempPlugin);
+    this.tempPlugins.set(id, tempPlugin);
 
     type LoadFn = () => Promise<void>;
 
@@ -114,28 +113,28 @@ export class TempPluginRegistry extends Component {
           new Notice(`Failed to unload Temp Plugin: ${tempPluginClassName}. See console for details.`);
           printError(error);
         }
-        tempPlugins.delete(id);
+        this.tempPlugins.delete(id);
         this.removeChild(unloadTempPluginCommandHandlerComponent);
         new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
         styleEl?.remove();
       };
     });
   }
-}
 
-export function unloadTempPlugins(): void {
-  for (const tempPlugin of tempPlugins.values()) {
-    tempPlugin.unload();
+  public unloadTempPlugins(): void {
+    for (const tempPlugin of this.tempPlugins.values()) {
+      tempPlugin.unload();
+    }
   }
-}
 
-export function unregisterTempPlugin(tempPluginClassName: string): void {
-  const id = makeTempPluginId(tempPluginClassName);
-  const tempPlugin = tempPlugins.get(id);
-  if (tempPlugin) {
-    tempPlugin.unload();
-  } else {
-    new Notice(`Temp Plugin was not registered: ${tempPluginClassName}.`);
+  public unregisterTempPlugin(tempPluginClassName: string): void {
+    const id = makeTempPluginId(tempPluginClassName);
+    const tempPlugin = this.tempPlugins.get(id);
+    if (tempPlugin) {
+      tempPlugin.unload();
+    } else {
+      new Notice(`Temp Plugin was not registered: ${tempPluginClassName}.`);
+    }
   }
 }
 

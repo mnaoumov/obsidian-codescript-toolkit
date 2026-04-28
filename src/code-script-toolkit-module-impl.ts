@@ -1,10 +1,7 @@
 import type { TempPluginClass } from './code-button-context.ts';
 import type { CodeScriptToolkitModule } from './code-script-toolkit-module.ts';
 
-import {
-  TempPluginRegistry,
-  unregisterTempPlugin
-} from './temp-plugin-registry.ts';
+import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
 export class CodeScriptToolkitModuleImpl implements CodeScriptToolkitModule {
   public constructor(private readonly tempPluginRegistry: TempPluginRegistry) {
@@ -18,6 +15,6 @@ export class CodeScriptToolkitModuleImpl implements CodeScriptToolkitModule {
   }
 
   public unregisterTempPlugin(tempPluginClassName: string): void {
-    unregisterTempPlugin(tempPluginClassName);
+    this.tempPluginRegistry.unregisterTempPlugin(tempPluginClassName);
   }
 }

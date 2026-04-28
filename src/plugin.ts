@@ -110,7 +110,7 @@ export class Plugin extends PluginBase {
             pluginName: this.manifest.name,
             startupScriptComponent
           }),
-          new UnloadTempPluginsCommandHandler(this.manifest.name)
+          new UnloadTempPluginsCommandHandler(tempPluginRegistry)
         ],
         commandRegistrar,
         menuEventRegistrar

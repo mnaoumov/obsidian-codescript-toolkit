@@ -1,18 +1,16 @@
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
-
-import { unloadTempPlugins } from '../temp-plugin-registry.ts';
+import type { TempPluginRegistry } from '../temp-plugin-registry.ts';
 
 export class UnloadTempPluginsCommandHandler extends GlobalCommandHandler {
-  public constructor(pluginName: string) {
+  public constructor(private readonly tempPluginRegistry: TempPluginRegistry) {
     super({
       icon: 'upload',
       id: 'unload-temp-plugins',
-      name: 'Unload temp plugins',
-      pluginName
+      name: 'Unload temp plugins'
     });
   }
 
   public override execute(): void {
-    unloadTempPlugins();
+    this.tempPluginRegistry.unloadTempPlugins();
   }
 }
