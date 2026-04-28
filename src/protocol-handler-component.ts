@@ -55,6 +55,7 @@ export class ProtocolHandlerComponent extends Component {
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly requireHandlerFactory: RequireHandlerFactory;
+
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();
     this.app = params.app;

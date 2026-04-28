@@ -21,42 +21,14 @@ import {
   InvokeScriptPathCommand,
   unregisterInvocableCommands
 } from './command-handlers/invoke-script-path-command-handler.ts';
-import { requireVaultScriptAsync } from './require-handlers/require-handler-utils.ts';
 
 export interface Script {
   invoke(app: App): Promisable<void>;
 }
 
-interface StartupScript extends Script {
-  cleanup?(app: App): Promisable<void>;
-}
-
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
-let startupScript: null | StartupScript = null;
-
-interface InvokeStartupScriptParams {
-  readonly activeFileProvider: ActiveFileProvider;
-  readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
-  readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
-}
 
 interface RegisterInvocableScriptsParams {
-  readonly activeFileProvider: ActiveFileProvider;
-  readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
-  readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
-}
-
-interface ReloadStartupScriptParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
   readonly commandRegistrar: CommandRegistrar;
@@ -71,43 +43,6 @@ interface SelectAndInvokeScriptParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-}
-
-export async function cleanupStartupScript(app: App): Promise<void> {
-  if (!startupScript) {
-    return;
-  }
-
-  await startupScript.cleanup?.(app);
-  // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
-  startupScript = null;
-}
-
-export async function invokeStartupScript(params: InvokeStartupScriptParams): Promise<void> {
-  const { activeFileProvider, app, commandRegistrar, menuEventRegistrar, pluginSettingsComponent } = params;
-  if (startupScript) {
-    throw new Error('Startup script already invoked');
-  }
-
-  const startupScriptPath = await validateStartupScript(app, pluginSettingsComponent);
-  if (!startupScriptPath) {
-    return;
-  }
-
-  // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
-  startupScript = await requireVaultScriptAsync({
-    activeFileProvider,
-    app,
-    commandRegistrar,
-    consoleDebugComponent: params.consoleDebugComponent,
-    id: startupScriptPath,
-    menuEventRegistrar,
-    pluginName: params.pluginName,
-    pluginRequire: require,
-    pluginSettingsComponent,
-    requireHandlerFactory: params.requireHandlerFactory
-  }) as StartupScript;
-  await startupScript.invoke(params.app);
 }
 
 export async function registerInvocableScripts(params: RegisterInvocableScriptsParams): Promise<void> {
@@ -142,21 +77,6 @@ export async function registerInvocableScripts(params: RegisterInvocableScriptsP
       requireHandlerFactory: params.requireHandlerFactory
     }).register();
   }
-}
-
-export async function reloadStartupScript(params: ReloadStartupScriptParams): Promise<void> {
-  const { activeFileProvider, app, commandRegistrar, menuEventRegistrar, pluginSettingsComponent } = params;
-  await cleanupStartupScript(app);
-  await invokeStartupScript({
-    activeFileProvider,
-    app,
-    commandRegistrar,
-    consoleDebugComponent: params.consoleDebugComponent,
-    menuEventRegistrar,
-    pluginName: params.pluginName,
-    pluginSettingsComponent,
-    requireHandlerFactory: params.requireHandlerFactory
-  });
 }
 
 export async function selectAndInvokeScript(params: SelectAndInvokeScriptParams): Promise<void> {
@@ -218,29 +138,4 @@ function getSortedBaseNames(fullNames: string[]): string[] {
 
 async function isInvocableMarkdownFile(app: App, path: string): Promise<boolean> {
   return (await getCodeScriptToolkitNoteSettings(app, path)).isInvocable;
-}
-
-async function validateStartupScript(
-  app: App,
-  pluginSettingsComponent: PluginSettingsComponent,
-  shouldWarnOnNotConfigured = false
-): Promise<null | string> {
-  const startupScriptPath = pluginSettingsComponent.settings.getStartupScriptPath();
-  if (!startupScriptPath) {
-    if (shouldWarnOnNotConfigured) {
-      const message = 'Startup script is not configured';
-      new Notice(message);
-      console.warn(message);
-    }
-    return null;
-  }
-
-  if (!await app.vault.exists(startupScriptPath)) {
-    const message = `Startup script not found: ${startupScriptPath}`;
-    new Notice(message);
-    console.error(message);
-    return null;
-  }
-
-  return startupScriptPath;
 }

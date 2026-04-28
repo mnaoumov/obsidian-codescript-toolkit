@@ -66,6 +66,19 @@ export class Plugin extends PluginBase {
       })
     );
 
+    const startupScriptComponent = this.addChild(
+      new StartupScriptComponent({
+        activeFileProvider,
+        app: this.app,
+        commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
+        menuEventRegistrar,
+        pluginName: this.manifest.name,
+        pluginSettingsComponent,
+        requireHandlerFactory
+      })
+    );
+
     this.addChild(new CodeScriptBlockComponent());
 
     this.addChild(
@@ -94,14 +107,8 @@ export class Plugin extends PluginBase {
             pluginSettingsComponent
           }),
           new ReloadStartupScriptCommandHandler({
-            activeFileProvider,
-            app: this.app,
-            commandRegistrar,
-            consoleDebugComponent: this.consoleDebugComponent,
-            menuEventRegistrar,
             pluginName: this.manifest.name,
-            pluginSettingsComponent,
-            requireHandlerFactory
+            startupScriptComponent
           }),
           new UnloadTempPluginsCommandHandler(this.manifest.name)
         ],
@@ -150,19 +157,6 @@ export class Plugin extends PluginBase {
         pluginSettingsComponent,
         requireHandlerFactory,
         tempPluginRegistry
-      })
-    );
-
-    this.addChild(
-      new StartupScriptComponent({
-        activeFileProvider,
-        app: this.app,
-        commandRegistrar,
-        consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar,
-        pluginName: this.manifest.name,
-        pluginSettingsComponent,
-        requireHandlerFactory
       })
     );
   }
