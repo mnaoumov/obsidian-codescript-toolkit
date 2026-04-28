@@ -147,6 +147,7 @@ export class Plugin extends PluginBase {
         markdownCodeBlockProcessorRegistrar,
         menuEventRegistrar,
         pluginName: this.manifest.name,
+        pluginRequire: require,
         pluginSettingsComponent,
         requireHandlerFactory,
         tempPluginRegistry

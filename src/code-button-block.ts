@@ -40,7 +40,7 @@ import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
-import type { RequireHandlerConstructorParams } from './require-handlers/require-handler.ts';
+import type { PluginRequireFn } from './require-handlers/require-handler.ts';
 
 import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
@@ -53,19 +53,11 @@ import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
-interface HandleClickParams extends RequireHandlerConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
-  readonly app: App;
+interface HandleClickParams {
   readonly buttonIndex: number;
   readonly code: string;
   readonly codeButtonContext: CodeButtonContext;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly escapedCaption: string;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
-  readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
@@ -93,6 +85,7 @@ interface CodeButtonBlockComponentConstructorParams {
   readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
+  readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly requireHandlerFactory: RequireHandlerFactory;
   readonly tempPluginRegistry: TempPluginRegistry;
@@ -101,6 +94,7 @@ interface CodeButtonBlockComponentConstructorParams {
 interface ProcessCodeButtonBlockParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
+  readonly codeButtonBlockComponent: CodeButtonBlockComponent;
   readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly ctx: MarkdownPostProcessorContext;
@@ -121,6 +115,7 @@ export class CodeButtonBlockComponent extends Component {
   private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
+  private readonly pluginRequire: PluginRequireFn;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly requireHandlerFactory: RequireHandlerFactory;
   private readonly tempPluginRegistry: TempPluginRegistry;
@@ -134,9 +129,85 @@ export class CodeButtonBlockComponent extends Component {
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
+    this.pluginRequire = params.pluginRequire;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.requireHandlerFactory = params.requireHandlerFactory;
     this.tempPluginRegistry = params.tempPluginRegistry;
+  }
+
+  public async handleClick(params: HandleClickParams): Promise<void> {
+    params.codeButtonContext.container.empty();
+    const wrappedConsole = new ConsoleWrapper({ resultEl: params.codeButtonContext.container });
+    if (params.codeButtonContext.config.shouldShowSystemMessages) {
+      wrappedConsole.writeSystemMessage('⏳ Executing...');
+    }
+
+    const adapter = getDataAdapterEx(this.app);
+
+    let isSuccess = false;
+    try {
+      const script = makeWrapperScript(
+        params.code,
+        `${basename(params.codeButtonContext.sourceFile.path)}.code-button.${String(params.buttonIndex)}.${params.escapedCaption}.ts`,
+        dirname(params.codeButtonContext.sourceFile.path),
+        params.codeButtonContext.config.shouldAutoOutput
+      );
+      const codeButtonBlockScriptWrapper = await requireStringAsync({
+        activeFileProvider: this.activeFileProvider,
+        app: this.app,
+        commandRegistrar: this.commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
+        menuEventRegistrar: this.menuEventRegistrar,
+        path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${String(params.buttonIndex)
+          }.${params.escapedCaption}.ts`,
+        pluginName: this.pluginName,
+        pluginRequire: this.pluginRequire,
+        pluginSettingsComponent: this.pluginSettingsComponent,
+        requireHandlerFactory: this.requireHandlerFactory,
+        source: script
+      }) as CodeButtonBlockScriptWrapper;
+      await codeButtonBlockScriptWrapper(params.codeButtonContext);
+      if (params.codeButtonContext.config.shouldShowSystemMessages) {
+        wrappedConsole.writeSystemMessage('✅ Executed successfully');
+      }
+      isSuccess = true;
+    } catch (error) {
+      printError(error);
+      wrappedConsole.appendToResultEl([error], 'error');
+      if (params.codeButtonContext.config.shouldShowSystemMessages) {
+        wrappedConsole.writeSystemMessage('❌ Executed with error!');
+      }
+    } finally {
+      let shouldRemoveButton = false;
+      switch (params.codeButtonContext.config.removeAfterExecution.when) {
+        case 'always':
+          shouldRemoveButton = true;
+          break;
+        case 'never':
+          break;
+        case 'onError':
+          shouldRemoveButton = !isSuccess;
+          break;
+        case 'onSuccess':
+          shouldRemoveButton = isSuccess;
+          break;
+        default:
+          console.error(`Unknown remove after execution mode: ${params.codeButtonContext.config.removeAfterExecution.when as string}`);
+          break;
+      }
+      if (shouldRemoveButton) {
+        if (params.codeButtonContext.markdownInfo) {
+          try {
+            await params.codeButtonContext.removeCodeButtonBlock(params.codeButtonContext.config.removeAfterExecution.shouldKeepGap);
+          } catch (error) {
+            printError(error);
+            wrappedConsole.appendToResultEl([error], 'error');
+          }
+        } else {
+          wrappedConsole.writeSystemMessage('❌ Cannot remove the code button block after execution, because it cannot be uniquely identified!');
+        }
+      }
+    }
   }
 
   public override onload(): void {
@@ -151,6 +222,7 @@ export class CodeButtonBlockComponent extends Component {
           processCodeButtonBlock({
             activeFileProvider: this.activeFileProvider,
             app: this.app,
+            codeButtonBlockComponent: this,
             commandRegistrar: this.commandRegistrar,
             consoleDebugComponent: this.consoleDebugComponent,
             ctx,
@@ -205,82 +277,6 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
     return false;
   }
   return undefined;
-}
-
-async function handleClick(params: HandleClickParams): Promise<void> {
-  params.codeButtonContext.container.empty();
-  const wrappedConsole = new ConsoleWrapper({ resultEl: params.codeButtonContext.container });
-  if (params.codeButtonContext.config.shouldShowSystemMessages) {
-    wrappedConsole.writeSystemMessage('⏳ Executing...');
-  }
-
-  const adapter = getDataAdapterEx(params.codeButtonContext.app);
-
-  let isSuccess = false;
-  try {
-    const script = makeWrapperScript(
-      params.code,
-      `${basename(params.codeButtonContext.sourceFile.path)}.code-button.${String(params.buttonIndex)}.${params.escapedCaption}.ts`,
-      dirname(params.codeButtonContext.sourceFile.path),
-      params.codeButtonContext.config.shouldAutoOutput
-    );
-    const codeButtonBlockScriptWrapper = await requireStringAsync({
-      activeFileProvider: params.activeFileProvider,
-      app: params.app,
-      commandRegistrar: params.commandRegistrar,
-      consoleDebugComponent: params.consoleDebugComponent,
-      menuEventRegistrar: params.menuEventRegistrar,
-      path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
-        String(params.buttonIndex)
-      }.${params.escapedCaption}.ts`,
-      pluginName: params.pluginName,
-      pluginRequire: params.pluginRequire,
-      pluginSettingsComponent: params.pluginSettingsComponent,
-      requireHandlerFactory: params.requireHandlerFactory,
-      source: script
-    }) as CodeButtonBlockScriptWrapper;
-    await codeButtonBlockScriptWrapper(params.codeButtonContext);
-    if (params.codeButtonContext.config.shouldShowSystemMessages) {
-      wrappedConsole.writeSystemMessage('✅ Executed successfully');
-    }
-    isSuccess = true;
-  } catch (error) {
-    printError(error);
-    wrappedConsole.appendToResultEl([error], 'error');
-    if (params.codeButtonContext.config.shouldShowSystemMessages) {
-      wrappedConsole.writeSystemMessage('❌ Executed with error!');
-    }
-  } finally {
-    let shouldRemoveButton = false;
-    switch (params.codeButtonContext.config.removeAfterExecution.when) {
-      case 'always':
-        shouldRemoveButton = true;
-        break;
-      case 'never':
-        break;
-      case 'onError':
-        shouldRemoveButton = !isSuccess;
-        break;
-      case 'onSuccess':
-        shouldRemoveButton = isSuccess;
-        break;
-      default:
-        console.error(`Unknown remove after execution mode: ${params.codeButtonContext.config.removeAfterExecution.when as string}`);
-        break;
-    }
-    if (shouldRemoveButton) {
-      if (params.codeButtonContext.markdownInfo) {
-        try {
-          await params.codeButtonContext.removeCodeButtonBlock(params.codeButtonContext.config.removeAfterExecution.shouldKeepGap);
-        } catch (error) {
-          printError(error);
-          wrappedConsole.appendToResultEl([error], 'error');
-        }
-      } else {
-        wrappedConsole.writeSystemMessage('❌ Cannot remove the code button block after execution, because it cannot be uniquely identified!');
-      }
-    }
-  }
 }
 
 function makeWrapperScript(source: string, sourceFileName: string, sourceFolder: string, shouldAutoOutput: boolean): string {
@@ -380,7 +376,7 @@ ${code}
     el.createEl('button', {
       cls: 'mod-cta',
       async onclick(): Promise<void> {
-        await handleClick(createHandleClickParams());
+        await params.codeButtonBlockComponent.handleClick(createHandleClickParams());
       },
       prepend: true,
       text: fullConfig.caption
@@ -388,13 +384,11 @@ ${code}
   }
 
   if (fullConfig.shouldAutoRun) {
-    invokeAsyncSafely(() => handleClick(createHandleClickParams()));
+    invokeAsyncSafely(() => params.codeButtonBlockComponent.handleClick(createHandleClickParams()));
   }
 
   function createHandleClickParams(): HandleClickParams {
     return {
-      activeFileProvider: params.activeFileProvider,
-      app,
       buttonIndex: lastButtonIndex,
       code,
       codeButtonContext: new CodeButtonContextImpl({
@@ -410,15 +404,7 @@ ${code}
         source,
         tempPluginRegistry: params.tempPluginRegistry
       }),
-      commandRegistrar: params.commandRegistrar,
-      consoleDebugComponent: params.consoleDebugComponent,
-      escapedCaption: escapeForFileName(fullConfig.caption),
-      menuEventRegistrar: params.menuEventRegistrar,
-      pluginName: params.pluginName,
-      pluginRequire: require,
-      pluginSettingsComponent: params.pluginSettingsComponent,
-      requireHandlerFactory: params.requireHandlerFactory,
-      tempPluginRegistry: params.tempPluginRegistry
+      escapedCaption: escapeForFileName(fullConfig.caption)
     };
   }
 }
