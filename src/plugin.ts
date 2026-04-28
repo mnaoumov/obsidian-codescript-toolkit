@@ -19,10 +19,12 @@ import { UnloadTempPluginsCommandHandler } from './command-handlers/unload-temp-
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
+import { PluginMarkdownCodeBlockProcessorRegistrar } from './markdown-code-block-processor-registrar.ts';
 
 export class Plugin extends PluginBase {
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
+    const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);
     const pluginSettingsComponent = this.addChild(
       new PluginSettingsComponent({
         app,
@@ -41,7 +43,8 @@ export class Plugin extends PluginBase {
         menuEventRegistrar,
         plugin: this,
         pluginName: this.manifest.name,
-        pluginSettingsComponent
+        pluginSettingsComponent,
+        markdownCodeBlockProcessorRegistrar
       })
     );
     this.addChild(

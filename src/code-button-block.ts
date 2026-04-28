@@ -47,6 +47,7 @@ import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-p
 import { CodeButtonContextImpl } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { requireStringAsync } from './require-handler-utils.ts';
+import type { MarkdownCodeBlockProcessorRegistrar } from './markdown-code-block-processor-registrar.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
@@ -104,6 +105,7 @@ interface RegisterCodeButtonBlockParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
 }
 
 export function insertSampleCodeButton(editor: Editor): void {
@@ -128,7 +130,7 @@ export function registerCodeButtonBlock(params: RegisterCodeButtonBlockParams): 
   const { app, codeScriptToolkitComponent, pluginSettingsComponent } = params;
   registerCodeHighlighting();
   codeScriptToolkitComponent.register(unregisterCodeHighlighting);
-  codeScriptToolkitComponent.registerMarkdownCodeBlockProcessor(
+  params.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor(
     CODE_BUTTON_BLOCK_LANGUAGE,
     (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
       invokeAsyncSafely(() =>
@@ -326,7 +328,7 @@ ${code}
     return;
   }
 
-  config = { ...params.codeScriptToolkitComponent.parseDefaultCodeButtonConfig(), ...config };
+  config = { ...params.pluginSettingsComponent.parseDefaultCodeButtonConfig(), ...config };
 
   if (config.isRaw) {
     config.shouldAutoOutput = false;

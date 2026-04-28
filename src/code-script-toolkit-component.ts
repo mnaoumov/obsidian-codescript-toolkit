@@ -1,7 +1,5 @@
 import type {
   App,
-  MarkdownPostProcessor,
-  MarkdownPostProcessorContext,
   ObsidianProtocolHandler,
   Plugin
 } from 'obsidian';
@@ -10,12 +8,10 @@ import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-regis
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/plugin/components/layout-ready-component';
-import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
 import { registerAsyncEvent } from 'obsidian-dev-utils/obsidian/components/async-events-component';
 
-import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandler } from './require-handler.ts';
 import type { ScriptFolderWatcher } from './script-folder-watcher.ts';
@@ -28,19 +24,22 @@ import {
   invokeStartupScript,
   registerInvocableScripts
 } from './script.ts';
+import type { MarkdownCodeBlockProcessorRegistrar } from './markdown-code-block-processor-registrar.ts';
 
 interface CodeScriptToolkitComponentConstructorParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  commandRegistrar: CommandRegistrar;
-  consoleDebugComponent: ConsoleDebugComponent;
-  menuEventRegistrar: MenuEventRegistrar;
-  plugin: Plugin;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly plugin: Plugin;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
 }
 
 export class CodeScriptToolkitComponent extends AsyncComponentBase implements LayoutReadyComponent {
+  private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly commandRegistrar: CommandRegistrar;
@@ -64,6 +63,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
+    this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
   }
 
   public async onLayoutReady(): Promise<void> {
@@ -105,21 +105,10 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
-      pluginSettingsComponent: this.pluginSettingsComponent
+      pluginSettingsComponent: this.pluginSettingsComponent,
+      markdownCodeBlockProcessorRegistrar: this.markdownCodeBlockProcessorRegistrar
     });
     await registerCodeScriptBlock(this);
-  }
-
-  public parseDefaultCodeButtonConfig(): null | Partial<CodeButtonBlockConfig> {
-    return this.pluginSettingsComponent.parseDefaultCodeButtonConfig();
-  }
-
-  public registerMarkdownCodeBlockProcessor(
-    language: string,
-    handler: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => MaybeReturn<Promise<unknown>>,
-    sortOrder?: number
-  ): MarkdownPostProcessor {
-    return this.plugin.registerMarkdownCodeBlockProcessor(language, handler, sortOrder);
   }
 
   public registerObsidianProtocolHandler(action: string, handler: ObsidianProtocolHandler): void {
