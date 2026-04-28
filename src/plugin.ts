@@ -60,7 +60,6 @@ export class Plugin extends PluginBase {
         commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
         menuEventRegistrar,
-        pluginName: this.manifest.name,
         pluginRequire: require,
         pluginSettingsComponent,
         tempPluginRegistry

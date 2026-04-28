@@ -58,7 +58,7 @@ import {
   EMPTY_MODULE_SYMBOL
 } from '../cached-module-proxy-handler.ts';
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from '../code-script-block.ts';
-import { createCodeScriptToolkitModule } from '../code-script-toolkit-module-impl.ts';
+import { CodeScriptToolkitModuleImpl } from '../code-script-toolkit-module-impl.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from '../code-script-toolkit-note-settings.ts';
 import { registerObsidianDevUtilsModule } from '../obsidian-dev-utils-module.ts';
 import { SPECIAL_MODULE_NAMES } from '../special-module-names.ts';
@@ -178,7 +178,6 @@ export interface RequireHandlerConstructorParams {
   readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
   readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly tempPluginRegistry: TempPluginRegistry;
@@ -208,7 +207,6 @@ export abstract class RequireHandler extends AsyncComponentBase {
 
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private originalRequire?: NodeJS.Require;
-  private readonly pluginName: string;
   private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
 
@@ -219,7 +217,6 @@ export abstract class RequireHandler extends AsyncComponentBase {
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
-    this.pluginName = params.pluginName;
     this.consoleDebugComponent = params.consoleDebugComponent;
     this.tempPluginRegistry = params.tempPluginRegistry;
   }
@@ -781,15 +778,7 @@ export abstract class RequireHandler extends AsyncComponentBase {
   private initSpecialModuleFactories(): void {
     this.specialModuleFactories.set('obsidian/app', () => this.app);
     this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
-    this.specialModuleFactories.set('codescript-toolkit', () =>
-      createCodeScriptToolkitModule({
-        activeFileProvider: this.activeFileProvider,
-        app: this.app,
-        commandRegistrar: this.commandRegistrar,
-        menuEventRegistrar: this.menuEventRegistrar,
-        pluginName: this.pluginName,
-        tempPluginRegistry: this.tempPluginRegistry
-      }));
+    this.specialModuleFactories.set('codescript-toolkit', () => new CodeScriptToolkitModuleImpl(this.tempPluginRegistry));
     registerObsidianDevUtilsModule(this.specialModuleFactories);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
