@@ -42,7 +42,6 @@ export class Plugin extends PluginBase {
         commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
         menuEventRegistrar,
-        plugin: this,
         pluginName: this.manifest.name,
         pluginSettingsComponent,
         markdownCodeBlockProcessorRegistrar

@@ -1,7 +1,4 @@
-import type {
-  App,
-  Plugin
-} from 'obsidian';
+import type { App } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
@@ -31,7 +28,6 @@ interface CodeScriptToolkitComponentConstructorParams {
   readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly plugin: Plugin;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
@@ -46,7 +42,6 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
 
   private readonly menuEventRegistrar: MenuEventRegistrar;
 
-  private readonly plugin: Plugin;
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private requireHandler?: RequireHandler;
@@ -57,7 +52,6 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
-    this.plugin = params.plugin;
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
@@ -108,10 +102,6 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       markdownCodeBlockProcessorRegistrar: this.markdownCodeBlockProcessorRegistrar
     });
     await registerCodeScriptBlock(this);
-  }
-
-  public removeCommand(commandId: string): void {
-    this.plugin.removeCommand(commandId);
   }
 
   private async applyNewSettings(): Promise<void> {

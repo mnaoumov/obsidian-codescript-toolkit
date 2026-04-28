@@ -83,8 +83,7 @@ export function registerTempPlugin(params: RegisterTempPluginParams): void {
       tempPlugin,
       tempPluginClassName
     });
-    const commandId = unloadTempPluginCommandHandler.buildCommand().id;
-    codeScriptToolkitComponent.addChild(
+    const unloadTempPluginCommandHandlerComponent = codeScriptToolkitComponent.addChild(
       new CommandHandlerComponent({
         activeFileProvider: params.activeFileProvider,
         commandHandlers: [unloadTempPluginCommandHandler],
@@ -102,7 +101,7 @@ export function registerTempPlugin(params: RegisterTempPluginParams): void {
         printError(error);
       }
       tempPlugins.delete(id);
-      codeScriptToolkitComponent.removeCommand(commandId);
+      codeScriptToolkitComponent.removeChild(unloadTempPluginCommandHandlerComponent);
       new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       styleEl?.remove();
     };
