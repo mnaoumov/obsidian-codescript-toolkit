@@ -4,9 +4,9 @@ import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-regis
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 
-import { getPlatformDependencies } from './platform-dependencies.ts';
+import { getPlatformDependencies } from '../platform-dependencies.ts';
 import { VAULT_ROOT_PREFIX } from './require-handler.ts';
 
 interface RequireStringAsyncParams {

@@ -1,11 +1,11 @@
 import { CapacitorAdapter } from 'obsidian';
 
-import type { RequireHandlerConstructorParams } from '../require-handler.ts';
+import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
 import {
   RequireHandler,
   splitQuery
-} from '../require-handler.ts';
+} from './require-handler.ts';
 
 export class MobileRequireHandler extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {

@@ -3,7 +3,7 @@ import { Platform } from 'obsidian';
 import type {
   RequireHandler,
   RequireHandlerConstructorParams
-} from './require-handler.ts';
+} from './require-handlers/require-handler.ts';
 import type {
   ScriptFolderWatcher,
   ScriptFolderWatcherConstructorParams

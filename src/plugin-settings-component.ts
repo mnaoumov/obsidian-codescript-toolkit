@@ -12,7 +12,7 @@ import {
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 
 import { PluginSettings } from './plugin-settings.ts';
-import { EXTENSIONS } from './require-handler.ts';
+import { EXTENSIONS } from './require-handlers/require-handler.ts';
 
 interface PluginSettingsComponentConstructorParams {
   app: App;

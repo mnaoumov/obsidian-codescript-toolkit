@@ -35,8 +35,8 @@ import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type {
   ParentPathOptions,
   require,
@@ -44,27 +44,27 @@ import type {
   requireAsyncWrapper,
   RequireExFn,
   RequireOptions
-} from './types.ts';
+} from '../types.ts';
 
-import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
-import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
-import { ExtractRequireArgsListBabelPlugin } from './babel/extract-require-args-list-babel-plugin.ts';
-import { FixSourceMapBabelPlugin } from './babel/fix-source-map-babel-plugin.ts';
-import { ReplaceDynamicImportBabelPlugin } from './babel/replace-dynamic-import-babel-plugin.ts';
-import { WrapInRequireFunctionBabelPlugin } from './babel/wrap-in-require-function-babel-plugin.ts';
+import { SequentialBabelPlugin } from '../babel/combine-babel-plugins.ts';
+import { ConvertToCommonJsBabelPlugin } from '../babel/convert-to-common-js-babel-plugin.ts';
+import { ExtractRequireArgsListBabelPlugin } from '../babel/extract-require-args-list-babel-plugin.ts';
+import { FixSourceMapBabelPlugin } from '../babel/fix-source-map-babel-plugin.ts';
+import { ReplaceDynamicImportBabelPlugin } from '../babel/replace-dynamic-import-babel-plugin.ts';
+import { WrapInRequireFunctionBabelPlugin } from '../babel/wrap-in-require-function-babel-plugin.ts';
 import {
   CachedModuleProxyHandler,
   EMPTY_MODULE_SYMBOL
-} from './cached-module-proxy-handler.ts';
-import { CODE_SCRIPT_BLOCK_LANGUAGE } from './code-script-block.ts';
-import { createCodeScriptToolkitModule } from './code-script-toolkit-module-impl.ts';
-import { getCodeScriptToolkitNoteSettingsFromContent } from './code-script-toolkit-note-settings.ts';
-import { registerObsidianDevUtilsModule } from './obsidian-dev-utils-module.ts';
-import { SPECIAL_MODULE_NAMES } from './special-module-names.ts';
+} from '../cached-module-proxy-handler.ts';
+import { CODE_SCRIPT_BLOCK_LANGUAGE } from '../code-script-block.ts';
+import { createCodeScriptToolkitModule } from '../code-script-toolkit-module-impl.ts';
+import { getCodeScriptToolkitNoteSettingsFromContent } from '../code-script-toolkit-note-settings.ts';
+import { registerObsidianDevUtilsModule } from '../obsidian-dev-utils-module.ts';
+import { SPECIAL_MODULE_NAMES } from '../special-module-names.ts';
 import {
   CacheInvalidationMode,
   ModuleType
-} from './types.ts';
+} from '../types.ts';
 
 export enum ResolvedType {
   Module = 'module',

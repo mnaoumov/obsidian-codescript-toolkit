@@ -9,7 +9,7 @@ import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async
 import { registerAsyncEvent } from 'obsidian-dev-utils/obsidian/components/async-events-component';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandler } from './require-handler.ts';
+import type { RequireHandler } from './require-handlers/require-handler.ts';
 import type { ScriptFolderWatcher } from './script-folder-watcher.ts';
 
 import { registerCodeButtonBlock } from './code-button-block.ts';

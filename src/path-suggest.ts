@@ -7,7 +7,7 @@ import {
   relative
 } from 'obsidian-dev-utils/path';
 
-import { EXTENSIONS } from './require-handler.ts';
+import { EXTENSIONS } from './require-handlers/require-handler.ts';
 
 const CACHE_DURATION_IN_MILLISECONDS = 30000;
 

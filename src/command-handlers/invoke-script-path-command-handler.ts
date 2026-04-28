@@ -17,7 +17,7 @@ import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { Script } from '../script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from '../code-script-toolkit-note-settings.ts';
-import { requireVaultScriptAsync } from '../require-handler-utils.ts';
+import { requireVaultScriptAsync } from '../require-handlers/require-handler-utils.ts';
 
 export const INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX = 'invoke-script-file-';
 

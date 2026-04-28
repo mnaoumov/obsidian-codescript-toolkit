@@ -20,7 +20,7 @@ import {
   InvokeScriptPathCommand,
   unregisterInvocableCommands
 } from './command-handlers/invoke-script-path-command-handler.ts';
-import { requireVaultScriptAsync } from './require-handler-utils.ts';
+import { requireVaultScriptAsync } from './require-handlers/require-handler-utils.ts';
 
 export interface Script {
   invoke(app: App): Promisable<void>;

@@ -17,7 +17,7 @@ import type {
   PluginRequireFn,
   RequireFn,
   RequireHandlerConstructorParams
-} from '../require-handler.ts';
+} from './require-handler.ts';
 import type { RequireOptions } from '../types.ts';
 
 import {
@@ -33,7 +33,7 @@ import {
   ResolvedType,
   SCOPED_MODULE_PREFIX,
   splitQuery
-} from '../require-handler.ts';
+} from './require-handler.ts';
 import {
   CacheInvalidationMode,
   ModuleType

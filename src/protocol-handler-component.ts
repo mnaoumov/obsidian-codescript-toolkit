@@ -15,7 +15,7 @@ import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
-import { requireStringAsync } from './require-handler-utils.ts';
+import { requireStringAsync } from './require-handlers/require-handler-utils.ts';
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 

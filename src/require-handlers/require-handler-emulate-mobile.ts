@@ -1,14 +1,14 @@
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
-import type { DesktopRequireHandler } from '../desktop/require-handler.ts';
-import type { MobileRequireHandler } from '../mobile/require-handler.ts';
+import type { DesktopRequireHandler } from './require-handler-desktop.ts';
+import type { MobileRequireHandler } from './require-handler-mobile.ts';
 import type {
   PluginRequireFn,
   RequireHandlerConstructorParams
-} from '../require-handler.ts';
+} from './require-handler.ts';
 
-import { createRequireHandler as createDesktopRequireHandler } from '../desktop/require-handler.ts';
-import { createRequireHandler as createMobileRequireHandler } from '../mobile/require-handler.ts';
-import { RequireHandler } from '../require-handler.ts';
+import { createRequireHandler as createDesktopRequireHandler } from './require-handler-desktop.ts';
+import { createRequireHandler as createMobileRequireHandler } from './require-handler-mobile.ts';
+import { RequireHandler } from './require-handler.ts';
 
 export class EmulateMobileRequireHandler extends RequireHandler {
   private readonly desktopRequireHandler: DesktopRequireHandler;
