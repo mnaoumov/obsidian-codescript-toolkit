@@ -25,23 +25,22 @@ import type {
   CodeButtonContext,
   RegisterTempPluginParams
 } from './code-button-context.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
 import { ConsoleWrapper } from './console-wrapper.ts';
-import { registerTempPlugin } from './temp-plugin-registry.ts';
+import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
 interface CodeButtonContextImplConstructorParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  codeScriptToolkitComponent: CodeScriptToolkitComponent;
-  commandRegistrar: CommandRegistrar;
-  config: CodeButtonBlockConfig;
-  markdownInfo: CodeBlockMarkdownInformation | null;
-  markdownPostProcessorContext: MarkdownPostProcessorContext;
-  menuEventRegistrar: MenuEventRegistrar;
-  parentEl: HTMLElement;
-  resultEl: HTMLElement;
-  source: string;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly config: CodeButtonBlockConfig;
+  readonly markdownInfo: CodeBlockMarkdownInformation | null;
+  readonly markdownPostProcessorContext: MarkdownPostProcessorContext;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly parentEl: HTMLElement;
+  readonly resultEl: HTMLElement;
+  readonly source: string;
+  readonly tempPluginRegistry: TempPluginRegistry;
 }
 
 export class CodeButtonContextImpl extends Component implements CodeButtonContext {
@@ -56,10 +55,10 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   public readonly sourceFile: TFile;
 
   private readonly activeFileProvider: ActiveFileProvider;
-  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly commandRegistrar: CommandRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly resultEl: HTMLElement;
+  private readonly tempPluginRegistry: TempPluginRegistry;
 
   public constructor(params: CodeButtonContextImplConstructorParams) {
     super();
@@ -68,7 +67,6 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     this.markdownInfo = params.markdownInfo;
     this.markdownPostProcessorContext = params.markdownPostProcessorContext;
     this.parentEl = params.parentEl;
-    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.resultEl = params.resultEl;
     this.source = params.source;
     this.activeFileProvider = params.activeFileProvider;
@@ -79,6 +77,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     this.container = this.config.isRaw ? this.parentEl : this.resultEl;
     const wrappedConsole = new ConsoleWrapper({ resultEl: this.container });
     this.console = wrappedConsole.getConsoleInstance(this.config.shouldWrapConsole);
+    this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
   public async insertAfterCodeButtonBlock(markdown: string, lineOffset?: number, shouldPreserveLinePrefix?: boolean): Promise<void> {
@@ -106,10 +105,9 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   }
 
   public registerTempPlugin(params: RegisterTempPluginParams): void {
-    registerTempPlugin({
+    this.tempPluginRegistry.registerTempPlugin({
       activeFileProvider: this.activeFileProvider,
       app: this.app,
-      codeScriptToolkitComponent: this.codeScriptToolkitComponent,
       commandRegistrar: this.commandRegistrar,
       cssText: params.cssText ?? '',
       menuEventRegistrar: this.menuEventRegistrar,

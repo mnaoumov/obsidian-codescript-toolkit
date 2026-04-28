@@ -36,8 +36,8 @@ import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { TempPluginRegistry } from '../temp-plugin-registry.ts';
 import type {
   ParentPathOptions,
   require,
@@ -181,6 +181,7 @@ export interface RequireHandlerConstructorParams {
   readonly pluginName: string;
   readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly tempPluginRegistry: TempPluginRegistry;
 }
 
 export abstract class RequireHandler extends AsyncComponentBase {
@@ -193,13 +194,8 @@ export abstract class RequireHandler extends AsyncComponentBase {
   protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
+  protected readonly tempPluginRegistry: TempPluginRegistry;
   protected vaultAbsolutePath?: string;
-  protected get plugin(): CodeScriptToolkitComponent {
-    if (!this._codeScriptToolkitComponent) {
-      throw new Error('Plugin is not registered.');
-    }
-    return this._codeScriptToolkitComponent;
-  }
 
   protected get requireEx(): RequireExFn {
     if (!this._requireEx) {
@@ -207,8 +203,6 @@ export abstract class RequireHandler extends AsyncComponentBase {
     }
     return this._requireEx;
   }
-
-  private _codeScriptToolkitComponent?: CodeScriptToolkitComponent;
 
   private _requireEx?: RequireExFn;
 
@@ -227,6 +221,7 @@ export abstract class RequireHandler extends AsyncComponentBase {
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
   public clearCache(): void {
@@ -243,8 +238,7 @@ export abstract class RequireHandler extends AsyncComponentBase {
     }
   }
 
-  public register2(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
-    this._codeScriptToolkitComponent = codeScriptToolkitComponent;
+  public register2(pluginRequire: PluginRequireFn): void {
     this.initSpecialModuleFactories();
 
     const adapter = getDataAdapterEx(this.app);
@@ -256,11 +250,11 @@ export abstract class RequireHandler extends AsyncComponentBase {
       cache: {}
     }, this.originalRequire) as RequireExFn;
     this.modulesCache = this.requireEx.cache;
-    new AllWindowsEventHandler(this.app, codeScriptToolkitComponent).registerAllWindowsHandler((win) => {
+    new AllWindowsEventHandler(this.app, this).registerAllWindowsHandler((win) => {
       const requireWindow = win as Partial<RequireWindow>;
 
       requireWindow.require = this.requireEx;
-      codeScriptToolkitComponent.register(() => {
+      this.register(() => {
         if (!this.originalRequire) {
           return;
         }
@@ -268,10 +262,10 @@ export abstract class RequireHandler extends AsyncComponentBase {
       });
 
       requireWindow.requireAsync = this.requireAsync.bind(this);
-      codeScriptToolkitComponent.register(() => delete requireWindow.requireAsync);
+      this.register(() => delete requireWindow.requireAsync);
 
       requireWindow.requireAsyncWrapper = this.requireAsyncWrapper.bind(this);
-      codeScriptToolkitComponent.register(() => delete requireWindow.requireAsyncWrapper);
+      this.register(() => delete requireWindow.requireAsyncWrapper);
     });
   }
 
@@ -791,10 +785,10 @@ export abstract class RequireHandler extends AsyncComponentBase {
       createCodeScriptToolkitModule({
         activeFileProvider: this.activeFileProvider,
         app: this.app,
-        codeScriptToolkitComponent: this.plugin,
         commandRegistrar: this.commandRegistrar,
         menuEventRegistrar: this.menuEventRegistrar,
-        pluginName: this.pluginName
+        pluginName: this.pluginName,
+        tempPluginRegistry: this.tempPluginRegistry
       }));
     registerObsidianDevUtilsModule(this.specialModuleFactories);
 

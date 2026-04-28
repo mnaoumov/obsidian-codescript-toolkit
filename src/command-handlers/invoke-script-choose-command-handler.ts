@@ -3,14 +3,12 @@ import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/c
 
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 
 import { selectAndInvokeScript } from '../script.ts';
 
 interface InvokeScriptChooseCommandHandlerConstructorParams {
   app: App;
-  codeScriptToolkitComponent: CodeScriptToolkitComponent;
   consoleDebugComponent: ConsoleDebugComponent;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;

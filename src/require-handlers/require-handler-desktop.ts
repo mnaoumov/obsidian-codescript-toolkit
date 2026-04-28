@@ -12,7 +12,6 @@ import {
   toPosixPath
 } from 'obsidian-dev-utils/path';
 
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { RequireOptions } from '../types.ts';
 import type {
   PluginRequireFn,
@@ -99,11 +98,11 @@ export class RequireHandlerDesktop extends RequireHandler {
     return arrayBuffer;
   }
 
-  public override register2(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
-    super.register2(codeScriptToolkitComponent, pluginRequire);
+  public override register2(pluginRequire: PluginRequireFn): void {
+    super.register2(pluginRequire);
 
     const moduleProto = getPrototypeOf(window.module);
-    registerPatch(codeScriptToolkitComponent, moduleProto, {
+    registerPatch(this, moduleProto, {
       require: (next: RequireFn): RequireFn => {
         this.originalModulePrototypeRequire = next;
         const that = this;

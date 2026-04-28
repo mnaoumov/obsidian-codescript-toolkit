@@ -15,7 +15,6 @@ import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 
 import { CodeButtonBlockComponent } from './code-button-block.ts';
 import { CodeScriptBlockComponent } from './code-script-block.ts';
-import { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import { ClearCacheCommandHandler } from './command-handlers/clear-cache-command-handler.ts';
 import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-script-choose-command-handler.ts';
 import { ReloadStartupScriptCommandHandler } from './command-handlers/reload-startup-script-command-handler.ts';
@@ -25,6 +24,8 @@ import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 import { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 import { ScriptFolderWatcherFactory } from './script-folder-watchers/script-folder-watcher-factory.ts';
+import { StartupScriptComponent } from './startup-script.ts';
+import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
 export class Plugin extends PluginBase {
   public constructor(app: App, manifest: PluginManifest) {
@@ -40,6 +41,8 @@ export class Plugin extends PluginBase {
     const commandRegistrar = new PluginCommandRegistrar(this);
     const menuEventRegistrar = new AppMenuEventRegistrar(app, this);
 
+    const tempPluginRegistry = this.addChild(new TempPluginRegistry());
+
     const requireHandlerFactory = this.addChild(
       new RequireHandlerFactory({
         activeFileProvider,
@@ -49,22 +52,11 @@ export class Plugin extends PluginBase {
         menuEventRegistrar,
         pluginName: this.manifest.name,
         pluginRequire: require,
-        pluginSettingsComponent
+        pluginSettingsComponent,
+        tempPluginRegistry
       })
     );
 
-    const codeScriptToolkitComponent = this.addChild(
-      new CodeScriptToolkitComponent({
-        activeFileProvider,
-        app,
-        commandRegistrar,
-        consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar,
-        pluginName: this.manifest.name,
-        pluginSettingsComponent,
-        requireHandlerFactory
-      })
-    );
     this.addChild(
       new PluginSettingsTabComponent({
         plugin: this,
@@ -86,7 +78,6 @@ export class Plugin extends PluginBase {
           }),
           new InvokeScriptChooseCommandHandler({
             app: this.app,
-            codeScriptToolkitComponent,
             consoleDebugComponent: this.consoleDebugComponent,
             pluginName: this.manifest.name,
             pluginSettingsComponent
@@ -137,17 +128,29 @@ export class Plugin extends PluginBase {
       new CodeButtonBlockComponent({
         activeFileProvider,
         app: this.app,
-        codeScriptToolkitComponent,
         commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
         markdownCodeBlockProcessorRegistrar,
         menuEventRegistrar,
         pluginName: this.manifest.name,
         pluginSettingsComponent,
-        requireHandlerFactory
+        requireHandlerFactory,
+        tempPluginRegistry
       })
     );
 
-    this.addChild(new CodeScriptBlockComponent(codeScriptToolkitComponent));
+    this.addChild(new CodeScriptBlockComponent());
+    this.addChild(
+      new StartupScriptComponent({
+        activeFileProvider,
+        app: this.app,
+        commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
+        menuEventRegistrar,
+        pluginName: this.manifest.name,
+        pluginSettingsComponent,
+        requireHandlerFactory
+      })
+    );
   }
 }

@@ -38,7 +38,6 @@ import { getDataAdapterEx } from 'obsidian-typings/implementations';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 import type { RequireHandlerConstructorParams } from './require-handlers/require-handler.ts';
@@ -50,6 +49,7 @@ import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-p
 import { CodeButtonContextImpl } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { requireStringAsync } from './require-handlers/require-handler-utils.ts';
+import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
@@ -88,7 +88,6 @@ let lastButtonIndex = 0;
 interface CodeButtonBlockComponentConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
@@ -96,12 +95,12 @@ interface CodeButtonBlockComponentConstructorParams {
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly requireHandlerFactory: RequireHandlerFactory;
+  readonly tempPluginRegistry: TempPluginRegistry;
 }
 
 interface ProcessCodeButtonBlockParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly ctx: MarkdownPostProcessorContext;
@@ -111,25 +110,12 @@ interface ProcessCodeButtonBlockParams {
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly requireHandlerFactory: RequireHandlerFactory;
   readonly source: string;
-}
-
-interface RegisterCodeButtonBlockParams {
-  readonly activeFileProvider: ActiveFileProvider;
-  readonly app: App;
-  readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
-  readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
+  readonly tempPluginRegistry: TempPluginRegistry;
 }
 
 export class CodeButtonBlockComponent extends Component {
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
-  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly commandRegistrar: CommandRegistrar;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
@@ -137,6 +123,7 @@ export class CodeButtonBlockComponent extends Component {
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly requireHandlerFactory: RequireHandlerFactory;
+  private readonly tempPluginRegistry: TempPluginRegistry;
 
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
     super();
@@ -149,24 +136,35 @@ export class CodeButtonBlockComponent extends Component {
     this.pluginName = params.pluginName;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.requireHandlerFactory = params.requireHandlerFactory;
-    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
+    this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
   public override onload(): void {
     super.onload();
 
-    registerCodeButtonBlock({
-      activeFileProvider: this.activeFileProvider,
-      app: this.app,
-      codeScriptToolkitComponent: this.codeScriptToolkitComponent,
-      commandRegistrar: this.commandRegistrar,
-      consoleDebugComponent: this.consoleDebugComponent,
-      markdownCodeBlockProcessorRegistrar: this.markdownCodeBlockProcessorRegistrar,
-      menuEventRegistrar: this.menuEventRegistrar,
-      pluginName: this.pluginName,
-      pluginSettingsComponent: this.pluginSettingsComponent,
-      requireHandlerFactory: this.requireHandlerFactory
-    });
+    registerCodeHighlighting();
+    this.register(unregisterCodeHighlighting);
+    this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor(
+      CODE_BUTTON_BLOCK_LANGUAGE,
+      (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
+        invokeAsyncSafely(() =>
+          processCodeButtonBlock({
+            activeFileProvider: this.activeFileProvider,
+            app: this.app,
+            commandRegistrar: this.commandRegistrar,
+            consoleDebugComponent: this.consoleDebugComponent,
+            ctx,
+            el,
+            menuEventRegistrar: this.menuEventRegistrar,
+            pluginName: this.pluginName,
+            pluginSettingsComponent: this.pluginSettingsComponent,
+            requireHandlerFactory: this.requireHandlerFactory,
+            source,
+            tempPluginRegistry: this.tempPluginRegistry
+          })
+        );
+      }
+    );
   }
 }
 
@@ -186,33 +184,6 @@ ${config}---
     ? newCodeBlock.slice(cursor.ch)
     : `\n${newCodeBlock}`;
   editor.replaceSelection(newCodeBlock);
-}
-
-export function registerCodeButtonBlock(params: RegisterCodeButtonBlockParams): void {
-  const { app, codeScriptToolkitComponent, pluginSettingsComponent } = params;
-  registerCodeHighlighting();
-  codeScriptToolkitComponent.register(unregisterCodeHighlighting);
-  params.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor(
-    CODE_BUTTON_BLOCK_LANGUAGE,
-    (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
-      invokeAsyncSafely(() =>
-        processCodeButtonBlock({
-          activeFileProvider: params.activeFileProvider,
-          app,
-          codeScriptToolkitComponent,
-          commandRegistrar: params.commandRegistrar,
-          consoleDebugComponent: params.consoleDebugComponent,
-          ctx,
-          el,
-          menuEventRegistrar: params.menuEventRegistrar,
-          pluginName: params.pluginName,
-          pluginSettingsComponent,
-          requireHandlerFactory: params.requireHandlerFactory,
-          source
-        })
-      );
-    }
-  );
 }
 
 function addLinkToDocs(f: DocumentFragment): void {
@@ -429,7 +400,6 @@ ${code}
       codeButtonContext: new CodeButtonContextImpl({
         activeFileProvider: params.activeFileProvider,
         app,
-        codeScriptToolkitComponent: params.codeScriptToolkitComponent,
         commandRegistrar: params.commandRegistrar,
         config: fullConfig,
         markdownInfo,
@@ -437,7 +407,8 @@ ${code}
         menuEventRegistrar: params.menuEventRegistrar,
         parentEl: el,
         resultEl,
-        source
+        source,
+        tempPluginRegistry: params.tempPluginRegistry
       }),
       commandRegistrar: params.commandRegistrar,
       consoleDebugComponent: params.consoleDebugComponent,
@@ -446,7 +417,8 @@ ${code}
       pluginName: params.pluginName,
       pluginRequire: require,
       pluginSettingsComponent: params.pluginSettingsComponent,
-      requireHandlerFactory: params.requireHandlerFactory
+      requireHandlerFactory: params.requireHandlerFactory,
+      tempPluginRegistry: params.tempPluginRegistry
     };
   }
 }

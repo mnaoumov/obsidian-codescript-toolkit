@@ -4,29 +4,27 @@ import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-regis
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import type { TempPluginClass } from './code-button-context.ts';
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import type { CodeScriptToolkitModule } from './code-script-toolkit-module.ts';
 
 import {
-  registerTempPlugin,
+  TempPluginRegistry,
   unregisterTempPlugin
 } from './temp-plugin-registry.ts';
 
 interface CreateCodeScriptToolkitModuleParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  codeScriptToolkitComponent: CodeScriptToolkitComponent;
-  commandRegistrar: CommandRegistrar;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly tempPluginRegistry: TempPluginRegistry;
 }
 export function createCodeScriptToolkitModule(params: CreateCodeScriptToolkitModuleParams): CodeScriptToolkitModule {
   return {
     registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
-      registerTempPlugin({
+      params.tempPluginRegistry.registerTempPlugin({
         activeFileProvider: params.activeFileProvider,
         app: params.app,
-        codeScriptToolkitComponent: params.codeScriptToolkitComponent,
         commandRegistrar: params.commandRegistrar,
         cssText: cssText ?? '',
         menuEventRegistrar: params.menuEventRegistrar,

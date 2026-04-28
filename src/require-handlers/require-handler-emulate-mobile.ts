@@ -1,4 +1,3 @@
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { RequireHandlerDesktop } from './require-handler-desktop.ts';
 import type { RequireHandlerMobile } from './require-handler-mobile.ts';
 import type {
@@ -20,10 +19,10 @@ export class RequireHandlerEmulateMobile extends RequireHandler {
     this.mobileRequireHandler = createMobileRequireHandler(params);
   }
 
-  public override register2(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
-    super.register2(codeScriptToolkitComponent, pluginRequire);
-    this.desktopRequireHandler.register2(codeScriptToolkitComponent, pluginRequire);
-    this.mobileRequireHandler.register2(codeScriptToolkitComponent, pluginRequire);
+  public override register2(pluginRequire: PluginRequireFn): void {
+    super.register2(pluginRequire);
+    this.desktopRequireHandler.register2(pluginRequire);
+    this.mobileRequireHandler.register2(pluginRequire);
   }
 
   protected override canRequireNonCached(): boolean {
