@@ -57,6 +57,7 @@ interface HandleClickParams {
   commandRegistrar: CommandRegistrar;
   escapedCaption: string;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -85,6 +86,7 @@ interface ProcessCodeButtonBlockParams {
   ctx: MarkdownPostProcessorContext;
   el: HTMLElement;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
   source: string;
 }
@@ -95,6 +97,7 @@ interface RegisterCodeButtonBlockParams {
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
   commandRegistrar: CommandRegistrar;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -132,6 +135,7 @@ export function registerCodeButtonBlock(params: RegisterCodeButtonBlockParams): 
           ctx,
           el,
           menuEventRegistrar: params.menuEventRegistrar,
+          pluginName: params.pluginName,
           pluginSettingsComponent,
           source
         })
@@ -186,6 +190,7 @@ async function handleClick(params: HandleClickParams): Promise<void> {
       path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
         String(params.buttonIndex)
       }.${params.escapedCaption}.ts`,
+      pluginName: params.pluginName,
       pluginSettingsComponent: params.pluginSettingsComponent,
       source: script
     }) as CodeButtonBlockScriptWrapper;
@@ -363,6 +368,7 @@ ${code}
       commandRegistrar: params.commandRegistrar,
       escapedCaption: escapeForFileName(fullConfig.caption),
       menuEventRegistrar: params.menuEventRegistrar,
+      pluginName: params.pluginName,
       pluginSettingsComponent: params.pluginSettingsComponent
     };
   }

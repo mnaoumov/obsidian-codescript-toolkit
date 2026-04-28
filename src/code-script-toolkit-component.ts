@@ -37,18 +37,20 @@ interface CodeScriptToolkitComponentConstructorParams {
   consoleDebugComponent: ConsoleDebugComponent;
   menuEventRegistrar: MenuEventRegistrar;
   plugin: Plugin;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
 export class CodeScriptToolkitComponent extends AsyncComponentBase implements LayoutReadyComponent {
-  public readonly plugin: Plugin;
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly commandRegistrar: CommandRegistrar;
-
   private readonly consoleDebugComponent: ConsoleDebugComponent;
 
   private readonly menuEventRegistrar: MenuEventRegistrar;
+
+  private readonly plugin: Plugin;
+  private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private requireHandler?: RequireHandler;
   private scriptFolderWatcher?: ScriptFolderWatcher;
@@ -62,6 +64,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
+    this.pluginName = params.pluginName;
   }
 
   public addCommand(command: Command): Command {
@@ -76,6 +79,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
         codeScriptToolkitComponent: this,
         commandRegistrar: this.commandRegistrar,
         menuEventRegistrar: this.menuEventRegistrar,
+        pluginName: this.pluginName,
         pluginSettingsComponent: this.pluginSettingsComponent
       }));
   }
@@ -90,6 +94,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       app: this.app,
       commandRegistrar: this.commandRegistrar,
       menuEventRegistrar: this.menuEventRegistrar,
+      pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent
     });
     this.register(() => cleanupStartupScript(this.app));
@@ -107,6 +112,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       app: this.app,
       commandRegistrar: this.commandRegistrar,
       menuEventRegistrar: this.menuEventRegistrar,
+      pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent
     });
     this.requireHandler.register(this, require);
@@ -117,6 +123,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       codeScriptToolkitComponent: this,
       commandRegistrar: this.commandRegistrar,
       menuEventRegistrar: this.menuEventRegistrar,
+      pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent
     });
     await registerCodeScriptBlock(this);

@@ -40,6 +40,7 @@ export class Plugin extends PluginBase {
         consoleDebugComponent: this.consoleDebugComponent,
         menuEventRegistrar,
         plugin: this,
+        pluginName: this.manifest.name,
         pluginSettingsComponent
       })
     );
@@ -92,6 +93,7 @@ export class Plugin extends PluginBase {
         codeScriptToolkitComponent,
         commandRegistrar,
         menuEventRegistrar,
+        pluginName: this.manifest.name,
         pluginSettingsComponent
       })
     );

@@ -113,6 +113,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
       commandRegistrar: this.commandRegistrar,
       cssText: params.cssText ?? '',
       menuEventRegistrar: this.menuEventRegistrar,
+      pluginName: params.pluginName,
       tempPluginClass: params.tempPluginClass
     });
   }

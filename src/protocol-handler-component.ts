@@ -26,6 +26,7 @@ interface ProtocolHandlerComponentConstructorParams {
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
   commandRegistrar: CommandRegistrar;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -46,6 +47,7 @@ export class ProtocolHandlerComponent extends Component {
   private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly commandRegistrar: CommandRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
+  private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
 
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
@@ -56,6 +58,7 @@ export class ProtocolHandlerComponent extends Component {
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
+    this.pluginName = params.pluginName;
   }
 
   public override onload(): void {
@@ -103,6 +106,7 @@ export class ProtocolHandlerComponent extends Component {
       commandRegistrar: this.commandRegistrar,
       menuEventRegistrar: this.menuEventRegistrar,
       path: 'dynamic-script-from-url-handler.ts',
+      pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent,
       source: parsedQuery.code
     });

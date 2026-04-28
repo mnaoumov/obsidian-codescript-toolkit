@@ -25,6 +25,7 @@ interface RegisterTempPluginParams {
   commandRegistrar: CommandRegistrar;
   cssText?: string;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   tempPluginClass: TempPluginClass;
 }
 
@@ -78,7 +79,7 @@ export function registerTempPlugin(params: RegisterTempPluginParams): void {
     }
 
     const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler({
-      pluginName: codeScriptToolkitComponent.plugin.manifest.name,
+      pluginName: params.pluginName,
       tempPlugin,
       tempPluginClassName
     });

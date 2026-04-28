@@ -14,6 +14,7 @@ interface RequireStringAsyncParams {
   readonly commandRegistrar: CommandRegistrar;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly path: string;
+  readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly source: string;
   readonly urlSuffix?: string;
@@ -25,6 +26,7 @@ interface RequireVaultScriptAsyncParams {
   readonly commandRegistrar: CommandRegistrar;
   readonly id: string;
   readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 

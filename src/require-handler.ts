@@ -175,6 +175,7 @@ export interface RequireHandlerConstructorParams {
   readonly app: App;
   readonly commandRegistrar: CommandRegistrar;
   readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -208,14 +209,17 @@ export abstract class RequireHandler {
   private _requireEx?: RequireExFn;
 
   private originalRequire?: NodeJS.Require;
+  private readonly pluginName: string;
   private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
+
   public constructor(params: RequireHandlerConstructorParams) {
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
+    this.pluginName = params.pluginName;
   }
 
   public clearCache(): void {
@@ -782,7 +786,8 @@ export abstract class RequireHandler {
         app: this.app,
         codeScriptToolkitComponent: this.plugin,
         commandRegistrar: this.commandRegistrar,
-        menuEventRegistrar: this.menuEventRegistrar
+        menuEventRegistrar: this.menuEventRegistrar,
+        pluginName: this.pluginName
       }));
     registerObsidianDevUtilsModule(this.specialModuleFactories);
 

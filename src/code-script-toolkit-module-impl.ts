@@ -18,6 +18,7 @@ interface CreateCodeScriptToolkitModuleParams {
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
   commandRegistrar: CommandRegistrar;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
 }
 export function createCodeScriptToolkitModule(params: CreateCodeScriptToolkitModuleParams): CodeScriptToolkitModule {
   return {
@@ -29,6 +30,7 @@ export function createCodeScriptToolkitModule(params: CreateCodeScriptToolkitMod
         commandRegistrar: params.commandRegistrar,
         cssText: cssText ?? '',
         menuEventRegistrar: params.menuEventRegistrar,
+        pluginName: params.pluginName,
         tempPluginClass
       });
     },

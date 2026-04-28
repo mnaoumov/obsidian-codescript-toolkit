@@ -46,6 +46,7 @@ export class ClearCacheCommandHandler extends GlobalCommandHandler {
       app: this.app,
       commandRegistrar: this.commandRegistrar,
       menuEventRegistrar: this.menuEventRegistrar,
+      pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent
     }).clearCache();
   }

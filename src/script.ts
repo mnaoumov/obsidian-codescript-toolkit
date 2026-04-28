@@ -38,6 +38,7 @@ interface InvokeStartupScriptParams {
   app: App;
   commandRegistrar: CommandRegistrar;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -47,6 +48,7 @@ interface RegisterInvocableScriptsParams {
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
   commandRegistrar: CommandRegistrar;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -55,6 +57,7 @@ interface ReloadStartupScriptParams {
   app: App;
   commandRegistrar: CommandRegistrar;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -86,6 +89,7 @@ export async function invokeStartupScript(params: InvokeStartupScriptParams): Pr
     commandRegistrar,
     id: startupScriptPath,
     menuEventRegistrar,
+    pluginName: params.pluginName,
     pluginSettingsComponent
   }) as StartupScript;
   await startupScript.invoke(params.app);
@@ -117,6 +121,7 @@ export async function registerInvocableScripts(params: RegisterInvocableScriptsP
       codeScriptToolkitComponent,
       commandRegistrar: params.commandRegistrar,
       menuEventRegistrar: params.menuEventRegistrar,
+      pluginName: params.pluginName,
       pluginSettingsComponent,
       relativeScriptPath: scriptPath
     }).register();
@@ -131,6 +136,7 @@ export async function reloadStartupScript(params: ReloadStartupScriptParams): Pr
     app,
     commandRegistrar,
     menuEventRegistrar,
+    pluginName: params.pluginName,
     pluginSettingsComponent
   });
 }

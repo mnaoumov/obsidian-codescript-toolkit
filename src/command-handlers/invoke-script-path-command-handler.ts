@@ -36,6 +36,7 @@ interface GetScriptOrCommandParams {
   readonly app: App;
   readonly commandRegistrar: CommandRegistrar;
   readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly relativeScriptPath: string;
 }
@@ -46,6 +47,7 @@ interface InvokeScriptPathCommandConstructorParams {
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
   commandRegistrar: CommandRegistrar;
   menuEventRegistrar: MenuEventRegistrar;
+  pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
   relativeScriptPath: string;
 }
@@ -56,6 +58,7 @@ export class InvokeScriptPathCommand {
   private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly commandRegistrar: CommandRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
+  private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly relativeScriptPath: string;
 
@@ -67,6 +70,7 @@ export class InvokeScriptPathCommand {
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
+    this.pluginName = params.pluginName;
   }
 
   public async register(): Promise<void> {
@@ -77,6 +81,7 @@ export class InvokeScriptPathCommand {
         app: this.app,
         commandRegistrar: this.commandRegistrar,
         menuEventRegistrar: this.menuEventRegistrar,
+        pluginName: this.pluginName,
         pluginSettingsComponent: this.pluginSettingsComponent,
         relativeScriptPath: this.relativeScriptPath
       });
@@ -206,6 +211,7 @@ async function getScriptOrCommand(params: GetScriptOrCommandParams): Promise<Scr
     commandRegistrar: params.commandRegistrar,
     id: vaultScriptPath,
     menuEventRegistrar: params.menuEventRegistrar,
+    pluginName: params.pluginName,
     pluginSettingsComponent: params.pluginSettingsComponent
   }) as Partial<ScriptOrCommand>;
 }

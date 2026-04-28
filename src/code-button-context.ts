@@ -9,11 +9,6 @@ import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/c
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 
-export interface RegisterTempPluginParams {
-  tempPluginClass: TempPluginClass;
-  cssText?: string;
-}
-
 /**
  * A context for the code button block.
  */
@@ -136,6 +131,12 @@ export interface CodeButtonContext {
    * The source markdown file which contains the code button block.
    */
   sourceFile: TFile;
+}
+
+export interface RegisterTempPluginParams {
+  cssText?: string;
+  pluginName: string;
+  tempPluginClass: TempPluginClass;
 }
 
 /**
