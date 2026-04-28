@@ -1,6 +1,5 @@
 import type {
   App,
-  Command,
   MarkdownPostProcessor,
   MarkdownPostProcessorContext,
   ObsidianProtocolHandler,
@@ -65,10 +64,6 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
-  }
-
-  public addCommand(command: Command): Command {
-    return this.plugin.addCommand(command);
   }
 
   public async applyNewSettings(): Promise<void> {

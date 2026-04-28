@@ -96,7 +96,7 @@ export class InvokeScriptPathCommand {
     rebind(invokeCommand, 'editorCallback');
     rebind(invokeCommand, 'editorCheckCallback');
     try {
-      this.codeScriptToolkitComponent.addCommand(invokeCommand);
+      this.commandRegistrar.addCommand(invokeCommand);
       rebind(invokeCommand, 'checkCallback');
       relativeScriptPathCommandIdMap.set(this.relativeScriptPath, invokeCommand.id);
     } catch (error) {
