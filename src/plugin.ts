@@ -13,6 +13,8 @@ import { PluginObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsid
 import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-tab-component';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 
+import { CodeButtonBlockComponent } from './code-button-block.ts';
+import { CodeScriptBlockComponent } from './code-script-block.ts';
 import { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import { ClearCacheCommandHandler } from './command-handlers/clear-cache-command-handler.ts';
 import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-script-choose-command-handler.ts';
@@ -57,7 +59,6 @@ export class Plugin extends PluginBase {
         app,
         commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
-        markdownCodeBlockProcessorRegistrar,
         menuEventRegistrar,
         pluginName: this.manifest.name,
         pluginSettingsComponent,
@@ -131,5 +132,22 @@ export class Plugin extends PluginBase {
         requireHandlerFactory
       })
     );
+
+    this.addChild(
+      new CodeButtonBlockComponent({
+        activeFileProvider,
+        app: this.app,
+        codeScriptToolkitComponent,
+        commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
+        markdownCodeBlockProcessorRegistrar,
+        menuEventRegistrar,
+        pluginName: this.manifest.name,
+        pluginSettingsComponent,
+        requireHandlerFactory
+      })
+    );
+
+    this.addChild(new CodeScriptBlockComponent(codeScriptToolkitComponent));
   }
 }

@@ -12,6 +12,7 @@ import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/c
 import type { Promisable } from 'type-fest';
 
 import {
+  Component,
   getFrontMatterInfo,
   parseYaml,
   stringifyYaml
@@ -84,6 +85,19 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
 
 let lastButtonIndex = 0;
 
+interface CodeButtonBlockComponentConstructorParams {
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
+}
+
 interface ProcessCodeButtonBlockParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
@@ -110,6 +124,50 @@ interface RegisterCodeButtonBlockParams {
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly requireHandlerFactory: RequireHandlerFactory;
+}
+
+export class CodeButtonBlockComponent extends Component {
+  private readonly activeFileProvider: ActiveFileProvider;
+  private readonly app: App;
+  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  private readonly commandRegistrar: CommandRegistrar;
+  private readonly consoleDebugComponent: ConsoleDebugComponent;
+  private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
+  private readonly menuEventRegistrar: MenuEventRegistrar;
+  private readonly pluginName: string;
+  private readonly pluginSettingsComponent: PluginSettingsComponent;
+  private readonly requireHandlerFactory: RequireHandlerFactory;
+
+  public constructor(params: CodeButtonBlockComponentConstructorParams) {
+    super();
+    this.activeFileProvider = params.activeFileProvider;
+    this.app = params.app;
+    this.commandRegistrar = params.commandRegistrar;
+    this.consoleDebugComponent = params.consoleDebugComponent;
+    this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
+    this.menuEventRegistrar = params.menuEventRegistrar;
+    this.pluginName = params.pluginName;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
+    this.requireHandlerFactory = params.requireHandlerFactory;
+    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
+  }
+
+  public override onload(): void {
+    super.onload();
+
+    registerCodeButtonBlock({
+      activeFileProvider: this.activeFileProvider,
+      app: this.app,
+      codeScriptToolkitComponent: this.codeScriptToolkitComponent,
+      commandRegistrar: this.commandRegistrar,
+      consoleDebugComponent: this.consoleDebugComponent,
+      markdownCodeBlockProcessorRegistrar: this.markdownCodeBlockProcessorRegistrar,
+      menuEventRegistrar: this.menuEventRegistrar,
+      pluginName: this.pluginName,
+      pluginSettingsComponent: this.pluginSettingsComponent,
+      requireHandlerFactory: this.requireHandlerFactory
+    });
+  }
 }
 
 export function insertSampleCodeButton(editor: Editor): void {
