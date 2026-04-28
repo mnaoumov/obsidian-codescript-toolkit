@@ -20,20 +20,20 @@ type PathEntryType = 'file' | 'folder';
 
 interface PathSuggestConstructorParams {
   readonly app: App;
-  readonly rootFn: () => string;
+  getRootPath(): string;
   readonly textInputEl: HTMLInputElement;
   readonly type: PathEntryType;
 }
 
 export class PathSuggest extends AbstractInputSuggest<PathEntry> {
+  private readonly getRootPath: () => string;
   private pathEntries: null | PathEntry[] = null;
-  private refreshTimeoutId: null | number = null;
 
-  private readonly rootFn: () => string;
+  private refreshTimeoutId: null | number = null;
   private readonly type: PathEntryType;
   public constructor(params: PathSuggestConstructorParams) {
     super(params.app, params.textInputEl);
-    this.rootFn = params.rootFn;
+    this.getRootPath = params.getRootPath.bind(params);
     this.type = params.type;
   }
 
@@ -74,7 +74,7 @@ export class PathSuggest extends AbstractInputSuggest<PathEntry> {
       return;
     }
 
-    let shouldAdd = type === this.type && path !== this.rootFn();
+    let shouldAdd = type === this.type && path !== this.getRootPath();
 
     if (shouldAdd) {
       if (type === 'file') {
@@ -87,7 +87,7 @@ export class PathSuggest extends AbstractInputSuggest<PathEntry> {
 
     if (shouldAdd) {
       this.pathEntries.push({
-        path: relative(this.rootFn(), path),
+        path: relative(this.getRootPath(), path),
         type
       });
     }
@@ -109,7 +109,7 @@ export class PathSuggest extends AbstractInputSuggest<PathEntry> {
   private async getPathEntries(app: App): Promise<PathEntry[]> {
     if (!this.pathEntries) {
       this.pathEntries = [];
-      await this.fillPathEntries(app, this.rootFn(), 'folder');
+      await this.fillPathEntries(app, this.getRootPath(), 'folder');
     }
 
     this.refreshTimeoutId = window.setTimeout(this.refresh.bind(this), CACHE_DURATION_IN_MILLISECONDS);

@@ -30,6 +30,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
     super.display();
     this.containerEl.empty();
     const events = new Events();
+    const that = this;
 
     new SettingEx(this.containerEl)
       .setName('Script modules root')
@@ -52,7 +53,9 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
 
         new PathSuggest({
           app: this.app,
-          rootFn: (): string => '',
+          getRootPath(): string {
+            return '';
+          },
           textInputEl: text.inputEl,
           type: 'folder'
         });
@@ -75,7 +78,9 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
 
         const suggest = new PathSuggest({
           app: this.app,
-          rootFn: (): string => this.pluginSettingsComponent.settings.modulesRoot,
+          getRootPath(): string {
+            return that.pluginSettingsComponent.settings.modulesRoot;
+          },
           textInputEl: text.inputEl,
           type: 'folder'
         });
@@ -101,7 +106,9 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
           .setPlaceholder('path/to/startup.ts');
         const suggest = new PathSuggest({
           app: this.app,
-          rootFn: (): string => this.pluginSettingsComponent.settings.modulesRoot,
+          getRootPath(): string {
+            return that.pluginSettingsComponent.settings.modulesRoot;
+          },
           textInputEl: text.inputEl,
           type: 'file'
         });
