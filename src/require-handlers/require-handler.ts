@@ -175,7 +175,8 @@ export const VAULT_ROOT_PREFIX = '//';
 export interface RequireHandler extends AsyncComponentBase {
   clearCache(): void;
   requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown>;
-  requireStringAsync(code: string, path: string, urlSuffix?: string): Promise<unknown>;
+  requireStringAsync(params: RequireStringAsyncParams): Promise<unknown>;
+  requireVaultScriptAsync(id: string): Promise<unknown>;
 }
 
 export interface RequireHandlerConstructorParams {
@@ -187,6 +188,12 @@ export interface RequireHandlerConstructorParams {
   readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly tempPluginRegistry: TempPluginRegistry;
+}
+
+export interface RequireStringAsyncParams {
+  readonly code: string;
+  readonly path: string;
+  readonly urlSuffix?: string | undefined;
 }
 
 export abstract class RequireHandlerBase extends AsyncComponentBase implements RequireHandler {
@@ -352,15 +359,15 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     return module;
   }
 
-  public async requireStringAsync(code: string, path: string, urlSuffix?: string): Promise<unknown> {
-    urlSuffix = urlSuffix ? `/${urlSuffix}` : '';
+  public async requireStringAsync(params: RequireStringAsyncParams): Promise<unknown> {
+    const urlSuffix = params.urlSuffix ? `/${params.urlSuffix}` : '';
 
     try {
-      return await this.initModuleAndAddToCacheAsync(path, async () => {
+      return await this.initModuleAndAddToCacheAsync(params.path, async () => {
         const result = this.requireStringImpl({
-          code,
+          code: params.code,
           evalPrefix: 'requireStringAsync',
-          path,
+          path: params.path,
           shouldWrapInAsyncFunction: true,
           urlSuffix
         });
@@ -368,8 +375,12 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
         return result.exportsFn();
       });
     } catch (e) {
-      throw new Error(`Failed to load module: '${path}'.`, { cause: e });
+      throw new Error(`Failed to load module: '${params.path}'.`, { cause: e });
     }
+  }
+
+  public async requireVaultScriptAsync(id: string): Promise<unknown> {
+    return this.requireAsync(VAULT_ROOT_PREFIX + id);
   }
 
   protected abstract canRequireNonCached(type: ResolvedType, options: Partial<RequireOptions>): boolean;
@@ -963,13 +974,16 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
 
   private async requireJsTsAsync(path: string, code?: string): Promise<unknown> {
     code ??= await this.readFileAsync(splitQuery(path).cleanStr);
-    return this.requireStringAsync(code, path);
+    return this.requireStringAsync({ code, path });
   }
 
   private async requireMdAsync(path: string, md?: string): Promise<unknown> {
     md ??= await this.readFileAsync(splitQuery(path).cleanStr);
     const { code, codeScriptName } = extractCodeScript(md, path);
-    return this.requireStringAsync(code, `${path}.code-script.${codeScriptName ?? '(default)'}.ts`);
+    return this.requireStringAsync({
+      code,
+      path: `${path}.code-script.${codeScriptName ?? '(default)'}.ts`
+    });
   }
 
   private async requireModuleAsync(

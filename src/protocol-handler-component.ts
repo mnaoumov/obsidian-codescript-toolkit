@@ -10,8 +10,6 @@ import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 
-import { requireStringAsync } from './require-handlers/require-handler-utils.ts';
-
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
 type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
@@ -87,10 +85,9 @@ export class ProtocolHandlerComponent extends Component {
       });
     }
 
-    await requireStringAsync({
-      path: 'dynamic-script-from-url-handler.ts',
-      requireHandlerFactory: this.requireHandlerFactory,
-      source: parsedQuery.code
+    await this.requireHandlerFactory.requireStringAsync({
+      code: parsedQuery.code,
+      path: 'dynamic-script-from-url-handler.ts'
     });
   }
 }

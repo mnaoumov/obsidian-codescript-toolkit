@@ -18,7 +18,6 @@ import type { RequireHandlerFactory } from '../require-handlers/require-handler-
 import type { Script } from '../script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from '../code-script-toolkit-note-settings.ts';
-import { requireVaultScriptAsync } from '../require-handlers/require-handler-utils.ts';
 
 export const INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX = 'invoke-script-file-';
 
@@ -219,10 +218,7 @@ async function getScriptOrCommand(params: GetScriptOrCommandParams): Promise<Scr
       vaultScriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
     }
   }
-  return await requireVaultScriptAsync({
-    id: vaultScriptPath,
-    requireHandlerFactory: params.requireHandlerFactory
-  }) as Partial<ScriptOrCommand>;
+  return await params.requireHandlerFactory.requireVaultScriptAsync(vaultScriptPath) as Partial<ScriptOrCommand>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- We need T to get proper prop type.

@@ -5,7 +5,8 @@ import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import type { RequireOptions } from '../types.ts';
 import type {
   RequireHandler,
-  RequireHandlerConstructorParams
+  RequireHandlerConstructorParams,
+  RequireStringAsyncParams
 } from './require-handler.ts';
 
 export class RequireHandlerFactory extends AsyncComponentBase implements RequireHandler {
@@ -45,7 +46,11 @@ export class RequireHandlerFactory extends AsyncComponentBase implements Require
     return this.platformRequireHandler.requireAsync(id, options);
   }
 
-  public requireStringAsync(code: string, path: string, urlSuffix?: string): Promise<unknown> {
-    return this.platformRequireHandler.requireStringAsync(code, path, urlSuffix);
+  public requireStringAsync(params: RequireStringAsyncParams): Promise<unknown> {
+    return this.platformRequireHandler.requireStringAsync(params);
+  }
+
+  public requireVaultScriptAsync(id: string): Promise<unknown> {
+    return this.platformRequireHandler.requireVaultScriptAsync(id);
   }
 }

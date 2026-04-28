@@ -10,8 +10,6 @@ import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 import type { Script } from './script.ts';
 
-import { requireVaultScriptAsync } from './require-handlers/require-handler-utils.ts';
-
 interface StartupScript extends Script {
   cleanup?(app: App): Promisable<void>;
 }
@@ -56,10 +54,7 @@ export class StartupScriptComponent extends Component implements LayoutReadyComp
       return;
     }
 
-    this.startupScript = await requireVaultScriptAsync({
-      id: startupScriptPath,
-      requireHandlerFactory: this.requireHandlerFactory
-    }) as StartupScript;
+    this.startupScript = await this.requireHandlerFactory.requireVaultScriptAsync(startupScriptPath) as StartupScript;
     await this.startupScript.invoke(this.app);
   }
 

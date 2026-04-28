@@ -43,7 +43,6 @@ import { ReplaceDynamicImportBabelPlugin } from './babel/replace-dynamic-import-
 import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-plugin.ts';
 import { CodeButtonContextImpl } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
-import { requireStringAsync } from './require-handlers/require-handler-utils.ts';
 import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
@@ -119,12 +118,11 @@ export class CodeButtonBlockComponent extends Component {
         dirname(params.codeButtonContext.sourceFile.path),
         params.codeButtonContext.config.shouldAutoOutput
       );
-      const codeButtonBlockScriptWrapper = await requireStringAsync({
+      const codeButtonBlockScriptWrapper = await this.requireHandlerFactory.requireStringAsync({
+        code: script,
         path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
           String(params.buttonIndex)
-        }.${params.escapedCaption}.ts`,
-        requireHandlerFactory: this.requireHandlerFactory,
-        source: script
+        }.${params.escapedCaption}.ts`
       }) as CodeButtonBlockScriptWrapper;
       await codeButtonBlockScriptWrapper(params.codeButtonContext);
       if (params.codeButtonContext.config.shouldShowSystemMessages) {
