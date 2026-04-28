@@ -66,28 +66,12 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     this.pluginName = params.pluginName;
   }
 
-  private async applyNewSettings(): Promise<void> {
-    await this.scriptFolderWatcher?.register(this, () =>
-      registerInvocableScripts({
-        activeFileProvider: this.activeFileProvider,
-        app: this.app,
-        codeScriptToolkitComponent: this,
-        commandRegistrar: this.commandRegistrar,
-        menuEventRegistrar: this.menuEventRegistrar,
-        pluginName: this.pluginName,
-        pluginSettingsComponent: this.pluginSettingsComponent
-      }));
-  }
-
-  public consoleDebug(message: string, ...args: unknown[]): void {
-    this.consoleDebugComponent.debug(message, ...args);
-  }
-
   public async onLayoutReady(): Promise<void> {
     await invokeStartupScript({
       activeFileProvider: this.activeFileProvider,
       app: this.app,
       commandRegistrar: this.commandRegistrar,
+      consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent
@@ -106,6 +90,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       activeFileProvider: this.activeFileProvider,
       app: this.app,
       commandRegistrar: this.commandRegistrar,
+      consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent
@@ -117,6 +102,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       app: this.app,
       codeScriptToolkitComponent: this,
       commandRegistrar: this.commandRegistrar,
+      consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent
@@ -142,5 +128,18 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
 
   public removeCommand(commandId: string): void {
     this.plugin.removeCommand(commandId);
+  }
+
+  private async applyNewSettings(): Promise<void> {
+    await this.scriptFolderWatcher?.register(this, () =>
+      registerInvocableScripts({
+        activeFileProvider: this.activeFileProvider,
+        app: this.app,
+        commandRegistrar: this.commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
+        menuEventRegistrar: this.menuEventRegistrar,
+        pluginName: this.pluginName,
+        pluginSettingsComponent: this.pluginSettingsComponent
+      }));
   }
 }

@@ -1,4 +1,5 @@
 import type { App } from 'obsidian';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
@@ -10,15 +11,15 @@ import { selectAndInvokeScript } from '../script.ts';
 interface InvokeScriptChooseCommandHandlerConstructorParams {
   app: App;
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  consoleDebugComponent: ConsoleDebugComponent;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
 export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
   private readonly app: App;
-  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-
   public constructor(params: InvokeScriptChooseCommandHandlerConstructorParams) {
     super({
       icon: 'circle-play',
@@ -27,11 +28,15 @@ export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
       pluginName: params.pluginName
     });
     this.app = params.app;
-    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
+    this.consoleDebugComponent = params.consoleDebugComponent;
   }
 
   protected override async execute(): Promise<void> {
-    await selectAndInvokeScript(this.codeScriptToolkitComponent, this.pluginSettingsComponent, this.app);
+    await selectAndInvokeScript({
+      app: this.app,
+      consoleDebugComponent: this.consoleDebugComponent,
+      pluginSettingsComponent: this.pluginSettingsComponent
+    });
   }
 }

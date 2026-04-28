@@ -7,6 +7,7 @@ import type {
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { Promisable } from 'type-fest';
 
 import {
@@ -37,6 +38,7 @@ import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
 import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
@@ -48,17 +50,18 @@ import { requireStringAsync } from './require-handler-utils.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
-interface HandleClickParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  buttonIndex: number;
-  code: string;
-  codeButtonContext: CodeButtonContext;
-  commandRegistrar: CommandRegistrar;
-  escapedCaption: string;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
+interface HandleClickParams extends RequireHandlerConstructorParams {
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly buttonIndex: number;
+  readonly code: string;
+  readonly codeButtonContext: CodeButtonContext;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly escapedCaption: string;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
@@ -79,26 +82,28 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
 let lastButtonIndex = 0;
 
 interface ProcessCodeButtonBlockParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  codeScriptToolkitComponent: CodeScriptToolkitComponent;
-  commandRegistrar: CommandRegistrar;
-  ctx: MarkdownPostProcessorContext;
-  el: HTMLElement;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
-  source: string;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly ctx: MarkdownPostProcessorContext;
+  readonly el: HTMLElement;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly source: string;
 }
 
 interface RegisterCodeButtonBlockParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  codeScriptToolkitComponent: CodeScriptToolkitComponent;
-  commandRegistrar: CommandRegistrar;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
 export function insertSampleCodeButton(editor: Editor): void {
@@ -132,6 +137,7 @@ export function registerCodeButtonBlock(params: RegisterCodeButtonBlockParams): 
           app,
           codeScriptToolkitComponent,
           commandRegistrar: params.commandRegistrar,
+          consoleDebugComponent: params.consoleDebugComponent,
           ctx,
           el,
           menuEventRegistrar: params.menuEventRegistrar,
@@ -186,6 +192,7 @@ async function handleClick(params: HandleClickParams): Promise<void> {
       activeFileProvider: params.activeFileProvider,
       app: params.app,
       commandRegistrar: params.commandRegistrar,
+      consoleDebugComponent: params.consoleDebugComponent,
       menuEventRegistrar: params.menuEventRegistrar,
       path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
         String(params.buttonIndex)
@@ -366,6 +373,7 @@ ${code}
         source
       }),
       commandRegistrar: params.commandRegistrar,
+      consoleDebugComponent: params.consoleDebugComponent,
       escapedCaption: escapeForFileName(fullConfig.caption),
       menuEventRegistrar: params.menuEventRegistrar,
       pluginName: params.pluginName,

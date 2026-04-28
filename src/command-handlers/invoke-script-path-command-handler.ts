@@ -2,6 +2,7 @@ import type { Command } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 
 import {
   App,
@@ -12,7 +13,6 @@ import { printError } from 'obsidian-dev-utils/error';
 import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
 import { join } from 'obsidian-dev-utils/path';
 
-import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { Script } from '../script.ts';
 
@@ -35,6 +35,7 @@ interface GetScriptOrCommandParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
   readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
@@ -42,21 +43,27 @@ interface GetScriptOrCommandParams {
 }
 
 interface InvokeScriptPathCommandConstructorParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  codeScriptToolkitComponent: CodeScriptToolkitComponent;
-  commandRegistrar: CommandRegistrar;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
-  relativeScriptPath: string;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly relativeScriptPath: string;
+}
+
+interface InvokeScriptPathParams {
+  readonly app: App;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly relativeScriptPath: string;
 }
 
 export class InvokeScriptPathCommand {
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
-  private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly commandRegistrar: CommandRegistrar;
+  private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
@@ -64,13 +71,13 @@ export class InvokeScriptPathCommand {
 
   public constructor(params: InvokeScriptPathCommandConstructorParams) {
     this.app = params.app;
-    this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.relativeScriptPath = params.relativeScriptPath;
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
+    this.consoleDebugComponent = params.consoleDebugComponent;
   }
 
   public async register(): Promise<void> {
@@ -80,6 +87,7 @@ export class InvokeScriptPathCommand {
         activeFileProvider: this.activeFileProvider,
         app: this.app,
         commandRegistrar: this.commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
         menuEventRegistrar: this.menuEventRegistrar,
         pluginName: this.pluginName,
         pluginSettingsComponent: this.pluginSettingsComponent,
@@ -126,7 +134,7 @@ export class InvokeScriptPathCommand {
           invokeAsyncSafely(async () => {
             try {
               await script.invoke?.(this.app);
-              this.codeScriptToolkitComponent.consoleDebug(`${this.relativeScriptPath} invocable script executed successfully`);
+              this.consoleDebugComponent.debug(`${this.relativeScriptPath} invocable script executed successfully`);
             } catch (error) {
               printError(new Error(`Error invoking ${this.relativeScriptPath}`, { cause: error }));
               new Notice(`Error invoking ${this.relativeScriptPath}. See console for details.`);
@@ -140,8 +148,9 @@ export class InvokeScriptPathCommand {
   }
 }
 
-export function invokeScriptPath(codeScriptToolkitComponent: CodeScriptToolkitComponent, relativeScriptPath: string, app: App): void {
-  codeScriptToolkitComponent.consoleDebug(`Invoking script: ${relativeScriptPath}.`);
+export function invokeScriptPath(params: InvokeScriptPathParams): void {
+  const { app, relativeScriptPath } = params;
+  params.consoleDebugComponent.debug(`Invoking script: ${relativeScriptPath}.`);
 
   const commandId = relativeScriptPathCommandIdMap.get(relativeScriptPath);
   if (!commandId) {
@@ -166,7 +175,7 @@ export function invokeScriptPath(codeScriptToolkitComponent: CodeScriptToolkitCo
 
     try {
       command.checkCallback(false);
-      codeScriptToolkitComponent.consoleDebug(`${relativeScriptPath} command executed successfully`);
+      params.consoleDebugComponent.debug(`${relativeScriptPath} command executed successfully`);
     } catch (error) {
       printError(new Error(`Error invoking ${relativeScriptPath} command`, { cause: error }));
       new Notice(`Error invoking ${relativeScriptPath} command. See console for details.`);
@@ -174,7 +183,7 @@ export function invokeScriptPath(codeScriptToolkitComponent: CodeScriptToolkitCo
   } else if (command.callback) {
     try {
       command.callback();
-      codeScriptToolkitComponent.consoleDebug(`${relativeScriptPath} command executed successfully`);
+      params.consoleDebugComponent.debug(`${relativeScriptPath} command executed successfully`);
     } catch (error) {
       printError(new Error(`Error invoking ${relativeScriptPath} command`, { cause: error }));
       new Notice(`Error invoking ${relativeScriptPath} command. See console for details.`);
@@ -209,6 +218,7 @@ async function getScriptOrCommand(params: GetScriptOrCommandParams): Promise<Scr
     activeFileProvider: params.activeFileProvider,
     app,
     commandRegistrar: params.commandRegistrar,
+    consoleDebugComponent: params.consoleDebugComponent,
     id: vaultScriptPath,
     menuEventRegistrar: params.menuEventRegistrar,
     pluginName: params.pluginName,

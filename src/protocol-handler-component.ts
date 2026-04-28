@@ -5,6 +5,7 @@ import type {
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 
 import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
@@ -25,6 +26,7 @@ interface ProtocolHandlerComponentConstructorParams {
   app: App;
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
   commandRegistrar: CommandRegistrar;
+  consoleDebugComponent: ConsoleDebugComponent;
   menuEventRegistrar: MenuEventRegistrar;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
@@ -46,6 +48,7 @@ export class ProtocolHandlerComponent extends Component {
   private readonly app: App;
   private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
   private readonly commandRegistrar: CommandRegistrar;
+  private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
@@ -59,6 +62,7 @@ export class ProtocolHandlerComponent extends Component {
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
+    this.consoleDebugComponent = params.consoleDebugComponent;
   }
 
   public override onload(): void {
@@ -85,7 +89,7 @@ export class ProtocolHandlerComponent extends Component {
       parsedQuery.functionName ??= 'invoke';
       parsedQuery.args ??= parsedQuery.functionName === 'invoke' ? 'app' : '';
 
-      this.codeScriptToolkitComponent.consoleDebug('Invoking script file from URL action:', {
+      this.consoleDebugComponent.debug('Invoking script file from URL action:', {
         args: parsedQuery.args,
         functionName: parsedQuery.functionName,
         module: parsedQuery.module
@@ -95,7 +99,7 @@ export class ProtocolHandlerComponent extends Component {
     } else {
       parsedQuery.code ??= '';
 
-      this.codeScriptToolkitComponent.consoleDebug('Invoking code from URL action:', {
+      this.consoleDebugComponent.debug('Invoking code from URL action:', {
         code: parsedQuery.code
       });
     }
@@ -104,6 +108,7 @@ export class ProtocolHandlerComponent extends Component {
       activeFileProvider: this.activeFileProvider,
       app: this.app,
       commandRegistrar: this.commandRegistrar,
+      consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar: this.menuEventRegistrar,
       path: 'dynamic-script-from-url-handler.ts',
       pluginName: this.pluginName,

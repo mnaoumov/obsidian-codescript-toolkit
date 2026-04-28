@@ -62,6 +62,7 @@ export class Plugin extends PluginBase {
             activeFileProvider,
             app: this.app,
             commandRegistrar,
+            consoleDebugComponent: this.consoleDebugComponent,
             menuEventRegistrar,
             pluginName: this.manifest.name,
             pluginSettingsComponent
@@ -69,6 +70,7 @@ export class Plugin extends PluginBase {
           new InvokeScriptChooseCommandHandler({
             app: this.app,
             codeScriptToolkitComponent,
+            consoleDebugComponent: this.consoleDebugComponent,
             pluginName: this.manifest.name,
             pluginSettingsComponent
           }),
@@ -76,6 +78,7 @@ export class Plugin extends PluginBase {
             activeFileProvider,
             app: this.app,
             commandRegistrar,
+            consoleDebugComponent: this.consoleDebugComponent,
             menuEventRegistrar,
             pluginName: this.manifest.name,
             pluginSettingsComponent
@@ -92,6 +95,7 @@ export class Plugin extends PluginBase {
         app: this.app,
         codeScriptToolkitComponent,
         commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
         menuEventRegistrar,
         pluginName: this.manifest.name,
         pluginSettingsComponent

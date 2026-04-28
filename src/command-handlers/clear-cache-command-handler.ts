@@ -7,6 +7,7 @@ import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handle
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import { getPlatformDependencies } from '../platform-dependencies.ts';
 
 interface ClearCacheCommandHandlerConstructorParams {
@@ -16,6 +17,7 @@ interface ClearCacheCommandHandlerConstructorParams {
   menuEventRegistrar: MenuEventRegistrar;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
+  consoleDebugComponent: ConsoleDebugComponent;
 }
 
 export class ClearCacheCommandHandler extends GlobalCommandHandler {
@@ -24,7 +26,7 @@ export class ClearCacheCommandHandler extends GlobalCommandHandler {
   private readonly commandRegistrar: CommandRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-
+  private readonly consoleDebugComponent: ConsoleDebugComponent;
   public constructor(params: ClearCacheCommandHandlerConstructorParams) {
     super({
       icon: 'trash',
@@ -37,6 +39,7 @@ export class ClearCacheCommandHandler extends GlobalCommandHandler {
     this.activeFileProvider = params.activeFileProvider;
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
+    this.consoleDebugComponent = params.consoleDebugComponent;
   }
 
   public override async execute(): Promise<void> {
@@ -47,7 +50,8 @@ export class ClearCacheCommandHandler extends GlobalCommandHandler {
       commandRegistrar: this.commandRegistrar,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
-      pluginSettingsComponent: this.pluginSettingsComponent
+      pluginSettingsComponent: this.pluginSettingsComponent,
+      consoleDebugComponent: this.consoleDebugComponent
     }).clearCache();
   }
 }

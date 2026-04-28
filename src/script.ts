@@ -2,6 +2,7 @@ import type { App } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { Promisable } from 'type-fest';
 
 import { Notice } from 'obsidian';
@@ -11,7 +12,6 @@ import {
   join
 } from 'obsidian-dev-utils/path';
 
-import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
@@ -34,31 +34,39 @@ const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 let startupScript: null | StartupScript = null;
 
 interface InvokeStartupScriptParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  commandRegistrar: CommandRegistrar;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
 interface RegisterInvocableScriptsParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  codeScriptToolkitComponent: CodeScriptToolkitComponent;
-  commandRegistrar: CommandRegistrar;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
 interface ReloadStartupScriptParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  commandRegistrar: CommandRegistrar;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+}
+
+interface SelectAndInvokeScriptParams {
+  readonly app: App;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
 export async function cleanupStartupScript(app: App): Promise<void> {
@@ -87,6 +95,7 @@ export async function invokeStartupScript(params: InvokeStartupScriptParams): Pr
     activeFileProvider,
     app,
     commandRegistrar,
+    consoleDebugComponent: params.consoleDebugComponent,
     id: startupScriptPath,
     menuEventRegistrar,
     pluginName: params.pluginName,
@@ -96,7 +105,7 @@ export async function invokeStartupScript(params: InvokeStartupScriptParams): Pr
 }
 
 export async function registerInvocableScripts(params: RegisterInvocableScriptsParams): Promise<void> {
-  const { app, codeScriptToolkitComponent, pluginSettingsComponent } = params;
+  const { app, pluginSettingsComponent } = params;
   unregisterInvocableCommands(params.app);
 
   const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
@@ -118,8 +127,8 @@ export async function registerInvocableScripts(params: RegisterInvocableScriptsP
     await new InvokeScriptPathCommand({
       activeFileProvider: params.activeFileProvider,
       app,
-      codeScriptToolkitComponent,
       commandRegistrar: params.commandRegistrar,
+      consoleDebugComponent: params.consoleDebugComponent,
       menuEventRegistrar: params.menuEventRegistrar,
       pluginName: params.pluginName,
       pluginSettingsComponent,
@@ -135,17 +144,15 @@ export async function reloadStartupScript(params: ReloadStartupScriptParams): Pr
     activeFileProvider,
     app,
     commandRegistrar,
+    consoleDebugComponent: params.consoleDebugComponent,
     menuEventRegistrar,
     pluginName: params.pluginName,
     pluginSettingsComponent
   });
 }
 
-export async function selectAndInvokeScript(
-  codeScriptToolkitComponent: CodeScriptToolkitComponent,
-  pluginSettingsComponent: PluginSettingsComponent,
-  app: App
-): Promise<void> {
+export async function selectAndInvokeScript(params: SelectAndInvokeScriptParams): Promise<void> {
+  const { app, consoleDebugComponent, pluginSettingsComponent } = params;
   const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
   let scriptPaths: string[];
 
@@ -165,12 +172,16 @@ export async function selectAndInvokeScript(
   });
 
   if (scriptPath === null) {
-    codeScriptToolkitComponent.consoleDebug('No script selected');
+    consoleDebugComponent.debug('No script selected');
     return;
   }
 
   if (!scriptPath.startsWith('Error:')) {
-    invokeScriptPath(codeScriptToolkitComponent, scriptPath, app);
+    invokeScriptPath({
+      app,
+      consoleDebugComponent: params.consoleDebugComponent,
+      relativeScriptPath: scriptPath
+    });
   }
 }
 

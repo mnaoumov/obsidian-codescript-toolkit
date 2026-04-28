@@ -2,6 +2,7 @@ import type { Code } from 'mdast';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 import type { Promisable } from 'type-fest';
 
@@ -174,6 +175,7 @@ export interface RequireHandlerConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
   readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
@@ -208,6 +210,7 @@ export abstract class RequireHandler {
 
   private _requireEx?: RequireExFn;
 
+  private readonly consoleDebugComponent: ConsoleDebugComponent;
   private originalRequire?: NodeJS.Require;
   private readonly pluginName: string;
   private pluginRequire?: PluginRequireFn;
@@ -220,6 +223,7 @@ export abstract class RequireHandler {
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
+    this.consoleDebugComponent = params.consoleDebugComponent;
   }
 
   public clearCache(): void {
@@ -384,7 +388,7 @@ export abstract class RequireHandler {
 
   protected getParentPathFromCallStack(callerLineIndex = CALLER_LINE_INDEX): null | string {
     const callStackLines = new Error().stack?.split('\n') ?? [];
-    this.plugin.consoleDebug('callStackLines', { callStackLines });
+    this.consoleDebugComponent.debug('callStackLines', { callStackLines });
     const callStackMatch = callStackLines.at(callerLineIndex)?.match(/^ {4}at .+? \((?<ParentPath>.+?):\d+:\d+\)$/);
     let parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
 
