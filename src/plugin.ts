@@ -108,15 +108,9 @@ export class Plugin extends PluginBase {
       new CommandHandlerComponent({
         activeFileProvider,
         commandHandlers: [
-          new ClearCacheCommandHandler({
-            pluginName: this.manifest.name,
-            requireHandlerFactory
-          }),
+          new ClearCacheCommandHandler(requireHandlerFactory),
           new InvokeScriptChooseCommandHandler(scriptManager),
-          new ReloadStartupScriptCommandHandler({
-            pluginName: this.manifest.name,
-            startupScriptComponent
-          }),
+          new ReloadStartupScriptCommandHandler(startupScriptComponent),
           new UnloadTempPluginsCommandHandler(tempPluginRegistry)
         ],
         commandRegistrar,

@@ -92,7 +92,6 @@ export class TempPluginRegistry extends Component {
       }
 
       const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler({
-        pluginName: this.pluginName,
         tempPlugin,
         tempPluginClassName
       });
