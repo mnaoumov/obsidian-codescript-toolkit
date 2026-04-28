@@ -39,12 +39,6 @@ interface ScriptManagerConstructorParams {
   readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
-interface SelectAndInvokeScriptParams {
-  readonly app: App;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly pluginSettingsComponent: PluginSettingsComponent;
-}
-
 export class ScriptManager {
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
@@ -98,39 +92,38 @@ export class ScriptManager {
       }).register();
     }
   }
-}
 
-export async function selectAndInvokeScript(params: SelectAndInvokeScriptParams): Promise<void> {
-  const { app, consoleDebugComponent, pluginSettingsComponent } = params;
-  const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
-  let scriptPaths: string[];
+  public async selectAndInvokeScript(): Promise<void> {
+    const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();
+    let scriptPaths: string[];
 
-  if (!invocableScriptsFolder) {
-    scriptPaths = ['Error: No Invocable scripts folder specified in the settings'];
-  } else if (await app.vault.adapter.exists(invocableScriptsFolder)) {
-    scriptPaths = await getAllScriptPaths(app, invocableScriptsFolder, '');
-  } else {
-    scriptPaths = [`Error: Invocable scripts folder not found: ${invocableScriptsFolder}`];
-  }
+    if (!invocableScriptsFolder) {
+      scriptPaths = ['Error: No Invocable scripts folder specified in the settings'];
+    } else if (await this.app.vault.adapter.exists(invocableScriptsFolder)) {
+      scriptPaths = await getAllScriptPaths(this.app, invocableScriptsFolder, '');
+    } else {
+      scriptPaths = [`Error: Invocable scripts folder not found: ${invocableScriptsFolder}`];
+    }
 
-  const scriptPath = await selectItem({
-    app,
-    items: scriptPaths,
-    itemTextFunc: (script) => script,
-    placeholder: 'Choose a script to invoke'
-  });
-
-  if (scriptPath === null) {
-    consoleDebugComponent.debug('No script selected');
-    return;
-  }
-
-  if (!scriptPath.startsWith('Error:')) {
-    invokeScriptPath({
-      app,
-      consoleDebugComponent: params.consoleDebugComponent,
-      relativeScriptPath: scriptPath
+    const scriptPath = await selectItem({
+      app: this.app,
+      items: scriptPaths,
+      itemTextFunc: (script) => script,
+      placeholder: 'Choose a script to invoke'
     });
+
+    if (scriptPath === null) {
+      this.consoleDebugComponent.debug('No script selected');
+      return;
+    }
+
+    if (!scriptPath.startsWith('Error:')) {
+      invokeScriptPath({
+        app: this.app,
+        consoleDebugComponent: this.consoleDebugComponent,
+        relativeScriptPath: scriptPath
+      });
+    }
   }
 }
 

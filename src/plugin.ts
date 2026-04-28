@@ -80,6 +80,17 @@ export class Plugin extends PluginBase {
       })
     );
 
+    const scriptManager = new ScriptManager({
+      activeFileProvider,
+      app: this.app,
+      commandRegistrar,
+      consoleDebugComponent: this.consoleDebugComponent,
+      menuEventRegistrar,
+      pluginName: this.manifest.name,
+      pluginSettingsComponent,
+      requireHandlerFactory
+    });
+
     this.addChild(new CodeScriptBlockComponent());
 
     this.addChild(
@@ -101,12 +112,7 @@ export class Plugin extends PluginBase {
             pluginName: this.manifest.name,
             requireHandlerFactory
           }),
-          new InvokeScriptChooseCommandHandler({
-            app: this.app,
-            consoleDebugComponent: this.consoleDebugComponent,
-            pluginName: this.manifest.name,
-            pluginSettingsComponent
-          }),
+          new InvokeScriptChooseCommandHandler(scriptManager),
           new ReloadStartupScriptCommandHandler({
             pluginName: this.manifest.name,
             startupScriptComponent
@@ -132,17 +138,6 @@ export class Plugin extends PluginBase {
         requireHandlerFactory
       })
     );
-
-    const scriptManager = new ScriptManager({
-      activeFileProvider,
-      app: this.app,
-      commandRegistrar,
-      consoleDebugComponent: this.consoleDebugComponent,
-      menuEventRegistrar,
-      pluginName: this.manifest.name,
-      pluginSettingsComponent,
-      requireHandlerFactory
-    });
 
     this.addChild(
       new ScriptFolderWatcherFactory({
