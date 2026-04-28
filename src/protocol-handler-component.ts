@@ -23,15 +23,15 @@ const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
 
 interface ProtocolHandlerComponentConstructorParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  commandRegistrar: CommandRegistrar;
-  consoleDebugComponent: ConsoleDebugComponent;
-  menuEventRegistrar: MenuEventRegistrar;
-  obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
-  requireHandlerFactory: RequireHandlerFactory;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 interface Query {

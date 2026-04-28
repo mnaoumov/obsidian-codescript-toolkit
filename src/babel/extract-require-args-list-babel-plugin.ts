@@ -87,7 +87,7 @@ function extractRequireArgs(callExpression: CallExpression): null | RequireArgs 
   }
 
   const id = idArgument.value;
-  const options: Partial<RequireOptions> = {};
+  const options: Writable<Partial<RequireOptions>> = {};
 
   if (optionsArgument) {
     if (!isObjectExpression(optionsArgument)) {

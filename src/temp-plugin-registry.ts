@@ -21,8 +21,8 @@ import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-p
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
 interface RegisterTempPluginParams {
-  cssText?: string;
-  tempPluginClass: TempPluginClass;
+  readonly cssText?: string;
+  readonly tempPluginClass: TempPluginClass;
 }
 
 interface TempPluginRegistryConstructorParams {

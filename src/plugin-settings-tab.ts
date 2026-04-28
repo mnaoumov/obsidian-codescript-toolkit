@@ -15,7 +15,7 @@ import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from './code-button-block.ts';
 import { PathSuggest } from './path-suggest.ts';
 
 interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstructorParams<PluginSettings> {
-  pluginName: string;
+  readonly pluginName: string;
 }
 
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {

@@ -7,7 +7,7 @@ import {
 type ConsoleMethod = 'debug' | 'error' | 'info' | 'log' | 'warn';
 
 interface ConsoleWrapperConstructorParams {
-  resultEl: HTMLElement;
+  readonly resultEl: HTMLElement;
 }
 
 export class ConsoleWrapper {

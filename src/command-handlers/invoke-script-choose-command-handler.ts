@@ -8,10 +8,10 @@ import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import { selectAndInvokeScript } from '../script.ts';
 
 interface InvokeScriptChooseCommandHandlerConstructorParams {
-  app: App;
-  consoleDebugComponent: ConsoleDebugComponent;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
+  readonly app: App;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
 export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {

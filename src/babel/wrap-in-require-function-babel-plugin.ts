@@ -15,8 +15,8 @@ import { BabelPluginBase } from './babel-plugin-base.ts';
 import { objectPatternFromKeys } from './utils.ts';
 
 interface WrapInRequireFunctionBabelPluginConstructorParams {
-  contextKeys: readonly string[];
-  isAsync: boolean;
+  readonly contextKeys: readonly string[];
+  readonly isAsync: boolean;
 }
 
 export class WrapInRequireFunctionBabelPlugin extends BabelPluginBase {

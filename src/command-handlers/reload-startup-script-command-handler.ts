@@ -12,14 +12,14 @@ import type { RequireHandlerFactory } from '../require-handlers/require-handler-
 import { reloadStartupScript } from '../script.ts';
 
 interface ReloadStartupScriptCommandHandlerConstructorParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  commandRegistrar: CommandRegistrar;
-  consoleDebugComponent: ConsoleDebugComponent;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
-  pluginSettingsComponent: PluginSettingsComponent;
-  requireHandlerFactory: RequireHandlerFactory;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 export class ReloadStartupScriptCommandHandler extends GlobalCommandHandler {

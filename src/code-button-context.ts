@@ -134,9 +134,9 @@ export interface CodeButtonContext {
 }
 
 export interface RegisterTempPluginParams {
-  cssText?: string;
-  pluginName: string;
-  tempPluginClass: TempPluginClass;
+  readonly cssText?: string;
+  readonly pluginName: string;
+  readonly tempPluginClass: TempPluginClass;
 }
 
 /**

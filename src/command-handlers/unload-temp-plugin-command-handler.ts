@@ -3,9 +3,9 @@ import type { Plugin as ObsidianPlugin } from 'obsidian';
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
 interface UnloadTempPluginCommandHandlerConstructorParams {
-  pluginName: string;
-  tempPlugin: ObsidianPlugin;
-  tempPluginClassName: string;
+  readonly pluginName: string;
+  readonly tempPlugin: ObsidianPlugin;
+  readonly tempPluginClassName: string;
 }
 
 export class UnloadTempPluginCommandHandler extends GlobalCommandHandler {

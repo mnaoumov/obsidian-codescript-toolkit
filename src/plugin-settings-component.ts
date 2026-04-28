@@ -15,8 +15,8 @@ import { PluginSettings } from './plugin-settings.ts';
 import { EXTENSIONS } from './require-handlers/require-handler.ts';
 
 interface PluginSettingsComponentConstructorParams {
-  app: App;
-  dataHandler: DataHandler;
+  readonly app: App;
+  readonly dataHandler: DataHandler;
 }
 
 class LegacySettings {

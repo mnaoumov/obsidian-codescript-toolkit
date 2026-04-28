@@ -93,11 +93,11 @@ interface Module {
 }
 
 interface RequireStringImplOptions {
-  code: string;
-  evalPrefix: string;
-  path: string;
-  shouldWrapInAsyncFunction: boolean;
-  urlSuffix: string;
+  readonly code: string;
+  readonly evalPrefix: string;
+  readonly path: string;
+  readonly shouldWrapInAsyncFunction: boolean;
+  readonly urlSuffix: string;
 }
 
 interface RequireStringImplResult {
@@ -135,9 +135,9 @@ interface SplitQueryResult {
 
 interface WrapRequireOptions {
   beforeRequire?(id: string): void;
-  optionsToAppend?: Partial<RequireOptions>;
-  optionsToPrepend?: Partial<RequireOptions>;
-  require: RequireExFn;
+  readonly optionsToAppend?: Partial<RequireOptions>;
+  readonly optionsToPrepend?: Partial<RequireOptions>;
+  readonly require: RequireExFn;
 }
 
 /**

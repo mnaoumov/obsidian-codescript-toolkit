@@ -19,10 +19,10 @@ interface PathEntry {
 type PathEntryType = 'file' | 'folder';
 
 interface PathSuggestConstructorParams {
-  app: App;
-  rootFn: () => string;
-  textInputEl: HTMLInputElement;
-  type: PathEntryType;
+  readonly app: App;
+  readonly rootFn: () => string;
+  readonly textInputEl: HTMLInputElement;
+  readonly type: PathEntryType;
 }
 
 export class PathSuggest extends AbstractInputSuggest<PathEntry> {

@@ -81,7 +81,7 @@ export enum ModuleType {
  * Options for the parent path.
  */
 export interface ParentPathOptions {
-  parentPath?: string;
+  readonly parentPath?: string;
 }
 
 /**
@@ -107,20 +107,20 @@ export interface RequireOptions {
   /**
    * A cache invalidation mode.
    */
-  cacheInvalidationMode?: CacheInvalidationMode;
+  readonly cacheInvalidationMode?: CacheInvalidationMode;
 
   /**
    * A type of the module to require.
    */
-  moduleType?: ModuleType;
+  readonly moduleType?: ModuleType;
 
   /**
    * A parent module.
    */
-  parentModule?: NodeJS.Module;
+  readonly parentModule?: NodeJS.Module;
 
   /**
    * A parent path of the module to require.
    */
-  parentPath?: string;
+  readonly parentPath?: string;
 }
