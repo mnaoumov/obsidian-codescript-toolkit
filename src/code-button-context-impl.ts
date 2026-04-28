@@ -3,10 +3,7 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
-import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import {
   Component,
@@ -30,13 +27,10 @@ import { ConsoleWrapper } from './console-wrapper.ts';
 import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
 interface CodeButtonContextImplConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
   readonly config: CodeButtonBlockConfig;
   readonly markdownInfo: CodeBlockMarkdownInformation | null;
   readonly markdownPostProcessorContext: MarkdownPostProcessorContext;
-  readonly menuEventRegistrar: MenuEventRegistrar;
   readonly parentEl: HTMLElement;
   readonly resultEl: HTMLElement;
   readonly source: string;
@@ -54,7 +48,6 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   public readonly source: string;
   public readonly sourceFile: TFile;
 
-  private readonly resultEl: HTMLElement;
   private readonly tempPluginRegistry: TempPluginRegistry;
 
   public constructor(params: CodeButtonContextImplConstructorParams) {
@@ -64,11 +57,10 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     this.markdownInfo = params.markdownInfo;
     this.markdownPostProcessorContext = params.markdownPostProcessorContext;
     this.parentEl = params.parentEl;
-    this.resultEl = params.resultEl;
     this.source = params.source;
 
     this.sourceFile = getFile(this.app, params.markdownPostProcessorContext.sourcePath);
-    this.container = this.config.isRaw ? this.parentEl : this.resultEl;
+    this.container = params.config.isRaw ? this.parentEl : params.resultEl;
     const wrappedConsole = new ConsoleWrapper({ resultEl: this.container });
     this.console = wrappedConsole.getConsoleInstance(this.config.shouldWrapConsole);
     this.tempPluginRegistry = params.tempPluginRegistry;

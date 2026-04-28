@@ -320,13 +320,10 @@ export class CodeButtonBlockComponent extends Component {
         buttonIndex: lastButtonIndex,
         code,
         codeButtonContext: new CodeButtonContextImpl({
-          activeFileProvider: that.activeFileProvider,
           app: that.app,
-          commandRegistrar: that.commandRegistrar,
           config: fullConfig,
           markdownInfo,
           markdownPostProcessorContext: updateSourcePath(params.ctx, sourceFile),
-          menuEventRegistrar: that.menuEventRegistrar,
           parentEl: params.el,
           resultEl,
           source: params.source,
