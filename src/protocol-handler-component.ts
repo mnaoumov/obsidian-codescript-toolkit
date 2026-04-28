@@ -2,6 +2,9 @@ import type {
   App,
   ObsidianProtocolData
 } from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
@@ -18,8 +21,11 @@ const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
 
 interface ProtocolHandlerComponentConstructorParams {
+  activeFileProvider: ActiveFileProvider;
   app: App;
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  commandRegistrar: CommandRegistrar;
+  menuEventRegistrar: MenuEventRegistrar;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -35,8 +41,11 @@ interface WindowWithRequireAsync {
 }
 
 export class ProtocolHandlerComponent extends Component {
+  private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  private readonly commandRegistrar: CommandRegistrar;
+  private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
 
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
@@ -44,6 +53,9 @@ export class ProtocolHandlerComponent extends Component {
     this.app = params.app;
     this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
+    this.activeFileProvider = params.activeFileProvider;
+    this.commandRegistrar = params.commandRegistrar;
+    this.menuEventRegistrar = params.menuEventRegistrar;
   }
 
   public override onload(): void {
@@ -86,7 +98,10 @@ export class ProtocolHandlerComponent extends Component {
     }
 
     await requireStringAsync({
+      activeFileProvider: this.activeFileProvider,
       app: this.app,
+      commandRegistrar: this.commandRegistrar,
+      menuEventRegistrar: this.menuEventRegistrar,
       path: 'dynamic-script-from-url-handler.ts',
       pluginSettingsComponent: this.pluginSettingsComponent,
       source: parsedQuery.code

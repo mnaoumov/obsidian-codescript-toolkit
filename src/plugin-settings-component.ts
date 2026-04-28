@@ -1,7 +1,5 @@
 import type { App } from 'obsidian';
-import type {
-  PluginSettingsComponentConstructorParams as PluginSettingsComponentConstructorParamsBase
-} from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
+import type { DataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { parseYaml } from 'obsidian';
@@ -16,8 +14,9 @@ import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import { PluginSettings } from './plugin-settings.ts';
 import { EXTENSIONS } from './require-handler.ts';
 
-interface PluginSettingsComponentConstructorParams extends PluginSettingsComponentConstructorParamsBase {
+interface PluginSettingsComponentConstructorParams {
   app: App;
+  dataHandler: DataHandler;
 }
 
 class LegacySettings {
@@ -28,7 +27,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
   private readonly app: App;
 
   public constructor(params: PluginSettingsComponentConstructorParams) {
-    super(params);
+    super(params.dataHandler);
     this.app = params.app;
   }
 

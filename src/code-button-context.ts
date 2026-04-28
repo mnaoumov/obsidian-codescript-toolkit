@@ -9,6 +9,11 @@ import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/c
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 
+export interface RegisterTempPluginParams {
+  tempPluginClass: TempPluginClass;
+  cssText?: string;
+}
+
 /**
  * A context for the code button block.
  */
@@ -91,7 +96,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#temp-plugins}
    */
-  registerTempPlugin(tempPluginClass: TempPluginClass): void;
+  registerTempPlugin(params: RegisterTempPluginParams): void;
 
   /**
    * Remove the code button block.

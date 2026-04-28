@@ -1,4 +1,7 @@
 import type { Command } from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import {
   App,
@@ -29,21 +32,30 @@ interface ScriptOrCommand extends Partial<Script> {
 const relativeScriptPathCommandIdMap = new Map<string, string>();
 
 interface GetScriptOrCommandParams {
+  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly relativeScriptPath: string;
 }
 
 interface InvokeScriptPathCommandConstructorParams {
+  activeFileProvider: ActiveFileProvider;
   app: App;
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  commandRegistrar: CommandRegistrar;
+  menuEventRegistrar: MenuEventRegistrar;
   pluginSettingsComponent: PluginSettingsComponent;
   relativeScriptPath: string;
 }
 
 export class InvokeScriptPathCommand {
+  private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  private readonly commandRegistrar: CommandRegistrar;
+  private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly relativeScriptPath: string;
 
@@ -52,13 +64,19 @@ export class InvokeScriptPathCommand {
     this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.relativeScriptPath = params.relativeScriptPath;
+    this.activeFileProvider = params.activeFileProvider;
+    this.commandRegistrar = params.commandRegistrar;
+    this.menuEventRegistrar = params.menuEventRegistrar;
   }
 
   public async register(): Promise<void> {
     let scriptOrCommand: Partial<ScriptOrCommand>;
     try {
       scriptOrCommand = await getScriptOrCommand({
+        activeFileProvider: this.activeFileProvider,
         app: this.app,
+        commandRegistrar: this.commandRegistrar,
+        menuEventRegistrar: this.menuEventRegistrar,
         pluginSettingsComponent: this.pluginSettingsComponent,
         relativeScriptPath: this.relativeScriptPath
       });
@@ -183,9 +201,12 @@ async function getScriptOrCommand(params: GetScriptOrCommandParams): Promise<Scr
     }
   }
   return await requireVaultScriptAsync({
+    activeFileProvider: params.activeFileProvider,
     app,
+    commandRegistrar: params.commandRegistrar,
     id: vaultScriptPath,
-    pluginSettingsComponent
+    menuEventRegistrar: params.menuEventRegistrar,
+    pluginSettingsComponent: params.pluginSettingsComponent
   }) as Partial<ScriptOrCommand>;
 }
 

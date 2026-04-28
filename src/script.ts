@@ -1,4 +1,7 @@
 import type { App } from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { Promisable } from 'type-fest';
 
 import { Notice } from 'obsidian';
@@ -30,6 +33,31 @@ interface StartupScript extends Script {
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 let startupScript: null | StartupScript = null;
 
+interface InvokeStartupScriptParams {
+  activeFileProvider: ActiveFileProvider;
+  app: App;
+  commandRegistrar: CommandRegistrar;
+  menuEventRegistrar: MenuEventRegistrar;
+  pluginSettingsComponent: PluginSettingsComponent;
+}
+
+interface RegisterInvocableScriptsParams {
+  activeFileProvider: ActiveFileProvider;
+  app: App;
+  codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  commandRegistrar: CommandRegistrar;
+  menuEventRegistrar: MenuEventRegistrar;
+  pluginSettingsComponent: PluginSettingsComponent;
+}
+
+interface ReloadStartupScriptParams {
+  activeFileProvider: ActiveFileProvider;
+  app: App;
+  commandRegistrar: CommandRegistrar;
+  menuEventRegistrar: MenuEventRegistrar;
+  pluginSettingsComponent: PluginSettingsComponent;
+}
+
 export async function cleanupStartupScript(app: App): Promise<void> {
   if (!startupScript) {
     return;
@@ -40,7 +68,8 @@ export async function cleanupStartupScript(app: App): Promise<void> {
   startupScript = null;
 }
 
-export async function invokeStartupScript(app: App, pluginSettingsComponent: PluginSettingsComponent): Promise<void> {
+export async function invokeStartupScript(params: InvokeStartupScriptParams): Promise<void> {
+  const { activeFileProvider, app, commandRegistrar, menuEventRegistrar, pluginSettingsComponent } = params;
   if (startupScript) {
     throw new Error('Startup script already invoked');
   }
@@ -51,16 +80,20 @@ export async function invokeStartupScript(app: App, pluginSettingsComponent: Plu
   }
 
   // eslint-disable-next-line require-atomic-updates -- Ignore possible race condition.
-  startupScript = await requireVaultScriptAsync({ app, id: startupScriptPath, pluginSettingsComponent }) as StartupScript;
-  await startupScript.invoke(app);
+  startupScript = await requireVaultScriptAsync({
+    activeFileProvider,
+    app,
+    commandRegistrar,
+    id: startupScriptPath,
+    menuEventRegistrar,
+    pluginSettingsComponent
+  }) as StartupScript;
+  await startupScript.invoke(params.app);
 }
 
-export async function registerInvocableScripts(
-  codeScriptToolkitComponent: CodeScriptToolkitComponent,
-  pluginSettingsComponent: PluginSettingsComponent,
-  app: App
-): Promise<void> {
-  unregisterInvocableCommands(app);
+export async function registerInvocableScripts(params: RegisterInvocableScriptsParams): Promise<void> {
+  const { app, codeScriptToolkitComponent, pluginSettingsComponent } = params;
+  unregisterInvocableCommands(params.app);
 
   const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
 
@@ -78,13 +111,28 @@ export async function registerInvocableScripts(
   const scriptPaths = await getAllScriptPaths(app, pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
 
   for (const scriptPath of scriptPaths) {
-    await new InvokeScriptPathCommand({ app, codeScriptToolkitComponent, pluginSettingsComponent, relativeScriptPath: scriptPath }).register();
+    await new InvokeScriptPathCommand({
+      activeFileProvider: params.activeFileProvider,
+      app,
+      codeScriptToolkitComponent,
+      commandRegistrar: params.commandRegistrar,
+      menuEventRegistrar: params.menuEventRegistrar,
+      pluginSettingsComponent,
+      relativeScriptPath: scriptPath
+    }).register();
   }
 }
 
-export async function reloadStartupScript(pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
+export async function reloadStartupScript(params: ReloadStartupScriptParams): Promise<void> {
+  const { activeFileProvider, app, commandRegistrar, menuEventRegistrar, pluginSettingsComponent } = params;
   await cleanupStartupScript(app);
-  await invokeStartupScript(app, pluginSettingsComponent);
+  await invokeStartupScript({
+    activeFileProvider,
+    app,
+    commandRegistrar,
+    menuEventRegistrar,
+    pluginSettingsComponent
+  });
 }
 
 export async function selectAndInvokeScript(

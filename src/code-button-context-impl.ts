@@ -3,7 +3,10 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import {
   Component,
@@ -20,7 +23,7 @@ import {
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type {
   CodeButtonContext,
-  TempPluginClass
+  RegisterTempPluginParams
 } from './code-button-context.ts';
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 
@@ -28,11 +31,14 @@ import { ConsoleWrapper } from './console-wrapper.ts';
 import { registerTempPlugin } from './temp-plugin-registry.ts';
 
 interface CodeButtonContextImplConstructorParams {
+  activeFileProvider: ActiveFileProvider;
   app: App;
   codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  commandRegistrar: CommandRegistrar;
   config: CodeButtonBlockConfig;
   markdownInfo: CodeBlockMarkdownInformation | null;
   markdownPostProcessorContext: MarkdownPostProcessorContext;
+  menuEventRegistrar: MenuEventRegistrar;
   parentEl: HTMLElement;
   resultEl: HTMLElement;
   source: string;
@@ -49,7 +55,10 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   public readonly source: string;
   public readonly sourceFile: TFile;
 
+  private readonly activeFileProvider: ActiveFileProvider;
   private readonly codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  private readonly commandRegistrar: CommandRegistrar;
+  private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly resultEl: HTMLElement;
 
   public constructor(params: CodeButtonContextImplConstructorParams) {
@@ -62,6 +71,9 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     this.codeScriptToolkitComponent = params.codeScriptToolkitComponent;
     this.resultEl = params.resultEl;
     this.source = params.source;
+    this.activeFileProvider = params.activeFileProvider;
+    this.commandRegistrar = params.commandRegistrar;
+    this.menuEventRegistrar = params.menuEventRegistrar;
 
     this.sourceFile = getFile(this.app, params.markdownPostProcessorContext.sourcePath);
     this.container = this.config.isRaw ? this.parentEl : this.resultEl;
@@ -93,8 +105,16 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     });
   }
 
-  public registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
-    registerTempPlugin(this.app, this.codeScriptToolkitComponent, tempPluginClass, cssText);
+  public registerTempPlugin(params: RegisterTempPluginParams): void {
+    registerTempPlugin({
+      activeFileProvider: this.activeFileProvider,
+      app: this.app,
+      codeScriptToolkitComponent: this.codeScriptToolkitComponent,
+      commandRegistrar: this.commandRegistrar,
+      cssText: params.cssText ?? '',
+      menuEventRegistrar: this.menuEventRegistrar,
+      tempPluginClass: params.tempPluginClass
+    });
   }
 
   public async removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void> {

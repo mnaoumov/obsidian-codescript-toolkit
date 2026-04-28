@@ -4,6 +4,9 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { Promisable } from 'type-fest';
 
 import {
@@ -45,11 +48,16 @@ import { requireStringAsync } from './require-handler-utils.ts';
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
-interface HandleClickOptions {
+interface HandleClickParams {
+  activeFileProvider: ActiveFileProvider;
+  app: App;
   buttonIndex: number;
   code: string;
   codeButtonContext: CodeButtonContext;
+  commandRegistrar: CommandRegistrar;
   escapedCaption: string;
+  menuEventRegistrar: MenuEventRegistrar;
+  pluginSettingsComponent: PluginSettingsComponent;
 }
 
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
@@ -69,6 +77,27 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
 
 let lastButtonIndex = 0;
 
+interface ProcessCodeButtonBlockParams {
+  activeFileProvider: ActiveFileProvider;
+  app: App;
+  codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  commandRegistrar: CommandRegistrar;
+  ctx: MarkdownPostProcessorContext;
+  el: HTMLElement;
+  menuEventRegistrar: MenuEventRegistrar;
+  pluginSettingsComponent: PluginSettingsComponent;
+  source: string;
+}
+
+interface RegisterCodeButtonBlockParams {
+  activeFileProvider: ActiveFileProvider;
+  app: App;
+  codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  commandRegistrar: CommandRegistrar;
+  menuEventRegistrar: MenuEventRegistrar;
+  pluginSettingsComponent: PluginSettingsComponent;
+}
+
 export function insertSampleCodeButton(editor: Editor): void {
   const config = stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG);
   let newCodeBlock = `\`\`\`code-button
@@ -87,17 +116,26 @@ ${config}---
   editor.replaceSelection(newCodeBlock);
 }
 
-export function registerCodeButtonBlock(
-  codeScriptToolkitComponent: CodeScriptToolkitComponent,
-  pluginSettingsComponent: PluginSettingsComponent,
-  app: App
-): void {
+export function registerCodeButtonBlock(params: RegisterCodeButtonBlockParams): void {
+  const { app, codeScriptToolkitComponent, pluginSettingsComponent } = params;
   registerCodeHighlighting();
   codeScriptToolkitComponent.register(unregisterCodeHighlighting);
   codeScriptToolkitComponent.registerMarkdownCodeBlockProcessor(
     CODE_BUTTON_BLOCK_LANGUAGE,
     (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
-      invokeAsyncSafely(() => processCodeButtonBlock(codeScriptToolkitComponent, pluginSettingsComponent, source, el, ctx, app));
+      invokeAsyncSafely(() =>
+        processCodeButtonBlock({
+          activeFileProvider: params.activeFileProvider,
+          app,
+          codeScriptToolkitComponent,
+          commandRegistrar: params.commandRegistrar,
+          ctx,
+          el,
+          menuEventRegistrar: params.menuEventRegistrar,
+          pluginSettingsComponent,
+          source
+        })
+      );
     }
   );
 }
@@ -123,45 +161,48 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
   return undefined;
 }
 
-async function handleClick(options: HandleClickOptions, pluginSettingsComponent: PluginSettingsComponent, app: App): Promise<void> {
-  options.codeButtonContext.container.empty();
-  const wrappedConsole = new ConsoleWrapper({ resultEl: options.codeButtonContext.container });
-  if (options.codeButtonContext.config.shouldShowSystemMessages) {
+async function handleClick(params: HandleClickParams): Promise<void> {
+  params.codeButtonContext.container.empty();
+  const wrappedConsole = new ConsoleWrapper({ resultEl: params.codeButtonContext.container });
+  if (params.codeButtonContext.config.shouldShowSystemMessages) {
     wrappedConsole.writeSystemMessage('⏳ Executing...');
   }
 
-  const adapter = getDataAdapterEx(options.codeButtonContext.app);
+  const adapter = getDataAdapterEx(params.codeButtonContext.app);
 
   let isSuccess = false;
   try {
     const script = makeWrapperScript(
-      options.code,
-      `${basename(options.codeButtonContext.sourceFile.path)}.code-button.${String(options.buttonIndex)}.${options.escapedCaption}.ts`,
-      dirname(options.codeButtonContext.sourceFile.path),
-      options.codeButtonContext.config.shouldAutoOutput
+      params.code,
+      `${basename(params.codeButtonContext.sourceFile.path)}.code-button.${String(params.buttonIndex)}.${params.escapedCaption}.ts`,
+      dirname(params.codeButtonContext.sourceFile.path),
+      params.codeButtonContext.config.shouldAutoOutput
     );
     const codeButtonBlockScriptWrapper = await requireStringAsync({
-      app,
-      path: `${adapter.getFullPath(options.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
-        String(options.buttonIndex)
-      }.${options.escapedCaption}.ts`,
-      pluginSettingsComponent,
+      activeFileProvider: params.activeFileProvider,
+      app: params.app,
+      commandRegistrar: params.commandRegistrar,
+      menuEventRegistrar: params.menuEventRegistrar,
+      path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
+        String(params.buttonIndex)
+      }.${params.escapedCaption}.ts`,
+      pluginSettingsComponent: params.pluginSettingsComponent,
       source: script
     }) as CodeButtonBlockScriptWrapper;
-    await codeButtonBlockScriptWrapper(options.codeButtonContext);
-    if (options.codeButtonContext.config.shouldShowSystemMessages) {
+    await codeButtonBlockScriptWrapper(params.codeButtonContext);
+    if (params.codeButtonContext.config.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('✅ Executed successfully');
     }
     isSuccess = true;
   } catch (error) {
     printError(error);
     wrappedConsole.appendToResultEl([error], 'error');
-    if (options.codeButtonContext.config.shouldShowSystemMessages) {
+    if (params.codeButtonContext.config.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('❌ Executed with error!');
     }
   } finally {
     let shouldRemoveButton = false;
-    switch (options.codeButtonContext.config.removeAfterExecution.when) {
+    switch (params.codeButtonContext.config.removeAfterExecution.when) {
       case 'always':
         shouldRemoveButton = true;
         break;
@@ -174,13 +215,13 @@ async function handleClick(options: HandleClickOptions, pluginSettingsComponent:
         shouldRemoveButton = isSuccess;
         break;
       default:
-        console.error(`Unknown remove after execution mode: ${options.codeButtonContext.config.removeAfterExecution.when as string}`);
+        console.error(`Unknown remove after execution mode: ${params.codeButtonContext.config.removeAfterExecution.when as string}`);
         break;
     }
     if (shouldRemoveButton) {
-      if (options.codeButtonContext.markdownInfo) {
+      if (params.codeButtonContext.markdownInfo) {
         try {
-          await options.codeButtonContext.removeCodeButtonBlock(options.codeButtonContext.config.removeAfterExecution.shouldKeepGap);
+          await params.codeButtonContext.removeCodeButtonBlock(params.codeButtonContext.config.removeAfterExecution.shouldKeepGap);
         } catch (error) {
           printError(error);
           wrappedConsole.appendToResultEl([error], 'error');
@@ -206,14 +247,8 @@ function makeWrapperScript(source: string, sourceFileName: string, sourceFolder:
   return result.transformedCode;
 }
 
-async function processCodeButtonBlock(
-  codeScriptToolkitComponent: CodeScriptToolkitComponent,
-  pluginSettingsComponent: PluginSettingsComponent,
-  source: string,
-  el: HTMLElement,
-  ctx: MarkdownPostProcessorContext,
-  app: App
-): Promise<void> {
+async function processCodeButtonBlock(params: ProcessCodeButtonBlockParams): Promise<void> {
+  const { app, ctx, el, source } = params;
   const sourceFile = getFile(app, ctx.sourcePath);
   lastButtonIndex++;
   const resultEl = el.createDiv({ cls: 'fix-require-modules console-log-container' });
@@ -279,7 +314,7 @@ ${code}
     return;
   }
 
-  config = { ...codeScriptToolkitComponent.parseDefaultCodeButtonConfig(), ...config };
+  config = { ...params.codeScriptToolkitComponent.parseDefaultCodeButtonConfig(), ...config };
 
   if (config.isRaw) {
     config.shouldAutoOutput = false;
@@ -295,7 +330,7 @@ ${code}
     el.createEl('button', {
       cls: 'mod-cta',
       async onclick(): Promise<void> {
-        await handleClick(createHandleClickOptions(), pluginSettingsComponent, app);
+        await handleClick(createHandleClickParams());
       },
       prepend: true,
       text: fullConfig.caption
@@ -303,24 +338,32 @@ ${code}
   }
 
   if (fullConfig.shouldAutoRun) {
-    invokeAsyncSafely(() => handleClick(createHandleClickOptions(), pluginSettingsComponent, app));
+    invokeAsyncSafely(() => handleClick(createHandleClickParams()));
   }
 
-  function createHandleClickOptions(): HandleClickOptions {
+  function createHandleClickParams(): HandleClickParams {
     return {
+      activeFileProvider: params.activeFileProvider,
+      app,
       buttonIndex: lastButtonIndex,
       code,
       codeButtonContext: new CodeButtonContextImpl({
+        activeFileProvider: params.activeFileProvider,
         app,
-        codeScriptToolkitComponent,
+        codeScriptToolkitComponent: params.codeScriptToolkitComponent,
+        commandRegistrar: params.commandRegistrar,
         config: fullConfig,
         markdownInfo,
         markdownPostProcessorContext: updateSourcePath(ctx, sourceFile),
+        menuEventRegistrar: params.menuEventRegistrar,
         parentEl: el,
         resultEl,
         source
       }),
-      escapedCaption: escapeForFileName(fullConfig.caption)
+      commandRegistrar: params.commandRegistrar,
+      escapedCaption: escapeForFileName(fullConfig.caption),
+      menuEventRegistrar: params.menuEventRegistrar,
+      pluginSettingsComponent: params.pluginSettingsComponent
     };
   }
 }

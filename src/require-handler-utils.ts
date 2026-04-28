@@ -1,4 +1,7 @@
 import type { App } from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
@@ -6,7 +9,10 @@ import { getPlatformDependencies } from './platform-dependencies.ts';
 import { VAULT_ROOT_PREFIX } from './require-handler.ts';
 
 interface RequireStringAsyncParams {
+  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly menuEventRegistrar: MenuEventRegistrar;
   readonly path: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly source: string;
@@ -14,8 +20,11 @@ interface RequireStringAsyncParams {
 }
 
 interface RequireVaultScriptAsyncParams {
+  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
   readonly id: string;
+  readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 

@@ -2,6 +2,9 @@ import type {
   App,
   Plugin as ObsidianPlugin
 } from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
@@ -15,7 +18,18 @@ import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-p
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
-export function registerTempPlugin(app: App, codeScriptToolkitComponent: CodeScriptToolkitComponent, tempPluginClass: TempPluginClass, cssText?: string): void {
+interface RegisterTempPluginParams {
+  activeFileProvider: ActiveFileProvider;
+  app: App;
+  codeScriptToolkitComponent: CodeScriptToolkitComponent;
+  commandRegistrar: CommandRegistrar;
+  cssText?: string;
+  menuEventRegistrar: MenuEventRegistrar;
+  tempPluginClass: TempPluginClass;
+}
+
+export function registerTempPlugin(params: RegisterTempPluginParams): void {
+  const { app, codeScriptToolkitComponent, cssText, tempPluginClass } = params;
   const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
   const id = makeTempPluginId(tempPluginClassName);
 
@@ -70,7 +84,12 @@ export function registerTempPlugin(app: App, codeScriptToolkitComponent: CodeScr
     });
     const commandId = unloadTempPluginCommandHandler.buildCommand().id;
     codeScriptToolkitComponent.addChild(
-      new CommandHandlerComponent({ commandHandler: unloadTempPluginCommandHandler, plugin: codeScriptToolkitComponent.plugin })
+      new CommandHandlerComponent({
+        activeFileProvider: params.activeFileProvider,
+        commandHandlers: [unloadTempPluginCommandHandler],
+        commandRegistrar: params.commandRegistrar,
+        menuEventRegistrar: params.menuEventRegistrar
+      })
     );
 
     const originalUnload = tempPlugin.unload.bind(tempPlugin);

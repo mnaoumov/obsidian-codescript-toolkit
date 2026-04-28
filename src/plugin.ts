@@ -3,7 +3,11 @@ import type {
   PluginManifest
 } from 'obsidian';
 
+import { AppActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
+import { PluginCommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
+import { AppMenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-tab-component';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 
@@ -19,11 +23,22 @@ import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 export class Plugin extends PluginBase {
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
-    const pluginSettingsComponent = this.addChild(new PluginSettingsComponent({ app, loadData: this.loadData.bind(this), saveData: this.saveData.bind(this) }));
+    const pluginSettingsComponent = this.addChild(
+      new PluginSettingsComponent({
+        app,
+        dataHandler: new PluginDataHandler(this)
+      })
+    );
+    const activeFileProvider = new AppActiveFileProvider(app);
+    const commandRegistrar = new PluginCommandRegistrar(this);
+    const menuEventRegistrar = new AppMenuEventRegistrar(app, this);
     const codeScriptToolkitComponent = this.addChild(
       new CodeScriptToolkitComponent({
+        activeFileProvider,
         app,
+        commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
+        menuEventRegistrar,
         plugin: this,
         pluginSettingsComponent
       })
@@ -40,45 +55,43 @@ export class Plugin extends PluginBase {
     );
     this.addChild(
       new CommandHandlerComponent({
-        commandHandler: new InvokeScriptChooseCommandHandler({
-          app: this.app,
-          codeScriptToolkitComponent,
-          pluginName: this.manifest.name,
-          pluginSettingsComponent
-        }),
-        plugin: this
-      })
-    );
-    this.addChild(
-      new CommandHandlerComponent({
-        commandHandler: new UnloadTempPluginsCommandHandler(this.manifest.name),
-        plugin: this
-      })
-    );
-    this.addChild(
-      new CommandHandlerComponent({
-        commandHandler: new ClearCacheCommandHandler({
-          app: this.app,
-          pluginName: this.manifest.name,
-          pluginSettingsComponent
-        }),
-        plugin: this
-      })
-    );
-    this.addChild(
-      new CommandHandlerComponent({
-        commandHandler: new ReloadStartupScriptCommandHandler({
-          app: this.app,
-          pluginName: this.manifest.name,
-          pluginSettingsComponent
-        }),
-        plugin: this
+        activeFileProvider,
+        commandHandlers: [
+          new ClearCacheCommandHandler({
+            activeFileProvider,
+            app: this.app,
+            commandRegistrar,
+            menuEventRegistrar,
+            pluginName: this.manifest.name,
+            pluginSettingsComponent
+          }),
+          new InvokeScriptChooseCommandHandler({
+            app: this.app,
+            codeScriptToolkitComponent,
+            pluginName: this.manifest.name,
+            pluginSettingsComponent
+          }),
+          new ReloadStartupScriptCommandHandler({
+            activeFileProvider,
+            app: this.app,
+            commandRegistrar,
+            menuEventRegistrar,
+            pluginName: this.manifest.name,
+            pluginSettingsComponent
+          }),
+          new UnloadTempPluginsCommandHandler(this.manifest.name)
+        ],
+        commandRegistrar,
+        menuEventRegistrar
       })
     );
     this.addChild(
       new ProtocolHandlerComponent({
+        activeFileProvider,
         app: this.app,
         codeScriptToolkitComponent,
+        commandRegistrar,
+        menuEventRegistrar,
         pluginSettingsComponent
       })
     );

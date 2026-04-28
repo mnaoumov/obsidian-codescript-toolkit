@@ -6,6 +6,9 @@ import type {
   ObsidianProtocolHandler,
   Plugin
 } from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/plugin/components/layout-ready-component';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
@@ -28,20 +31,26 @@ import {
 } from './script.ts';
 
 interface CodeScriptToolkitComponentConstructorParams {
+  activeFileProvider: ActiveFileProvider;
   app: App;
+  commandRegistrar: CommandRegistrar;
   consoleDebugComponent: ConsoleDebugComponent;
+  menuEventRegistrar: MenuEventRegistrar;
   plugin: Plugin;
   pluginSettingsComponent: PluginSettingsComponent;
 }
 
 export class CodeScriptToolkitComponent extends AsyncComponentBase implements LayoutReadyComponent {
   public readonly plugin: Plugin;
+  private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
+  private readonly commandRegistrar: CommandRegistrar;
+
   private readonly consoleDebugComponent: ConsoleDebugComponent;
+
+  private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-
   private requireHandler?: RequireHandler;
-
   private scriptFolderWatcher?: ScriptFolderWatcher;
 
   public constructor(params: CodeScriptToolkitComponentConstructorParams) {
@@ -50,6 +59,9 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
     this.plugin = params.plugin;
+    this.activeFileProvider = params.activeFileProvider;
+    this.commandRegistrar = params.commandRegistrar;
+    this.menuEventRegistrar = params.menuEventRegistrar;
   }
 
   public addCommand(command: Command): Command {
@@ -57,7 +69,15 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   }
 
   public async applyNewSettings(): Promise<void> {
-    await this.scriptFolderWatcher?.register(this, () => registerInvocableScripts(this, this.pluginSettingsComponent, this.app));
+    await this.scriptFolderWatcher?.register(this, () =>
+      registerInvocableScripts({
+        activeFileProvider: this.activeFileProvider,
+        app: this.app,
+        codeScriptToolkitComponent: this,
+        commandRegistrar: this.commandRegistrar,
+        menuEventRegistrar: this.menuEventRegistrar,
+        pluginSettingsComponent: this.pluginSettingsComponent
+      }));
   }
 
   public consoleDebug(message: string, ...args: unknown[]): void {
@@ -65,7 +85,13 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
   }
 
   public async onLayoutReady(): Promise<void> {
-    await invokeStartupScript(this.app, this.pluginSettingsComponent);
+    await invokeStartupScript({
+      activeFileProvider: this.activeFileProvider,
+      app: this.app,
+      commandRegistrar: this.commandRegistrar,
+      menuEventRegistrar: this.menuEventRegistrar,
+      pluginSettingsComponent: this.pluginSettingsComponent
+    });
     this.register(() => cleanupStartupScript(this.app));
 
     registerAsyncEvent(this, this.pluginSettingsComponent.on('loadSettings', this.applyNewSettings.bind(this)));
@@ -76,10 +102,23 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     await super.onload();
     const platformDependencies = await getPlatformDependencies();
     this.scriptFolderWatcher = platformDependencies.createScriptFolderWatcher({ app: this.app, pluginSettingsComponent: this.pluginSettingsComponent });
-    this.requireHandler = platformDependencies.createRequireHandler({ app: this.app, pluginSettingsComponent: this.pluginSettingsComponent });
+    this.requireHandler = platformDependencies.createRequireHandler({
+      activeFileProvider: this.activeFileProvider,
+      app: this.app,
+      commandRegistrar: this.commandRegistrar,
+      menuEventRegistrar: this.menuEventRegistrar,
+      pluginSettingsComponent: this.pluginSettingsComponent
+    });
     this.requireHandler.register(this, require);
 
-    registerCodeButtonBlock(this, this.pluginSettingsComponent, this.app);
+    registerCodeButtonBlock({
+      activeFileProvider: this.activeFileProvider,
+      app: this.app,
+      codeScriptToolkitComponent: this,
+      commandRegistrar: this.commandRegistrar,
+      menuEventRegistrar: this.menuEventRegistrar,
+      pluginSettingsComponent: this.pluginSettingsComponent
+    });
     await registerCodeScriptBlock(this);
   }
 
