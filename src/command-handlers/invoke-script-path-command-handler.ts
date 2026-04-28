@@ -220,15 +220,7 @@ async function getScriptOrCommand(params: GetScriptOrCommandParams): Promise<Scr
     }
   }
   return await requireVaultScriptAsync({
-    activeFileProvider: params.activeFileProvider,
-    app,
-    commandRegistrar: params.commandRegistrar,
-    consoleDebugComponent: params.consoleDebugComponent,
     id: vaultScriptPath,
-    menuEventRegistrar: params.menuEventRegistrar,
-    pluginName: params.pluginName,
-    pluginRequire: require,
-    pluginSettingsComponent: params.pluginSettingsComponent,
     requireHandlerFactory: params.requireHandlerFactory
   }) as Partial<ScriptOrCommand>;
 }

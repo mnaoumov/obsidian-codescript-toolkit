@@ -4,11 +4,7 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
-import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { Promisable } from 'type-fest';
 
 import {
@@ -40,7 +36,6 @@ import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
-import type { PluginRequireFn } from './require-handlers/require-handler.ts';
 
 import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
@@ -78,14 +73,8 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
 let lastButtonIndex = 0;
 
 interface CodeButtonBlockComponentConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
-  readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly requireHandlerFactory: RequireHandlerFactory;
   readonly tempPluginRegistry: TempPluginRegistry;
@@ -98,28 +87,16 @@ interface ProcessCodeButtonBlockParams {
 }
 
 export class CodeButtonBlockComponent extends Component {
-  private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
-  private readonly commandRegistrar: CommandRegistrar;
-  private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
-  private readonly menuEventRegistrar: MenuEventRegistrar;
-  private readonly pluginName: string;
-  private readonly pluginRequire: PluginRequireFn;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly requireHandlerFactory: RequireHandlerFactory;
   private readonly tempPluginRegistry: TempPluginRegistry;
 
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
     super();
-    this.activeFileProvider = params.activeFileProvider;
     this.app = params.app;
-    this.commandRegistrar = params.commandRegistrar;
-    this.consoleDebugComponent = params.consoleDebugComponent;
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
-    this.menuEventRegistrar = params.menuEventRegistrar;
-    this.pluginName = params.pluginName;
-    this.pluginRequire = params.pluginRequire;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.requireHandlerFactory = params.requireHandlerFactory;
     this.tempPluginRegistry = params.tempPluginRegistry;
@@ -143,17 +120,9 @@ export class CodeButtonBlockComponent extends Component {
         params.codeButtonContext.config.shouldAutoOutput
       );
       const codeButtonBlockScriptWrapper = await requireStringAsync({
-        activeFileProvider: this.activeFileProvider,
-        app: this.app,
-        commandRegistrar: this.commandRegistrar,
-        consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar: this.menuEventRegistrar,
         path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
           String(params.buttonIndex)
         }.${params.escapedCaption}.ts`,
-        pluginName: this.pluginName,
-        pluginRequire: this.pluginRequire,
-        pluginSettingsComponent: this.pluginSettingsComponent,
         requireHandlerFactory: this.requireHandlerFactory,
         source: script
       }) as CodeButtonBlockScriptWrapper;

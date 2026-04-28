@@ -1,10 +1,4 @@
-import type {
-  App,
-  ObsidianProtocolData
-} from 'obsidian';
-import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { ObsidianProtocolData } from 'obsidian';
 import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 
@@ -23,13 +17,8 @@ const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
 
 interface ProtocolHandlerComponentConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
-  readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
   readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
-  readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly requireHandlerFactory: RequireHandlerFactory;
 }
@@ -46,24 +35,14 @@ interface WindowWithRequireAsync {
 }
 
 export class ProtocolHandlerComponent extends Component {
-  private readonly activeFileProvider: ActiveFileProvider;
-  private readonly app: App;
-  private readonly commandRegistrar: CommandRegistrar;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
-  private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
-  private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly requireHandlerFactory: RequireHandlerFactory;
 
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();
-    this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
-    this.activeFileProvider = params.activeFileProvider;
-    this.commandRegistrar = params.commandRegistrar;
-    this.menuEventRegistrar = params.menuEventRegistrar;
-    this.pluginName = params.pluginName;
     this.consoleDebugComponent = params.consoleDebugComponent;
     this.obsidianProtocolHandlerRegistrar = params.obsidianProtocolHandlerRegistrar;
     this.requireHandlerFactory = params.requireHandlerFactory;
@@ -109,15 +88,7 @@ export class ProtocolHandlerComponent extends Component {
     }
 
     await requireStringAsync({
-      activeFileProvider: this.activeFileProvider,
-      app: this.app,
-      commandRegistrar: this.commandRegistrar,
-      consoleDebugComponent: this.consoleDebugComponent,
-      menuEventRegistrar: this.menuEventRegistrar,
       path: 'dynamic-script-from-url-handler.ts',
-      pluginName: this.pluginName,
-      pluginRequire: require,
-      pluginSettingsComponent: this.pluginSettingsComponent,
       requireHandlerFactory: this.requireHandlerFactory,
       source: parsedQuery.code
     });

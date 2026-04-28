@@ -69,12 +69,7 @@ export class Plugin extends PluginBase {
 
     const startupScriptComponent = this.addChild(
       new StartupScriptComponent({
-        activeFileProvider,
         app: this.app,
-        commandRegistrar,
-        consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar,
-        pluginName: this.manifest.name,
         pluginSettingsComponent,
         requireHandlerFactory
       })
@@ -121,13 +116,8 @@ export class Plugin extends PluginBase {
 
     this.addChild(
       new ProtocolHandlerComponent({
-        activeFileProvider,
-        app: this.app,
-        commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar,
         obsidianProtocolHandlerRegistrar: new PluginObsidianProtocolHandlerRegistrar(this),
-        pluginName: this.manifest.name,
         pluginSettingsComponent,
         requireHandlerFactory
       })
@@ -143,14 +133,8 @@ export class Plugin extends PluginBase {
 
     this.addChild(
       new CodeButtonBlockComponent({
-        activeFileProvider,
         app: this.app,
-        commandRegistrar,
-        consoleDebugComponent: this.consoleDebugComponent,
         markdownCodeBlockProcessorRegistrar,
-        menuEventRegistrar,
-        pluginName: this.manifest.name,
-        pluginRequire: require,
         pluginSettingsComponent,
         requireHandlerFactory,
         tempPluginRegistry
