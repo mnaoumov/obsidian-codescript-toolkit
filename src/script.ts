@@ -28,56 +28,78 @@ export interface Script {
 
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 
-interface RegisterInvocableScriptsParams {
-  readonly activeFileProvider: ActiveFileProvider;
-  readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
-  readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
-}
-
 interface SelectAndInvokeScriptParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
-export async function registerInvocableScripts(params: RegisterInvocableScriptsParams): Promise<void> {
-  const { app, pluginSettingsComponent } = params;
-  unregisterInvocableCommands(params.app);
+interface ScriptManagerConstructorParams {
+  readonly app: App;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+}
 
-  const invocableScriptsFolder = pluginSettingsComponent.settings.getInvocableScriptsFolder();
+export class ScriptManager {
+  private readonly app: App;
+  private readonly pluginSettingsComponent: PluginSettingsComponent;
+  private readonly requireHandlerFactory: RequireHandlerFactory;
+  private readonly activeFileProvider: ActiveFileProvider;
+  private readonly commandRegistrar: CommandRegistrar;
+  private readonly consoleDebugComponent: ConsoleDebugComponent;
+  private readonly menuEventRegistrar: MenuEventRegistrar;
+  private readonly pluginName: string;
 
-  if (!invocableScriptsFolder) {
-    return;
+  public constructor(private readonly params: ScriptManagerConstructorParams) {
+    this.app = this.params.app;
+    this.pluginSettingsComponent = this.params.pluginSettingsComponent;
+    this.requireHandlerFactory = this.params.requireHandlerFactory;
+    this.activeFileProvider = this.params.activeFileProvider;
+    this.commandRegistrar = this.params.commandRegistrar;
+    this.consoleDebugComponent = this.params.consoleDebugComponent;
+    this.menuEventRegistrar = this.params.menuEventRegistrar;
+    this.pluginName = this.params.pluginName;
   }
 
-  if (!await app.vault.adapter.exists(invocableScriptsFolder)) {
-    const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
-    new Notice(message);
-    console.error(message);
-    return;
-  }
+  public async registerInvocableScripts(): Promise<void> {
+    unregisterInvocableCommands(this.app);
 
-  const scriptPaths = await getAllScriptPaths(app, pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
+    const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();
 
-  for (const scriptPath of scriptPaths) {
-    await new InvokeScriptPathCommand({
-      activeFileProvider: params.activeFileProvider,
-      app,
-      commandRegistrar: params.commandRegistrar,
-      consoleDebugComponent: params.consoleDebugComponent,
-      menuEventRegistrar: params.menuEventRegistrar,
-      pluginName: params.pluginName,
-      pluginSettingsComponent,
-      relativeScriptPath: scriptPath,
-      requireHandlerFactory: params.requireHandlerFactory
-    }).register();
+    if (!invocableScriptsFolder) {
+      return;
+    }
+
+    if (!await this.app.vault.adapter.exists(invocableScriptsFolder)) {
+      const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
+      new Notice(message);
+      console.error(message);
+      return;
+    }
+
+    const scriptPaths = await getAllScriptPaths(this.app, this.pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
+
+    for (const scriptPath of scriptPaths) {
+      await new InvokeScriptPathCommand({
+        activeFileProvider: this.activeFileProvider,
+        app: this.app,
+        commandRegistrar: this.commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
+        menuEventRegistrar: this.menuEventRegistrar,
+        pluginName: this.pluginName,
+        pluginSettingsComponent: this.pluginSettingsComponent,
+        relativeScriptPath: scriptPath,
+        requireHandlerFactory: this.requireHandlerFactory
+      }).register();
+    }
   }
 }
+
 
 export async function selectAndInvokeScript(params: SelectAndInvokeScriptParams): Promise<void> {
   const { app, consoleDebugComponent, pluginSettingsComponent } = params;

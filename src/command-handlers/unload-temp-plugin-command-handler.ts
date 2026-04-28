@@ -15,8 +15,7 @@ export class UnloadTempPluginCommandHandler extends GlobalCommandHandler {
     super({
       icon: 'unlink',
       id: `unregister-temp-plugin-${params.tempPluginClassName}`,
-      name: `Unregister Temp Plugin: ${params.tempPluginClassName}`,
-      pluginName: params.pluginName
+      name: `Unregister Temp Plugin: ${params.tempPluginClassName}`
     });
     this.tempPlugin = params.tempPlugin;
   }

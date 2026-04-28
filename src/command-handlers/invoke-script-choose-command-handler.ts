@@ -22,8 +22,7 @@ export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
     super({
       icon: 'circle-play',
       id: 'invoke-script',
-      name: 'Invoke script: <<Choose>>',
-      pluginName: params.pluginName
+      name: 'Invoke script: <<Choose>>'
     });
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;

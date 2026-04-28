@@ -14,8 +14,7 @@ export class ClearCacheCommandHandler extends GlobalCommandHandler {
     super({
       icon: 'trash',
       id: 'clear-cache',
-      name: 'Clear cache',
-      pluginName: params.pluginName
+      name: 'Clear cache'
     });
     this.requireHandlerFactory = params.requireHandlerFactory;
   }

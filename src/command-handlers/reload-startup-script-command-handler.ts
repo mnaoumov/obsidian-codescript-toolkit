@@ -14,8 +14,7 @@ export class ReloadStartupScriptCommandHandler extends GlobalCommandHandler {
     super({
       icon: 'upload',
       id: 'reload-startup-script',
-      name: 'Reload startup script',
-      pluginName: params.pluginName
+      name: 'Reload startup script'
     });
     this.startupScriptComponent = params.startupScriptComponent;
   }

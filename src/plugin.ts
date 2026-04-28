@@ -26,6 +26,7 @@ import { RequireHandlerFactory } from './require-handlers/require-handler-factor
 import { ScriptFolderWatcherFactory } from './script-folder-watchers/script-folder-watcher-factory.ts';
 import { StartupScriptComponent } from './startup-script.ts';
 import { TempPluginRegistry } from './temp-plugin-registry.ts';
+import { ScriptManager } from './script.ts';
 
 export class Plugin extends PluginBase {
   public constructor(app: App, manifest: PluginManifest) {
@@ -131,16 +132,22 @@ export class Plugin extends PluginBase {
       })
     );
 
+    const scriptManager = new ScriptManager({
+      app: this.app,
+      pluginSettingsComponent,
+      requireHandlerFactory,
+      activeFileProvider,
+      commandRegistrar,
+      consoleDebugComponent: this.consoleDebugComponent,
+      menuEventRegistrar,
+      pluginName: this.manifest.name
+    });
+
     this.addChild(
       new ScriptFolderWatcherFactory({
-        activeFileProvider,
         app: this.app,
-        commandRegistrar,
-        consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar,
-        pluginName: this.manifest.name,
         pluginSettingsComponent,
-        requireHandlerFactory
+        scriptManager
       })
     );
 
