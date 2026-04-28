@@ -14,16 +14,11 @@ import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
 import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 
-import type { TempPluginClass } from './code-button-context.ts';
+import type { RegisterTempPluginParams } from './code-button-context.ts';
 
 import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-plugin-command-handler.ts';
 
 const tempPlugins = new Map<string, ObsidianPlugin>();
-
-interface RegisterTempPluginParams {
-  readonly cssText?: string;
-  readonly tempPluginClass: TempPluginClass;
-}
 
 interface TempPluginRegistryConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
