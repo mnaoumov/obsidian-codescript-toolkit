@@ -66,7 +66,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     this.pluginName = params.pluginName;
   }
 
-  public async applyNewSettings(): Promise<void> {
+  private async applyNewSettings(): Promise<void> {
     await this.scriptFolderWatcher?.register(this, () =>
       registerInvocableScripts({
         activeFileProvider: this.activeFileProvider,
