@@ -92,19 +92,9 @@ interface CodeButtonBlockComponentConstructorParams {
 }
 
 interface ProcessCodeButtonBlockParams {
-  readonly activeFileProvider: ActiveFileProvider;
-  readonly app: App;
-  readonly codeButtonBlockComponent: CodeButtonBlockComponent;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly ctx: MarkdownPostProcessorContext;
   readonly el: HTMLElement;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
-  readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
   readonly source: string;
-  readonly tempPluginRegistry: TempPluginRegistry;
 }
 
 export class CodeButtonBlockComponent extends Component {
@@ -158,8 +148,9 @@ export class CodeButtonBlockComponent extends Component {
         commandRegistrar: this.commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
         menuEventRegistrar: this.menuEventRegistrar,
-        path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${String(params.buttonIndex)
-          }.${params.escapedCaption}.ts`,
+        path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
+          String(params.buttonIndex)
+        }.${params.escapedCaption}.ts`,
         pluginName: this.pluginName,
         pluginRequire: this.pluginRequire,
         pluginSettingsComponent: this.pluginSettingsComponent,
@@ -219,24 +210,131 @@ export class CodeButtonBlockComponent extends Component {
       CODE_BUTTON_BLOCK_LANGUAGE,
       (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
         invokeAsyncSafely(() =>
-          processCodeButtonBlock({
-            activeFileProvider: this.activeFileProvider,
-            app: this.app,
-            codeButtonBlockComponent: this,
-            commandRegistrar: this.commandRegistrar,
-            consoleDebugComponent: this.consoleDebugComponent,
+          this.processCodeButtonBlock({
             ctx,
             el,
-            menuEventRegistrar: this.menuEventRegistrar,
-            pluginName: this.pluginName,
-            pluginSettingsComponent: this.pluginSettingsComponent,
-            requireHandlerFactory: this.requireHandlerFactory,
-            source,
-            tempPluginRegistry: this.tempPluginRegistry
+            source
           })
         );
       }
     );
+  }
+
+  public async processCodeButtonBlock(params: ProcessCodeButtonBlockParams): Promise<void> {
+    const sourceFile = getFile(this.app, params.ctx.sourcePath);
+    lastButtonIndex++;
+    const resultEl = params.el.createDiv({ cls: 'fix-require-modules console-log-container' });
+
+    const markdownInfo = await getCodeBlockMarkdownInfo({
+      app: this.app,
+      ctx: params.ctx,
+      el: params.el,
+      source: params.source
+    });
+
+    const frontMatterInfo = getFrontMatterInfo(params.source);
+    const code = params.source.slice(frontMatterInfo.contentStart);
+
+    if (markdownInfo && markdownInfo.args.length > 0) {
+      new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
+        f.appendText('❌ Error!\nYour code block uses legacy button config.');
+        addLinkToDocs(f);
+        f.createEl('button', {
+          text: 'Update config'
+        }, (button) => {
+          button.addEventListener('click', () => {
+            invokeAsyncSafely(async () => {
+              const config: Partial<CodeButtonBlockConfig> = removeUndefinedProperties(normalizeOptionalProperties<Partial<CodeButtonBlockConfig>>({
+                caption: markdownInfo.args[0],
+                isRaw: getBooleanArgument(markdownInfo.args, 'raw'),
+                shouldAutoOutput: getBooleanArgument(markdownInfo.args, 'autoOutput'),
+                shouldAutoRun: getBooleanArgument(markdownInfo.args, 'autorun'),
+                shouldShowSystemMessages: getBooleanArgument(markdownInfo.args, 'systemMessages'),
+                shouldWrapConsole: getBooleanArgument(markdownInfo.args, 'console')
+              }));
+              const newCodeBlock = `\`\`\`code-button
+  ---
+  ${stringifyYaml(config)}---
+  ${code}
+  \`\`\``;
+              await replaceCodeBlock({
+                app: this.app,
+                codeBlockProvider: newCodeBlock,
+                ctx: updateSourcePath(params.ctx, sourceFile),
+                el: params.el,
+                shouldPreserveLinePrefix: true,
+                source: params.source
+              });
+            });
+          });
+        });
+      }));
+      return;
+    }
+
+    let config: Partial<CodeButtonBlockConfig>;
+
+    try {
+      config = parseYaml(frontMatterInfo.frontmatter) as (Partial<CodeButtonBlockConfig> | undefined) ?? {};
+    } catch (error) {
+      console.error(error);
+      new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
+        f.appendText('❌ Error!\nYour code block config is not a valid YAML.');
+        addLinkToDocs(f);
+        f.appendText('See the YAML parsing error in the console.');
+      }));
+      return;
+    }
+
+    config = { ...this.pluginSettingsComponent.parseDefaultCodeButtonConfig(), ...config };
+
+    if (config.isRaw) {
+      config.shouldAutoOutput = false;
+      config.shouldAutoRun = true;
+      config.shouldShowSystemMessages = false;
+      config.shouldWrapConsole = false;
+    }
+
+    const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
+    fullConfig.removeAfterExecution = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG.removeAfterExecution, ...config.removeAfterExecution };
+
+    const that = this;
+
+    if (!fullConfig.isRaw) {
+      params.el.createEl('button', {
+        cls: 'mod-cta',
+        async onclick(): Promise<void> {
+          await that.handleClick(createHandleClickParams());
+        },
+        prepend: true,
+        text: fullConfig.caption
+      });
+    }
+
+    if (fullConfig.shouldAutoRun) {
+      invokeAsyncSafely(() => that.handleClick(createHandleClickParams()));
+    }
+
+    function createHandleClickParams(): HandleClickParams {
+      return {
+        buttonIndex: lastButtonIndex,
+        code,
+        codeButtonContext: new CodeButtonContextImpl({
+          activeFileProvider: that.activeFileProvider,
+          app: that.app,
+          commandRegistrar: that.commandRegistrar,
+          config: fullConfig,
+          markdownInfo,
+          markdownPostProcessorContext: updateSourcePath(params.ctx, sourceFile),
+          menuEventRegistrar: that.menuEventRegistrar,
+          parentEl: params.el,
+          resultEl,
+          source: params.source,
+          tempPluginRegistry: that.tempPluginRegistry
+        }),
+        escapedCaption: escapeForFileName(fullConfig.caption)
+      };
+    }
   }
 }
 
@@ -291,122 +389,6 @@ function makeWrapperScript(source: string, sourceFileName: string, sourceFolder:
   }
 
   return result.transformedCode;
-}
-
-async function processCodeButtonBlock(params: ProcessCodeButtonBlockParams): Promise<void> {
-  const { app, ctx, el, source } = params;
-  const sourceFile = getFile(app, ctx.sourcePath);
-  lastButtonIndex++;
-  const resultEl = el.createDiv({ cls: 'fix-require-modules console-log-container' });
-
-  const markdownInfo = await getCodeBlockMarkdownInfo({
-    app,
-    ctx,
-    el,
-    source
-  });
-
-  const frontMatterInfo = getFrontMatterInfo(source);
-  const code = source.slice(frontMatterInfo.contentStart);
-
-  if (markdownInfo && markdownInfo.args.length > 0) {
-    new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
-      f.appendText('❌ Error!\nYour code block uses legacy button config.');
-      addLinkToDocs(f);
-      f.createEl('button', {
-        text: 'Update config'
-      }, (button) => {
-        button.addEventListener('click', () => {
-          invokeAsyncSafely(async () => {
-            const config: Partial<CodeButtonBlockConfig> = removeUndefinedProperties(normalizeOptionalProperties<Partial<CodeButtonBlockConfig>>({
-              caption: markdownInfo.args[0],
-              isRaw: getBooleanArgument(markdownInfo.args, 'raw'),
-              shouldAutoOutput: getBooleanArgument(markdownInfo.args, 'autoOutput'),
-              shouldAutoRun: getBooleanArgument(markdownInfo.args, 'autorun'),
-              shouldShowSystemMessages: getBooleanArgument(markdownInfo.args, 'systemMessages'),
-              shouldWrapConsole: getBooleanArgument(markdownInfo.args, 'console')
-            }));
-            const newCodeBlock = `\`\`\`code-button
----
-${stringifyYaml(config)}---
-${code}
-\`\`\``;
-            await replaceCodeBlock({
-              app,
-              codeBlockProvider: newCodeBlock,
-              ctx: updateSourcePath(ctx, sourceFile),
-              el,
-              shouldPreserveLinePrefix: true,
-              source
-            });
-          });
-        });
-      });
-    }));
-    return;
-  }
-
-  let config: Partial<CodeButtonBlockConfig>;
-
-  try {
-    config = parseYaml(frontMatterInfo.frontmatter) as (Partial<CodeButtonBlockConfig> | undefined) ?? {};
-  } catch (error) {
-    console.error(error);
-    new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
-      f.appendText('❌ Error!\nYour code block config is not a valid YAML.');
-      addLinkToDocs(f);
-      f.appendText('See the YAML parsing error in the console.');
-    }));
-    return;
-  }
-
-  config = { ...params.pluginSettingsComponent.parseDefaultCodeButtonConfig(), ...config };
-
-  if (config.isRaw) {
-    config.shouldAutoOutput = false;
-    config.shouldAutoRun = true;
-    config.shouldShowSystemMessages = false;
-    config.shouldWrapConsole = false;
-  }
-
-  const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
-  fullConfig.removeAfterExecution = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG.removeAfterExecution, ...config.removeAfterExecution };
-
-  if (!fullConfig.isRaw) {
-    el.createEl('button', {
-      cls: 'mod-cta',
-      async onclick(): Promise<void> {
-        await params.codeButtonBlockComponent.handleClick(createHandleClickParams());
-      },
-      prepend: true,
-      text: fullConfig.caption
-    });
-  }
-
-  if (fullConfig.shouldAutoRun) {
-    invokeAsyncSafely(() => params.codeButtonBlockComponent.handleClick(createHandleClickParams()));
-  }
-
-  function createHandleClickParams(): HandleClickParams {
-    return {
-      buttonIndex: lastButtonIndex,
-      code,
-      codeButtonContext: new CodeButtonContextImpl({
-        activeFileProvider: params.activeFileProvider,
-        app,
-        commandRegistrar: params.commandRegistrar,
-        config: fullConfig,
-        markdownInfo,
-        markdownPostProcessorContext: updateSourcePath(ctx, sourceFile),
-        menuEventRegistrar: params.menuEventRegistrar,
-        parentEl: el,
-        resultEl,
-        source,
-        tempPluginRegistry: params.tempPluginRegistry
-      }),
-      escapedCaption: escapeForFileName(fullConfig.caption)
-    };
-  }
 }
 
 function registerCodeHighlighting(): void {
