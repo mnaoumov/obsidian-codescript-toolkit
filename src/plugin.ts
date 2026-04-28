@@ -30,18 +30,20 @@ import { TempPluginRegistry } from './temp-plugin-registry.ts';
 export class Plugin extends PluginBase {
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
+
     const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);
+    const activeFileProvider = new AppActiveFileProvider(app);
+    const commandRegistrar = new PluginCommandRegistrar(this);
+    const menuEventRegistrar = new AppMenuEventRegistrar(app, this);
+
+    const tempPluginRegistry = this.addChild(new TempPluginRegistry());
+
     const pluginSettingsComponent = this.addChild(
       new PluginSettingsComponent({
         app,
         dataHandler: new PluginDataHandler(this)
       })
     );
-    const activeFileProvider = new AppActiveFileProvider(app);
-    const commandRegistrar = new PluginCommandRegistrar(this);
-    const menuEventRegistrar = new AppMenuEventRegistrar(app, this);
-
-    const tempPluginRegistry = this.addChild(new TempPluginRegistry());
 
     const requireHandlerFactory = this.addChild(
       new RequireHandlerFactory({
@@ -56,6 +58,8 @@ export class Plugin extends PluginBase {
         tempPluginRegistry
       })
     );
+
+    this.addChild(new CodeScriptBlockComponent());
 
     this.addChild(
       new PluginSettingsTabComponent({
@@ -98,6 +102,7 @@ export class Plugin extends PluginBase {
         menuEventRegistrar
       })
     );
+
     this.addChild(
       new ProtocolHandlerComponent({
         activeFileProvider,
@@ -111,6 +116,7 @@ export class Plugin extends PluginBase {
         requireHandlerFactory
       })
     );
+
     this.addChild(
       new ScriptFolderWatcherFactory({
         activeFileProvider,
@@ -139,7 +145,6 @@ export class Plugin extends PluginBase {
       })
     );
 
-    this.addChild(new CodeScriptBlockComponent());
     this.addChild(
       new StartupScriptComponent({
         activeFileProvider,
