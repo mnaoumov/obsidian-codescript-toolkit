@@ -1,51 +1,46 @@
 import type { App } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/plugin/components/layout-ready-component';
 
 import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
-import { registerAsyncEvent } from 'obsidian-dev-utils/obsidian/components/async-events-component';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandler } from './require-handlers/require-handler.ts';
-import type { ScriptFolderWatcher } from './script-folder-watcher.ts';
+import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 
 import { registerCodeButtonBlock } from './code-button-block.ts';
 import { registerCodeScriptBlock } from './code-script-block.ts';
-import { getPlatformDependencies } from './platform-dependencies.ts';
 import {
   cleanupStartupScript,
-  invokeStartupScript,
-  registerInvocableScripts
+  invokeStartupScript
 } from './script.ts';
-import type { MarkdownCodeBlockProcessorRegistrar } from './markdown-code-block-processor-registrar.ts';
 
 interface CodeScriptToolkitComponentConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
   readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 export class CodeScriptToolkitComponent extends AsyncComponentBase implements LayoutReadyComponent {
-  private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly commandRegistrar: CommandRegistrar;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
-
+  private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
-
   private readonly pluginName: string;
+
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private requireHandler?: RequireHandler;
-  private scriptFolderWatcher?: ScriptFolderWatcher;
+  private readonly requireHandlerFactory: RequireHandlerFactory;
 
   public constructor(params: CodeScriptToolkitComponentConstructorParams) {
     super();
@@ -57,6 +52,7 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
+    this.requireHandlerFactory = params.requireHandlerFactory;
   }
 
   public async onLayoutReady(): Promise<void> {
@@ -67,53 +63,25 @@ export class CodeScriptToolkitComponent extends AsyncComponentBase implements La
       consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
-      pluginSettingsComponent: this.pluginSettingsComponent
+      pluginSettingsComponent: this.pluginSettingsComponent,
+      requireHandlerFactory: this.requireHandlerFactory
     });
     this.register(() => cleanupStartupScript(this.app));
-
-    registerAsyncEvent(this, this.pluginSettingsComponent.on('loadSettings', this.applyNewSettings.bind(this)));
-    registerAsyncEvent(this, this.pluginSettingsComponent.on('saveSettings', this.applyNewSettings.bind(this)));
   }
 
   public override async onload(): Promise<void> {
-    await super.onload();
-    const platformDependencies = await getPlatformDependencies();
-    this.scriptFolderWatcher = platformDependencies.createScriptFolderWatcher({ app: this.app, pluginSettingsComponent: this.pluginSettingsComponent });
-    this.requireHandler = platformDependencies.createRequireHandler({
-      activeFileProvider: this.activeFileProvider,
-      app: this.app,
-      commandRegistrar: this.commandRegistrar,
-      consoleDebugComponent: this.consoleDebugComponent,
-      menuEventRegistrar: this.menuEventRegistrar,
-      pluginName: this.pluginName,
-      pluginSettingsComponent: this.pluginSettingsComponent
-    });
-    this.requireHandler.register(this, require);
-
     registerCodeButtonBlock({
       activeFileProvider: this.activeFileProvider,
       app: this.app,
       codeScriptToolkitComponent: this,
       commandRegistrar: this.commandRegistrar,
       consoleDebugComponent: this.consoleDebugComponent,
+      markdownCodeBlockProcessorRegistrar: this.markdownCodeBlockProcessorRegistrar,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
       pluginSettingsComponent: this.pluginSettingsComponent,
-      markdownCodeBlockProcessorRegistrar: this.markdownCodeBlockProcessorRegistrar
+      requireHandlerFactory: this.requireHandlerFactory
     });
     await registerCodeScriptBlock(this);
-  }
-
-  private async applyNewSettings(): Promise<void> {
-    await this.scriptFolderWatcher?.register(this, () =>
-      registerInvocableScripts({
-        activeFileProvider: this.activeFileProvider,
-        app: this.app,
-        commandRegistrar: this.commandRegistrar,
-        consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar: this.menuEventRegistrar,
-        pluginName: this.pluginName,
-        pluginSettingsComponent: this.pluginSettingsComponent
-      }));
   }
 }

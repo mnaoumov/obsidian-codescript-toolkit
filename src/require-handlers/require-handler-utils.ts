@@ -5,8 +5,9 @@ import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { RequireHandlerFactory } from './require-handler-factory.ts';
+import type { PluginRequireFn } from './require-handler.ts';
 
-import { getPlatformDependencies } from '../platform-dependencies.ts';
 import { VAULT_ROOT_PREFIX } from './require-handler.ts';
 
 interface RequireStringAsyncParams {
@@ -17,7 +18,9 @@ interface RequireStringAsyncParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly path: string;
   readonly pluginName: string;
+  readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
   readonly source: string;
   readonly urlSuffix?: string;
 }
@@ -30,15 +33,15 @@ interface RequireVaultScriptAsyncParams {
   readonly id: string;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
+  readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 export async function requireStringAsync(params: RequireStringAsyncParams): Promise<unknown> {
-  const platformDependencies = await getPlatformDependencies();
-  return await platformDependencies.createRequireHandler(params).requireStringAsync(params.source, params.path, params.urlSuffix);
+  return params.requireHandlerFactory.platformRequireHandler.requireStringAsync(params.source, params.path, params.urlSuffix);
 }
 
 export async function requireVaultScriptAsync(params: RequireVaultScriptAsyncParams): Promise<unknown> {
-  const platformDependencies = await getPlatformDependencies();
-  return await platformDependencies.createRequireHandler(params).requireAsync(VAULT_ROOT_PREFIX + params.id);
+  return params.requireHandlerFactory.platformRequireHandler.requireAsync(VAULT_ROOT_PREFIX + params.id);
 }

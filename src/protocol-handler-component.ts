@@ -14,6 +14,7 @@ import { toJson } from 'obsidian-dev-utils/object-utils';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 
 import { requireStringAsync } from './require-handlers/require-handler-utils.ts';
 
@@ -30,6 +31,7 @@ interface ProtocolHandlerComponentConstructorParams {
   obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
+  requireHandlerFactory: RequireHandlerFactory;
 }
 
 interface Query {
@@ -52,7 +54,7 @@ export class ProtocolHandlerComponent extends Component {
   private readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-
+  private readonly requireHandlerFactory: RequireHandlerFactory;
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();
     this.app = params.app;
@@ -63,6 +65,7 @@ export class ProtocolHandlerComponent extends Component {
     this.pluginName = params.pluginName;
     this.consoleDebugComponent = params.consoleDebugComponent;
     this.obsidianProtocolHandlerRegistrar = params.obsidianProtocolHandlerRegistrar;
+    this.requireHandlerFactory = params.requireHandlerFactory;
   }
 
   public override onload(): void {
@@ -112,7 +115,9 @@ export class ProtocolHandlerComponent extends Component {
       menuEventRegistrar: this.menuEventRegistrar,
       path: 'dynamic-script-from-url-handler.ts',
       pluginName: this.pluginName,
+      pluginRequire: require,
       pluginSettingsComponent: this.pluginSettingsComponent,
+      requireHandlerFactory: this.requireHandlerFactory,
       source: parsedQuery.code
     });
   }

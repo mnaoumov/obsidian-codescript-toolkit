@@ -13,6 +13,7 @@ import {
 } from 'obsidian-dev-utils/path';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import {
@@ -41,6 +42,7 @@ interface InvokeStartupScriptParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 interface RegisterInvocableScriptsParams {
@@ -51,6 +53,7 @@ interface RegisterInvocableScriptsParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 interface ReloadStartupScriptParams {
@@ -61,6 +64,7 @@ interface ReloadStartupScriptParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 interface SelectAndInvokeScriptParams {
@@ -99,7 +103,9 @@ export async function invokeStartupScript(params: InvokeStartupScriptParams): Pr
     id: startupScriptPath,
     menuEventRegistrar,
     pluginName: params.pluginName,
-    pluginSettingsComponent
+    pluginRequire: require,
+    pluginSettingsComponent,
+    requireHandlerFactory: params.requireHandlerFactory
   }) as StartupScript;
   await startupScript.invoke(params.app);
 }
@@ -132,7 +138,8 @@ export async function registerInvocableScripts(params: RegisterInvocableScriptsP
       menuEventRegistrar: params.menuEventRegistrar,
       pluginName: params.pluginName,
       pluginSettingsComponent,
-      relativeScriptPath: scriptPath
+      relativeScriptPath: scriptPath,
+      requireHandlerFactory: params.requireHandlerFactory
     }).register();
   }
 }
@@ -147,7 +154,8 @@ export async function reloadStartupScript(params: ReloadStartupScriptParams): Pr
     consoleDebugComponent: params.consoleDebugComponent,
     menuEventRegistrar,
     pluginName: params.pluginName,
-    pluginSettingsComponent
+    pluginSettingsComponent,
+    requireHandlerFactory: params.requireHandlerFactory
   });
 }
 

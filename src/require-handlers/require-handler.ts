@@ -15,6 +15,7 @@ import {
 import { noop } from 'obsidian-dev-utils/function';
 import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
 import { AllWindowsEventHandler } from 'obsidian-dev-utils/obsidian/components/all-windows-event-handler';
+import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
 import {
   basename,
   dirname,
@@ -178,10 +179,11 @@ export interface RequireHandlerConstructorParams {
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
+  readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
-export abstract class RequireHandler {
+export abstract class RequireHandler extends AsyncComponentBase {
   protected readonly activeFileProvider: ActiveFileProvider;
   protected readonly app: App;
   protected readonly commandRegistrar: CommandRegistrar;
@@ -217,6 +219,7 @@ export abstract class RequireHandler {
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
 
   public constructor(params: RequireHandlerConstructorParams) {
+    super();
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.activeFileProvider = params.activeFileProvider;
@@ -240,7 +243,7 @@ export abstract class RequireHandler {
     }
   }
 
-  public register(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
+  public register2(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
     this._codeScriptToolkitComponent = codeScriptToolkitComponent;
     this.initSpecialModuleFactories();
 

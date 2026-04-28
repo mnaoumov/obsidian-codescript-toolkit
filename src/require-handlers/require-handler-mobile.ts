@@ -7,7 +7,7 @@ import {
   splitQuery
 } from './require-handler.ts';
 
-export class MobileRequireHandler extends RequireHandler {
+export class RequireHandlerMobile extends RequireHandler {
   private get capacitorAdapter(): CapacitorAdapter {
     const adapter = this.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {
@@ -84,6 +84,6 @@ export class MobileRequireHandler extends RequireHandler {
   }
 }
 
-export function createRequireHandler(params: RequireHandlerConstructorParams): MobileRequireHandler {
-  return new MobileRequireHandler(params);
+export function createRequireHandler(params: RequireHandlerConstructorParams): RequireHandlerMobile {
+  return new RequireHandlerMobile(params);
 }

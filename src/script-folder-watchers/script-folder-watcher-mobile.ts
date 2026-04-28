@@ -3,9 +3,7 @@ import type { App } from 'obsidian';
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 
-import type { ScriptFolderWatcherConstructorParams } from '../script-folder-watcher.ts';
-
-import { ScriptFolderWatcher } from '../script-folder-watcher.ts';
+import { ScriptFolderWatcher } from './script-folder-watcher.ts';
 
 interface ModificationEntry {
   isChanged: boolean;
@@ -14,7 +12,7 @@ interface ModificationEntry {
 
 const MILLISECONDS_IN_SECOND = 1000;
 
-export class MobileScriptFolderWatcher extends ScriptFolderWatcher {
+export class ScriptFolderWatcherMobile extends ScriptFolderWatcher {
   private readonly modificationTimes = new Map<string, number>();
 
   private timeoutId: null | number = null;
@@ -85,8 +83,4 @@ export class MobileScriptFolderWatcher extends ScriptFolderWatcher {
       this.pluginSettingsComponent.settings.mobileChangesCheckingIntervalInSeconds * MILLISECONDS_IN_SECOND
     );
   }
-}
-
-export function createScriptFolderWatcher(params: ScriptFolderWatcherConstructorParams): MobileScriptFolderWatcher {
-  return new MobileScriptFolderWatcher(params);
 }

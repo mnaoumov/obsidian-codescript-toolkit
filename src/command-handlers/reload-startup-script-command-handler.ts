@@ -7,6 +7,7 @@ import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/c
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { RequireHandlerFactory } from '../require-handlers/require-handler-factory.ts';
 
 import { reloadStartupScript } from '../script.ts';
 
@@ -18,6 +19,7 @@ interface ReloadStartupScriptCommandHandlerConstructorParams {
   menuEventRegistrar: MenuEventRegistrar;
   pluginName: string;
   pluginSettingsComponent: PluginSettingsComponent;
+  requireHandlerFactory: RequireHandlerFactory;
 }
 
 export class ReloadStartupScriptCommandHandler extends GlobalCommandHandler {
@@ -27,6 +29,7 @@ export class ReloadStartupScriptCommandHandler extends GlobalCommandHandler {
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
+  private readonly requireHandlerFactory: RequireHandlerFactory;
 
   public constructor(params: ReloadStartupScriptCommandHandlerConstructorParams) {
     super({
@@ -41,6 +44,7 @@ export class ReloadStartupScriptCommandHandler extends GlobalCommandHandler {
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    this.requireHandlerFactory = params.requireHandlerFactory;
   }
 
   public override async execute(): Promise<void> {
@@ -51,7 +55,8 @@ export class ReloadStartupScriptCommandHandler extends GlobalCommandHandler {
       consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
-      pluginSettingsComponent: this.pluginSettingsComponent
+      pluginSettingsComponent: this.pluginSettingsComponent,
+      requireHandlerFactory: this.requireHandlerFactory
     });
   }
 }

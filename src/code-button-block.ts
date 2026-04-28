@@ -39,6 +39,7 @@ import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { CodeScriptToolkitComponent } from './code-script-toolkit-component.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 import type { RequireHandlerConstructorParams } from './require-handlers/require-handler.ts';
 
 import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
@@ -63,6 +64,7 @@ interface HandleClickParams extends RequireHandlerConstructorParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
@@ -93,6 +95,7 @@ interface ProcessCodeButtonBlockParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
   readonly source: string;
 }
 
@@ -106,6 +109,7 @@ interface RegisterCodeButtonBlockParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 export function insertSampleCodeButton(editor: Editor): void {
@@ -145,6 +149,7 @@ export function registerCodeButtonBlock(params: RegisterCodeButtonBlockParams): 
           menuEventRegistrar: params.menuEventRegistrar,
           pluginName: params.pluginName,
           pluginSettingsComponent,
+          requireHandlerFactory: params.requireHandlerFactory,
           source
         })
       );
@@ -200,7 +205,9 @@ async function handleClick(params: HandleClickParams): Promise<void> {
         String(params.buttonIndex)
       }.${params.escapedCaption}.ts`,
       pluginName: params.pluginName,
+      pluginRequire: params.pluginRequire,
       pluginSettingsComponent: params.pluginSettingsComponent,
+      requireHandlerFactory: params.requireHandlerFactory,
       source: script
     }) as CodeButtonBlockScriptWrapper;
     await codeButtonBlockScriptWrapper(params.codeButtonContext);
@@ -379,7 +386,9 @@ ${code}
       escapedCaption: escapeForFileName(fullConfig.caption),
       menuEventRegistrar: params.menuEventRegistrar,
       pluginName: params.pluginName,
-      pluginSettingsComponent: params.pluginSettingsComponent
+      pluginRequire: require,
+      pluginSettingsComponent: params.pluginSettingsComponent,
+      requireHandlerFactory: params.requireHandlerFactory
     };
   }
 }

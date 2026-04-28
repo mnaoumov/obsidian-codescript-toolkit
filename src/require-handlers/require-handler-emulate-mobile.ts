@@ -1,6 +1,6 @@
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
-import type { DesktopRequireHandler } from './require-handler-desktop.ts';
-import type { MobileRequireHandler } from './require-handler-mobile.ts';
+import type { RequireHandlerDesktop } from './require-handler-desktop.ts';
+import type { RequireHandlerMobile } from './require-handler-mobile.ts';
 import type {
   PluginRequireFn,
   RequireHandlerConstructorParams
@@ -10,9 +10,9 @@ import { createRequireHandler as createDesktopRequireHandler } from './require-h
 import { createRequireHandler as createMobileRequireHandler } from './require-handler-mobile.ts';
 import { RequireHandler } from './require-handler.ts';
 
-export class EmulateMobileRequireHandler extends RequireHandler {
-  private readonly desktopRequireHandler: DesktopRequireHandler;
-  private readonly mobileRequireHandler: MobileRequireHandler;
+export class RequireHandlerEmulateMobile extends RequireHandler {
+  private readonly desktopRequireHandler: RequireHandlerDesktop;
+  private readonly mobileRequireHandler: RequireHandlerMobile;
 
   public constructor(params: RequireHandlerConstructorParams) {
     super(params);
@@ -20,10 +20,10 @@ export class EmulateMobileRequireHandler extends RequireHandler {
     this.mobileRequireHandler = createMobileRequireHandler(params);
   }
 
-  public override register(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
-    super.register(codeScriptToolkitComponent, pluginRequire);
-    this.desktopRequireHandler.register(codeScriptToolkitComponent, pluginRequire);
-    this.mobileRequireHandler.register(codeScriptToolkitComponent, pluginRequire);
+  public override register2(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
+    super.register2(codeScriptToolkitComponent, pluginRequire);
+    this.desktopRequireHandler.register2(codeScriptToolkitComponent, pluginRequire);
+    this.mobileRequireHandler.register2(codeScriptToolkitComponent, pluginRequire);
   }
 
   protected override canRequireNonCached(): boolean {
@@ -71,6 +71,6 @@ export class EmulateMobileRequireHandler extends RequireHandler {
   }
 }
 
-export function createRequireHandler(params: RequireHandlerConstructorParams): EmulateMobileRequireHandler {
-  return new EmulateMobileRequireHandler(params);
+export function createRequireHandler(params: RequireHandlerConstructorParams): RequireHandlerEmulateMobile {
+  return new RequireHandlerEmulateMobile(params);
 }

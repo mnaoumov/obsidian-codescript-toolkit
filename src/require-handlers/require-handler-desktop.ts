@@ -13,13 +13,17 @@ import {
 } from 'obsidian-dev-utils/path';
 
 import type { CodeScriptToolkitComponent } from '../code-script-toolkit-component.ts';
+import type { RequireOptions } from '../types.ts';
 import type {
   PluginRequireFn,
   RequireFn,
   RequireHandlerConstructorParams
 } from './require-handler.ts';
-import type { RequireOptions } from '../types.ts';
 
+import {
+  CacheInvalidationMode,
+  ModuleType
+} from '../types.ts';
 import {
   ENTRY_POINT,
   extractCodeScript,
@@ -34,12 +38,8 @@ import {
   SCOPED_MODULE_PREFIX,
   splitQuery
 } from './require-handler.ts';
-import {
-  CacheInvalidationMode,
-  ModuleType
-} from '../types.ts';
 
-export class DesktopRequireHandler extends RequireHandler {
+export class RequireHandlerDesktop extends RequireHandler {
   private _fs?: typeof import('node:fs');
   private _fsPromises?: typeof import('node:fs/promises');
   private originalModulePrototypeRequire?: RequireFn;
@@ -99,8 +99,8 @@ export class DesktopRequireHandler extends RequireHandler {
     return arrayBuffer;
   }
 
-  public override register(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
-    super.register(codeScriptToolkitComponent, pluginRequire);
+  public override register2(codeScriptToolkitComponent: CodeScriptToolkitComponent, pluginRequire: PluginRequireFn): void {
+    super.register2(codeScriptToolkitComponent, pluginRequire);
 
     const moduleProto = getPrototypeOf(window.module);
     registerPatch(codeScriptToolkitComponent, moduleProto, {
@@ -494,6 +494,6 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 }
 
-export function createRequireHandler(params: RequireHandlerConstructorParams): DesktopRequireHandler {
-  return new DesktopRequireHandler(params);
+export function createRequireHandler(params: RequireHandlerConstructorParams): RequireHandlerDesktop {
+  return new RequireHandlerDesktop(params);
 }

@@ -14,6 +14,7 @@ import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
 import { join } from 'obsidian-dev-utils/path';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { RequireHandlerFactory } from '../require-handlers/require-handler-factory.ts';
 import type { Script } from '../script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from '../code-script-toolkit-note-settings.ts';
@@ -40,6 +41,7 @@ interface GetScriptOrCommandParams {
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly relativeScriptPath: string;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 interface InvokeScriptPathCommandConstructorParams {
@@ -51,6 +53,7 @@ interface InvokeScriptPathCommandConstructorParams {
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly relativeScriptPath: string;
+  readonly requireHandlerFactory: RequireHandlerFactory;
 }
 
 interface InvokeScriptPathParams {
@@ -68,7 +71,7 @@ export class InvokeScriptPathCommand {
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly relativeScriptPath: string;
-
+  private readonly requireHandlerFactory: RequireHandlerFactory;
   public constructor(params: InvokeScriptPathCommandConstructorParams) {
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
@@ -78,6 +81,7 @@ export class InvokeScriptPathCommand {
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    this.requireHandlerFactory = params.requireHandlerFactory;
   }
 
   public async register(): Promise<void> {
@@ -91,7 +95,8 @@ export class InvokeScriptPathCommand {
         menuEventRegistrar: this.menuEventRegistrar,
         pluginName: this.pluginName,
         pluginSettingsComponent: this.pluginSettingsComponent,
-        relativeScriptPath: this.relativeScriptPath
+        relativeScriptPath: this.relativeScriptPath,
+        requireHandlerFactory: this.requireHandlerFactory
       });
     } catch (error) {
       printError(new Error(`Error requiring script: ${this.relativeScriptPath}`, { cause: error }));
@@ -222,7 +227,9 @@ async function getScriptOrCommand(params: GetScriptOrCommandParams): Promise<Scr
     id: vaultScriptPath,
     menuEventRegistrar: params.menuEventRegistrar,
     pluginName: params.pluginName,
-    pluginSettingsComponent: params.pluginSettingsComponent
+    pluginRequire: require,
+    pluginSettingsComponent: params.pluginSettingsComponent,
+    requireHandlerFactory: params.requireHandlerFactory
   }) as Partial<ScriptOrCommand>;
 }
 
