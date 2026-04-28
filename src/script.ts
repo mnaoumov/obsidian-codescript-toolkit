@@ -28,32 +28,32 @@ export interface Script {
 
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 
+interface ScriptManagerConstructorParams {
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
+  readonly requireHandlerFactory: RequireHandlerFactory;
+}
+
 interface SelectAndInvokeScriptParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
-interface ScriptManagerConstructorParams {
-  readonly app: App;
-  readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
-  readonly activeFileProvider: ActiveFileProvider;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
-}
-
 export class ScriptManager {
-  private readonly app: App;
-  private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly requireHandlerFactory: RequireHandlerFactory;
   private readonly activeFileProvider: ActiveFileProvider;
+  private readonly app: App;
   private readonly commandRegistrar: CommandRegistrar;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
+  private readonly pluginSettingsComponent: PluginSettingsComponent;
+  private readonly requireHandlerFactory: RequireHandlerFactory;
 
   public constructor(private readonly params: ScriptManagerConstructorParams) {
     this.app = this.params.app;
@@ -99,7 +99,6 @@ export class ScriptManager {
     }
   }
 }
-
 
 export async function selectAndInvokeScript(params: SelectAndInvokeScriptParams): Promise<void> {
   const { app, consoleDebugComponent, pluginSettingsComponent } = params;

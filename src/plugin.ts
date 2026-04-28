@@ -24,9 +24,9 @@ import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 import { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 import { ScriptFolderWatcherFactory } from './script-folder-watchers/script-folder-watcher-factory.ts';
+import { ScriptManager } from './script.ts';
 import { StartupScriptComponent } from './startup-script.ts';
 import { TempPluginRegistry } from './temp-plugin-registry.ts';
-import { ScriptManager } from './script.ts';
 
 export class Plugin extends PluginBase {
   public constructor(app: App, manifest: PluginManifest) {
@@ -114,7 +114,8 @@ export class Plugin extends PluginBase {
           new UnloadTempPluginsCommandHandler(tempPluginRegistry)
         ],
         commandRegistrar,
-        menuEventRegistrar
+        menuEventRegistrar,
+        pluginName: this.manifest.name
       })
     );
 
@@ -133,14 +134,14 @@ export class Plugin extends PluginBase {
     );
 
     const scriptManager = new ScriptManager({
-      app: this.app,
-      pluginSettingsComponent,
-      requireHandlerFactory,
       activeFileProvider,
+      app: this.app,
       commandRegistrar,
       consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar,
-      pluginName: this.manifest.name
+      pluginName: this.manifest.name,
+      pluginSettingsComponent,
+      requireHandlerFactory
     });
 
     this.addChild(

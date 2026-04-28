@@ -1,4 +1,5 @@
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
+
 import type { TempPluginRegistry } from '../temp-plugin-registry.ts';
 
 export class UnloadTempPluginsCommandHandler extends GlobalCommandHandler {

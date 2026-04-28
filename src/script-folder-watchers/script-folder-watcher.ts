@@ -16,8 +16,8 @@ export interface ScriptFolderWatcherConstructorParams {
 export abstract class ScriptFolderWatcher extends AsyncComponentBase {
   protected readonly app: App;
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
-  private wasRegisteredInPlugin = false;
   private readonly scriptManager: ScriptManager;
+  private wasRegisteredInPlugin = false;
 
   public constructor(params: ScriptFolderWatcherConstructorParams) {
     super();
@@ -50,8 +50,6 @@ export abstract class ScriptFolderWatcher extends AsyncComponentBase {
 
   protected abstract stopWatcher(): void;
   private async applyNewSettings(): Promise<void> {
-    await this.register2(() =>
-      this.scriptManager.registerInvocableScripts()
-    );
+    await this.register2(() => this.scriptManager.registerInvocableScripts());
   }
 }

@@ -27,12 +27,12 @@ interface TempPluginRegistryConstructorParams {
 }
 
 export class TempPluginRegistry extends Component {
-  private readonly tempPlugins = new Map<string, ObsidianPlugin>();
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly commandRegistrar: CommandRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
+  private readonly tempPlugins = new Map<string, ObsidianPlugin>();
 
   public constructor(params: TempPluginRegistryConstructorParams) {
     super();
@@ -101,7 +101,8 @@ export class TempPluginRegistry extends Component {
           activeFileProvider: this.activeFileProvider,
           commandHandlers: [unloadTempPluginCommandHandler],
           commandRegistrar: this.commandRegistrar,
-          menuEventRegistrar: this.menuEventRegistrar
+          menuEventRegistrar: this.menuEventRegistrar,
+          pluginName: this.pluginName
         })
       );
 
