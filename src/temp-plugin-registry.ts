@@ -21,19 +21,36 @@ import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-p
 const tempPlugins = new Map<string, ObsidianPlugin>();
 
 interface RegisterTempPluginParams {
-  activeFileProvider: ActiveFileProvider;
-  app: App;
-  commandRegistrar: CommandRegistrar;
   cssText?: string;
-  menuEventRegistrar: MenuEventRegistrar;
-  pluginName: string;
   tempPluginClass: TempPluginClass;
 }
 
+interface TempPluginRegistryConstructorParams {
+  readonly activeFileProvider: ActiveFileProvider;
+  readonly app: App;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly menuEventRegistrar: MenuEventRegistrar;
+  readonly pluginName: string;
+}
+
 export class TempPluginRegistry extends Component {
+  private readonly activeFileProvider: ActiveFileProvider;
+  private readonly app: App;
+  private readonly commandRegistrar: CommandRegistrar;
+  private readonly menuEventRegistrar: MenuEventRegistrar;
+  private readonly pluginName: string;
+
+  public constructor(params: TempPluginRegistryConstructorParams) {
+    super();
+    this.app = params.app;
+    this.pluginName = params.pluginName;
+    this.commandRegistrar = params.commandRegistrar;
+    this.menuEventRegistrar = params.menuEventRegistrar;
+    this.activeFileProvider = params.activeFileProvider;
+  }
+
   public registerTempPlugin(params: RegisterTempPluginParams): void {
-    const { app, cssText, tempPluginClass } = params;
-    const tempPluginClassName = tempPluginClass.name || '_AnonymousPlugin';
+    const tempPluginClassName = params.tempPluginClass.name || '_AnonymousPlugin';
     const id = makeTempPluginId(tempPluginClassName);
 
     const existingPlugin = tempPlugins.get(id);
@@ -41,7 +58,7 @@ export class TempPluginRegistry extends Component {
       existingPlugin.unload();
     }
 
-    const tempPlugin = new tempPluginClass(app, {
+    const tempPlugin = new params.tempPluginClass(this.app, {
       author: '__Temp Plugin created by CodeScript Toolkit',
       description: '__Temp Plugin created by CodeScript Toolkit',
       id,
@@ -72,25 +89,25 @@ export class TempPluginRegistry extends Component {
 
       let styleEl: HTMLStyleElement | null = null;
       new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
-      if (cssText) {
+      if (params.cssText) {
         // eslint-disable-next-line obsidianmd/no-forbidden-elements, obsidianmd/prefer-active-doc -- Need dynamic `style` element. Need main document.
         styleEl = document.head.createEl('style', {
           attr: { id },
-          text: cssText
+          text: params.cssText
         });
       }
 
       const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler({
-        pluginName: params.pluginName,
+        pluginName: this.pluginName,
         tempPlugin,
         tempPluginClassName
       });
       const unloadTempPluginCommandHandlerComponent = this.addChild(
         new CommandHandlerComponent({
-          activeFileProvider: params.activeFileProvider,
+          activeFileProvider: this.activeFileProvider,
           commandHandlers: [unloadTempPluginCommandHandler],
-          commandRegistrar: params.commandRegistrar,
-          menuEventRegistrar: params.menuEventRegistrar
+          commandRegistrar: this.commandRegistrar,
+          menuEventRegistrar: this.menuEventRegistrar
         })
       );
 

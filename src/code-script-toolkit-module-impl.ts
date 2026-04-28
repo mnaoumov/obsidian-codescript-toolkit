@@ -23,12 +23,7 @@ export function createCodeScriptToolkitModule(params: CreateCodeScriptToolkitMod
   return {
     registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
       params.tempPluginRegistry.registerTempPlugin({
-        activeFileProvider: params.activeFileProvider,
-        app: params.app,
-        commandRegistrar: params.commandRegistrar,
         cssText: cssText ?? '',
-        menuEventRegistrar: params.menuEventRegistrar,
-        pluginName: params.pluginName,
         tempPluginClass
       });
     },

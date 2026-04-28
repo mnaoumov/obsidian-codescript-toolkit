@@ -54,9 +54,6 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   public readonly source: string;
   public readonly sourceFile: TFile;
 
-  private readonly activeFileProvider: ActiveFileProvider;
-  private readonly commandRegistrar: CommandRegistrar;
-  private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly resultEl: HTMLElement;
   private readonly tempPluginRegistry: TempPluginRegistry;
 
@@ -69,9 +66,6 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     this.parentEl = params.parentEl;
     this.resultEl = params.resultEl;
     this.source = params.source;
-    this.activeFileProvider = params.activeFileProvider;
-    this.commandRegistrar = params.commandRegistrar;
-    this.menuEventRegistrar = params.menuEventRegistrar;
 
     this.sourceFile = getFile(this.app, params.markdownPostProcessorContext.sourcePath);
     this.container = this.config.isRaw ? this.parentEl : this.resultEl;
@@ -105,15 +99,7 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   }
 
   public registerTempPlugin(params: RegisterTempPluginParams): void {
-    this.tempPluginRegistry.registerTempPlugin({
-      activeFileProvider: this.activeFileProvider,
-      app: this.app,
-      commandRegistrar: this.commandRegistrar,
-      cssText: params.cssText ?? '',
-      menuEventRegistrar: this.menuEventRegistrar,
-      pluginName: params.pluginName,
-      tempPluginClass: params.tempPluginClass
-    });
+    this.tempPluginRegistry.registerTempPlugin(params);
   }
 
   public async removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void> {
