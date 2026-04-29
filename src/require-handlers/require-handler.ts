@@ -196,6 +196,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
   protected readonly moduleDependencies = new Map<string, Set<string>>();
   protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
+  protected pluginRequire: PluginRequireFn;
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
   protected readonly tempPluginRegistry: TempPluginRegistry;
   protected vaultAbsolutePath?: string;
@@ -211,7 +212,6 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
 
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private originalRequire?: NodeJS.Require;
-  private pluginRequire?: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
 
   public constructor(params: RequireHandlerConstructorParams) {
@@ -220,6 +220,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
     this.tempPluginRegistry = params.tempPluginRegistry;
+    this.pluginRequire = params.pluginRequire;
   }
 
   public clearCache(): void {
@@ -236,11 +237,11 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     }
   }
 
-  public register2(pluginRequire: PluginRequireFn): void {
+  public override async onload(): Promise<void> {
+    await super.onload();
     this.initSpecialModuleFactories();
 
     const adapter = getDataAdapterEx(this.app);
-    this.pluginRequire = pluginRequire;
     this.vaultAbsolutePath = toPosixPath(adapter.basePath);
 
     this.originalRequire = window.require;
@@ -787,7 +788,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     registerObsidianDevUtilsModule(this.specialModuleFactories);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
-      this.specialModuleFactories.set(id, () => this.pluginRequire?.(id));
+      this.specialModuleFactories.set(id, () => this.pluginRequire(id));
     }
 
     for (const id of SPECIAL_MODULE_NAMES.nodeBuiltInModuleNames) {

@@ -13,11 +13,7 @@ import {
 } from 'obsidian-dev-utils/path';
 
 import type { RequireOptions } from '../types.ts';
-import type {
-  PluginRequireFn,
-  RequireFn,
-  RequireHandlerConstructorParams
-} from './require-handler.ts';
+import type { RequireFn } from './require-handler.ts';
 
 import {
   CacheInvalidationMode,
@@ -86,20 +82,8 @@ export class RequireHandlerDesktop extends RequireHandlerBase {
     return (await this.fsPromises.stat(path)).mtimeMs;
   }
 
-  public override async readFileAsync(path: string): Promise<string> {
-    path = splitQuery(path).cleanStr;
-    return await this.fsPromises.readFile(path, 'utf8');
-  }
-
-  public override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
-    path = splitQuery(path).cleanStr;
-    const buffer = await this.fsPromises.readFile(path);
-    const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-    return arrayBuffer;
-  }
-
-  public override register2(pluginRequire: PluginRequireFn): void {
-    super.register2(pluginRequire);
+  public override async onload(): Promise<void> {
+    await super.onload();
 
     const moduleProto = getPrototypeOf(window.module);
     registerPatch(this, moduleProto, {
@@ -111,6 +95,18 @@ export class RequireHandlerDesktop extends RequireHandlerBase {
         };
       }
     });
+  }
+
+  public override async readFileAsync(path: string): Promise<string> {
+    path = splitQuery(path).cleanStr;
+    return await this.fsPromises.readFile(path, 'utf8');
+  }
+
+  public override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
+    path = splitQuery(path).cleanStr;
+    const buffer = await this.fsPromises.readFile(path);
+    const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+    return arrayBuffer;
   }
 
   public override async requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
@@ -491,8 +487,4 @@ ${this.getRequireAsyncAdvice(path)}`;
     const buffer = Buffer.from(arrayBuffer);
     await this.fsPromises.writeFile(path, buffer);
   }
-}
-
-export function createRequireHandler(params: RequireHandlerConstructorParams): RequireHandlerDesktop {
-  return new RequireHandlerDesktop(params);
 }

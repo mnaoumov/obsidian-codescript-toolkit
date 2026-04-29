@@ -1,12 +1,7 @@
-import type { RequireHandlerDesktop } from './require-handler-desktop.ts';
-import type { RequireHandlerMobile } from './require-handler-mobile.ts';
-import type {
-  PluginRequireFn,
-  RequireHandlerConstructorParams
-} from './require-handler.ts';
+import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
-import { createRequireHandler as createDesktopRequireHandler } from './require-handler-desktop.ts';
-import { createRequireHandler as createMobileRequireHandler } from './require-handler-mobile.ts';
+import { RequireHandlerDesktop } from './require-handler-desktop.ts';
+import { RequireHandlerMobile } from './require-handler-mobile.ts';
 import { RequireHandlerBase } from './require-handler.ts';
 
 export class RequireHandlerEmulateMobile extends RequireHandlerBase {
@@ -15,14 +10,8 @@ export class RequireHandlerEmulateMobile extends RequireHandlerBase {
 
   public constructor(params: RequireHandlerConstructorParams) {
     super(params);
-    this.desktopRequireHandler = createDesktopRequireHandler(params);
-    this.mobileRequireHandler = createMobileRequireHandler(params);
-  }
-
-  public override register2(pluginRequire: PluginRequireFn): void {
-    super.register2(pluginRequire);
-    this.desktopRequireHandler.register2(pluginRequire);
-    this.mobileRequireHandler.register2(pluginRequire);
+    this.desktopRequireHandler = this.addChild(new RequireHandlerDesktop(params));
+    this.mobileRequireHandler = this.addChild(new RequireHandlerMobile(params));
   }
 
   protected override canRequireNonCached(): boolean {
@@ -68,8 +57,4 @@ export class RequireHandlerEmulateMobile extends RequireHandlerBase {
   protected override requireNonCached(id: string): unknown {
     return this.mobileRequireHandler.requireNonCached(id);
   }
-}
-
-export function createRequireHandler(params: RequireHandlerConstructorParams): RequireHandlerEmulateMobile {
-  return new RequireHandlerEmulateMobile(params);
 }
