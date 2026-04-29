@@ -34,9 +34,13 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
 
       return {
         data: {
+          /* v8 ignore start -- babel transform with ast:true always populates result.ast and extra. */
           hasTopLevelAwait: result.ast?.program.extra?.['topLevelAwait'] as boolean | undefined ?? false
+          /* v8 ignore stop */
         },
+        /* v8 ignore start -- babel transform always populates result.code. */
         transformedCode: result.code ?? ''
+        /* v8 ignore stop */
       };
     } catch (e) {
       return {

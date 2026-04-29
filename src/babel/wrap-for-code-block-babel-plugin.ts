@@ -47,9 +47,11 @@ export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
             ));
 
             programBody.push(newLastStatement);
+            /* v8 ignore start -- convertToExpression returns identifier('undefined') for undefined input, so this falsy branch is unreachable. */
           } else if (lastStatement) {
             programBody.push(lastStatement);
           }
+          /* v8 ignore stop */
         }
 
         const wrapperFunction = functionExpression(

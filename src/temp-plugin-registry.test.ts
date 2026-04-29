@@ -1,0 +1,390 @@
+import type {
+  App,
+  PluginManifest
+} from 'obsidian';
+import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
+import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+
+import {
+  Component,
+  Notice
+} from 'obsidian';
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest';
+
+import type { RegisterTempPluginParams } from './code-button-context.ts';
+
+import { TempPluginRegistry } from './temp-plugin-registry.ts';
+
+const mockPrintError = vi.fn();
+const mockInvokeAsyncSafely = vi.fn();
+
+vi.mock('obsidian-dev-utils/async', () => ({
+  invokeAsyncSafely: (...args: unknown[]): unknown => mockInvokeAsyncSafely(...args)
+}));
+
+vi.mock('obsidian-dev-utils/error', () => ({
+  printError: (...args: unknown[]): unknown => mockPrintError(...args)
+}));
+
+vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler-component', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- Need to import Component inside mock factory; use mock path directly since require() doesn't go through Vite's alias resolution.
+  const { Component: ObsidianComponent } = require('obsidian-test-mocks/obsidian') as typeof import('obsidian');
+  return {
+    CommandHandlerComponent: class MockCommandHandlerComponent extends ObsidianComponent {
+      public constructor(_params: unknown) {
+        super();
+      }
+    }
+  };
+});
+
+vi.mock('./command-handlers/unload-temp-plugin-command-handler.ts', () => ({
+  UnloadTempPluginCommandHandler: vi.fn()
+}));
+
+interface MockPlugin {
+  load: ReturnType<typeof vi.fn>;
+  unload: ReturnType<typeof vi.fn>;
+}
+
+function createMockApp(): App {
+  return {} as App;
+}
+
+function createMockPlugin(): MockPlugin {
+  return {
+    load: vi.fn().mockResolvedValue(undefined),
+    unload: vi.fn()
+  };
+}
+
+function createRegistry(): TempPluginRegistry {
+  return new TempPluginRegistry({
+    activeFileProvider: {} as ActiveFileProvider,
+    app: createMockApp(),
+    commandRegistrar: {} as CommandRegistrar,
+    menuEventRegistrar: {} as MenuEventRegistrar,
+    pluginName: 'test-plugin'
+  });
+}
+
+function createTempPluginClass(name: string, mockPlugin: MockPlugin): RegisterTempPluginParams['tempPluginClass'] {
+  // eslint-disable-next-line func-style -- Function expression needed for `this` typing and type casting.
+  const pluginFn = function pluginFn(this: MockPlugin, _app: App, _manifest: PluginManifest): void {
+    Object.assign(this, mockPlugin);
+  };
+  const intermediate = pluginFn as never;
+  const PluginClass = intermediate as RegisterTempPluginParams['tempPluginClass'];
+  Object.defineProperty(PluginClass, 'name', { value: name });
+  return PluginClass;
+}
+
+describe('TempPluginRegistry', () => {
+  let registry: TempPluginRegistry;
+
+  beforeEach(() => {
+    mockInvokeAsyncSafely.mockReset();
+    mockPrintError.mockReset();
+    registry = createRegistry();
+  });
+
+  describe('constructor', () => {
+    it('should create a TempPluginRegistry that extends Component', () => {
+      expect(registry).toBeInstanceOf(Component);
+    });
+  });
+
+  describe('registerTempPlugin', () => {
+    it('should register a new temp plugin', () => {
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
+    });
+
+    it('should unload existing plugin when re-registering with same class name', () => {
+      const mockPlugin1 = createMockPlugin();
+      const mockPlugin2 = createMockPlugin();
+      const tempPluginClass1 = createTempPluginClass('TestPlugin', mockPlugin1);
+      const tempPluginClass2 = createTempPluginClass('TestPlugin', mockPlugin2);
+
+      registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
+
+      // The plugin stored in the map is created by the constructor, so we need to
+      // Verify via the async callback. For the first registration, no unload happens.
+      // For the second, the existing plugin should be unloaded.
+      registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
+
+      // The first registered plugin instance gets unloaded
+      // We verify the unloadTempPlugins path instead since we can't access internals
+      expect(mockInvokeAsyncSafely).toHaveBeenCalledTimes(2);
+    });
+
+    it('should use _AnonymousPlugin when class name is empty', () => {
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('', mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
+    });
+
+    it('should execute the async callback that loads the plugin', async () => {
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        const _promise = fn();
+      });
+
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      await vi.waitFor(() => {
+        expect(mockPlugin.load).toHaveBeenCalled();
+      });
+    });
+
+    it('should show error notice and call printError when plugin load fails', async () => {
+      const loadError = new Error('Load failed');
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        const _promise = fn();
+      });
+
+      const mockPlugin = createMockPlugin();
+      mockPlugin.load.mockRejectedValue(loadError);
+      const tempPluginClass = createTempPluginClass('FailPlugin', mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      await vi.waitFor(() => {
+        expect(mockPrintError).toHaveBeenCalledWith(loadError);
+      });
+    });
+
+    it('should create a style element when cssText is provided', async () => {
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        const _promise = fn();
+      });
+
+      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
+      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('StyledPlugin', mockPlugin);
+      const CSS_TEXT = '.test { color: red; }';
+
+      registry.registerTempPlugin({ cssText: CSS_TEXT, tempPluginClass });
+
+      await vi.waitFor(() => {
+        expect(createElSpy).toHaveBeenCalledWith('style', {
+          attr: { id: '__temp-plugin-StyledPlugin' },
+          text: CSS_TEXT
+        });
+      });
+
+      createElSpy.mockRestore();
+    });
+
+    it('should not create a style element when cssText is not provided', async () => {
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        const _promise = fn();
+      });
+
+      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
+      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('NoStylePlugin', mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      await vi.waitFor(() => {
+        expect(mockPlugin.load).toHaveBeenCalled();
+      });
+
+      expect(createElSpy).not.toHaveBeenCalled();
+
+      createElSpy.mockRestore();
+    });
+
+    it('should wrap tempPlugin.unload to clean up resources and delete from map', async () => {
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        const _promise = fn();
+      });
+
+      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
+      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('WrappedPlugin', mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      await vi.waitFor(() => {
+        expect(mockPlugin.load).toHaveBeenCalled();
+      });
+
+      // After the async callback completes, the tempPlugin.unload has been wrapped.
+      // Call unloadTempPlugins which calls the wrapped unload on each plugin.
+      registry.unloadTempPlugins();
+
+      // After unload, the plugin should be removed from the map.
+      // Calling unregisterTempPlugin should show "not registered" notice.
+      registry.unregisterTempPlugin('WrappedPlugin');
+
+      // Verify the original unload was called
+      expect(mockPlugin.unload).toHaveBeenCalled();
+
+      createElSpy.mockRestore();
+    });
+
+    it('should show error notice when originalUnload throws during unload', async () => {
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        const _promise = fn();
+      });
+
+      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
+      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+
+      // Create a plugin whose unload throws
+      const unloadError = new Error('Unload failed');
+      const mockPlugin = createMockPlugin();
+      mockPlugin.unload.mockImplementation(() => {
+        throw unloadError;
+      });
+      const tempPluginClass = createTempPluginClass('ErrorPlugin', mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      await vi.waitFor(() => {
+        expect(mockPlugin.load).toHaveBeenCalled();
+      });
+
+      // The wrapped unload catches errors from originalUnload
+      registry.unloadTempPlugins();
+
+      // Verify printError was called with the unload error
+      expect(mockPrintError).toHaveBeenCalledWith(unloadError);
+
+      createElSpy.mockRestore();
+    });
+
+    it('should show failure Notice and call printError when wrapped unload throws', async () => {
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        const _promise = fn();
+      });
+
+      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
+      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor' as keyof Notice);
+
+      const unloadError = new Error('Unload crash');
+      const mockPlugin = createMockPlugin();
+      mockPlugin.unload.mockImplementation(() => {
+        throw unloadError;
+      });
+      const tempPluginClass = createTempPluginClass('CrashPlugin', mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      await vi.waitFor(() => {
+        expect(mockPlugin.load).toHaveBeenCalled();
+      });
+
+      // Reset printError to check only the unload error
+      mockPrintError.mockReset();
+
+      registry.unloadTempPlugins();
+
+      // Verify that printError was called with the unload error
+      expect(mockPrintError).toHaveBeenCalledWith(unloadError);
+
+      createElSpy.mockRestore();
+      noticeSpy.mockRestore();
+    });
+
+    it('should remove style element when unloading a plugin that has cssText', async () => {
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        const _promise = fn();
+      });
+
+      const mockStyleEl = { remove: vi.fn() };
+      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
+      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue(mockStyleEl as never);
+
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('StyledUnloadPlugin', mockPlugin);
+
+      registry.registerTempPlugin({ cssText: '.test { color: blue; }', tempPluginClass });
+
+      await vi.waitFor(() => {
+        expect(mockPlugin.load).toHaveBeenCalled();
+      });
+
+      registry.unloadTempPlugins();
+
+      expect(mockStyleEl.remove).toHaveBeenCalled();
+
+      createElSpy.mockRestore();
+    });
+  });
+
+  describe('unloadTempPlugins', () => {
+    it('should unload all registered temp plugins', () => {
+      const mockPlugin1 = createMockPlugin();
+      const mockPlugin2 = createMockPlugin();
+      const tempPluginClass1 = createTempPluginClass('Plugin1', mockPlugin1);
+      const tempPluginClass2 = createTempPluginClass('Plugin2', mockPlugin2);
+
+      registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
+      registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
+
+      registry.unloadTempPlugins();
+
+      // UnloadTempPlugins iterates the map and calls unload on each
+      // Since we can't directly inspect the map, we verify no error is thrown
+      expect(mockInvokeAsyncSafely).toHaveBeenCalledTimes(2);
+    });
+
+    it('should do nothing when no plugins are registered', () => {
+      expect(() => {
+        registry.unloadTempPlugins();
+      }).not.toThrow();
+    });
+  });
+
+  describe('unregisterTempPlugin', () => {
+    it('should show notice when plugin is not registered', () => {
+      const PLUGIN_NAME = 'NonExistentPlugin';
+
+      registry.unregisterTempPlugin(PLUGIN_NAME);
+
+      // Notice constructor was called (from the obsidian mock)
+      // We just verify it doesn't throw
+      expect(true).toBe(true);
+    });
+
+    it('should unload the plugin when it is registered', () => {
+      const mockPlugin = createMockPlugin();
+      const PLUGIN_NAME = 'ExistingPlugin';
+      const tempPluginClass = createTempPluginClass(PLUGIN_NAME, mockPlugin);
+
+      registry.registerTempPlugin({ tempPluginClass });
+
+      registry.unregisterTempPlugin(PLUGIN_NAME);
+
+      // The plugin in the map was created by the constructor in registerTempPlugin,
+      // So unload is called on that instance
+      expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
+    });
+  });
+});

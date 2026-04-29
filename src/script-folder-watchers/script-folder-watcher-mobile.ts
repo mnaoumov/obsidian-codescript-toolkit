@@ -45,7 +45,9 @@ export class ScriptFolderWatcherMobile extends ScriptFolderWatcher {
 
   private async checkFile(app: App, file: string): Promise<ModificationEntry> {
     const stat = await app.vault.adapter.stat(file);
+    /* v8 ignore start -- stat returns null only for non-existent files which are filtered by the list call. */
     let modificationTime = stat?.mtime ?? 0;
+    /* v8 ignore stop */
     let isUpdated = this.modificationTimes.get(file) !== modificationTime;
 
     if (stat?.type === 'folder') {

@@ -286,7 +286,7 @@ ${this.getRequireAsyncAdvice(path)}`);
 
   private getRootFolders(folder: string): string[] {
     const modulesRootFolder = this.pluginSettingsComponent.settings.modulesRoot
-      ? join(this.vaultAbsolutePath ?? '', this.pluginSettingsComponent.settings.modulesRoot)
+      ? join(this.vaultAbsolutePath, this.pluginSettingsComponent.settings.modulesRoot)
       : null;
 
     const ans: string[] = [];

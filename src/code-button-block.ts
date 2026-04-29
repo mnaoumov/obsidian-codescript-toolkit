@@ -312,7 +312,9 @@ ${config}---
   const cursor = editor.getCursor('from');
   const line = editor.getLine(cursor.line);
   const PREFIX_LINE_REG_EXP = /^ {0,3}(?:> {1,3})*/g;
+  /* v8 ignore start -- regex always matches zero-length string at position 0 so match() never returns null. */
   const linePrefix = line.match(PREFIX_LINE_REG_EXP)?.[0] ?? '';
+  /* v8 ignore stop */
   newCodeBlock = indent(newCodeBlock, linePrefix);
   newCodeBlock = newCodeBlock.slice(0, cursor.ch) === line.slice(0, cursor.ch)
     ? newCodeBlock.slice(cursor.ch)

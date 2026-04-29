@@ -92,6 +92,7 @@ export class ProtocolHandlerComponent extends Component {
   }
 }
 
+/* v8 ignore start -- serialized via toString() and evaluated in another runtime context via requireStringAsync. */
 async function invokeModuleFn(moduleSpecifier: string, functionName: string, args: unknown[]): Promise<void> {
   const windowWithRequireAsync = window as Partial<WindowWithRequireAsync>;
   const module = await ensureNonNullable(windowWithRequireAsync.requireAsync)(moduleSpecifier);
@@ -104,3 +105,4 @@ async function invokeModuleFn(moduleSpecifier: string, functionName: string, arg
   }
   await (fn as GenericAsyncFn)(...args);
 }
+/* v8 ignore stop */
