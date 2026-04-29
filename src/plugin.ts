@@ -24,6 +24,7 @@ import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 import { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 import { ScriptFolderWatcherFactory } from './script-folder-watchers/script-folder-watcher-factory.ts';
+import { ScriptRegistry } from './script-registry.ts';
 import { ScriptManager } from './script.ts';
 import { StartupScriptComponent } from './startup-script.ts';
 import { TempPluginRegistry } from './temp-plugin-registry.ts';
@@ -75,7 +76,7 @@ export class Plugin extends PluginBase {
       })
     );
 
-    const scriptManager = new ScriptManager({
+    const scriptRegistry = this.addChild(new ScriptRegistry({
       activeFileProvider,
       app: this.app,
       commandRegistrar,
@@ -84,6 +85,13 @@ export class Plugin extends PluginBase {
       pluginName: this.manifest.name,
       pluginSettingsComponent,
       requireHandlerFactory
+    }));
+
+    const scriptManager = new ScriptManager({
+      app: this.app,
+      consoleDebugComponent: this.consoleDebugComponent,
+      pluginSettingsComponent,
+      scriptRegistry
     });
 
     this.addChild(new CodeScriptBlockComponent());

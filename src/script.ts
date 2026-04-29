@@ -1,7 +1,4 @@
 import type { App } from 'obsidian';
-import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { Promisable } from 'type-fest';
 
@@ -13,14 +10,9 @@ import {
 } from 'obsidian-dev-utils/path';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
-import {
-  invokeScriptPath,
-  InvokeScriptPathCommand,
-  unregisterInvocableCommands
-} from './command-handlers/invoke-script-path-command-handler.ts';
+import { ScriptRegistry } from './script-registry.ts';
 
 export interface Script {
   invoke(app: App): Promisable<void>;
@@ -29,39 +21,27 @@ export interface Script {
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 
 interface ScriptManagerConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
+  readonly scriptRegistry: ScriptRegistry;
 }
 
 export class ScriptManager {
-  private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
-  private readonly commandRegistrar: CommandRegistrar;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
-  private readonly menuEventRegistrar: MenuEventRegistrar;
-  private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly requireHandlerFactory: RequireHandlerFactory;
+  private readonly scriptRegistry: ScriptRegistry;
 
   public constructor(private readonly params: ScriptManagerConstructorParams) {
     this.app = this.params.app;
     this.pluginSettingsComponent = this.params.pluginSettingsComponent;
-    this.requireHandlerFactory = this.params.requireHandlerFactory;
-    this.activeFileProvider = this.params.activeFileProvider;
-    this.commandRegistrar = this.params.commandRegistrar;
     this.consoleDebugComponent = this.params.consoleDebugComponent;
-    this.menuEventRegistrar = this.params.menuEventRegistrar;
-    this.pluginName = this.params.pluginName;
+    this.scriptRegistry = params.scriptRegistry;
   }
 
   public async registerInvocableScripts(): Promise<void> {
-    unregisterInvocableCommands(this.app);
+    this.scriptRegistry.unregisterInvocableCommands();
 
     const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();
 
@@ -79,17 +59,7 @@ export class ScriptManager {
     const scriptPaths = await getAllScriptPaths(this.app, this.pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
 
     for (const scriptPath of scriptPaths) {
-      await new InvokeScriptPathCommand({
-        activeFileProvider: this.activeFileProvider,
-        app: this.app,
-        commandRegistrar: this.commandRegistrar,
-        consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar: this.menuEventRegistrar,
-        pluginName: this.pluginName,
-        pluginSettingsComponent: this.pluginSettingsComponent,
-        relativeScriptPath: scriptPath,
-        requireHandlerFactory: this.requireHandlerFactory
-      }).register();
+      await this.scriptRegistry.registerScript(scriptPath);
     }
   }
 
@@ -118,11 +88,7 @@ export class ScriptManager {
     }
 
     if (!scriptPath.startsWith('Error:')) {
-      invokeScriptPath({
-        app: this.app,
-        consoleDebugComponent: this.consoleDebugComponent,
-        relativeScriptPath: scriptPath
-      });
+      await this.scriptRegistry.invokeScriptPath(scriptPath);
     }
   }
 }
