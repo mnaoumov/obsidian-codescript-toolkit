@@ -32,6 +32,7 @@ export const config = defineConfig({
         test: {
           environment: 'jsdom',
           exclude: [...SHARED_EXCLUDE, 'src/**/*.integration.test.ts'],
+          execArgv: ['--no-webstorage'],
           include: ['src/**/*.test.ts'],
           name: 'unit-tests',
           setupFiles: ['obsidian-test-mocks/setup']
