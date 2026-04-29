@@ -1,3 +1,5 @@
+import type { App } from 'obsidian';
+
 import { FileSystemAdapter } from 'obsidian';
 import { registerPatch } from 'obsidian-dev-utils/obsidian/monkey-around';
 import {
@@ -335,11 +337,13 @@ class TestableRequireHandlerDesktop extends RequireHandlerDesktop {
   }
 
   public unsetFs(): void {
-    this['_fs'] = undefined;
+    // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to unset private field
+    this['_fs'] = undefined as unknown as typeof import('node:fs');
   }
 
   public unsetFsPromises(): void {
-    this['_fsPromises'] = undefined;
+    // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to unset private field
+    this['_fsPromises'] = undefined as unknown as typeof import('node:fs/promises');
   }
 }
 
@@ -371,30 +375,29 @@ function createHandler(): TestableRequireHandlerDesktop {
 }
 
 function createMockConstructorParams(): RequireHandlerConstructorParams {
-  const params = {
+  const params: Partial<RequireHandlerConstructorParams> = {
     app: {
       vault: {
-        adapter: Object.create(FileSystemAdapter.prototype),
+        adapter: Object.create(FileSystemAdapter.prototype) as App['vault']['adapter'],
         configDir: MOCK_CONFIG_DIR
       },
       workspace: {
         getActiveFile: vi.fn().mockReturnValue(null)
       }
-    },
+    } as never,
     consoleDebugComponent: {
       debug: vi.fn()
-    },
-    pluginRequire: vi.fn(),
+    } as never,
+    pluginRequire: vi.fn() as never,
     pluginSettingsComponent: {
       settings: {
         modulesRoot: '',
         shouldUseSyncFallback: false
       }
-    },
-    tempPluginRegistry: {}
+    } as never,
+    tempPluginRegistry: {} as never
   };
-  const partial: Partial<RequireHandlerConstructorParams> = params;
-  return partial as RequireHandlerConstructorParams;
+  return params as RequireHandlerConstructorParams;
 }
 
 describe('RequireHandlerDesktop', () => {
@@ -511,7 +514,8 @@ describe('RequireHandlerDesktop', () => {
     it('should return undefined when originalModulePrototypeRequire is not set', () => {
       // eslint-disable-next-line no-restricted-syntax -- testing undefined case
       handler.setOriginalModulePrototypeRequire(undefined as unknown as ReturnType<typeof vi.fn>);
-      handler['originalModulePrototypeRequire'] = undefined;
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to unset private field
+      handler['originalModulePrototypeRequire'] = undefined as unknown as typeof require;
 
       const result = handler.exposeRequireNodeBuiltInModule('node:fs');
 
@@ -1488,7 +1492,8 @@ describe('RequireHandlerDesktop', () => {
     });
 
     it('should return undefined when originalModulePrototypeRequire is not set', () => {
-      handler['originalModulePrototypeRequire'] = undefined;
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to unset private field
+      handler['originalModulePrototypeRequire'] = undefined as unknown as typeof require;
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as OriginalModulePrototypeRequireWrappedAccessor)

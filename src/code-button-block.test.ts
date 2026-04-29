@@ -1,10 +1,13 @@
 import type {
   App,
   Editor,
-  MarkdownPostProcessorContext
+  MarkdownPostProcessorContext,
+  TFile
 } from 'obsidian';
+import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -89,7 +92,7 @@ vi.mock('obsidian', async (importOriginal) => ({
 }));
 
 vi.mock('obsidian-dev-utils/async', () => ({
-  invokeAsyncSafely: (...args: unknown[]): unknown => mockInvokeAsyncSafely(...args)
+  invokeAsyncSafely: (...args: unknown[]): unknown => (mockInvokeAsyncSafely as (...a: unknown[]) => unknown)(...args)
 }));
 
 vi.mock('obsidian-dev-utils/error', () => ({
@@ -261,7 +264,7 @@ interface CodeMirrorApi {
   getMode: ReturnType<typeof vi.fn>;
 }
 
-interface WindowWithCodeMirror extends Window {
+interface WindowWithCodeMirror {
   CodeMirror: CodeMirrorApi;
 }
 
@@ -330,7 +333,7 @@ describe('CodeButtonBlockComponent', () => {
     windowWithCodeMirror.CodeMirror = {
       defineMode: mockDefineMode,
       getMode: mockGetMode
-    };
+    } as never;
 
     const partialApp: Partial<App> = { vault: {} as App['vault'] };
     mockApp = partialApp as App;
@@ -441,7 +444,7 @@ describe('CodeButtonBlockComponent', () => {
       mockGetFile.mockReturnValue({ path: 'test.md' });
       mockGetCodeBlockMarkdownInfo.mockResolvedValue(null);
 
-      callback('source code', el, ctx);
+      callback?.('source code', el, ctx);
 
       expect(mockInvokeAsyncSafely).toHaveBeenCalled();
     });
@@ -569,7 +572,7 @@ describe('CodeButtonBlockComponent', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
 
-      vi.mocked(obsidian).parseYaml = originalParseYaml;
+      vi.mocked(obsidian).parseYaml = originalParseYaml as never;
       consoleErrorSpy.mockRestore();
     });
 
@@ -698,7 +701,7 @@ describe('CodeButtonBlockComponent', () => {
         container,
         markdownInfo: null,
         removeCodeButtonBlock: vi.fn(),
-        sourceFile: { path: 'notes/test.md' },
+        sourceFile: strictProxy<TFile>({ path: 'notes/test.md' }),
         ...overrides
       };
       return partial as CodeButtonContext;
@@ -809,7 +812,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'always' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: { args: [] },
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -834,7 +837,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: true, when: 'onSuccess' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: { args: [] },
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -859,7 +862,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'onError' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: { args: [] },
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -883,7 +886,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'onError' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: { args: [] },
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -908,7 +911,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'never' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: { args: [] },
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -1027,10 +1030,10 @@ describe('CodeButtonBlockComponent', () => {
       const codeButtonContext = createCodeButtonContext({
         config: {
           ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG,
-          removeAfterExecution: { shouldKeepGap: false, when: 'unknownValue' },
+          removeAfterExecution: { shouldKeepGap: false, when: 'unknownValue' as never },
           shouldShowSystemMessages: false
         },
-        markdownInfo: { args: [] }
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] })
       });
 
       await component.handleClick({
@@ -1056,7 +1059,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'always' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: { args: [] },
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 

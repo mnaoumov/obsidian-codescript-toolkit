@@ -1,5 +1,9 @@
-import type { App } from 'obsidian';
+import type {
+  App,
+  Vault
+} from 'obsidian';
 
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -62,14 +66,13 @@ describe('PathSuggest', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    const partialApp: Partial<App> = {
-      vault: {
-        adapter: {
+    mockApp = strictProxy<App>({
+      vault: strictProxy<Vault>({
+        adapter: strictProxy<Vault['adapter']>({
           list: vi.fn().mockResolvedValue({ files: [], folders: [] })
-        }
-      } as App['vault']
-    };
-    mockApp = partialApp as App;
+        })
+      })
+    });
 
     textInputEl = createEl('input');
 

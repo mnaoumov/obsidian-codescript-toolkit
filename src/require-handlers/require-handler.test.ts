@@ -81,6 +81,10 @@ vi.mock('../code-script-toolkit-module-impl.ts', () => ({
   CodeScriptToolkitModuleImpl: vi.fn()
 }));
 
+interface CustomRequireWindow {
+  require: (id: string, options?: Partial<RequireOptions>) => unknown;
+}
+
 interface MockCleanups {
   cleanups__: (() => void)[];
 }
@@ -137,6 +141,11 @@ interface RequireWindowFull {
 interface ResolveResult {
   resolvedId: string;
   resolvedType: ResolvedType;
+}
+
+function windowCustomRequire(id: string, options?: Partial<RequireOptions>): unknown {
+  // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
+  return (window as unknown as CustomRequireWindow).require(id, options);
 }
 
 describe('splitQuery', () => {
@@ -473,15 +482,15 @@ describe('RequireHandlerBase', () => {
 
     it('should register requireAsync on window', async () => {
       await handler.onload();
-      const requireWindowPartial: Partial<RequireAsyncWindow> = window;
-      const requireWindow = requireWindowPartial as RequireAsyncWindow;
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
+      const requireWindow = window as unknown as RequireAsyncWindow;
       expect(requireWindow.requireAsync).toBeDefined();
     });
 
     it('should register requireAsyncWrapper on window', async () => {
       await handler.onload();
-      const requireWindowPartial: Partial<RequireAsyncWindow> = window;
-      const requireWindow = requireWindowPartial as RequireAsyncWindow;
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
+      const requireWindow = window as unknown as RequireWindowFull;
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
     });
 
@@ -907,8 +916,8 @@ describe('RequireHandlerBase', () => {
   describe('onload cleanup callbacks', () => {
     it('should set up and tear down requireAsync on window', async () => {
       await handler.onload();
-      const requireWindowPartial: Partial<RequireWindowFull> = window;
-      const requireWindow = requireWindowPartial as RequireWindowFull;
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
+      const requireWindow = window as unknown as RequireWindowFull;
       const hasRequireAsync = requireWindow.requireAsync !== undefined;
       const hasRequireAsyncWrapper = requireWindow.requireAsyncWrapper !== undefined;
       expect(hasRequireAsync).toBe(true);
@@ -930,7 +939,7 @@ describe('RequireHandlerBase', () => {
       const mockExports = { syncCached: true };
       handler.exposeInitModuleAndAddToCache('/vault/sync-mod', () => mockExports);
 
-      const result: unknown = window.require('//sync-mod', { cacheInvalidationMode: CacheInvalidationMode.Never });
+      const result: unknown = windowCustomRequire('//sync-mod', { cacheInvalidationMode: CacheInvalidationMode.Never });
       expect(result).toEqual(expect.objectContaining({ syncCached: true }));
     });
 
@@ -963,7 +972,7 @@ describe('RequireHandlerBase', () => {
       handler.exposeInitModuleAndAddToCache('/vault/always-mod', () => ({ test: true }));
 
       expect((): void => {
-        window.require('//always-mod', {
+        windowCustomRequire('//always-mod', {
           cacheInvalidationMode: CacheInvalidationMode.Always
         });
       }).toThrow('cannot be invalidated synchronously');
@@ -976,7 +985,7 @@ describe('RequireHandlerBase', () => {
       handler.mockCanRequireNonCached.mockReturnValue(false);
       handler.exposeInitModuleAndAddToCache('/vault/possible-mod', () => ({ possible: true }));
 
-      const result: unknown = window.require('//possible-mod', {
+      const result: unknown = windowCustomRequire('//possible-mod', {
         cacheInvalidationMode: CacheInvalidationMode.WhenPossible
       });
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('cannot be invalidated synchronously'));
@@ -988,7 +997,7 @@ describe('RequireHandlerBase', () => {
       const cachedExports = { querySync: true };
       handler.exposeInitModuleAndAddToCache('/vault/q-mod?v=1', () => cachedExports);
 
-      const result: unknown = window.require('//q-mod?v=1', {
+      const result: unknown = windowCustomRequire('//q-mod?v=1', {
         cacheInvalidationMode: CacheInvalidationMode.WhenPossible
       });
       expect(result).toEqual(expect.objectContaining({ querySync: true }));
@@ -998,7 +1007,7 @@ describe('RequireHandlerBase', () => {
       handler.exposeInitModuleAndAddToCache('/vault/bad-mode', () => ({ test: true }));
 
       expect((): void => {
-        window.require('//bad-mode', {
+        windowCustomRequire('//bad-mode', {
           cacheInvalidationMode: 'bogus' as CacheInvalidationMode
         });
       }).toThrow('Unknown cacheInvalidationMode: \'bogus\'.');
@@ -1223,7 +1232,7 @@ describe('RequireHandlerBase', () => {
       handler.exposeInitModuleAndAddToCache('/vault/advice-mod', () => ({ test: true }));
 
       expect((): void => {
-        window.require('//advice-mod', {
+        windowCustomRequire('//advice-mod', {
           cacheInvalidationMode: CacheInvalidationMode.Always
         });
       }).toThrow('require(\'/vault/advice-mod\')');
@@ -1240,7 +1249,7 @@ describe('RequireHandlerBase', () => {
       handler.mockRequireNonCached.mockReturnValue({ fresh: true });
       handler.exposeInitModuleAndAddToCache('/vault/fresh-mod.js', () => ({ stale: true }));
 
-      const result: unknown = window.require('//fresh-mod.js', {
+      const result: unknown = windowCustomRequire('//fresh-mod.js', {
         cacheInvalidationMode: CacheInvalidationMode.Always
       });
       expect(handler.mockRequireNonCached).toHaveBeenCalled();
@@ -1252,7 +1261,7 @@ describe('RequireHandlerBase', () => {
       handler.mockRequireNonCached.mockReturnValue({ refreshed: true });
       handler.exposeInitModuleAndAddToCache('/vault/refresh-mod.js', () => ({ old: true }));
 
-      const result: unknown = window.require('//refresh-mod.js', {
+      const result: unknown = windowCustomRequire('//refresh-mod.js', {
         cacheInvalidationMode: CacheInvalidationMode.WhenPossible
       });
       expect(handler.mockRequireNonCached).toHaveBeenCalled();
@@ -1337,11 +1346,12 @@ describe('RequireHandlerBase', () => {
 
       const WASM_RETURN = 42;
       const mockWasmExports = { wasmFn: (): number => WASM_RETURN };
-      const instantiateSpy = vi.spyOn(WebAssembly, 'instantiate').mockResolvedValue({
-        // eslint-disable-next-line no-restricted-syntax -- WebAssembly mock requires double assertion
-        instance: { exports: mockWasmExports } as unknown as WebAssembly.Instance,
-        module: {}
-      });
+      const instantiateSpy = vi.spyOn(WebAssembly, 'instantiate').mockResolvedValue(
+        {
+          instance: { exports: mockWasmExports },
+          module: {}
+        } as never
+      );
 
       const result = await handler.requireAsync('//module.wasm');
       expect(result).toEqual(mockWasmExports);
@@ -1699,11 +1709,12 @@ describe('RequireHandlerBase', () => {
       });
 
       const mockWasmExports = { wasmUrlFn: (): number => 1 };
-      vi.spyOn(WebAssembly, 'instantiate').mockResolvedValue({
-        // eslint-disable-next-line no-restricted-syntax -- WebAssembly mock requires double assertion
-        instance: { exports: mockWasmExports } as unknown as WebAssembly.Instance,
-        module: {}
-      });
+      vi.spyOn(WebAssembly, 'instantiate').mockResolvedValue(
+        {
+          instance: { exports: mockWasmExports },
+          module: {}
+        } as never
+      );
 
       const result = await handler.requireAsync('https://example.com/module.wasm');
       expect(result).toEqual(mockWasmExports);
@@ -2044,7 +2055,8 @@ describe('RequireHandlerBase', () => {
       class MockError extends OriginalError {
         public constructor(message?: string) {
           super(message);
-          this.stack = undefined;
+          // eslint-disable-next-line no-restricted-syntax -- testing undefined stack case requires explicit assignment
+          this.stack = undefined as unknown as string;
         }
       }
       window.Error = MockError as typeof Error;
@@ -2136,9 +2148,10 @@ describe('RequireHandlerBase', () => {
       // Calling initModuleAndAddToCache with a module that sets cache during init
       const result = handler.exposeInitModuleAndAddToCache('init-cache-test2', () => {
         // During init, manually mark a module as loaded in cache for 'init-cache-test2'
-        handler.exposeModulesCache()['init-cache-test2'] = createMockNodeModule('init-cache-test2');
-        handler.exposeModulesCache()['init-cache-test2'].loaded = true;
-        handler.exposeModulesCache()['init-cache-test2'].exports = { cached: true };
+        const cacheEntry = createMockNodeModule('init-cache-test2');
+        cacheEntry.loaded = true;
+        cacheEntry.exports = { cached: true };
+        handler.exposeModulesCache()['init-cache-test2'] = cacheEntry;
         return { new: true };
       });
       expect(result).toEqual({ cached: true });
@@ -2466,7 +2479,7 @@ describe('RequireHandlerBase', () => {
       handler.exposeInitModuleAndAddToCache('/vault/sync-always-warn.js', () => ({ test: true }));
 
       expect((): void => {
-        window.require('//sync-always-warn.js', {
+        windowCustomRequire('//sync-always-warn.js', {
           cacheInvalidationMode: CacheInvalidationMode.Always
         });
       }).toThrow('cannot be invalidated synchronously');
@@ -2479,8 +2492,8 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should pre-load requires and execute the function', async () => {
-      const requireWindowPartial: Partial<RequireAsyncWrapperWindow> = window;
-      const requireWindow = requireWindowPartial as RequireAsyncWrapperWindow;
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
+      const requireWindow = window as unknown as RequireAsyncWrapperWindow;
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
 
       // The requireAsyncWrapper parses the function body to extract require calls
@@ -2492,8 +2505,8 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should pre-load require calls found in the function body', async () => {
-      const requireWindowPartial: Partial<RequireAsyncWrapperTypedWindow> = window;
-      const requireWindow = requireWindowPartial as RequireAsyncWrapperTypedWindow;
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
+      const requireWindow = window as unknown as RequireAsyncWrapperTypedWindow;
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
 
       // Pass a function that has a require call for a special module
@@ -2505,8 +2518,8 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should handle errors from pre-loaded requires gracefully', async () => {
-      const requireWindowPartial: Partial<RequireAsyncWrapperTypedWindow> = window;
-      const requireWindow = requireWindowPartial as RequireAsyncWrapperTypedWindow;
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
+      const requireWindow = window as unknown as RequireAsyncWrapperTypedWindow;
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
 
       handler.mockExistsFile.mockResolvedValue(false);
@@ -3028,7 +3041,6 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should not reload when timestamp unchanged and module is cached', async () => {
-      const _MODULE_PATH = '/vault/cached-async.js';
       const CACHED_TIMESTAMP = 500;
 
       handler.mockExistsFile.mockResolvedValue(true);
@@ -3321,7 +3333,7 @@ class TestRequireHandler extends RequireHandlerBase {
 }
 
 function createMockConstructorParams(): RequireHandlerConstructorParams {
-  const params = {
+  const partial: Partial<RequireHandlerConstructorParams> = {
     app: {
       vault: {
         adapter: {}
@@ -3329,19 +3341,18 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
       workspace: {
         getActiveFile: vi.fn().mockReturnValue(null)
       }
-    },
+    } as never,
     consoleDebugComponent: {
       debug: vi.fn()
-    },
-    pluginRequire: vi.fn(),
+    } as never,
+    pluginRequire: vi.fn() as never,
     pluginSettingsComponent: {
       settings: {
         modulesRoot: ''
       }
-    },
-    tempPluginRegistry: {}
+    } as never,
+    tempPluginRegistry: {} as never
   };
-  const partial: Partial<RequireHandlerConstructorParams> = params;
   return partial as RequireHandlerConstructorParams;
 }
 
@@ -3356,7 +3367,8 @@ function createMockNodeModule(id: string): NodeJS.Module {
     parent: null,
     path: '',
     paths: [],
-    require: vi.fn().mockReturnValue({}) as NodeJS.Require
+    // eslint-disable-next-line no-restricted-syntax, @typescript-eslint/no-unnecessary-type-assertion -- mock requires double assertion since vi.fn() doesn't overlap with NodeJS.Require
+    require: vi.fn().mockReturnValue({}) as unknown as NodeJS.Require
   };
   return partial as NodeJS.Module;
 }

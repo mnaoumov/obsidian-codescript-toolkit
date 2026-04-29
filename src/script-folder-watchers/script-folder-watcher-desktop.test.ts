@@ -1,6 +1,5 @@
 import type { App } from 'obsidian';
 
-import { noop } from 'obsidian-dev-utils/function';
 import {
   beforeEach,
   describe,
@@ -240,8 +239,6 @@ describe('createScriptFolderWatcher', () => {
     const mockPartialApp: Partial<App> = {};
     const mockPartialPluginSettingsComponent: Partial<PluginSettingsComponent> = { on: vi.fn() as never, settings: {} as never };
     const mockPartialScriptManager: Partial<ScriptManager> = {};
-    noop(mockPartialPluginSettingsComponent, mockPartialScriptManager);
-
     const params = {
       app: mockPartialApp as App,
       pluginSettingsComponent: mockPartialPluginSettingsComponent as PluginSettingsComponent,

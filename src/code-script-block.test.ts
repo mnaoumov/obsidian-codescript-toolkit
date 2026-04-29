@@ -16,7 +16,7 @@ interface CodeMirrorApi {
   getMode: ReturnType<typeof vi.fn>;
 }
 
-interface WindowWithCodeMirror extends Window {
+interface WindowWithCodeMirror {
   CodeMirror: CodeMirrorApi;
 }
 
@@ -49,7 +49,7 @@ describe('CodeScriptBlockComponent', () => {
     windowWithCodeMirror.CodeMirror = {
       defineMode: mockDefineMode,
       getMode: mockGetMode
-    };
+    } as never;
 
     mockLoadPrism.mockResolvedValue({ languages: prismLanguages });
     component = new CodeScriptBlockComponent();
@@ -72,9 +72,9 @@ describe('CodeScriptBlockComponent', () => {
     it('should call CodeMirror.getMode with text/typescript when the mode factory is invoked', async () => {
       await loadComponent(component);
 
-      const modeFactory = mockDefineMode.mock.calls[0][1] as (config: object) => unknown;
+      const modeFactory = mockDefineMode.mock.calls[0]?.[1] as ((config: object) => unknown) | undefined;
       const mockConfig = { indentUnit: 2 };
-      modeFactory(mockConfig);
+      modeFactory?.(mockConfig);
 
       expect(mockGetMode).toHaveBeenCalledWith(mockConfig, 'text/typescript');
     });
@@ -98,11 +98,11 @@ describe('CodeScriptBlockComponent', () => {
       component.unload();
 
       const CLEANUP_CALL_INDEX = 1;
-      const cleanupModeFactory = mockDefineMode.mock.calls[CLEANUP_CALL_INDEX][1] as (config: object) => unknown;
+      const cleanupModeFactory = mockDefineMode.mock.calls[CLEANUP_CALL_INDEX]?.[1] as ((config: object) => unknown) | undefined;
       const mockConfig = { indentUnit: 2 };
-      cleanupModeFactory(mockConfig);
+      cleanupModeFactory?.(mockConfig);
 
-      expect(mockDefineMode.mock.calls[CLEANUP_CALL_INDEX][0]).toBe(CODE_SCRIPT_BLOCK_LANGUAGE);
+      expect(mockDefineMode.mock.calls[CLEANUP_CALL_INDEX]?.[0]).toBe(CODE_SCRIPT_BLOCK_LANGUAGE);
       expect(mockGetMode).toHaveBeenCalledWith(mockConfig, 'null');
     });
 

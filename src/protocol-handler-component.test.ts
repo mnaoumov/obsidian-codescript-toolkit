@@ -24,11 +24,11 @@ vi.mock('obsidian', async (importOriginal) => ({
 }));
 
 vi.mock('obsidian-dev-utils/async', () => ({
-  convertAsyncToSync: (...args: unknown[]): unknown => mockConvertAsyncToSync(...args)
+  convertAsyncToSync: (...args: unknown[]): unknown => (mockConvertAsyncToSync as (...a: unknown[]) => unknown)(...args)
 }));
 
 vi.mock('obsidian-dev-utils/object-utils', () => ({
-  toJson: (...args: unknown[]): unknown => mockToJson(...args)
+  toJson: (...args: unknown[]): unknown => (mockToJson as (...a: unknown[]) => unknown)(...args)
 }));
 
 vi.mock('obsidian-dev-utils/type-guards', () => ({

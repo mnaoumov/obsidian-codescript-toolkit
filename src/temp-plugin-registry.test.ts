@@ -25,12 +25,21 @@ import { TempPluginRegistry } from './temp-plugin-registry.ts';
 const mockPrintError = vi.fn();
 const mockInvokeAsyncSafely = vi.fn();
 
+interface ObsidianDocumentHead {
+  createEl: (...args: unknown[]) => HTMLElement;
+}
+
+function getObsidianDocumentHead(): ObsidianDocumentHead {
+  // eslint-disable-next-line no-restricted-syntax, obsidianmd/prefer-active-doc -- mock requires double assertion to access Obsidian-augmented DOM method; helper function used only in tests where activeDocument is not available
+  return document.head as unknown as ObsidianDocumentHead;
+}
+
 vi.mock('obsidian-dev-utils/async', () => ({
-  invokeAsyncSafely: (...args: unknown[]): unknown => mockInvokeAsyncSafely(...args)
+  invokeAsyncSafely: (...args: unknown[]): unknown => (mockInvokeAsyncSafely as (...a: unknown[]) => unknown)(...args)
 }));
 
 vi.mock('obsidian-dev-utils/error', () => ({
-  printError: (...args: unknown[]): unknown => mockPrintError(...args)
+  printError: (...args: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...args)
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler-component', () => {
@@ -139,9 +148,10 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should execute the async callback that loads the plugin', async () => {
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        const _promise = fn();
-      });
+      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
+        await fn();
+      }
+      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
@@ -155,9 +165,10 @@ describe('TempPluginRegistry', () => {
 
     it('should show error notice and call printError when plugin load fails', async () => {
       const loadError = new Error('Load failed');
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        const _promise = fn();
-      });
+      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
+        await fn();
+      }
+      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
       const mockPlugin = createMockPlugin();
       mockPlugin.load.mockRejectedValue(loadError);
@@ -171,12 +182,12 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should create a style element when cssText is provided', async () => {
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        const _promise = fn();
-      });
+      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
+        await fn();
+      }
+      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
-      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('StyledPlugin', mockPlugin);
@@ -195,12 +206,12 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should not create a style element when cssText is not provided', async () => {
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        const _promise = fn();
-      });
+      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
+        await fn();
+      }
+      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
-      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('NoStylePlugin', mockPlugin);
@@ -217,12 +228,12 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should wrap tempPlugin.unload to clean up resources and delete from map', async () => {
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        const _promise = fn();
-      });
+      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
+        await fn();
+      }
+      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
-      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('WrappedPlugin', mockPlugin);
@@ -248,12 +259,12 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should show error notice when originalUnload throws during unload', async () => {
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        const _promise = fn();
-      });
+      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
+        await fn();
+      }
+      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
-      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
 
       // Create a plugin whose unload throws
       const unloadError = new Error('Unload failed');
@@ -279,13 +290,14 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should show failure Notice and call printError when wrapped unload throws', async () => {
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        const _promise = fn();
-      });
+      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
+        await fn();
+      }
+      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
-      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue({} as never);
-      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor' as keyof Notice);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
+      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to spy on constructor
+      const noticeSpy = vi.spyOn(Notice.prototype as unknown as { constructor: () => void }, 'constructor');
 
       const unloadError = new Error('Unload crash');
       const mockPlugin = createMockPlugin();
@@ -313,13 +325,13 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should remove style element when unloading a plugin that has cssText', async () => {
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        const _promise = fn();
-      });
+      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
+        await fn();
+      }
+      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
       const mockStyleEl = { remove: vi.fn() };
-      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for head element access in tests.
-      const createElSpy = vi.spyOn(document.head, 'createEl' as keyof HTMLHeadElement).mockReturnValue(mockStyleEl as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(mockStyleEl as never);
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('StyledUnloadPlugin', mockPlugin);

@@ -13,14 +13,14 @@ import { registerObsidianDevUtilsModule } from './obsidian-dev-utils-module.ts';
 const MOCK_NESTED_MODULE = { nestedFunc: (): string => 'nested' };
 const MOCK_ROOT_FUNC_RESULT = 'test';
 
-const mockGetNestedPropertyValue = vi.fn(() => MOCK_NESTED_MODULE);
+const mockGetNestedPropertyValue = vi.fn((_obj: unknown, _path: unknown) => MOCK_NESTED_MODULE);
 
 vi.mock('obsidian-dev-utils', () => ({
   someFunc: (): string => MOCK_ROOT_FUNC_RESULT
 }));
 
 vi.mock('obsidian-dev-utils/object-utils', () => ({
-  getNestedPropertyValue: (...args: unknown[]): unknown => mockGetNestedPropertyValue(...args)
+  getNestedPropertyValue: (obj: unknown, path: unknown): unknown => mockGetNestedPropertyValue(obj, path)
 }));
 
 vi.mock('obsidian-dev-utils/string', () => ({

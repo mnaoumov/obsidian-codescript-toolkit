@@ -86,10 +86,8 @@ vi.mock('obsidian-dev-utils/obsidian/components/async-component', () => {
   return {
     AsyncComponentBase: class MockAsyncComponentBase extends ObsidianComponent {
       public override load(): void {
-        const promise = Promise.resolve().then(async () => {
-          await this.onload();
-        });
-        onloadPromises.push(promise);
+        const onload = Reflect.get(this, 'onload') as () => Promise<void>;
+        onloadPromises.push(Promise.resolve().then(() => onload.call(this)));
       }
     }
   };
@@ -432,7 +430,7 @@ describe('ScriptRegistry', () => {
   describe('FunctionWrapperCommandHandler via registerScript + invokeScriptPath', () => {
     beforeEach(() => {
       // Registry must be loaded for addChild to trigger load on children
-      (registry as Record<string, unknown>)['loaded__'] = true;
+      Reflect.set(registry, 'loaded__', true);
     });
 
     it('should invoke script with invoke function successfully', async () => {
@@ -481,7 +479,7 @@ describe('ScriptRegistry', () => {
 
   describe('CommandWrapperCommandHandler via registerScript + invokeScriptPath', () => {
     beforeEach(() => {
-      (registry as Record<string, unknown>)['loaded__'] = true;
+      Reflect.set(registry, 'loaded__', true);
     });
 
     it('should invoke script with invokeCommand callback successfully', async () => {

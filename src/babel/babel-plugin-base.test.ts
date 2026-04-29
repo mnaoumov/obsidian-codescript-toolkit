@@ -1,4 +1,7 @@
+import type { BabelFileMetadata } from '@babel/core';
+
 import { transform } from '@babel/standalone';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   describe,
   expect,
@@ -76,7 +79,7 @@ describe('BabelPluginBase', () => {
         ast: null,
         code: null,
         map: null,
-        metadata: {} as Record<string, unknown>
+        metadata: strictProxy<BabelFileMetadata>({})
       });
 
       const plugin = new MinimalBabelPlugin();

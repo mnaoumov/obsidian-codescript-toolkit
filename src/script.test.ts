@@ -106,7 +106,7 @@ describe('ScriptManager', () => {
     mockApp = createMockApp();
     mockPluginSettingsComponent = createMockPluginSettingsComponent();
     mockConsoleDebugComponent = createMockConsoleDebugComponent();
-    scriptRegistry = new ScriptRegistry();
+    scriptRegistry = new ScriptRegistry({} as never);
 
     scriptManager = new ScriptManager({
       app: mockApp as never,

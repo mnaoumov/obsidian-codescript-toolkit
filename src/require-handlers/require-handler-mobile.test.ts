@@ -88,28 +88,28 @@ interface ReadFileBinaryAsyncAccessor {
 }
 
 function asExistsFileAsync(obj: RequireHandlerMobile): ExistsFileAsyncAccessor {
-  const partial: Partial<ExistsFileAsyncAccessor> = obj;
-  return partial as ExistsFileAsyncAccessor;
+  // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
+  return obj as unknown as ExistsFileAsyncAccessor;
 }
 
 function asExistsFolderAsync(obj: RequireHandlerMobile): ExistsFolderAsyncAccessor {
-  const partial: Partial<ExistsFolderAsyncAccessor> = obj;
-  return partial as ExistsFolderAsyncAccessor;
+  // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
+  return obj as unknown as ExistsFolderAsyncAccessor;
 }
 
 function asGetTimestampAsync(obj: RequireHandlerMobile): GetTimestampAsyncAccessor {
-  const partial: Partial<GetTimestampAsyncAccessor> = obj;
-  return partial as GetTimestampAsyncAccessor;
+  // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
+  return obj as unknown as GetTimestampAsyncAccessor;
 }
 
 function asReadFileAsync(obj: RequireHandlerMobile): ReadFileAsyncAccessor {
-  const partial: Partial<ReadFileAsyncAccessor> = obj;
-  return partial as ReadFileAsyncAccessor;
+  // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
+  return obj as unknown as ReadFileAsyncAccessor;
 }
 
 function asReadFileBinaryAsync(obj: RequireHandlerMobile): ReadFileBinaryAsyncAccessor {
-  const partial: Partial<ReadFileBinaryAsyncAccessor> = obj;
-  return partial as ReadFileBinaryAsyncAccessor;
+  // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
+  return obj as unknown as ReadFileBinaryAsyncAccessor;
 }
 
 function createMockParams(adapter?: unknown): RequireHandlerConstructorParams {

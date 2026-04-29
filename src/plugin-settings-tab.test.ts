@@ -122,7 +122,7 @@ vi.mock('obsidian', async (importOriginal) => ({
       }
     }
   },
-  stringifyYaml: (obj: unknown): string => JSON.stringify(obj)
+  stringifyYaml: (obj: unknown): unknown => JSON.stringify(obj)
 }));
 
 vi.mock('obsidian-dev-utils/async', () => ({
@@ -156,7 +156,10 @@ vi.mock('obsidian-dev-utils/obsidian/plugin/plugin-settings-tab', () => ({
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/setting-ex', () => ({
-  SettingEx: vi.fn().mockImplementation(function mockSettingExConstructor() { return mockSettingExInstance; })
+  // eslint-disable-next-line prefer-arrow-callback -- must be a constructor function for `new`
+  SettingEx: vi.fn().mockImplementation(function mockSettingExConstructor() {
+    return mockSettingExInstance;
+  })
 }));
 
 vi.mock('./code-button-block.ts', () => ({

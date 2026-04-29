@@ -15,7 +15,7 @@ import { StartupScriptComponent } from './startup-script.ts';
 
 // Notice is used in startup-script.ts without an import — make it available globally
 // So the source code can reference it at runtime.
-(window as Record<string, unknown>).Notice = Notice;
+Reflect.set(window, 'Notice', Notice);
 
 interface MockApp {
   vault: MockVault;
@@ -295,7 +295,7 @@ describe('StartupScriptComponent', () => {
       });
 
       try {
-        const validateStartupScript = (component as Record<string, unknown>)['validateStartupScript'] as (shouldWarn: boolean) => Promise<null | string>;
+        const validateStartupScript = Reflect.get(component, 'validateStartupScript') as (shouldWarn: boolean) => Promise<null | string>;
         const result = await validateStartupScript.call(component, true);
 
         expect(result).toBeNull();

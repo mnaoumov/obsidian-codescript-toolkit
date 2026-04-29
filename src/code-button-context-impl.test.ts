@@ -4,6 +4,7 @@ import type {
 } from 'obsidian';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -85,7 +86,6 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImpl 
   const partialCtx: Partial<MarkdownPostProcessorContext> = {
     addChild: vi.fn(),
     docId: 'doc-1',
-    el: parentEl,
     frontmatter: undefined,
     getSectionInfo: vi.fn().mockReturnValue(null),
     sourcePath: params.sourcePath ?? 'notes/test.md'
@@ -166,8 +166,7 @@ describe('CodeButtonContextImpl', () => {
     });
 
     it('should assign markdownInfo from params', () => {
-      const partialInfo: Partial<CodeBlockMarkdownInformation> = { args: [], lineStart: 0 };
-      const info = partialInfo as CodeBlockMarkdownInformation;
+      const info = strictProxy<CodeBlockMarkdownInformation>({ args: [] });
       const context = createContext({ markdownInfo: info });
       expect(context.markdownInfo).toBe(info);
     });
