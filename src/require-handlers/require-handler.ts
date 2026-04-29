@@ -1,7 +1,4 @@
 import type { Code } from 'mdast';
-import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
 import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 import type { Promisable } from 'type-fest';
@@ -180,11 +177,8 @@ export interface RequireHandler extends AsyncComponentBase {
 }
 
 export interface RequireHandlerConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
   readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly tempPluginRegistry: TempPluginRegistry;
@@ -197,11 +191,8 @@ export interface RequireStringAsyncParams {
 }
 
 export abstract class RequireHandlerBase extends AsyncComponentBase implements RequireHandler {
-  protected readonly activeFileProvider: ActiveFileProvider;
   protected readonly app: App;
-  protected readonly commandRegistrar: CommandRegistrar;
   protected readonly currentModulesTimestampChain = new Set<string>();
-  protected readonly menuEventRegistrar: MenuEventRegistrar;
   protected readonly moduleDependencies = new Map<string, Set<string>>();
   protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
@@ -227,9 +218,6 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     super();
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
-    this.activeFileProvider = params.activeFileProvider;
-    this.commandRegistrar = params.commandRegistrar;
-    this.menuEventRegistrar = params.menuEventRegistrar;
     this.consoleDebugComponent = params.consoleDebugComponent;
     this.tempPluginRegistry = params.tempPluginRegistry;
   }

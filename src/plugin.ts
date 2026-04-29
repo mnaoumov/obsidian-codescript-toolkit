@@ -57,11 +57,8 @@ export class Plugin extends PluginBase {
 
     const requireHandlerFactory = this.addChild(
       new RequireHandlerFactory({
-        activeFileProvider,
         app: this.app,
-        commandRegistrar,
         consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar,
         pluginRequire: require,
         pluginSettingsComponent,
         tempPluginRegistry
@@ -76,16 +73,18 @@ export class Plugin extends PluginBase {
       })
     );
 
-    const scriptRegistry = this.addChild(new ScriptRegistry({
-      activeFileProvider,
-      app: this.app,
-      commandRegistrar,
-      consoleDebugComponent: this.consoleDebugComponent,
-      menuEventRegistrar,
-      pluginName: this.manifest.name,
-      pluginSettingsComponent,
-      requireHandlerFactory
-    }));
+    const scriptRegistry = this.addChild(
+      new ScriptRegistry({
+        activeFileProvider,
+        app: this.app,
+        commandRegistrar,
+        consoleDebugComponent: this.consoleDebugComponent,
+        menuEventRegistrar,
+        pluginName: this.manifest.name,
+        pluginSettingsComponent,
+        requireHandlerFactory
+      })
+    );
 
     const scriptManager = new ScriptManager({
       app: this.app,
