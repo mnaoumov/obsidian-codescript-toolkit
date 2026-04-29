@@ -1,6 +1,7 @@
 {
   "version": "0.2",
   "ignorePaths": [
+    "coverage",
     "dist",
     "node_modules",
     "tsconfig.tsbuildinfo"
@@ -29,6 +30,7 @@
     "lezer",
     "loong",
     "mnaoumov",
+    "mtimes",
     "nameof",
     "Naumov",
     "obsidianmd",
@@ -41,7 +43,8 @@
     "riscv",
     "Templater",
     "tsbuildinfo",
-    "Unixlike"
+    "Unixlike",
+    "unstub"
   ],
   "ignoreWords": [],
   "import": [],
