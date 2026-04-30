@@ -1,76 +1,51 @@
+import { evalInObsidian } from 'obsidian-integration-testing';
+import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
 import {
-  evalInObsidian,
-  TempVault
-} from 'obsidian-integration-testing';
-import {
-  afterAll,
   beforeAll,
   describe,
   expect,
   it
 } from 'vitest';
 
-interface PluginSettingsComponentLike {
-  settings: Record<string, unknown>;
-}
-
 type RequireAsyncFn = (id: string, options?: Record<string, unknown>) => Promise<unknown>;
 type RequireAsyncWrapperFn = (fn: (require: (id: string, options?: Record<string, unknown>) => unknown) => unknown) => Promise<unknown>;
 
-const MODULES_ROOT = '_scripts';
-const PLUGIN_ID = 'fix-require-modules';
+const SCRIPTS_DIR = '_int-test-scripts';
 
-let vault: TempVault;
-
-beforeAll(async () => {
-  vault = new TempVault();
+beforeAll(() => {
+  const vault = getTempVault();
 
   vault.populate({
-    [`${MODULES_ROOT}/module.cjs`]: 'exports.value = 42;',
-    [`${MODULES_ROOT}/module.cts`]: 'exports.value = \'cts-\' + (1 + 2).toString();',
-    [`${MODULES_ROOT}/module.json`]: JSON.stringify({ key: 'val', num: 7 }),
-    [`${MODULES_ROOT}/module.md`]: [
+    [`${SCRIPTS_DIR}/module.cjs`]: 'exports.value = 42;',
+    [`${SCRIPTS_DIR}/module.cts`]: 'exports.value = \'cts-\' + (1 + 2).toString();',
+    [`${SCRIPTS_DIR}/module.json`]: JSON.stringify({ key: 'val', num: 7 }),
+    [`${SCRIPTS_DIR}/module.md`]: [
       '```code-script',
       'export const mdValue = "from-markdown";',
       '```'
     ].join('\n'),
-    [`${MODULES_ROOT}/module.mjs`]: 'export const value = \'esm-ok\';',
-    [`${MODULES_ROOT}/module.mts`]: 'export const value: string = \'mts-ok\';',
-    [`${MODULES_ROOT}/nested/child.cjs`]: 'exports.child = true;',
-    [`${MODULES_ROOT}/relative-parent.cjs`]: 'const child = require(\'./nested/child.cjs\'); exports.childValue = child.child;',
-    [`${MODULES_ROOT}/top-level-await.mjs`]: 'const x = await Promise.resolve(99); export { x };'
-  });
-
-  await vault.register();
-
-  await evalInObsidian({
-    args: { modulesRoot: MODULES_ROOT, pluginId: PLUGIN_ID },
-    fn({ app, modulesRoot, pluginId }) {
-      const plugin = app.plugins.plugins[pluginId];
-      if (!plugin) {
-        throw new Error(`Plugin ${pluginId} not found`);
-      }
-
-      const settingsComponent = Reflect.get(plugin, 'pluginSettingsComponent') as PluginSettingsComponentLike;
-      settingsComponent.settings['modulesRoot'] = modulesRoot;
-    },
-    vaultPath: vault.path
+    [`${SCRIPTS_DIR}/module.mjs`]: 'export const value = \'esm-ok\';',
+    [`${SCRIPTS_DIR}/module.mts`]: 'export const value: string = \'mts-ok\';',
+    [`${SCRIPTS_DIR}/nested/child.cjs`]: 'exports.child = true;',
+    [`${SCRIPTS_DIR}/relative-parent.cjs`]: 'const child = require(\'./nested/child.cjs\'); exports.childValue = child.child;',
+    [`${SCRIPTS_DIR}/top-level-await.mjs`]: 'const x = await Promise.resolve(99); export { x };'
   });
 });
 
-afterAll(async () => {
-  await vault.dispose();
-});
+function vaultPath(): string {
+  return getTempVault().path;
+}
 
 describe('RequireHandler integration', () => {
   describe('module formats', () => {
     it('should require a CJS module', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          return (await requireAsync('/module.cjs')) as Record<string, unknown>;
+          return (await requireAsync(`//${dir}/module.cjs`)) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toHaveProperty('value', 42);
@@ -78,11 +53,12 @@ describe('RequireHandler integration', () => {
 
     it('should require an ESM module', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          return (await requireAsync('/module.mjs')) as Record<string, unknown>;
+          return (await requireAsync(`//${dir}/module.mjs`)) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toHaveProperty('value', 'esm-ok');
@@ -90,11 +66,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a TypeScript CTS module', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          return (await requireAsync('/module.cts')) as Record<string, unknown>;
+          return (await requireAsync(`//${dir}/module.cts`)) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toHaveProperty('value', 'cts-3');
@@ -102,11 +79,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a TypeScript MTS module', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          return (await requireAsync('/module.mts')) as Record<string, unknown>;
+          return (await requireAsync(`//${dir}/module.mts`)) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toHaveProperty('value', 'mts-ok');
@@ -114,11 +92,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a JSON module', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          return (await requireAsync('/module.json')) as Record<string, unknown>;
+          return (await requireAsync(`//${dir}/module.json`)) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toEqual({ key: 'val', num: 7 });
@@ -126,11 +105,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a Markdown module with code-script block', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          return (await requireAsync('/module.md')) as Record<string, unknown>;
+          return (await requireAsync(`//${dir}/module.md`)) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toHaveProperty('mdValue', 'from-markdown');
@@ -140,14 +120,14 @@ describe('RequireHandler integration', () => {
   describe('path resolution', () => {
     it('should resolve relative paths with parentPath option', async () => {
       const result = await evalInObsidian({
-        args: { modulesRoot: MODULES_ROOT },
-        async fn({ modulesRoot }) {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
           return (await requireAsync('./nested/child.cjs', {
-            parentPath: `${modulesRoot}/relative-parent.cjs`
+            parentPath: `${dir}/relative-parent.cjs`
           })) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toHaveProperty('child', true);
@@ -155,11 +135,12 @@ describe('RequireHandler integration', () => {
 
     it('should resolve transitive require chains', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          return (await requireAsync('/relative-parent.cjs')) as Record<string, unknown>;
+          return (await requireAsync(`//${dir}/relative-parent.cjs`)) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toHaveProperty('childValue', true);
@@ -177,7 +158,7 @@ describe('RequireHandler integration', () => {
             hasPlugin: typeof mod['Plugin'] === 'function'
           };
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result.hasNotice).toBe(true);
@@ -193,7 +174,7 @@ describe('RequireHandler integration', () => {
             hasEditorState: typeof mod['EditorState'] === 'function'
           };
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result.hasEditorState).toBe(true);
@@ -203,11 +184,12 @@ describe('RequireHandler integration', () => {
   describe('async features', () => {
     it('should support top-level await in requireAsync', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          return (await requireAsync('/top-level-await.mjs')) as Record<string, unknown>;
+          return (await requireAsync(`//${dir}/top-level-await.mjs`)) as Record<string, unknown>;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toHaveProperty('x', 99);
@@ -215,15 +197,17 @@ describe('RequireHandler integration', () => {
 
     it('should support requireAsyncWrapper', async () => {
       const result = await evalInObsidian({
-        async fn() {
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
           const requireAsyncWrapper = Reflect.get(window, 'requireAsyncWrapper') as RequireAsyncWrapperFn;
           return (await requireAsyncWrapper((require) => {
-            // eslint-disable-next-line import-x/no-absolute-path -- vault-root-relative path, not filesystem absolute
-            const mod = require('/module.cjs') as Record<string, unknown>;
+            const modulePath = `//${dir}/module.cjs`;
+            // eslint-disable-next-line import-x/no-dynamic-require -- vault-root-relative path resolved at runtime
+            const mod = require(modulePath) as Record<string, unknown>;
             return mod['value'];
           })) as number;
         },
-        vaultPath: vault.path
+        vaultPath: vaultPath()
       });
 
       expect(result).toBe(42);
