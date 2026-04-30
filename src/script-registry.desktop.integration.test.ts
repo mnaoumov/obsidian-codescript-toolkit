@@ -23,38 +23,21 @@ beforeAll(async () => {
       shouldHandleProtocolUrls: false,
       shouldUseSyncFallback: false,
       startupScriptPath: ''
-    })
+    }),
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke.cjs`]: 'exports.invoke = () => { window.__invocableResult = "invoked"; };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/ts-invoke.ts`]: 'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'
   });
 
-  // Create invocable scripts via Obsidian's vault API so they're indexed
   await evalInObsidian({
-    args: {
-      invocablesFolder: INVOCABLES_FOLDER,
-      modulesRoot: MODULES_ROOT,
-      pluginId: PLUGIN_ID
-    },
-    async fn({ app, invocablesFolder, modulesRoot, pluginId }) {
-      const scriptDir = `${modulesRoot}/${invocablesFolder}`;
-
-      await app.vault.adapter.mkdir(scriptDir);
-      await app.vault.adapter.write(
-        `${scriptDir}/simple-invoke.cjs`,
-        'exports.invoke = () => { window.__invocableResult = "invoked"; };'
-      );
-      await app.vault.adapter.write(
-        `${scriptDir}/ts-invoke.ts`,
-        'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'
-      );
-
+    args: { pluginId: PLUGIN_ID },
+    async fn({ app, pluginId }) {
       // Reload plugin to pick up new data.json + scripts
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
 
       // Wait for async onload and script folder watcher to complete
       const WATCHER_SETTLE_DELAY_MS = 3000;
-      await new Promise((resolve) => {
-        window.setTimeout(resolve, WATCHER_SETTLE_DELAY_MS);
-      });
+      await sleep(WATCHER_SETTLE_DELAY_MS);
     },
     vaultPath: vault.path
   });
@@ -92,9 +75,7 @@ describe('ScriptRegistry integration', () => {
 
         app.commands.executeCommandById(commandId);
         const COMMAND_EXECUTION_DELAY_MS = 500;
-        await new Promise((resolve) => {
-          window.setTimeout(resolve, COMMAND_EXECUTION_DELAY_MS);
-        });
+        await sleep(COMMAND_EXECUTION_DELAY_MS);
         const invocableResult = Reflect.get(window, '__invocableResult') as string | undefined;
         return { executed: true, result: invocableResult };
       },

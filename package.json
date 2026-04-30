@@ -44,6 +44,7 @@
     "commitizen": "latest",
     "cz-conventional-changelog": "latest",
     "debuggable-eval": "latest",
+    "dedent": "^1.7.2",
     "eslint": "latest",
     "husky": "latest",
     "jiti": "latest",

@@ -1,3 +1,4 @@
+import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
 import {
@@ -19,11 +20,11 @@ beforeAll(() => {
     [`${SCRIPTS_DIR}/module.cjs`]: 'exports.value = 42;',
     [`${SCRIPTS_DIR}/module.cts`]: 'exports.value = \'cts-\' + (1 + 2).toString();',
     [`${SCRIPTS_DIR}/module.json`]: JSON.stringify({ key: 'val', num: 7 }),
-    [`${SCRIPTS_DIR}/module.md`]: [
-      '```code-script',
-      'export const mdValue = "from-markdown";',
-      '```'
-    ].join('\n'),
+    [`${SCRIPTS_DIR}/module.md`]: dedent`
+      \`\`\`code-script
+      export const mdValue = "from-markdown";
+      \`\`\`
+    `,
     [`${SCRIPTS_DIR}/module.mjs`]: 'export const value = \'esm-ok\';',
     [`${SCRIPTS_DIR}/module.mts`]: 'export const value: string = \'mts-ok\';',
     [`${SCRIPTS_DIR}/nested/child.cjs`]: 'exports.child = true;',
