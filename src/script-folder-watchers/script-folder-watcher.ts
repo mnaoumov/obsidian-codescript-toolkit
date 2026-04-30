@@ -30,6 +30,7 @@ export abstract class ScriptFolderWatcher extends AsyncComponentBase {
     await super.onload();
     registerAsyncEvent(this, this.pluginSettingsComponent.on('loadSettings', this.applyNewSettings.bind(this)));
     registerAsyncEvent(this, this.pluginSettingsComponent.on('saveSettings', this.applyNewSettings.bind(this)));
+    await this.applyNewSettings();
   }
 
   public async register2(onChange: () => Promise<void>): Promise<void> {
