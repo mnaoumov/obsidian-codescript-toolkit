@@ -4,7 +4,7 @@ During runtime execution of the code button block, the following variable is ava
 
 The variable contains all metadata and helper functions available during runtime execution.
 
-See [spec](../src/CodeButtonContext.ts) for all possible values.
+See [spec](../src/code-button-context.ts) for all possible values.
 
 ## `codeButtonContext.container`
 

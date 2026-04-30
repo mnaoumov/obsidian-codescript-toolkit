@@ -25,7 +25,7 @@ The config block is optional and all keys are optional. If the config key is mis
 
 To simplify adding new button you can use command `CodeScript Toolkit: Insert sample code button`.
 
-See [spec](../src/CodeButtonBlockConfig.ts) for all config keys.
+See [spec](../src/code-button-block-config.ts) for all config keys.
 
 ## Override default button config
 
