@@ -11,26 +11,29 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (45 tests)
+## Integration test coverage (51 tests)
 
-| Feature                                                                           | Tests |
-|-----------------------------------------------------------------------------------|-------|
-| Module formats (CJS, ESM, CTS, MTS, JSON, MD)                                     | 6     |
-| Path resolution (relative, transitive)                                            | 2     |
-| Built-in modules (obsidian, @codemirror)                                          | 2     |
-| Async (top-level await, dynamic import, requireAsyncWrapper)                      | 3     |
-| NPM modules from vault node_modules                                               | 1     |
-| Smart caching (cacheInvalidationMode: always)                                     | 1     |
-| Special modules (obsidian/app, obsidian-dev-utils, specialModuleNames, node:path) | 4     |
-| Clear cache command (never mode + clear-cache)                                    | 1     |
-| Invocable scripts (register, execute, TS, invokeCommand, checkCallback, editor)   | 6     |
-| Code buttons (render, autoRun, isRaw, import transform)                           | 4     |
-| Code-button context (renderMarkdown, insertBefore/After, remove, replace)         | 5     |
-| Code-button config (shouldAutoOutput, shouldWrapConsole, removeAfterExecution)    | 3     |
-| Startup script (invoke, cleanup+reload)                                           | 2     |
-| Protocol handler (module via code, inline code)                                   | 2     |
-| Temp plugin registry (API access, register+unregister)                            | 2     |
-| Smoke test                                                                        | 1     |
+| Feature                                                                                       | Tests |
+|-----------------------------------------------------------------------------------------------|-------|
+| Module formats (CJS, ESM, CTS, MTS, JSON, MD)                                                 | 6     |
+| Path resolution (relative, transitive)                                                        | 2     |
+| Built-in modules (obsidian, @codemirror)                                                      | 2     |
+| Async (top-level await, dynamic import, requireAsyncWrapper)                                  | 3     |
+| NPM modules from vault node_modules                                                           | 1     |
+| Smart caching (cacheInvalidationMode: always)                                                 | 1     |
+| Special modules (obsidian/app, obsidian-dev-utils, specialModuleNames, node:path)             | 4     |
+| Desktop modules (electron, @electron/remote)                                                  | 2     |
+| Module type override (load .txt as JS, load .dat as JSON)                                     | 2     |
+| Source maps (TS module transformation)                                                        | 1     |
+| Clear cache command (never mode + clear-cache)                                                | 1     |
+| Invocable scripts (register, execute, TS, invokeCommand, checkCallback, editor, editorCheck)  | 7     |
+| Code buttons (render, autoRun, isRaw, import transform)                                       | 4     |
+| Code-button context (renderMarkdown, insertBefore/After, remove, replace)                     | 5     |
+| Code-button config (shouldAutoOutput, shouldWrapConsole, removeAfterExecution)                | 3     |
+| Startup script (invoke, cleanup+reload)                                                       | 2     |
+| Protocol handler (module via code, inline code)                                               | 2     |
+| Temp plugin registry (API access, register+unregister)                                        | 2     |
+| Smoke test                                                                                    | 1     |
 
 ## Remaining gaps to investigate
 
@@ -48,7 +51,6 @@ Features that exist in code but may lack one or more of: docs, demo vault, integ
 - Source maps, override module type
 - Additional desktop modules (electron, @electron/remote)
 - Hotkey assignment
-- editorCheckCallback (condition check + editor execution combined)
 
 **Docs gaps:**
 
@@ -56,7 +58,7 @@ Features that exist in code but may lack one or more of: docs, demo vault, integ
 
 ### Next steps
 
-1. Add integration tests for remaining gaps (WASM, ASAR, source maps, electron modules, hotkey, editorCheckCallback)
+1. Add integration tests for remaining gaps (WASM, ASAR, hotkey)
 2. Add `requireAsyncWrapper()` demo to vault
 3. Consider adding docs pages for plugin integrations (currently demo-vault-only)
 

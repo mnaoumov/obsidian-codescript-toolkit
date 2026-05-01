@@ -415,25 +415,31 @@ describe('RequireHandler integration', () => {
   });
 
   describe('source maps', () => {
-    it('should generate inline source map for TypeScript module', async () => {
+    it('should include source file path in error stack trace via source maps', async () => {
       const result = await evalInObsidian({
         args: { dir: SCRIPTS_DIR },
         async fn({ app, dir }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const tsPath = `${dir}/sourcemap-test.ts`;
-          await app.vault.adapter.write(tsPath, 'export const smValue: string = "sm-ok";');
+          const tsPath = `${dir}/sourcemap-error.ts`;
+          await app.vault.adapter.write(tsPath, 'export function throwErr(): never { throw new Error("source-map-test"); }');
 
-          // Load module to trigger transformation
           const mod = (await requireAsync(`//${tsPath}`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const throwErr = mod['throwErr'] as () => never;
 
-          // Read the cached/transformed file to check for source map
-          // The module should work correctly regardless
-          return { value: mod['smValue'] };
+          try {
+            throwErr();
+            return { error: 'Did not throw', hasSourcePath: false };
+          } catch (e: unknown) {
+            const stack = (e as Error).stack ?? '';
+            // Source map should map the error back to the original .ts file path
+            const hasSourcePath = stack.includes(tsPath) || stack.includes('sourcemap-error');
+            return { hasSourcePath, stack: stack.substring(0, 500) };
+          }
         },
         vaultPath: vaultPath()
       });
 
-      expect(result.value).toBe('sm-ok');
+      expect(result.hasSourcePath).toBe(true);
     });
   });
 
