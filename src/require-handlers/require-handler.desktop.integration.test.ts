@@ -281,4 +281,108 @@ describe('RequireHandler integration', () => {
       expect(result.v2).toBe(2);
     });
   });
+
+  describe('special modules', () => {
+    it('should require obsidian/app module', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const appModule = (await requireAsync('obsidian/app')) as Record<string, unknown>;
+          return {
+            hasVault: typeof appModule['vault'] === 'object',
+            hasWorkspace: typeof appModule['workspace'] === 'object'
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasVault).toBe(true);
+      expect(result.hasWorkspace).toBe(true);
+    });
+
+    it('should require obsidian-dev-utils module', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = await requireAsync('obsidian-dev-utils');
+          return { hasKeys: Object.keys(mod as object).length > 0 };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasKeys).toBe(true);
+    });
+
+    it('should require obsidian/specialModuleNames module', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = (await requireAsync('obsidian/specialModuleNames')) as Record<string, unknown>;
+          return {
+            hasNodeBuiltIn: Array.isArray(mod['nodeBuiltInModuleNames']),
+            hasObsidianBuiltIn: Array.isArray(mod['obsidianBuiltInModuleNames'])
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasNodeBuiltIn).toBe(true);
+      expect(result.hasObsidianBuiltIn).toBe(true);
+    });
+
+    it('should require Node built-in module via node: prefix', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const pathMod = (await requireAsync('node:path')) as Record<string, unknown>;
+          return {
+            hasJoin: typeof pathMod['join'] === 'function',
+            hasResolve: typeof pathMod['resolve'] === 'function'
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasJoin).toBe(true);
+      expect(result.hasResolve).toBe(true);
+    });
+  });
+
+  describe('clear cache', () => {
+    it('should clear cache so re-require gets fresh module', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR, pluginId: 'fix-require-modules' },
+        async fn({ app, dir, pluginId }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const cachePath = `${dir}/clear-cache-test.cjs`;
+
+          // Write and require version 1
+          await app.vault.adapter.write(cachePath, 'exports.version = 1;');
+          const mod1 = (await requireAsync(`//${cachePath}`)) as Record<string, unknown>;
+          const v1 = mod1['version'];
+
+          // Overwrite with version 2
+          await app.vault.adapter.write(cachePath, 'exports.version = 2;');
+
+          // With cacheInvalidationMode: never, should still get version 1
+          const mod2 = (await requireAsync(`//${cachePath}`, { cacheInvalidationMode: 'never' })) as Record<string, unknown>;
+          const v2Cached = mod2['version'];
+
+          // Clear cache via command
+          app.commands.executeCommandById(`${pluginId}:clear-cache`);
+
+          // Now re-require should get version 2
+          const mod3 = (await requireAsync(`//${cachePath}`)) as Record<string, unknown>;
+          const v3Fresh = mod3['version'];
+
+          return { v1, v2Cached, v3Fresh };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.v1).toBe(1);
+      expect(result.v2Cached).toBe(1);
+      expect(result.v3Fresh).toBe(2);
+    });
+  });
 });
