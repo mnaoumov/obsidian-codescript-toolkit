@@ -29,6 +29,8 @@ beforeAll(async () => {
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/cmd-invoke.cjs`]: 'exports.invokeCommand = { callback: () => { window.__cmdInvoked = true; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-callback.cjs`]:
       'exports.invokeCommand = { editorCallback: (editor) => { window.__editorCallbackInvoked = true; window.__editorExists = typeof editor.getValue === "function"; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-check-callback.cjs`]:
+      'exports.invokeCommand = { editorCheckCallback: (checking, editor) => { if (checking) { return editor !== undefined; } window.__editorCheckCallbackInvoked = true; window.__editorCheckHasEditor = typeof editor.getValue === "function"; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke.cjs`]: 'exports.invoke = () => { window.__invocableResult = "invoked"; };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/ts-invoke.ts`]: 'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'
   });
@@ -186,5 +188,38 @@ describe('ScriptRegistry integration', () => {
 
     expect(result.executed).toBe(true);
     expect(result.editorExists).toBe(true);
+  });
+
+  it('should execute editorCheckCallback invocable script with condition check and editor', async () => {
+    const result = await evalInObsidian({
+      args: { pluginId: PLUGIN_ID },
+      async fn({ app, pluginId }) {
+        // EditorCheckCallback requires an active editor
+        await app.workspace.openLinkText(`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke`, '', false);
+        const SETTLE_DELAY_MS = 500;
+        await sleep(SETTLE_DELAY_MS);
+
+        const commandId = Object.keys(app.commands.commands)
+          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-check-callback'));
+
+        if (!commandId) {
+          return { editorHasEditor: false, error: 'Command not found', executed: false };
+        }
+
+        Reflect.deleteProperty(window, '__editorCheckCallbackInvoked');
+        Reflect.deleteProperty(window, '__editorCheckHasEditor');
+        app.commands.executeCommandById(commandId);
+        const COMMAND_EXECUTION_DELAY_MS = 500;
+        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        const executed = Reflect.get(window, '__editorCheckCallbackInvoked') === true;
+        const editorHasEditor = Reflect.get(window, '__editorCheckHasEditor') === true;
+        return { editorHasEditor, executed };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.executed).toBe(true);
+    expect(result.editorHasEditor).toBe(true);
   });
 });

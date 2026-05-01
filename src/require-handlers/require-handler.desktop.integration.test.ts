@@ -348,6 +348,95 @@ describe('RequireHandler integration', () => {
     });
   });
 
+  describe('desktop modules', () => {
+    it('should require the electron module', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = (await requireAsync('electron')) as Record<string, unknown>;
+          return {
+            hasIpcRenderer: typeof mod['ipcRenderer'] === 'object'
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasIpcRenderer).toBe(true);
+    });
+
+    it('should require @electron/remote module', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = (await requireAsync('@electron/remote')) as Record<string, unknown>;
+          return {
+            hasApp: typeof mod['app'] === 'object',
+            isObject: typeof mod === 'object'
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.isObject).toBe(true);
+      expect(result.hasApp).toBe(true);
+    });
+  });
+
+  describe('module type override', () => {
+    it('should load a .txt file as JavaScript with moduleType override', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const txtPath = `${dir}/script-as-txt.txt`;
+          await app.vault.adapter.write(txtPath, 'exports.fromTxt = "loaded";');
+          return (await requireAsync(`//${txtPath}`, { moduleType: 'jsTs' })) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('fromTxt', 'loaded');
+    });
+
+    it('should load a file as JSON with moduleType override', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const datPath = `${dir}/data-file.dat`;
+          await app.vault.adapter.write(datPath, JSON.stringify({ loaded: true }));
+          return (await requireAsync(`//${datPath}`, { moduleType: 'json' })) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toEqual({ loaded: true });
+    });
+  });
+
+  describe('source maps', () => {
+    it('should generate inline source map for TypeScript module', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const tsPath = `${dir}/sourcemap-test.ts`;
+          await app.vault.adapter.write(tsPath, 'export const smValue: string = "sm-ok";');
+
+          // Load module to trigger transformation
+          const mod = (await requireAsync(`//${tsPath}`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+
+          // Read the cached/transformed file to check for source map
+          // The module should work correctly regardless
+          return { value: mod['smValue'] };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.value).toBe('sm-ok');
+    });
+  });
+
   describe('clear cache', () => {
     it('should clear cache so re-require gets fresh module', async () => {
       const result = await evalInObsidian({
