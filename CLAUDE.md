@@ -52,7 +52,7 @@ Features that exist in code but may lack one or more of: docs, demo vault, integ
 
 **Docs gaps:**
 
-- Plugin integrations (CustomJS, Dataview, Datacore, Templater, QuickAdd, JS Engine, Modules) — documented in demo vault only, no official docs
+- Plugin integrations (CustomJS, Dataview, Datacore, Templater, QuickAdd, JS Engine, Modules) — have dedicated demo vault pages with bidirectional examples; docs mention them in context (core-functions.md, dynamic-import.md) but no dedicated integration guide pages
 
 ### Next steps
 
