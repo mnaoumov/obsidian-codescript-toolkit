@@ -29,6 +29,15 @@ beforeAll(() => {
       window.__codeButtonResult = 42;
       \`\`\`
     `,
+    '_int-test-buttons/raw.md': dedent`
+      \`\`\`code-button
+      ---
+      isRaw: true
+      shouldShowSystemMessages: false
+      ---
+      window.__rawResult = "raw-executed";
+      \`\`\`
+    `,
     '_int-test-buttons/with-import.md': dedent`
       \`\`\`code-button
       ---
@@ -106,6 +115,35 @@ describe('CodeButtonBlock integration', () => {
     });
 
     expect(result.autoRunResult).toBe('auto-ran');
+  });
+
+  it('should execute isRaw code button without visible button', async () => {
+    const result = await evalInObsidian({
+      args: { renderDelay: RENDER_DELAY_MS },
+      async fn({ app, obsidianModule, renderDelay }) {
+        Reflect.deleteProperty(window, '__rawResult');
+
+        await app.workspace.openLinkText('_int-test-buttons/raw', '', false);
+        const leaf = app.workspace.getLeaf(false);
+        await leaf.setViewState({
+          state: { file: '_int-test-buttons/raw.md', mode: 'preview' },
+          type: 'markdown'
+        });
+        await sleep(renderDelay);
+
+        const rawResult = Reflect.get(window, '__rawResult') as string | undefined;
+
+        // IsRaw should NOT show a button
+        const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
+        const buttons = view?.containerEl.querySelectorAll('button.fix-require-modules-run-button') ?? [];
+
+        return { buttonCount: buttons.length, rawResult };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.rawResult).toBe('raw-executed');
+    expect(result.buttonCount).toBe(0);
   });
 
   it('should transform import statements in code buttons', async () => {

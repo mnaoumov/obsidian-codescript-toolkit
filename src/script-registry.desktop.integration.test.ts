@@ -24,6 +24,7 @@ beforeAll(async () => {
       shouldUseSyncFallback: false,
       startupScriptPath: ''
     }),
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/cmd-invoke.cjs`]: 'exports.invokeCommand = { callback: () => { window.__cmdInvoked = true; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke.cjs`]: 'exports.invoke = () => { window.__invocableResult = "invoked"; };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/ts-invoke.ts`]: 'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'
   });
@@ -98,5 +99,30 @@ describe('ScriptRegistry integration', () => {
     });
 
     expect(result.found).toBe(true);
+  });
+
+  it('should register and execute invokeCommand pattern', async () => {
+    const result = await evalInObsidian({
+      args: { pluginId: PLUGIN_ID },
+      async fn({ app, pluginId }) {
+        const commandId = Object.keys(app.commands.commands)
+          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('cmd-invoke'));
+
+        if (!commandId) {
+          return { error: 'Command not found', executed: false };
+        }
+
+        Reflect.deleteProperty(window, '__cmdInvoked');
+        app.commands.executeCommandById(commandId);
+        const COMMAND_EXECUTION_DELAY_MS = 500;
+        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        const cmdInvoked = Reflect.get(window, '__cmdInvoked') === true;
+        return { executed: cmdInvoked };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.executed).toBe(true);
   });
 });
