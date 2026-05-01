@@ -4,14 +4,14 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 
 ## What's done
 
-- 30 integration tests across 7 files, all passing
+- 35 integration tests across 7 files, all passing
 - Bug fix: ScriptFolderWatcher missed initial loadSettings event (component load ordering)
 - Bug fix: broken relative links in docs/code-button-config.md and docs/code-button-context.md
 - Workaround: afterAll detaches markdown leaves to avoid CLI eval interference
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (30 tests)
+## Integration test coverage (35 tests)
 
 |Feature|Tests|
 |---|---|
@@ -21,6 +21,8 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 |Async (top-level await, dynamic import, requireAsyncWrapper)|3|
 |NPM modules from vault node_modules|1|
 |Smart caching (cacheInvalidationMode: always)|1|
+|Special modules (obsidian/app, obsidian-dev-utils, specialModuleNames, node:path)|4|
+|Clear cache command (never mode + clear-cache)|1|
 |Invocable scripts (register, execute, TS, invokeCommand)|4|
 |Code buttons (render, autoRun, isRaw, import transform)|4|
 |Startup script (invoke, cleanup+reload)|2|
@@ -32,18 +34,31 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 
 Features that exist in code but may lack one or more of: docs, demo vault, integration test.
 
-### Identified gaps from earlier analysis
+### Identified gaps
 
-- **Demo vault gap**: `requireAsyncWrapper()` — documented + tested but no interactive demo
-- **Integration test gaps** (documented + demoed but no test): vault-root-relative paths, Node built-in modules, WASM, ASAR, file/resource/HTTP URLs, clear cache command, source maps, override module type, `obsidian/app` module, `obsidian/specialModuleNames`, `obsidian-dev-utils` module, `codescript-toolkit` module helpers, additional desktop modules (electron, @electron/remote), code-button context methods (container, renderMarkdown, insertBefore/After, removeCodeButtonBlock, replaceCodeButtonBlock)
+**Demo vault gap:**
+
+- `requireAsyncWrapper()` — documented + tested but no interactive demo
+
+**Integration test gaps** (documented + demoed but no test):
+
+- WASM modules, ASAR archives, file/resource/HTTP URLs
+- Source maps, override module type
+- Additional desktop modules (electron, @electron/remote)
+- Code-button config options: shouldAutoOutput, removeAfterExecution, shouldWrapConsole
+- Code-button context methods: container, renderMarkdown, insertBefore/After, removeCodeButtonBlock, replaceCodeButtonBlock
+- Invocable script callbacks: editorCallback, editorCheckCallback, checkCallback
+- Hotkey assignment
+
+**Docs gaps:**
+
+- Plugin integrations (CustomJS, Dataview, Datacore, Templater, QuickAdd, JS Engine, Modules) — documented in demo vault only, no official docs
 
 ### Next steps
 
-1. Do a fresh systematic comparison of source code features vs docs vs demo vault vs tests
-2. Identify any NEW features added since docs/demo vault were last updated
-3. Add missing integration tests for the most important gaps
-4. Add missing demo vault pages/scripts for undocumented features
-5. Update docs for any missing features
+1. Add integration tests for remaining high-value features (code-button context methods, advanced invocable patterns)
+2. Add `requireAsyncWrapper()` demo to vault
+3. Consider adding docs pages for plugin integrations (currently demo-vault-only)
 
 ## Known Issues
 
