@@ -24,7 +24,11 @@ beforeAll(async () => {
       shouldUseSyncFallback: false,
       startupScriptPath: ''
     }),
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/check-callback.cjs`]:
+      'exports.invokeCommand = { checkCallback: (checking) => { if (checking) { return true; } window.__checkCallbackInvoked = true; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/cmd-invoke.cjs`]: 'exports.invokeCommand = { callback: () => { window.__cmdInvoked = true; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-callback.cjs`]:
+      'exports.invokeCommand = { editorCallback: (editor) => { window.__editorCallbackInvoked = true; window.__editorExists = typeof editor.getValue === "function"; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke.cjs`]: 'exports.invoke = () => { window.__invocableResult = "invoked"; };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/ts-invoke.ts`]: 'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'
   });
@@ -124,5 +128,63 @@ describe('ScriptRegistry integration', () => {
     });
 
     expect(result.executed).toBe(true);
+  });
+
+  it('should execute checkCallback invocable script', async () => {
+    const result = await evalInObsidian({
+      args: { pluginId: PLUGIN_ID },
+      async fn({ app, pluginId }) {
+        const commandId = Object.keys(app.commands.commands)
+          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('check-callback'));
+
+        if (!commandId) {
+          return { error: 'Command not found', executed: false };
+        }
+
+        Reflect.deleteProperty(window, '__checkCallbackInvoked');
+        app.commands.executeCommandById(commandId);
+        const COMMAND_EXECUTION_DELAY_MS = 500;
+        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        const checkCallbackInvoked = Reflect.get(window, '__checkCallbackInvoked') === true;
+        return { executed: checkCallbackInvoked };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.executed).toBe(true);
+  });
+
+  it('should execute editorCallback invocable script with editor context', async () => {
+    const result = await evalInObsidian({
+      args: { pluginId: PLUGIN_ID },
+      async fn({ app, pluginId }) {
+        // EditorCallback requires an active editor - open a markdown file first
+        await app.workspace.openLinkText(`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke`, '', false);
+        const SETTLE_DELAY_MS = 500;
+        await sleep(SETTLE_DELAY_MS);
+
+        const commandId = Object.keys(app.commands.commands)
+          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-callback'));
+
+        if (!commandId) {
+          return { editorExists: false, error: 'Command not found', executed: false };
+        }
+
+        Reflect.deleteProperty(window, '__editorCallbackInvoked');
+        Reflect.deleteProperty(window, '__editorExists');
+        app.commands.executeCommandById(commandId);
+        const COMMAND_EXECUTION_DELAY_MS = 500;
+        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        const executed = Reflect.get(window, '__editorCallbackInvoked') === true;
+        const editorExists = Reflect.get(window, '__editorExists') === true;
+        return { editorExists, executed };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.executed).toBe(true);
+    expect(result.editorExists).toBe(true);
   });
 });
