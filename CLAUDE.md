@@ -24,3 +24,5 @@ Then in a SEPARATE test file, call `evalInObsidian()`. The call fails with `Obsi
 **Workaround**: Call `app.workspace.detachLeavesOfType('markdown')` in `afterAll` to close markdown leaves before subsequent test files run.
 
 **Scope**: Only affects cross-file test execution. Same-file `evalInObsidian` calls work fine.
+
+**TODO**: Once fixed in `obsidian-integration-testing`, remove the `afterAll` workaround in `src/code-button-block.desktop.integration.test.ts` that calls `app.workspace.detachLeavesOfType('markdown')`.
