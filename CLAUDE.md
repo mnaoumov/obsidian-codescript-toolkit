@@ -11,7 +11,7 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (97 tests)
+## Integration test coverage (110 tests)
 
 | Feature                                                                                      | Tests |
 |----------------------------------------------------------------------------------------------|-------|
@@ -33,10 +33,13 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 | Startup script (invoke, cleanup+reload)                                                      | 2     |
 | Protocol handler (module via code, inline code)                                              | 2     |
 | Temp plugin registry (API access, register+unregister)                                       | 2     |
-| Synchronous require (all desktop-supported modules)                                          | 15    |
-| Emulate-mobile (requireAsync all mobile features, sync/electron/node throw)                  | 16    |
-| Android (requireAsync all mobile features, sync/electron/node throw)                         | 15    |
-| Smoke test                                                                                   | 1     |
+| File URLs (file:/// async + sync)                                                            | 2     |
+| Resource URLs (resource prefix async + sync)                                                 | 2     |
+| HTTP URLs (requireAsync from CDN)                                                            | 1     |
+| Synchronous require (all desktop-supported modules)                                          | 16    |
+| Emulate-mobile (all mobile features, file/resource/HTTP URLs, sync/electron/node throw)      | 19    |
+| Android (all mobile features, file/resource/HTTP URLs, sync/electron/node throw)             | 18    |
+| Smoke test                                                                                   | 2     |
 
 ## Remaining gaps to investigate
 
@@ -50,10 +53,8 @@ Features that exist in code but may lack one or more of: docs, demo vault, integ
 
 **Integration test gaps** (documented + demoed but no test):
 
-- WASM modules, ASAR archives, file/resource/HTTP URLs
-- Source maps, override module type
-- Additional desktop modules (electron, @electron/remote)
-- Hotkey assignment
+- WASM modules, ASAR archives, node binaries (need binary populate support)
+- Hotkey assignment (UI-only feature, not programmatically testable)
 
 **Docs gaps:**
 

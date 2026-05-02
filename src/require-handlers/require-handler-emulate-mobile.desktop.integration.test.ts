@@ -204,6 +204,56 @@ describe('RequireHandler emulate-mobile integration', () => {
       expect(result).toHaveProperty('childValue', true);
     });
 
+    it('should requireAsync a module via file:/// URL in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const basePath = Reflect.get(app.vault.adapter, 'basePath') as string;
+          const filePath = `${basePath}/${dir}/module.cjs`.replaceAll('\\', '/');
+          return (await requireAsync(`file:///${filePath}`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'emulate-mobile-ok');
+    });
+
+    it('should requireAsync a module via resource URL in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const obsidianMod = (await requireAsync('obsidian')) as Record<string, unknown>;
+          const Platform = obsidianMod['Platform'] as Record<string, unknown>;
+          const resourcePathPrefix = Platform['resourcePathPrefix'] as string;
+          const basePath = Reflect.get(app.vault.adapter, 'basePath') as string;
+          const filePath = `${basePath}/${dir}/module.cjs`.replaceAll('\\', '/');
+          return (await requireAsync(`${resourcePathPrefix}${filePath}`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'emulate-mobile-ok');
+    });
+
+    it('should requireAsync a module from an HTTP URL in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = (await requireAsync(
+            'https://cdn.jsdelivr.net/npm/is-number@7.0.0/index.js',
+            { moduleType: 'jsTs' }
+          )) as Record<string, unknown>;
+          const isNumber = mod['default'] as (val: unknown) => boolean;
+          return { result: isNumber(5) };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.result).toBe(true);
+    });
+
     it('should requireAsync @codemirror/state in emulate-mobile mode', async () => {
       const result = await evalInObsidian({
         async fn() {
