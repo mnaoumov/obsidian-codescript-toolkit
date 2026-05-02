@@ -1,0 +1,200 @@
+import { evalInObsidian } from 'obsidian-integration-testing';
+import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it
+} from 'vitest';
+
+type RequireAsyncFn = (id: string, options?: Record<string, unknown>) => Promise<unknown>;
+
+const SCRIPTS_DIR = '_int-test-emulate-mobile';
+const PLUGIN_ID = 'fix-require-modules';
+
+beforeAll(async () => {
+  const vault = getTempVault();
+
+  vault.populate({
+    [`${SCRIPTS_DIR}/module.cjs`]: 'exports.value = "emulate-mobile-ok";',
+    [`${SCRIPTS_DIR}/module.json`]: JSON.stringify({ mobile: true }),
+    [`${SCRIPTS_DIR}/module.mts`]: 'export const value: string = "mts-emulate";'
+  });
+
+  // Enable emulate-mobile mode and reload plugin
+  await evalInObsidian({
+    args: { pluginId: PLUGIN_ID },
+    async fn({ app, pluginId }) {
+      app.emulateMobile(true);
+      await app.plugins.disablePlugin(pluginId);
+      await app.plugins.enablePlugin(pluginId);
+      const SETTLE_DELAY_MS = 2000;
+      await sleep(SETTLE_DELAY_MS);
+    },
+    vaultPath: vault.path
+  });
+}, 30000);
+
+afterAll(async () => {
+  // Restore desktop mode
+  await evalInObsidian({
+    args: { pluginId: PLUGIN_ID },
+    async fn({ app, pluginId }) {
+      app.emulateMobile(false);
+      await app.plugins.disablePlugin(pluginId);
+      await app.plugins.enablePlugin(pluginId);
+      const SETTLE_DELAY_MS = 2000;
+      await sleep(SETTLE_DELAY_MS);
+    },
+    vaultPath: getTempVault().path
+  });
+});
+
+function vaultPath(): string {
+  return getTempVault().path;
+}
+
+describe('RequireHandler emulate-mobile integration', () => {
+  describe('features available on mobile', () => {
+    it('should requireAsync a CJS module in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`//${dir}/module.cjs`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'emulate-mobile-ok');
+    });
+
+    it('should requireAsync a JSON module in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`//${dir}/module.json`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toEqual({ mobile: true });
+    });
+
+    it('should requireAsync a TypeScript module in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`//${dir}/module.mts`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'mts-emulate');
+    });
+
+    it('should requireAsync the obsidian module in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = (await requireAsync('obsidian')) as Record<string, unknown>;
+          return { hasPlugin: typeof mod['Plugin'] === 'function' };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasPlugin).toBe(true);
+    });
+  });
+
+  describe('features unavailable on mobile', () => {
+    it('should throw when using synchronous require() in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as (id: string) => unknown;
+          try {
+            requireFn(`//${dir}/module.cjs`);
+            return { error: '', threw: false };
+          } catch (e: unknown) {
+            return { error: (e as Error).message, threw: true };
+          }
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.threw).toBe(true);
+      expect(result.error).toContain('Cannot require synchronously on mobile');
+    });
+
+    it('should throw when requiring electron module in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          try {
+            await requireAsync('electron');
+            return { error: '', threw: false };
+          } catch (e: unknown) {
+            return { error: (e as Error).message, threw: true };
+          }
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.threw).toBe(true);
+      expect(result.error).toContain('Electron modules are not available on mobile');
+    });
+
+    it('should throw when requiring @electron/remote in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          try {
+            await requireAsync('@electron/remote');
+            return { error: '', threw: false };
+          } catch (e: unknown) {
+            return { error: (e as Error).message, threw: true };
+          }
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.threw).toBe(true);
+      expect(result.error).toContain('ASAR packed modules are not available on mobile');
+    });
+
+    it('should throw when requiring Node built-in module in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          try {
+            await requireAsync('node:fs');
+            return { error: '', threw: false };
+          } catch (e: unknown) {
+            return { error: (e as Error).message, threw: true };
+          }
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.threw).toBe(true);
+      expect(result.error).toContain('Node built-in modules are not available on mobile');
+    });
+
+    it('should return null for crypto module in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        async fn() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = await requireAsync('node:crypto');
+          return { isNull: mod === null };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.isNull).toBe(true);
+    });
+  });
+});

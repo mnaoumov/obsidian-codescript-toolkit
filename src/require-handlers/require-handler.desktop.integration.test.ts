@@ -10,6 +10,7 @@ import {
 
 type RequireAsyncFn = (id: string, options?: Record<string, unknown>) => Promise<unknown>;
 type RequireAsyncWrapperFn = (fn: (require: (id: string, options?: Record<string, unknown>) => unknown) => unknown) => Promise<unknown>;
+type RequireFn = (id: string, options?: Record<string, unknown>) => unknown;
 
 const SCRIPTS_DIR = '_int-test-scripts';
 
@@ -230,6 +231,34 @@ describe('RequireHandler integration', () => {
       });
 
       expect(result).toBe(42);
+    });
+  });
+
+  describe('synchronous require', () => {
+    it('should require a CJS module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`//${dir}/module.cjs`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 42);
+    });
+
+    it('should require a JSON module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`//${dir}/module.json`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toEqual({ key: 'val', num: 7 });
     });
   });
 
