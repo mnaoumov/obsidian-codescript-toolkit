@@ -31,6 +31,8 @@ beforeAll(async () => {
       'exports.invokeCommand = { editorCallback: (editor) => { window.__editorCallbackInvoked = true; window.__editorExists = typeof editor.getValue === "function"; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-check-callback.cjs`]:
       'exports.invokeCommand = { editorCheckCallback: (checking, editor) => { if (checking) { return editor !== undefined; } window.__editorCheckCallbackInvoked = true; window.__editorCheckHasEditor = typeof editor.getValue === "function"; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/hotkey-invoke.cjs`]:
+      'exports.invokeCommand = { hotkeys: [{ modifiers: ["Ctrl", "Shift"], key: "F9" }], callback: () => { window.__hotkeyInvoked = true; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke.cjs`]: 'exports.invoke = () => { window.__invocableResult = "invoked"; };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/ts-invoke.ts`]: 'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'
   });
@@ -221,5 +223,34 @@ describe('ScriptRegistry integration', () => {
 
     expect(result.executed).toBe(true);
     expect(result.editorHasEditor).toBe(true);
+  });
+
+  it('should register command with hotkey and execute it', async () => {
+    const result = await evalInObsidian({
+      args: { pluginId: PLUGIN_ID },
+      async fn({ app, pluginId }) {
+        const commandId = Object.keys(app.commands.commands)
+          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('hotkey-invoke'));
+
+        if (!commandId) {
+          return { error: 'Command not found', executed: false, hasHotkey: false };
+        }
+
+        const command = app.commands.commands[commandId];
+        const hasHotkey = Array.isArray(command?.hotkeys) && command.hotkeys.length > 0;
+
+        Reflect.deleteProperty(window, '__hotkeyInvoked');
+        app.commands.executeCommandById(commandId);
+        const COMMAND_EXECUTION_DELAY_MS = 500;
+        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        const executed = Reflect.get(window, '__hotkeyInvoked') === true;
+        return { executed, hasHotkey };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.hasHotkey).toBe(true);
+    expect(result.executed).toBe(true);
   });
 });

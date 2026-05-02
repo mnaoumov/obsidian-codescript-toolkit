@@ -11,7 +11,7 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (110 tests)
+## Integration test coverage (111 tests)
 
 | Feature                                                                                      | Tests |
 |----------------------------------------------------------------------------------------------|-------|
@@ -26,7 +26,7 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 | Module type override (load .txt as JS, load .dat as JSON)                                    | 2     |
 | Source maps (TS module transformation)                                                       | 1     |
 | Clear cache command (never mode + clear-cache)                                               | 1     |
-| Invocable scripts (register, execute, TS, invokeCommand, checkCallback, editor, editorCheck) | 7     |
+| Invocable scripts (register, execute, TS, invokeCommand, checkCallback, editor, editorCheck) | 8     |
 | Code buttons (render, autoRun, isRaw, import transform)                                      | 4     |
 | Code-button context (renderMarkdown, insertBefore/After, remove, replace)                    | 5     |
 | Code-button config (shouldAutoOutput, shouldWrapConsole, removeAfterExecution)               | 3     |
@@ -54,7 +54,6 @@ Features that exist in code but may lack one or more of: docs, demo vault, integ
 **Integration test gaps** (documented + demoed but no test):
 
 - WASM modules, ASAR archives, node binaries (need binary populate support)
-- Hotkey assignment (UI-only feature, not programmatically testable)
 
 **Docs gaps:**
 
