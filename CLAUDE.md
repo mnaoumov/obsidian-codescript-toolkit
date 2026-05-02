@@ -11,7 +11,7 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (51 tests)
+## Integration test coverage (70 tests)
 
 | Feature                                                                                       | Tests |
 |-----------------------------------------------------------------------------------------------|-------|
@@ -33,6 +33,9 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 | Startup script (invoke, cleanup+reload)                                                       | 2     |
 | Protocol handler (module via code, inline code)                                               | 2     |
 | Temp plugin registry (API access, register+unregister)                                        | 2     |
+| Synchronous require (CJS, JSON via global require())                                          | 2     |
+| Emulate-mobile (requireAsync works, sync/electron/node throw)                                 | 9     |
+| Android (requireAsync works, sync/electron/node throw)                                        | 8     |
 | Smoke test                                                                                    | 1     |
 
 ## Remaining gaps to investigate
