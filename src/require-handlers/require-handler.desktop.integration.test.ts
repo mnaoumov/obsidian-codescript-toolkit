@@ -260,6 +260,210 @@ describe('RequireHandler integration', () => {
 
       expect(result).toEqual({ key: 'val', num: 7 });
     });
+
+    it('should require an ESM module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`//${dir}/module.mjs`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'esm-ok');
+    });
+
+    it('should require a TypeScript CTS module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`//${dir}/module.cts`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'cts-3');
+    });
+
+    it('should require a TypeScript MTS module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`//${dir}/module.mts`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'mts-ok');
+    });
+
+    it('should require a Markdown module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`//${dir}/module.md`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('mdValue', 'from-markdown');
+    });
+
+    it('should require the obsidian module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        fn() {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const mod = requireFn('obsidian') as Record<string, unknown>;
+          return {
+            hasNotice: typeof mod['Notice'] === 'function',
+            hasPlugin: typeof mod['Plugin'] === 'function'
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasNotice).toBe(true);
+      expect(result.hasPlugin).toBe(true);
+    });
+
+    it('should require @codemirror/state synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        fn() {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const mod = requireFn('@codemirror/state') as Record<string, unknown>;
+          return { hasEditorState: typeof mod['EditorState'] === 'function' };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasEditorState).toBe(true);
+    });
+
+    it('should require obsidian/app synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        fn() {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const appModule = requireFn('obsidian/app') as Record<string, unknown>;
+          return {
+            hasVault: typeof appModule['vault'] === 'object',
+            hasWorkspace: typeof appModule['workspace'] === 'object'
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasVault).toBe(true);
+      expect(result.hasWorkspace).toBe(true);
+    });
+
+    it('should require obsidian/specialModuleNames synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        fn() {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const mod = requireFn('obsidian/specialModuleNames') as Record<string, unknown>;
+          return {
+            hasNodeBuiltIn: Array.isArray(mod['nodeBuiltInModuleNames']),
+            hasObsidianBuiltIn: Array.isArray(mod['obsidianBuiltInModuleNames'])
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasNodeBuiltIn).toBe(true);
+      expect(result.hasObsidianBuiltIn).toBe(true);
+    });
+
+    it('should require obsidian-dev-utils synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        fn() {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const mod = requireFn('obsidian-dev-utils') as object;
+          return { hasKeys: Object.keys(mod).length > 0 };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasKeys).toBe(true);
+    });
+
+    it('should require Node built-in module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        fn() {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const pathMod = requireFn('node:path') as Record<string, unknown>;
+          return {
+            hasJoin: typeof pathMod['join'] === 'function',
+            hasResolve: typeof pathMod['resolve'] === 'function'
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasJoin).toBe(true);
+      expect(result.hasResolve).toBe(true);
+    });
+
+    it('should require electron synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        fn() {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const mod = requireFn('electron') as Record<string, unknown>;
+          return { hasIpcRenderer: typeof mod['ipcRenderer'] === 'object' };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.hasIpcRenderer).toBe(true);
+    });
+
+    it('should require @electron/remote synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        fn() {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const mod = requireFn('@electron/remote') as Record<string, unknown>;
+          return {
+            hasApp: typeof mod['app'] === 'object',
+            isObject: typeof mod === 'object'
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.isObject).toBe(true);
+      expect(result.hasApp).toBe(true);
+    });
+
+    it('should resolve relative path synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`//${dir}/relative-parent.cjs`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('childValue', true);
+    });
+
+    it('should require NPM module synchronously via global require()', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn('fake-pkg', {
+            parentPath: `${dir}/npm-test/index.js`
+          })) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('name', 'fake-pkg');
+    });
   });
 
   describe('NPM modules', () => {
