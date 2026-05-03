@@ -1,6 +1,6 @@
 # Current Task
 
-Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/*.desktop.integration.test.ts`), and demo vault (`obsidian-codescript-toolkit-demo-vault`) all cover every implemented feature.
+None.
 
 ## What's done
 
