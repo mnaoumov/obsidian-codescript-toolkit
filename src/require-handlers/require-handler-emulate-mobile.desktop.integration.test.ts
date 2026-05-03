@@ -12,7 +12,6 @@ import {
 type RequireAsyncFn = (id: string, options?: Record<string, unknown>) => Promise<unknown>;
 
 const SCRIPTS_DIR = '_int-test-emulate-mobile';
-const PLUGIN_ID = 'fix-require-modules';
 
 /**
  * Creates a minimal valid WASM binary that exports an `add(i32, i32) -> i32` function.
@@ -86,32 +85,32 @@ beforeAll(async () => {
     [`${SCRIPTS_DIR}/relative-parent.cjs`]: 'const child = require(\'./nested/child.cjs\'); exports.childValue = child.child;'
   });
 
-  // Enable emulate-mobile mode and reload plugin
-  await evalInObsidian({
-    args: { pluginId: PLUGIN_ID },
-    async fn({ app, pluginId }) {
+  // EmulateMobile reloads the app, so the eval call won't return — fire and forget,
+  // Then wait for the CLI to come back.
+  const MOBILE_RELOAD_DELAY_MS = 10000;
+  evalInObsidian({
+    fn({ app }) {
       app.emulateMobile(true);
-      await app.plugins.disablePlugin(pluginId);
-      await app.plugins.enablePlugin(pluginId);
-      const SETTLE_DELAY_MS = 2000;
-      await sleep(SETTLE_DELAY_MS);
     },
     vaultPath: vault.path
+  }).catch(() => {/* Expected: app reload kills the eval response. */});
+  await new Promise((resolve) => {
+    // eslint-disable-next-line obsidianmd/prefer-window-timers -- Test runs in Node, not Obsidian.
+    setTimeout(resolve, MOBILE_RELOAD_DELAY_MS);
   });
-}, 30000);
+});
 
 afterAll(async () => {
-  // Restore desktop mode
-  await evalInObsidian({
-    args: { pluginId: PLUGIN_ID },
-    async fn({ app, pluginId }) {
+  const MOBILE_RELOAD_DELAY_MS = 10000;
+  evalInObsidian({
+    fn({ app }) {
       app.emulateMobile(false);
-      await app.plugins.disablePlugin(pluginId);
-      await app.plugins.enablePlugin(pluginId);
-      const SETTLE_DELAY_MS = 2000;
-      await sleep(SETTLE_DELAY_MS);
     },
     vaultPath: getTempVault().path
+  }).catch(() => {/* Expected: app reload kills the eval response. */});
+  await new Promise((resolve) => {
+    // eslint-disable-next-line obsidianmd/prefer-window-timers -- Test runs in Node, not Obsidian.
+    setTimeout(resolve, MOBILE_RELOAD_DELAY_MS);
   });
 });
 
@@ -345,7 +344,8 @@ describe('RequireHandler emulate-mobile integration', () => {
         fn({ dir }) {
           const requireFn = Reflect.get(window, 'require') as (id: string) => unknown;
           try {
-            requireFn(`//${dir}/module.cjs`);
+            // Use a path not cached by prior requireAsync tests
+            requireFn(`//${dir}/uncached-sync-test.cjs`);
             return { error: '', threw: false };
           } catch (e: unknown) {
             return { error: (e as Error).message, threw: true };

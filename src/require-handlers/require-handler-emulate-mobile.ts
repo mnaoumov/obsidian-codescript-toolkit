@@ -10,8 +10,8 @@ export class RequireHandlerEmulateMobile extends RequireHandlerBase {
 
   public constructor(params: RequireHandlerConstructorParams) {
     super(params);
-    this.desktopRequireHandler = this.addChild(new RequireHandlerDesktop(params));
-    this.mobileRequireHandler = this.addChild(new RequireHandlerMobile(params));
+    this.desktopRequireHandler = new RequireHandlerDesktop(params);
+    this.mobileRequireHandler = new RequireHandlerMobile(params);
   }
 
   protected override canRequireNonCached(): boolean {
