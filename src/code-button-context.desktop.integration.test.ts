@@ -289,7 +289,7 @@ describe('CodeButtonContext integration', () => {
           return { error: 'No active MarkdownView', output: '' };
         }
 
-        const resultEl = view.containerEl.querySelector('.fix-require-modules-result');
+        const resultEl = view.containerEl.querySelector('.fix-require-modules.console-log-container');
         return { output: resultEl?.textContent ?? '' };
       },
       vaultPath: vaultPath()
@@ -315,7 +315,7 @@ describe('CodeButtonContext integration', () => {
           return { error: 'No active MarkdownView', output: '' };
         }
 
-        const resultEl = view.containerEl.querySelector('.fix-require-modules-result');
+        const resultEl = view.containerEl.querySelector('.fix-require-modules.console-log-container');
         return { output: resultEl?.textContent ?? '' };
       },
       vaultPath: vaultPath()

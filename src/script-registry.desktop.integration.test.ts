@@ -33,6 +33,7 @@ beforeAll(async () => {
       'exports.invokeCommand = { editorCheckCallback: (checking, editor) => { if (checking) { return editor !== undefined; } window.__editorCheckCallbackInvoked = true; window.__editorCheckHasEditor = typeof editor.getValue === "function"; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/hotkey-invoke.cjs`]:
       'exports.invokeCommand = { hotkeys: [{ modifiers: ["Ctrl", "Shift"], key: "F9" }], callback: () => { window.__hotkeyInvoked = true; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/scratch.md`]: '# Scratch note for editor tests',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke.cjs`]: 'exports.invoke = () => { window.__invocableResult = "invoked"; };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/ts-invoke.ts`]: 'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'
   });
@@ -160,14 +161,20 @@ describe('ScriptRegistry integration', () => {
   });
 
   it('should execute editorCallback invocable script with editor context', async () => {
+    // Open a markdown file to ensure an active editor exists
+    await evalInObsidian({
+      args: { invocablesFolder: INVOCABLES_FOLDER, modulesRoot: MODULES_ROOT },
+      async fn({ app, invocablesFolder, modulesRoot }) {
+        await app.workspace.openLinkText(`${modulesRoot}/${invocablesFolder}/scratch`, '', false);
+        const SETTLE_DELAY_MS = 1000;
+        await sleep(SETTLE_DELAY_MS);
+      },
+      vaultPath: vaultPath()
+    });
+
     const result = await evalInObsidian({
       args: { pluginId: PLUGIN_ID },
       async fn({ app, pluginId }) {
-        // EditorCallback requires an active editor - open a markdown file first
-        await app.workspace.openLinkText(`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke`, '', false);
-        const SETTLE_DELAY_MS = 500;
-        await sleep(SETTLE_DELAY_MS);
-
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-callback'));
 
@@ -193,14 +200,10 @@ describe('ScriptRegistry integration', () => {
   });
 
   it('should execute editorCheckCallback invocable script with condition check and editor', async () => {
+    // The previous test already opened a markdown file — editor should still be active
     const result = await evalInObsidian({
       args: { pluginId: PLUGIN_ID },
       async fn({ app, pluginId }) {
-        // EditorCheckCallback requires an active editor
-        await app.workspace.openLinkText(`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke`, '', false);
-        const SETTLE_DELAY_MS = 500;
-        await sleep(SETTLE_DELAY_MS);
-
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-check-callback'));
 
