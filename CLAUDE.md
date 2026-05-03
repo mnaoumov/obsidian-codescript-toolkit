@@ -11,35 +11,38 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (111 tests)
+## Integration test coverage (121 tests)
 
-| Feature                                                                                      | Tests |
-|----------------------------------------------------------------------------------------------|-------|
-| Module formats (CJS, ESM, CTS, MTS, JSON, MD)                                                | 6     |
-| Path resolution (relative, transitive)                                                       | 2     |
-| Built-in modules (obsidian, @codemirror)                                                     | 2     |
-| Async (top-level await, dynamic import, requireAsyncWrapper)                                 | 3     |
-| NPM modules from vault node_modules                                                          | 1     |
-| Smart caching (cacheInvalidationMode: always)                                                | 1     |
-| Special modules (obsidian/app, obsidian-dev-utils, specialModuleNames, node:path)            | 4     |
-| Desktop modules (electron, @electron/remote)                                                 | 2     |
-| Module type override (load .txt as JS, load .dat as JSON)                                    | 2     |
-| Source maps (TS module transformation)                                                       | 1     |
-| Clear cache command (never mode + clear-cache)                                               | 1     |
-| Invocable scripts (register, execute, TS, invokeCommand, checkCallback, editor, editorCheck) | 8     |
-| Code buttons (render, autoRun, isRaw, import transform)                                      | 4     |
-| Code-button context (renderMarkdown, insertBefore/After, remove, replace)                    | 5     |
-| Code-button config (shouldAutoOutput, shouldWrapConsole, removeAfterExecution)               | 3     |
-| Startup script (invoke, cleanup+reload)                                                      | 2     |
-| Protocol handler (module via code, inline code)                                              | 2     |
-| Temp plugin registry (API access, register+unregister)                                       | 2     |
-| File URLs (file:/// async + sync)                                                            | 2     |
-| Resource URLs (resource prefix async + sync)                                                 | 2     |
-| HTTP URLs (requireAsync from CDN)                                                            | 1     |
-| Synchronous require (all desktop-supported modules)                                          | 16    |
-| Emulate-mobile (all mobile features, file/resource/HTTP URLs, sync/electron/node throw)      | 19    |
-| Android (all mobile features, file/resource/HTTP URLs, sync/electron/node throw)             | 18    |
-| Smoke test                                                                                   | 2     |
+| Feature                                                                                        | Tests |
+|------------------------------------------------------------------------------------------------|-------|
+| Module formats (CJS, ESM, CTS, MTS, JSON, MD)                                                  | 6     |
+| Path resolution (relative, transitive)                                                         | 2     |
+| Built-in modules (obsidian, @codemirror)                                                       | 2     |
+| Async (top-level await, dynamic import, requireAsyncWrapper)                                   | 3     |
+| NPM modules from vault node_modules                                                            | 1     |
+| Smart caching (cacheInvalidationMode: always)                                                  | 1     |
+| Special modules (obsidian/app, obsidian-dev-utils, specialModuleNames, node:path)              | 4     |
+| Desktop modules (electron, @electron/remote)                                                   | 2     |
+| Module type override (load .txt as JS, load .dat as JSON)                                      | 2     |
+| Source maps (TS module transformation)                                                         | 1     |
+| Clear cache command (never mode + clear-cache)                                                 | 1     |
+| WASM modules (requireAsync desktop, sync throw, mobile, Android)                               | 4     |
+| ASAR archives (sync + async from .asar file)                                                   | 2     |
+| Node binaries (async + sync error, mobile throw, Android throw)                                | 4     |
+| Invocable scripts (register, execute, TS, invokeCommand, checkCallback, editor, editorCheck)   | 8     |
+| Code buttons (render, autoRun, isRaw, import transform)                                        | 4     |
+| Code-button context (renderMarkdown, insertBefore/After, remove, replace)                      | 5     |
+| Code-button config (shouldAutoOutput, shouldWrapConsole, removeAfterExecution)                 | 3     |
+| Startup script (invoke, cleanup+reload)                                                        | 2     |
+| Protocol handler (module via code, inline code)                                                | 2     |
+| Temp plugin registry (API access, register+unregister)                                         | 2     |
+| File URLs (file:/// async + sync)                                                              | 2     |
+| Resource URLs (resource prefix async + sync)                                                   | 2     |
+| HTTP URLs (requireAsync from CDN)                                                              | 1     |
+| Synchronous require (all desktop-supported modules)                                            | 16    |
+| Emulate-mobile (all mobile features, file/resource/HTTP URLs, WASM, sync/electron/node throw)  | 21    |
+| Android (all mobile features, file/resource/HTTP URLs, WASM, sync/electron/node throw)         | 20    |
+| Smoke test                                                                                     | 2     |
 
 ## Remaining gaps to investigate
 
@@ -53,7 +56,7 @@ Features that exist in code but may lack one or more of: docs, demo vault, integ
 
 **Integration test gaps** (documented + demoed but no test):
 
-- WASM modules, ASAR archives, node binaries (need binary populate support)
+- ~~WASM modules, ASAR archives, node binaries (need binary populate support)~~ — **Done** (added in 10 new tests)
 
 **Docs gaps:**
 
@@ -61,7 +64,7 @@ Features that exist in code but may lack one or more of: docs, demo vault, integ
 
 ### Next steps
 
-1. Add integration tests for remaining gaps (WASM, ASAR, hotkey)
+1. ~~Add integration tests for remaining gaps (WASM, ASAR, node binary)~~ — **Done**
 2. Add `requireAsyncWrapper()` demo to vault
 3. Consider adding docs pages for plugin integrations (currently demo-vault-only)
 

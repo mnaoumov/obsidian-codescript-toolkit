@@ -14,10 +14,129 @@ type RequireFn = (id: string, options?: Record<string, unknown>) => unknown;
 
 const SCRIPTS_DIR = '_int-test-scripts';
 
+/**
+ * Creates a minimal valid ASAR archive containing a single file.
+ *
+ * ASAR format: [size pickle][header pickle][file data]
+ * - Size pickle: 4-byte payload length + 4-byte header-pickle size
+ * - Header pickle: 4-byte payload length + 4-byte JSON length + padded JSON string
+ * - File data: raw file bytes at the offset specified in the header
+ */
+function createMinimalAsar(fileName: string, content: string): Uint8Array {
+  const fileBytes = new TextEncoder().encode(content);
+  const headerJson = JSON.stringify({
+    files: {
+      [fileName]: {
+        offset: '0',
+        size: fileBytes.length
+      }
+    }
+  });
+  const headerJsonBytes = new TextEncoder().encode(headerJson);
+  const PICKLE_ALIGNMENT = 4;
+  const paddedJsonLen = Math.ceil(headerJsonBytes.length / PICKLE_ALIGNMENT) * PICKLE_ALIGNMENT;
+
+  const UINT32_SIZE = 4;
+  // Header pickle: [payloadLen(4)] [strLen(4)] [paddedJson]
+  const headerPicklePayloadSize = UINT32_SIZE + paddedJsonLen;
+  const headerPickleSize = UINT32_SIZE + headerPicklePayloadSize;
+  // Size pickle: [payloadLen(4)] [headerPickleSize(4)]
+  const SIZE_PICKLE_SIZE = 8;
+
+  const total = SIZE_PICKLE_SIZE + headerPickleSize + fileBytes.length;
+  const buffer = new ArrayBuffer(total);
+  const view = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+
+  let offset = 0;
+
+  // Size pickle
+  view.setUint32(offset, UINT32_SIZE, true);
+  offset += UINT32_SIZE;
+  view.setUint32(offset, headerPickleSize, true);
+  offset += UINT32_SIZE;
+
+  // Header pickle
+  view.setUint32(offset, headerPicklePayloadSize, true);
+  offset += UINT32_SIZE;
+  view.setUint32(offset, headerJsonBytes.length, true);
+  offset += UINT32_SIZE;
+  bytes.set(headerJsonBytes, offset);
+  offset += paddedJsonLen;
+
+  // File data
+  bytes.set(fileBytes, offset);
+
+  return new Uint8Array(buffer);
+}
+
+/**
+ * Creates a minimal valid WASM binary that exports an `add(i32, i32) -> i32` function.
+ *
+ * Layout:
+ * - Magic + version header
+ * - Type section: one func type (i32, i32) -> i32
+ * - Function section: one function referencing type 0
+ * - Export section: exports function 0 as "add"
+ * - Code section: local.get 0 + local.get 1 + i32.add
+ */
+function createMinimalWasm(): Uint8Array {
+  return new Uint8Array([
+    // Magic + version
+    0x00,
+    0x61,
+    0x73,
+    0x6D,
+    0x01,
+    0x00,
+    0x00,
+    0x00,
+    // Type section (id=1, 7 bytes): 1 func type (i32, i32) -> i32
+    0x01,
+    0x07,
+    0x01,
+    0x60,
+    0x02,
+    0x7F,
+    0x7F,
+    0x01,
+    0x7F,
+    // Function section (id=3, 2 bytes): 1 function, type index 0
+    0x03,
+    0x02,
+    0x01,
+    0x00,
+    // Export section (id=7, 7 bytes): 1 export "add", kind=func, index=0
+    0x07,
+    0x07,
+    0x01,
+    0x03,
+    0x61,
+    0x64,
+    0x64,
+    0x00,
+    0x00,
+    // Code section (id=10, 9 bytes): 1 body (7 bytes), 0 locals, local.get 0, local.get 1, i32.add, end
+    0x0A,
+    0x09,
+    0x01,
+    0x07,
+    0x00,
+    0x20,
+    0x00,
+    0x20,
+    0x01,
+    0x6A,
+    0x0B
+  ]);
+}
+
 beforeAll(() => {
   const vault = getTempVault();
 
   vault.populate({
+    [`${SCRIPTS_DIR}/archive.asar`]: createMinimalAsar('index.js', 'exports.fromAsar = true;'),
+    [`${SCRIPTS_DIR}/dummy.node`]: new Uint8Array([0x00, 0x01, 0x02, 0x03]),
     [`${SCRIPTS_DIR}/dynamic-target.mjs`]: 'export const dynValue = "dynamic-ok";',
     [`${SCRIPTS_DIR}/module.cjs`]: 'exports.value = 42;',
     [`${SCRIPTS_DIR}/module.cts`]: 'exports.value = \'cts-\' + (1 + 2).toString();',
@@ -29,6 +148,7 @@ beforeAll(() => {
     `,
     [`${SCRIPTS_DIR}/module.mjs`]: 'export const value = \'esm-ok\';',
     [`${SCRIPTS_DIR}/module.mts`]: 'export const value: string = \'mts-ok\';',
+    [`${SCRIPTS_DIR}/module.wasm`]: createMinimalWasm(),
     [`${SCRIPTS_DIR}/nested/child.cjs`]: 'exports.child = true;',
     [`${SCRIPTS_DIR}/npm-test/node_modules/fake-pkg/index.js`]: 'exports.name = "fake-pkg";',
     [`${SCRIPTS_DIR}/npm-test/node_modules/fake-pkg/package.json`]: JSON.stringify({ main: 'index.js', name: 'fake-pkg', version: '1.0.0' }),
@@ -800,6 +920,111 @@ describe('RequireHandler integration', () => {
       });
 
       expect(result.result).toBe(true);
+    });
+  });
+
+  describe('WASM modules', () => {
+    it('should requireAsync a WASM module and return its exports', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = (await requireAsync(`//${dir}/module.wasm`)) as Record<string, unknown>;
+          const add = mod['add'] as (a: number, b: number) => number;
+          return { result: add(3, 4) };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.result).toBe(7);
+    });
+
+    it('should throw when requiring WASM synchronously', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          try {
+            requireFn(`//${dir}/module.wasm`);
+            return { threw: false };
+          } catch {
+            return { threw: true };
+          }
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.threw).toBe(true);
+    });
+  });
+
+  describe('ASAR archives', () => {
+    it('should require a module from inside an ASAR archive', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`//${dir}/archive.asar/index.js`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('fromAsar', true);
+    });
+
+    it('should requireAsync a module from inside an ASAR archive', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`//${dir}/archive.asar/index.js`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('fromAsar', true);
+    });
+  });
+
+  describe('node binaries', () => {
+    it('should attempt to load a .node binary via requireAsync', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          try {
+            await requireAsync(`//${dir}/dummy.node`);
+            return { errorMessage: '' };
+          } catch (e: unknown) {
+            return { errorMessage: (e as Error).message };
+          }
+        },
+        vaultPath: vaultPath()
+      });
+
+      // The error should be a native loading error (invalid binary), not "unsupported module type"
+      expect(result.errorMessage).not.toContain('unsupported');
+      expect(result.errorMessage).toContain('not a valid Win32 application');
+    });
+
+    it('should require a .node binary synchronously via native require', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          try {
+            requireFn(`//${dir}/dummy.node`);
+            return { errorMessage: '' };
+          } catch (e: unknown) {
+            return { errorMessage: (e as Error).message };
+          }
+        },
+        vaultPath: vaultPath()
+      });
+
+      // The error should be a native loading error (invalid binary), not "unsupported module type"
+      expect(result.errorMessage).not.toContain('unsupported');
+      expect(result.errorMessage).toContain('not a valid Win32 application');
     });
   });
 });

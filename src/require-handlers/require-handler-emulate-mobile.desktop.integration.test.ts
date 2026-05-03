@@ -14,6 +14,60 @@ type RequireAsyncFn = (id: string, options?: Record<string, unknown>) => Promise
 const SCRIPTS_DIR = '_int-test-emulate-mobile';
 const PLUGIN_ID = 'fix-require-modules';
 
+/**
+ * Creates a minimal valid WASM binary that exports an `add(i32, i32) -> i32` function.
+ */
+function createMinimalWasm(): Uint8Array {
+  return new Uint8Array([
+    // Magic + version
+    0x00,
+    0x61,
+    0x73,
+    0x6D,
+    0x01,
+    0x00,
+    0x00,
+    0x00,
+    // Type section (id=1, 7 bytes): 1 func type (i32, i32) -> i32
+    0x01,
+    0x07,
+    0x01,
+    0x60,
+    0x02,
+    0x7F,
+    0x7F,
+    0x01,
+    0x7F,
+    // Function section (id=3, 2 bytes): 1 function, type index 0
+    0x03,
+    0x02,
+    0x01,
+    0x00,
+    // Export section (id=7, 7 bytes): 1 export "add", kind=func, index=0
+    0x07,
+    0x07,
+    0x01,
+    0x03,
+    0x61,
+    0x64,
+    0x64,
+    0x00,
+    0x00,
+    // Code section (id=10, 9 bytes): 1 body (7 bytes), 0 locals, local.get 0, local.get 1, i32.add, end
+    0x0A,
+    0x09,
+    0x01,
+    0x07,
+    0x00,
+    0x20,
+    0x00,
+    0x20,
+    0x01,
+    0x6A,
+    0x0B
+  ]);
+}
+
 beforeAll(async () => {
   const vault = getTempVault();
 
@@ -27,6 +81,7 @@ beforeAll(async () => {
     `,
     [`${SCRIPTS_DIR}/module.mjs`]: 'export const value = "esm-mobile";',
     [`${SCRIPTS_DIR}/module.mts`]: 'export const value: string = "mts-emulate";',
+    [`${SCRIPTS_DIR}/module.wasm`]: createMinimalWasm(),
     [`${SCRIPTS_DIR}/nested/child.cjs`]: 'exports.child = true;',
     [`${SCRIPTS_DIR}/relative-parent.cjs`]: 'const child = require(\'./nested/child.cjs\'); exports.childValue = child.child;'
   });
@@ -266,6 +321,21 @@ describe('RequireHandler emulate-mobile integration', () => {
 
       expect(result.hasEditorState).toBe(true);
     });
+
+    it('should requireAsync a WASM module in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const mod = (await requireAsync(`//${dir}/module.wasm`)) as Record<string, unknown>;
+          const add = mod['add'] as (a: number, b: number) => number;
+          return { result: add(3, 4) };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.result).toBe(7);
+    });
   });
 
   describe('features unavailable on mobile', () => {
@@ -340,6 +410,30 @@ describe('RequireHandler emulate-mobile integration', () => {
 
       expect(result.threw).toBe(true);
       expect(result.error).toContain('Node built-in modules are not available on mobile');
+    });
+
+    it('should throw when requiring a node binary in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const dummyPath = `${dir}/dummy.node`;
+          const DUMMY_BYTE_VALUES = [0x00, 0x01, 0x02, 0x03];
+          const dummyContent = new Uint8Array(DUMMY_BYTE_VALUES);
+          await app.vault.adapter.writeBinary(dummyPath, dummyContent.buffer);
+
+          try {
+            await requireAsync(`//${dummyPath}`);
+            return { error: '', threw: false };
+          } catch (e: unknown) {
+            return { error: (e as Error).message, threw: true };
+          }
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.threw).toBe(true);
+      expect(result.error).toContain('Node binary modules are not available on mobile');
     });
 
     it('should return null for crypto module in emulate-mobile mode', async () => {
