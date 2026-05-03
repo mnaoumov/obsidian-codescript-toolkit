@@ -35,7 +35,7 @@ export const config = defineConfig({
           execArgv: ['--no-webstorage'],
           include: ['src/**/*.test.ts'],
           name: 'unit-tests',
-          setupFiles: ['obsidian-test-mocks/setup']
+          setupFiles: ['obsidian-test-mocks/vitest-setup']
         }
       },
       {
