@@ -128,6 +128,7 @@ export class RequireHandlerDesktop extends RequireHandlerBase {
     return type !== ResolvedType.Url;
   }
 
+  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base handleCodeWithTopLevelAwait is a noop; this override throws to enforce async usage.
   protected override handleCodeWithTopLevelAwait(path: string): void {
     throw new Error(`Cannot load module: ${path}.
 Top-level await is not supported in sync require.

@@ -46,6 +46,7 @@ export class ProtocolHandlerComponent extends Component {
     this.requireHandlerFactory = params.requireHandlerFactory;
   }
 
+  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base Component.onload is an empty virtual method.
   public override onload(): void {
     this.obsidianProtocolHandlerRegistrar.registerObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, convertAsyncToSync(this.processQuery.bind(this)));
   }

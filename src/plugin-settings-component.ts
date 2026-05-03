@@ -54,6 +54,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
     return new PluginSettings();
   }
 
+  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base registerLegacySettingsConverters is a noop extension point.
   protected override registerLegacySettingsConverters(): void {
     this.registerLegacySettingsConverter(LegacySettings, (legacySettings) => {
       if (legacySettings.invocableScriptsDirectory) {
@@ -62,6 +63,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
     });
   }
 
+  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base registerValidators is a noop extension point.
   protected override registerValidators(): void {
     this.registerValidator('modulesRoot', async (value): Promise<MaybeReturn<string>> => {
       if (!value) {

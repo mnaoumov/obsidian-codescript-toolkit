@@ -14,6 +14,7 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
     super({ hasTopLevelAwait: false });
   }
 
+  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Intentionally replaces base transform with custom Babel config (CJS + import-meta plugins).
   public override transform(code: string, filename: string, folder?: string): TransformResult<TransformCodeToCommonJsData> {
     try {
       const result = babelTransform(code, {

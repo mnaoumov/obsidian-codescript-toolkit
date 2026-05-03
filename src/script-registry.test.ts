@@ -85,6 +85,7 @@ vi.mock('obsidian-dev-utils/obsidian/components/async-component', () => {
   const { Component: ObsidianComponent } = require('obsidian-test-mocks/obsidian') as typeof import('obsidian');
   return {
     AsyncComponentBase: class MockAsyncComponentBase extends ObsidianComponent {
+      // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Mock intentionally replaces load to capture onload promises.
       public override load(): void {
         const onload = Reflect.get(this, 'onload') as () => Promise<void>;
         onloadPromises.push(Promise.resolve().then(() => onload.call(this)));

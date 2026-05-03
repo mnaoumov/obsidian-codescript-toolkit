@@ -22,6 +22,7 @@ export class FixSourceMapBabelPlugin extends BabelPluginBase<FixSourceMapData> {
     });
   }
 
+  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base getVisitor returns empty object; subclass provides its own visitor.
   public override getVisitor(): Visitor<PluginPass> {
     return {
       Program: (_path, state): void => {
