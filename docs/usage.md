@@ -53,6 +53,10 @@ Most of the examples below will be shown using [`require()`][require], but you c
 - [Code buttons](./code-buttons.md)
 - [Protocol URLs](./protocol-urls.md)
 
+## Plugin integrations
+
+See the [demo vault](<https://github.com/mnaoumov/obsidian-codescript-toolkit-demo-vault/blob/master/Integrate with other plugins/Integrate with other plugins.md>) for examples of bidirectional integration between CodeScript Toolkit and other script-related plugins.
+
 ## Tips
 
 | Desktop | Mobile |

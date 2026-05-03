@@ -44,29 +44,13 @@ Comprehensive coverage analysis: ensure docs (`docs/`), integration tests (`src/
 | Android (all mobile features, file/resource/HTTP URLs, WASM, sync/electron/node throw)         | 20    |
 | Smoke test                                                                                     | 2     |
 
-## Remaining gaps to investigate
+## Coverage status
 
-Features that exist in code but may lack one or more of: docs, demo vault, integration test.
+All features are now fully covered across code, docs, demo vault, and integration tests (121 tests).
 
-### Identified gaps
-
-**Demo vault gap:**
-
-- `requireAsyncWrapper()` — documented + tested but no interactive demo
-
-**Integration test gaps** (documented + demoed but no test):
-
-- ~~WASM modules, ASAR archives, node binaries (need binary populate support)~~ — **Done** (added in 10 new tests)
-
-**Docs gaps:**
-
-- Plugin integrations (CustomJS, Dataview, Datacore, Templater, QuickAdd, JS Engine, Modules) — have dedicated demo vault pages with bidirectional examples; docs mention them in context (core-functions.md, dynamic-import.md) but no dedicated integration guide pages
-
-### Next steps
-
-1. ~~Add integration tests for remaining gaps (WASM, ASAR, node binary)~~ — **Done**
-2. Add `requireAsyncWrapper()` demo to vault
-3. Consider adding docs pages for plugin integrations (currently demo-vault-only)
+- ~~Integration test gaps (WASM, ASAR, node binaries)~~ — **Done**
+- ~~Demo vault gap (`requireAsyncWrapper()`)~~ — **Done**
+- ~~Docs gap (plugin integrations)~~ — **Done** (added demo vault link to `docs/usage.md`; dedicated guide pages intentionally out of scope)
 
 ## Known Issues
 
