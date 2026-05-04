@@ -1,3 +1,5 @@
+import type { TFile } from 'obsidian';
+
 import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
@@ -8,9 +10,9 @@ import {
   it
 } from 'vitest';
 
-type RequireAsyncFn = (id: string, options?: Record<string, unknown>) => Promise<unknown>;
+type RequireAsyncFn = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
 type RequireAsyncWrapperFn = (fn: (require: (id: string, options?: Record<string, unknown>) => unknown) => unknown) => Promise<unknown>;
-type RequireFn = (id: string, options?: Record<string, unknown>) => unknown;
+type RequireFn = (id: string | TFile, options?: Record<string, unknown>) => unknown;
 
 const SCRIPTS_DIR = '_int-test-scripts';
 
@@ -983,6 +985,110 @@ describe('RequireHandler integration', () => {
       });
 
       expect(result).toHaveProperty('fromAsar', true);
+    });
+  });
+
+  describe('TFile instances', () => {
+    it('should requireAsync a module via TFile instance', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const file = app.vault.getFileByPath(`${dir}/module.cjs`);
+          if (!file) {
+            return { error: 'File not found', value: null };
+          }
+          return (await requireAsync(file)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 42);
+    });
+
+    it('should require a module synchronously via TFile instance', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ app, dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const file = app.vault.getFileByPath(`${dir}/module.cjs`);
+          if (!file) {
+            return { error: 'File not found', value: null };
+          }
+          return (requireFn(file)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 42);
+    });
+
+    it('should forward options when requireAsync is called with TFile', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const cachePath = `${dir}/tfile-cache-test.cjs`;
+
+          await app.vault.adapter.write(cachePath, 'exports.version = 1;');
+          const file1 = app.vault.getFileByPath(cachePath);
+          if (!file1) {
+            return { error: 'File not found', v1: null, v2: null };
+          }
+
+          const mod1 = (await requireAsync(file1, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const v1 = mod1['version'];
+
+          await app.vault.adapter.write(cachePath, 'exports.version = 2;');
+          const file2 = app.vault.getFileByPath(cachePath);
+          if (!file2) {
+            return { error: 'File not found after rewrite', v1, v2: null };
+          }
+
+          const mod2 = (await requireAsync(file2, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const v2 = mod2['version'];
+
+          return { v1, v2 };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.v1).toBe(1);
+      expect(result.v2).toBe(2);
+    });
+
+    it('should forward options when require is called synchronously with TFile', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const cachePath = `${dir}/tfile-sync-cache-test.cjs`;
+
+          await app.vault.adapter.write(cachePath, 'exports.version = 1;');
+          const file1 = app.vault.getFileByPath(cachePath);
+          if (!file1) {
+            return { error: 'File not found', v1: null, v2: null };
+          }
+
+          const mod1 = requireFn(file1, { cacheInvalidationMode: 'always' }) as Record<string, unknown>;
+          const v1 = mod1['version'];
+
+          await app.vault.adapter.write(cachePath, 'exports.version = 2;');
+          const file2 = app.vault.getFileByPath(cachePath);
+          if (!file2) {
+            return { error: 'File not found after rewrite', v1, v2: null };
+          }
+
+          const mod2 = requireFn(file2, { cacheInvalidationMode: 'always' }) as Record<string, unknown>;
+          const v2 = mod2['version'];
+
+          return { v1, v2 };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.v1).toBe(1);
+      expect(result.v2).toBe(2);
     });
   });
 

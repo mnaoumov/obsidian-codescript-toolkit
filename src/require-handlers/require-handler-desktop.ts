@@ -1,7 +1,11 @@
 import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 
-import { FileSystemAdapter } from 'obsidian';
 import {
+  FileSystemAdapter,
+  TFile
+} from 'obsidian';
+import {
+  castTo,
   getPrototypeOf,
   normalizeOptionalProperties
 } from 'obsidian-dev-utils/object-utils';
@@ -86,11 +90,12 @@ export class RequireHandlerDesktop extends RequireHandlerBase {
     await super.onload();
 
     const moduleProto = getPrototypeOf(window.module);
+    type ModuleProtoRequireFn = typeof moduleProto.require;
     registerPatch(this, moduleProto, {
-      require: (next: RequireFn): RequireFn => {
-        this.originalModulePrototypeRequire = next;
+      require: (next: ModuleProtoRequireFn): ModuleProtoRequireFn => {
+        this.originalModulePrototypeRequire = castTo<RequireFn>(next);
         const that = this;
-        return function modulePrototypeRequirePatched(this: NodeJS.Module, id: string): unknown {
+        return function modulePrototypeRequirePatched(this: NodeJS.Module, id: string | TFile): unknown {
           return that.modulePrototypeRequire(id, this);
         };
       }
@@ -319,7 +324,7 @@ Consider using cacheInvalidationMode=${CacheInvalidationMode.Never}.
 ${this.getRequireAsyncAdvice(path)}`;
   }
 
-  private modulePrototypeRequire(id: string, module: NodeJS.Module): unknown {
+  private modulePrototypeRequire(id: string | TFile, module: NodeJS.Module): unknown {
     /**
      * The caller line index is 6 because the call stack is as follows:
      *

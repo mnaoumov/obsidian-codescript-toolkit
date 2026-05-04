@@ -1,6 +1,7 @@
 import type { App } from 'obsidian';
 
 import { FileSystemAdapter } from 'obsidian';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import { registerPatch } from 'obsidian-dev-utils/obsidian/monkey-around';
 import {
   beforeEach,
@@ -11,7 +12,10 @@ import {
 } from 'vitest';
 
 import type { RequireOptions } from '../types.ts';
-import type { RequireHandlerConstructorParams } from './require-handler.ts';
+import type {
+  RequireFn,
+  RequireHandlerConstructorParams
+} from './require-handler.ts';
 
 import {
   CacheInvalidationMode,
@@ -332,8 +336,7 @@ class TestableRequireHandlerDesktop extends RequireHandlerDesktop {
   }
 
   public setOriginalModulePrototypeRequire(fn: ReturnType<typeof vi.fn>): void {
-    // eslint-disable-next-line no-restricted-syntax -- accessing private internals
-    this['originalModulePrototypeRequire'] = fn as unknown as typeof require;
+    this['originalModulePrototypeRequire'] = castTo<RequireFn>(fn);
   }
 
   public unsetFs(): void {
@@ -514,8 +517,8 @@ describe('RequireHandlerDesktop', () => {
     it('should return undefined when originalModulePrototypeRequire is not set', () => {
       // eslint-disable-next-line no-restricted-syntax -- testing undefined case
       handler.setOriginalModulePrototypeRequire(undefined as unknown as ReturnType<typeof vi.fn>);
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to unset private field
-      handler['originalModulePrototypeRequire'] = undefined as unknown as typeof require;
+
+      handler['originalModulePrototypeRequire'] = castTo<RequireFn>(undefined);
 
       const result = handler.exposeRequireNodeBuiltInModule('node:fs');
 
@@ -1492,8 +1495,7 @@ describe('RequireHandlerDesktop', () => {
     });
 
     it('should return undefined when originalModulePrototypeRequire is not set', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to unset private field
-      handler['originalModulePrototypeRequire'] = undefined as unknown as typeof require;
+      handler['originalModulePrototypeRequire'] = castTo<RequireFn>(undefined);
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as OriginalModulePrototypeRequireWrappedAccessor)

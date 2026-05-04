@@ -1,3 +1,9 @@
+import type { TFile as OriginalTFile } from 'obsidian';
+
+import {
+  App,
+  TFile
+} from 'obsidian-test-mocks/obsidian';
 import {
   afterEach,
   beforeEach,
@@ -785,6 +791,51 @@ describe('RequireHandlerBase', () => {
         cacheInvalidationMode: 'unknown' as CacheInvalidationMode
       })).rejects.toThrow('Unknown cacheInvalidationMode: \'unknown\'.');
     });
+
+    it('should convert TFile to vault-root-prefixed path in requireAsync', async () => {
+      const mockApp = App.createConfigured__();
+      const file = TFile.create__(mockApp.vault, 'scripts/helper.js').asOriginalType2__();
+
+      handler.mockExistsFile.mockResolvedValue(true);
+      handler.mockReadFile.mockResolvedValue('module.exports = { value: 42 };');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { value: 42 };
+      });
+
+      const result = await handler.requireAsync(file);
+
+      expect(result).toEqual(expect.objectContaining({ value: 42 }));
+    });
+
+    it('should forward options when requireAsync is called with TFile', async () => {
+      const mockApp = App.createConfigured__();
+      const file = TFile.create__(mockApp.vault, 'scripts/helper.js').asOriginalType2__();
+
+      handler.mockExistsFile.mockResolvedValue(true);
+      handler.mockReadFile.mockResolvedValue('module.exports = { value: 42 };');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockCanRequireNonCached.mockReturnValue(true);
+
+      let callCount = 0;
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        callCount++;
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { version: callCount };
+      });
+
+      const result1 = await handler.requireAsync(file, {
+        cacheInvalidationMode: CacheInvalidationMode.Always
+      });
+      const result2 = await handler.requireAsync(file, {
+        cacheInvalidationMode: CacheInvalidationMode.Always
+      });
+
+      expect(result1).toEqual(expect.objectContaining({ version: 1 }));
+      expect(result2).toEqual(expect.objectContaining({ version: 2 }));
+    });
   });
 
   describe('requireVaultScriptAsync', () => {
@@ -1031,6 +1082,36 @@ describe('RequireHandlerBase', () => {
       const queryCached = handler.exposeModulesCache()['/vault/clean-mod.js?v=2'];
       expect(cleanCached).toBeDefined();
       expect(queryCached).toBeDefined();
+    });
+
+    it('should convert TFile instance to vault-root-relative path via sync require', () => {
+      const mockApp = App.createConfigured__();
+      const file = TFile.create__(mockApp.vault, 'scripts/module.cjs').asOriginalType2__();
+
+      handler.mockRequireNonCached.mockReturnValue({ fileSync: true });
+      handler.mockCanRequireNonCached.mockReturnValue(true);
+
+      const requireFn = handler.exposeRequireEx() as (id: OriginalTFile) => unknown;
+      const result: unknown = requireFn(file);
+      expect(result).toEqual(expect.objectContaining({ fileSync: true }));
+    });
+
+    it('should forward options when sync require is called with TFile', () => {
+      const mockApp = App.createConfigured__();
+      const file = TFile.create__(mockApp.vault, 'scripts/module.cjs').asOriginalType2__();
+
+      let callCount = 0;
+      handler.mockRequireNonCached.mockImplementation(() => {
+        callCount++;
+        return { version: callCount };
+      });
+      handler.mockCanRequireNonCached.mockReturnValue(true);
+
+      const requireFn = handler.exposeRequireEx() as (id: OriginalTFile, options?: Partial<RequireOptions>) => unknown;
+      const result1: unknown = requireFn(file, { cacheInvalidationMode: CacheInvalidationMode.Always });
+      const result2: unknown = requireFn(file, { cacheInvalidationMode: CacheInvalidationMode.Always });
+      expect(result1).toEqual(expect.objectContaining({ version: 1 }));
+      expect(result2).toEqual(expect.objectContaining({ version: 2 }));
     });
   });
 

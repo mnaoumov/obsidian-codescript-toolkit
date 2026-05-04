@@ -7,10 +7,14 @@ import { debuggableEval } from 'debuggable-eval';
 import {
   App,
   Platform,
-  requestUrl
+  requestUrl,
+  TFile
 } from 'obsidian';
 import { noop } from 'obsidian-dev-utils/function';
-import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
+import {
+  castTo,
+  normalizeOptionalProperties
+} from 'obsidian-dev-utils/object-utils';
 import { AllWindowsEventHandler } from 'obsidian-dev-utils/obsidian/components/all-windows-event-handler';
 import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
 import {
@@ -264,7 +268,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
         if (!this.originalRequire) {
           return;
         }
-        requireWindow.require = this.originalRequire;
+        requireWindow.require = castTo<RequireExFn>(this.originalRequire);
       });
 
       requireWindow.requireAsync = this.requireAsync.bind(this);
@@ -275,7 +279,11 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     });
   }
 
-  public async requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
+  public async requireAsync(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown> {
+    if (id instanceof TFile) {
+      return await this.requireAsync(`${VAULT_ROOT_PREFIX}${id.path}`, options);
+    }
+
     const DEFAULT_OPTIONS: RequireOptions = {
       cacheInvalidationMode: CacheInvalidationMode.WhenPossible
     };
@@ -865,7 +873,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     const that = this;
     return wrapped;
 
-    async function wrapped(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
+    async function wrapped(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown> {
       const newOptions = normalizeOptionalProperties<Partial<RequireOptions>>({ parentPath, ...options });
       return await that.requireAsync(id, newOptions);
     }
@@ -876,7 +884,11 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     return JSON.parse(content) as PackageJson;
   }
 
-  private require(id: string, options?: Partial<RequireOptions>): unknown {
+  private require(id: string | TFile, options?: Partial<RequireOptions>): unknown {
+    if (id instanceof TFile) {
+      return this.require(`${VAULT_ROOT_PREFIX}${id.path}`, options);
+    }
+
     const DEFAULT_OPTIONS: RequireOptions = {
       cacheInvalidationMode: CacheInvalidationMode.WhenPossible
     };

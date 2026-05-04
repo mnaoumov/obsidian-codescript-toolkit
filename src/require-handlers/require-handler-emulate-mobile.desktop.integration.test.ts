@@ -1,3 +1,5 @@
+import type { TFile } from 'obsidian';
+
 import dedent from 'dedent';
 import { noop } from 'obsidian-dev-utils/function';
 import { evalInObsidian } from 'obsidian-integration-testing';
@@ -10,7 +12,7 @@ import {
   it
 } from 'vitest';
 
-type RequireAsyncFn = (id: string, options?: Record<string, unknown>) => Promise<unknown>;
+type RequireAsyncFn = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
 
 const SCRIPTS_DIR = '_int-test-emulate-mobile';
 
@@ -337,6 +339,59 @@ describe('RequireHandler emulate-mobile integration', () => {
       });
 
       expect(result.result).toBe(7);
+    });
+  });
+
+  describe('TFile instances', () => {
+    it('should requireAsync a module via TFile instance in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const file = app.vault.getFileByPath(`${dir}/module.cjs`);
+          if (!file) {
+            return { error: 'File not found', value: null };
+          }
+          return (await requireAsync(file)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'emulate-mobile-ok');
+    });
+
+    it('should forward options when requireAsync is called with TFile in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ app, dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const cachePath = `${dir}/tfile-cache-test.cjs`;
+
+          await app.vault.adapter.write(cachePath, 'exports.version = 1;');
+          const file1 = app.vault.getFileByPath(cachePath);
+          if (!file1) {
+            return { error: 'File not found', v1: null, v2: null };
+          }
+
+          const mod1 = (await requireAsync(file1, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const v1 = mod1['version'];
+
+          await app.vault.adapter.write(cachePath, 'exports.version = 2;');
+          const file2 = app.vault.getFileByPath(cachePath);
+          if (!file2) {
+            return { error: 'File not found after rewrite', v1, v2: null };
+          }
+
+          const mod2 = (await requireAsync(file2, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const v2 = mod2['version'];
+
+          return { v1, v2 };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.v1).toBe(1);
+      expect(result.v2).toBe(2);
     });
   });
 
