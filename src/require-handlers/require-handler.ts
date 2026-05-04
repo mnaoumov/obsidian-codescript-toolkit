@@ -158,6 +158,7 @@ export const PATH_SUFFIXES = ['', ...EXTENSIONS, ...EXTENSIONS.map((ext) => `/in
 export const PRIVATE_MODULE_PREFIX = '#';
 export const RELATIVE_MODULE_PATH_SEPARATOR = '/';
 export const SCOPED_MODULE_PREFIX = '@';
+const WINDOWS_DRIVE_LETTER_PATH_REG_EXP = /^[a-zA-Z]:\//;
 const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertAllKeys([
   '__dirname',
   '__filename',
@@ -531,6 +532,11 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     const cleanId = splitQuery(id).cleanStr;
     if (this.specialModuleFactories.has(cleanId)) {
       return { resolvedId: id, resolvedType: ResolvedType.SpecialModule };
+    }
+
+    // Check Windows drive-letter paths before URLs to prevent drive letters (e.g., C:/) from being misidentified as URL schemes
+    if (WINDOWS_DRIVE_LETTER_PATH_REG_EXP.test(id)) {
+      return { resolvedId: id, resolvedType: ResolvedType.Path };
     }
 
     // Check for URL resolution

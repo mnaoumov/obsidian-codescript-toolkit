@@ -2186,6 +2186,18 @@ describe('RequireHandlerBase', () => {
       expect(result.resolvedType).toBe(ResolvedType.Path);
       expect(result.resolvedId).toBe('C:/absolute/path.js');
     });
+
+    it('should resolve a Windows drive-letter path as Path, not URL', () => {
+      const result = handler.exposeResolve('C:/dev/scripts/1.cjs');
+      expect(result.resolvedType).toBe(ResolvedType.Path);
+      expect(result.resolvedId).toBe('C:/dev/scripts/1.cjs');
+    });
+
+    it('should resolve a lowercase Windows drive-letter path as Path', () => {
+      const result = handler.exposeResolve('f:/dev/1.cjs');
+      expect(result.resolvedType).toBe(ResolvedType.Path);
+      expect(result.resolvedId).toBe('f:/dev/1.cjs');
+    });
   });
 
   describe('applyCondition with wildcard exports', () => {
