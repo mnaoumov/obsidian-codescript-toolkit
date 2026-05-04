@@ -30,7 +30,7 @@ export interface CodeButtonContext {
    *
    * If {@link CodeButtonBlockConfig.shouldWrapConsole} is `false`, this will be the standard {@link console} itself.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#console-messages}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#shouldwrapconsole---console-messages}
    */
   console: Console;
 
@@ -41,7 +41,7 @@ export interface CodeButtonContext {
    *
    * If {@link CodeButtonBlockConfig.isRaw} is `false`, this will be a child of {@link parentEl}.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#container}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#codebuttoncontextcontainer}
    */
   container: HTMLElement;
 
@@ -52,7 +52,7 @@ export interface CodeButtonContext {
    * @param lineOffset - The line offset to insert the markdown at. Defaults to 0.
    * @param shouldPreserveLinePrefix - Whether to preserve the line prefix. Defaults to `true`.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#modify-containing-note-file}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#functions-to-modify-containing-note-file}
    */
   insertAfterCodeButtonBlock(markdown: string, lineOffset?: number, shouldPreserveLinePrefix?: boolean): Promise<void>;
 
@@ -63,7 +63,7 @@ export interface CodeButtonContext {
    * @param lineOffset - The line offset to insert the markdown at. Defaults to 0.
    * @param shouldPreserveLinePrefix - Whether to preserve the line prefix. Defaults to `true`.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#modify-containing-note-file}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#functions-to-modify-containing-note-file}
    */
   insertBeforeCodeButtonBlock(markdown: string, lineOffset?: number, shouldPreserveLinePrefix?: boolean): Promise<void>;
 
@@ -89,7 +89,7 @@ export interface CodeButtonContext {
    *
    * @param tempPluginClass - The class for the temp plugin.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#temp-plugins}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#codebuttoncontextregistertempplugin}
    */
   registerTempPlugin(params: RegisterTempPluginParams): void;
 
@@ -98,7 +98,7 @@ export interface CodeButtonContext {
    *
    * @param shouldKeepGap - Whether to keep the gap after removing the code button block. Defaults to `false`.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#modify-containing-note-file}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#functions-to-modify-containing-note-file}
    */
   removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void>;
 
@@ -107,7 +107,7 @@ export interface CodeButtonContext {
    *
    * @param markdown - The markdown to render.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#render-markdown}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#codebuttoncontextrendermarkdown}
    */
   renderMarkdown(markdown: string): Promise<void>;
 
@@ -118,7 +118,7 @@ export interface CodeButtonContext {
    * @param shouldPreserveLinePrefix - Whether to preserve the line prefix. Defaults to `true`.
    * @param shouldKeepGapWhenEmpty - Whether to keep the gap when the new code block is empty. Defaults to `false`.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#modify-containing-note-file}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#functions-to-modify-containing-note-file}
    */
   replaceCodeButtonBlock(markdown: string, shouldPreserveLinePrefix?: boolean, shouldKeepGapWhenEmpty?: boolean): Promise<void>;
 

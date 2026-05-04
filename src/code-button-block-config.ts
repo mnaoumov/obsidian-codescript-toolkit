@@ -8,7 +8,7 @@ export interface CodeButtonBlockConfig {
   caption: string;
 
   /**
-   * Whether the button should work in [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#raw-mode) mode.
+   * Whether the button should work in [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#israw---raw-mode) mode.
    */
   isRaw: boolean;
 
@@ -18,12 +18,12 @@ export interface CodeButtonBlockConfig {
   removeAfterExecution: RemoveAfterExecutionConfig;
 
   /**
-   * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#auto-output) the last evaluated expression.
+   * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#shouldautooutput---auto-output-mode) the last evaluated expression.
    */
   shouldAutoOutput: boolean;
 
   /**
-   * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#auto-running-code-blocks) without pressing the button.
+   * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#shouldautorun---auto-running-code-blocks-mode) without pressing the button.
    */
   shouldAutoRun: boolean;
 
@@ -33,7 +33,7 @@ export interface CodeButtonBlockConfig {
   shouldShowSystemMessages: boolean;
 
   /**
-   * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit?tab=readme-ov-file#console-messages) in the results panel.
+   * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#shouldwrapconsole---console-messages) in the results panel.
    */
   shouldWrapConsole: boolean;
 }
