@@ -66,7 +66,7 @@ function createMinimalWasm(): Uint8Array {
   ]);
 }
 
-beforeAll(() => {
+beforeAll(async () => {
   const vault = getTempVault();
 
   vault.populate({
@@ -83,6 +83,8 @@ beforeAll(() => {
     [`${SCRIPTS_DIR}/nested/child.cjs`]: 'exports.child = true;',
     [`${SCRIPTS_DIR}/relative-parent.cjs`]: 'const child = require(\'./nested/child.cjs\'); exports.childValue = child.child;'
   });
+
+  await vault.syncToDevice();
 });
 
 function vaultPath(): string {
