@@ -317,7 +317,8 @@ describe('RequireHandler Android integration', () => {
         fn({ dir }) {
           const requireFn = Reflect.get(window, 'require') as (id: string) => unknown;
           try {
-            requireFn(`//${dir}/module.cjs`);
+            // Use a path not cached by prior requireAsync tests
+            requireFn(`//${dir}/uncached-sync-test.cjs`);
             return { error: '', threw: false };
           } catch (e: unknown) {
             return { error: (e as Error).message, threw: true };
