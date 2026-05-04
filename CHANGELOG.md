@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 12.0.0
+
+- test: add tests
+- refactor!: new template
+
 ## 11.7.2
 
 - docs: fix url
