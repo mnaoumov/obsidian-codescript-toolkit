@@ -1171,6 +1171,10 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
   }
 
   private resolveLink(id: string, options?: Partial<RequireOptions>): null | string | TFile {
+    if (isUrl(id)) {
+      return null;
+    }
+
     const parsedLink = parseLink(id);
     if (!parsedLink) {
       return null;
