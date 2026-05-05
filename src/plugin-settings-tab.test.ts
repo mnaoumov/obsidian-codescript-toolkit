@@ -1,3 +1,4 @@
+import { noop } from 'obsidian-dev-utils/function';
 import {
   beforeEach,
   describe,
@@ -126,7 +127,7 @@ vi.mock('obsidian', async (importOriginal) => ({
 }));
 
 vi.mock('obsidian-dev-utils/async', () => ({
-  invokeAsyncSafely: vi.fn((fn: () => unknown) => fn())
+  convertAsyncToSync: vi.fn((fn: unknown) => fn)
 }));
 
 vi.mock('obsidian-dev-utils/html-element', () => ({
@@ -160,6 +161,23 @@ vi.mock('obsidian-dev-utils/obsidian/setting-ex', () => ({
   SettingEx: vi.fn().mockImplementation(function mockSettingExConstructor() {
     return mockSettingExInstance;
   })
+}));
+
+vi.mock('obsidian-dev-utils/obsidian/setting-group-ex', () => ({
+  SettingGroupEx: class MockSettingGroupEx {
+    public constructor(_containerEl: HTMLElement) {
+      noop();
+    }
+
+    public addSettingEx(cb: (setting: unknown) => void): this {
+      cb(mockSettingExInstance);
+      return this;
+    }
+
+    public setHeading(_heading: string): this {
+      return this;
+    }
+  }
 }));
 
 vi.mock('./code-button-block.ts', () => ({
@@ -225,7 +243,7 @@ describe('PluginSettingsTab', () => {
     it('should create settings for all configuration options', () => {
       tab.display();
 
-      const EXPECTED_SETTING_COUNT = 9;
+      const EXPECTED_SETTING_COUNT = 10;
       const totalSettingCalls = mockSettingExSetName.mock.calls.length + mockSettingExAddButton.mock.calls.length;
       expect(totalSettingCalls).toBeGreaterThanOrEqual(EXPECTED_SETTING_COUNT);
     });
@@ -270,6 +288,12 @@ describe('PluginSettingsTab', () => {
       tab.display();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Handle protocol URLs');
+    });
+
+    it('should create Should show temp plugin load/unload notices setting', () => {
+      tab.display();
+
+      expect(mockSettingExSetName).toHaveBeenCalledWith('Should show temp plugin load/unload notices');
     });
 
     it('should create Default code button config setting', () => {
@@ -344,6 +368,15 @@ describe('PluginSettingsTab', () => {
 
       const bindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'shouldHandleProtocolUrls'
+      );
+      expect(bindCall).toBeDefined();
+    });
+
+    it('should bind shouldShowTempPluginLoadUnloadNotices setting', () => {
+      tab.display();
+
+      const bindCall = mockBind.mock.calls.find(
+        (call) => call[1] === 'shouldShowTempPluginLoadUnloadNotices'
       );
       expect(bindCall).toBeDefined();
     });
@@ -486,8 +519,8 @@ describe('PluginSettingsTab', () => {
       mockButtonClickHandlers.length = 0;
       tabWithMock.display();
 
-      // First button click handler is for Hotkeys "Configure"
-      const HOTKEYS_BUTTON_INDEX = 0;
+      // Second button click handler is for Hotkeys "Configure" (after "Reset" button in Code button blocks)
+      const HOTKEYS_BUTTON_INDEX = 1;
       const hotkeysClickHandler = mockButtonClickHandlers[HOTKEYS_BUTTON_INDEX];
       expect(hotkeysClickHandler).toBeDefined();
 
@@ -528,8 +561,8 @@ describe('PluginSettingsTab', () => {
       mockButtonClickHandlers.length = 0;
       tabWithMock.display();
 
-      // Second button click handler is for "Reset to plugin default code button config"
-      const RESET_BUTTON_INDEX = 1;
+      // First button click handler is for "Reset to plugin default code button config" (in Code button blocks group)
+      const RESET_BUTTON_INDEX = 0;
       const resetClickHandler = mockButtonClickHandlers[RESET_BUTTON_INDEX];
       expect(resetClickHandler).toBeDefined();
 

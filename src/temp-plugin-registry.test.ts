@@ -82,7 +82,9 @@ function createRegistry(): TempPluginRegistry {
     commandRegistrar: {} as CommandRegistrar,
     menuEventRegistrar: {} as MenuEventRegistrar,
     pluginName: 'test-plugin',
-    pluginSettingsComponent: {} as PluginSettingsComponent
+    pluginSettingsComponent: {
+      settings: { shouldShowTempPluginLoadUnloadNotices: true }
+    } as PluginSettingsComponent
   });
 }
 

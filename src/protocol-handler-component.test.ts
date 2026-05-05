@@ -1,6 +1,7 @@
 import type { ObsidianProtocolData } from 'obsidian';
 
 import { noop } from 'obsidian-dev-utils/function';
+import { ensureGenericObject } from 'obsidian-dev-utils/type-guards';
 import {
   beforeEach,
   describe,
@@ -32,6 +33,7 @@ vi.mock('obsidian-dev-utils/object-utils', () => ({
 }));
 
 vi.mock('obsidian-dev-utils/type-guards', () => ({
+  ensureGenericObject: (value: unknown): Record<string, unknown> => value as Record<string, unknown>,
   ensureNonNullable: <T>(value: T | undefined): T => {
     if (value === undefined || value === null) {
       throw new Error('Value is null or undefined');
@@ -202,15 +204,16 @@ describe('ProtocolHandlerComponent', () => {
         code: string;
       }
       const generatedCode = (mockRequireStringAsync.mock.calls[0] as [MockCall])[0].code;
+      const genericObjectWindow = ensureGenericObject(window);
 
-      const originalWindow = window.window;
+      const originalRequireAsync = genericObjectWindow['requireAsync'];
       try {
-        (window as Record<string, unknown>)['window'] = { requireAsync: mockRequireAsync };
+        genericObjectWindow['requireAsync'] = mockRequireAsync;
         // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func -- intentionally evaluating generated code to verify it runs without reference errors.
         const fn = new Function(`return (async () => { ${generatedCode} })()`) as () => Promise<void>;
         await fn();
       } finally {
-        (window as Record<string, unknown>)['window'] = originalWindow;
+        genericObjectWindow['requireAsync'] = originalRequireAsync;
       }
 
       expect(mockRequireAsync).toHaveBeenCalledWith('//Scripts/Test.js');
