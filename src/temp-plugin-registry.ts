@@ -51,13 +51,13 @@ export class TempPluginRegistry extends Component {
   }
 
   public getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin {
-    const tempPluginClassName = (typeof tempPluginClass === 'string' ? tempPluginClass : tempPluginClass.name) || DEFAULT_TEMP_PLUGIN_CLASS_NAME;
+    const tempPluginClassName = getTempPluginClassName(tempPluginClass);
     const id = makeTempPluginId(tempPluginClassName);
     return this.tempPlugins.get(id) ?? null;
   }
 
   public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin> {
-    const tempPluginClassName = params.tempPluginClass.name || DEFAULT_TEMP_PLUGIN_CLASS_NAME;
+    const tempPluginClassName = getTempPluginClassName(params.tempPluginClass);
     const id = makeTempPluginId(tempPluginClassName);
 
     const existingPlugin = this.tempPlugins.get(id);
@@ -159,7 +159,8 @@ export class TempPluginRegistry extends Component {
     }
   }
 
-  public unregisterTempPlugin(tempPluginClassName: string): void {
+  public unregisterTempPlugin(tempPluginClass: string | TempPluginClass): void {
+    const tempPluginClassName = getTempPluginClassName(tempPluginClass);
     const id = makeTempPluginId(tempPluginClassName);
     const tempPlugin = this.tempPlugins.get(id);
     if (tempPlugin) {
@@ -168,6 +169,10 @@ export class TempPluginRegistry extends Component {
       new Notice(`Temp Plugin was not registered: ${tempPluginClassName}.`);
     }
   }
+}
+
+function getTempPluginClassName(tempPluginClass: string | TempPluginClass): string {
+  return (typeof tempPluginClass === 'string' ? tempPluginClass : tempPluginClass.name) || DEFAULT_TEMP_PLUGIN_CLASS_NAME;
 }
 
 function makeTempPluginId(tempPluginClassName: string): string {

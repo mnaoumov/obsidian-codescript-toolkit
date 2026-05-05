@@ -20,7 +20,7 @@ export class CodeScriptToolkitModuleImpl implements CodeScriptToolkitModule {
     return await this.tempPluginRegistry.registerTempPlugin<TPlugin>(params);
   }
 
-  public unregisterTempPlugin(tempPluginClassName: string): void {
-    this.tempPluginRegistry.unregisterTempPlugin(tempPluginClassName);
+  public unregisterTempPlugin(tempPluginClass: string | TempPluginClass): void {
+    this.tempPluginRegistry.unregisterTempPlugin(tempPluginClass);
   }
 }
