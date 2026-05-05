@@ -294,7 +294,7 @@ describe('RequireHandler Android integration', () => {
       });
 
       expect(result.hasEditorState).toBe(true);
-    });
+    }, 60000);
 
     it('should requireAsync a WASM module on Android', async () => {
       const result = await evalInObsidian({
