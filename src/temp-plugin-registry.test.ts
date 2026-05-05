@@ -163,6 +163,27 @@ describe('TempPluginRegistry', () => {
       expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
     });
 
+    it('should not show load notice when shouldShowTempPluginLoadUnloadNotices is false', async () => {
+      const silentRegistry = new TempPluginRegistry({
+        activeFileProvider: {} as ActiveFileProvider,
+        app: createMockApp(),
+        commandRegistrar: {} as CommandRegistrar,
+        menuEventRegistrar: {} as MenuEventRegistrar,
+        pluginName: 'test-plugin',
+        pluginSettingsComponent: {
+          settings: { shouldShowTempPluginLoadUnloadNotices: false }
+        } as PluginSettingsComponent
+      });
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('SilentPlugin', mockPlugin);
+      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor' as keyof Notice);
+
+      await silentRegistry.registerTempPlugin({ tempPluginClass });
+
+      expect(noticeSpy).not.toHaveBeenCalled();
+      noticeSpy.mockRestore();
+    });
+
     it('should return null when plugin load fails', async () => {
       const mockPlugin = createMockPlugin();
       mockPlugin.load.mockRejectedValue(new Error('Load failed'));
