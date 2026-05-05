@@ -1171,7 +1171,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
   }
 
   private resolveLink(id: string, options?: Partial<RequireOptions>): null | string | TFile {
-    if (isUrl(id)) {
+    if (isUrl(id) || id.startsWith(VAULT_ROOT_PREFIX)) {
       return null;
     }
 
