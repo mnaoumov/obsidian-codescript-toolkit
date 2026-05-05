@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 13.0.0
+
+- test: increase Android integration test timeout to 60s
+- fix: skip link resolution for vault-root-prefixed paths
+- fix: fall back to vault-root path when metadata cache cannot resolve link On Android
+- fix: prevent infinite recursion in resolveLink for URL inputs
+- test: add doc: update
+- refactor: unregisterTempPlugin
+- refactor!: registerTempPlugin lifecycle
+- feat: getTempPlugin
+- feat: add require for links
+- feat: add require for TFile
+
 ## 12.0.0
 
 - test: add tests
