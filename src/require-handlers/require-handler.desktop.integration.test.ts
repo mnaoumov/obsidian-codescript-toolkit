@@ -1092,6 +1092,73 @@ describe('RequireHandler integration', () => {
     });
   });
 
+  describe('wikilinks and markdown links', () => {
+    it('should requireAsync a module via wikilink', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`[[${dir}/module.cjs]]`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 42);
+    });
+
+    it('should requireAsync a module via markdown link', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`[Module](${dir}/module.cjs)`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 42);
+    });
+
+    it('should require a module synchronously via wikilink', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`[[${dir}/module.cjs]]`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 42);
+    });
+
+    it('should require a module synchronously via markdown link', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        fn({ dir }) {
+          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          return (requireFn(`[Module](${dir}/module.cjs)`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 42);
+    });
+
+    it('should requireAsync a module via wikilink with alias', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`[[${dir}/module.cjs|My Module]]`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 42);
+    });
+  });
+
   describe('node binaries', () => {
     it('should attempt to load a .node binary via requireAsync', async () => {
       const result = await evalInObsidian({

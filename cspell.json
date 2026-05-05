@@ -29,6 +29,7 @@
     "hotreload",
     "Invocables",
     "lezer",
+    "Linkpath",
     "loong",
     "mnaoumov",
     "mtimes",
@@ -46,7 +47,9 @@
     "tfile",
     "tsbuildinfo",
     "Unixlike",
-    "unstub"
+    "unstub",
+    "Wikilink",
+    "Wikilinks"
   ],
   "ignoreWords": [],
   "import": [],

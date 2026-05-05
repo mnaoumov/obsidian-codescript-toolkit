@@ -365,6 +365,34 @@ describe('RequireHandler Android integration', () => {
     });
   });
 
+  describe('wikilinks and markdown links', () => {
+    it('should requireAsync a module via wikilink on Android', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`[[${dir}/module.cjs]]`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'android-ok');
+    });
+
+    it('should requireAsync a module via markdown link on Android', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`[Module](${dir}/module.cjs)`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'android-ok');
+    });
+  });
+
   describe('features unavailable on Android', () => {
     it('should throw when using synchronous require() on Android', async () => {
       const result = await evalInObsidian({

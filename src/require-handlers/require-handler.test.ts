@@ -1,5 +1,7 @@
 import type { TFile as OriginalTFile } from 'obsidian';
 
+import { Platform } from 'obsidian';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   App,
   TFile
@@ -37,9 +39,10 @@ import {
   VAULT_ROOT_PREFIX
 } from './require-handler.ts';
 
-const { mockAllWindowsHandlerCallback, mockDebuggableEval, mockRequestUrl } = vi.hoisted(() => ({
+const { mockAllWindowsHandlerCallback, mockDebuggableEval, mockParseLink, mockRequestUrl } = vi.hoisted(() => ({
   mockAllWindowsHandlerCallback: vi.fn(),
   mockDebuggableEval: vi.fn(),
+  mockParseLink: vi.fn().mockReturnValue(null),
   mockRequestUrl: vi.fn()
 }));
 
@@ -69,6 +72,10 @@ vi.mock('debuggable-eval', () => ({
   debuggableEval: mockDebuggableEval
 }));
 
+vi.mock('obsidian-dev-utils/obsidian/link', () => ({
+  parseLink: mockParseLink
+}));
+
 vi.mock('../obsidian-dev-utils-module.ts', () => ({
   registerObsidianDevUtilsModule: vi.fn()
 }));
@@ -91,16 +98,24 @@ interface CustomRequireWindow {
   require: (id: string, options?: Partial<RequireOptions>) => unknown;
 }
 
+interface MockAppAccessor {
+  app: MockAppWithMetadataCache;
+}
+
+interface MockAppWithMetadataCache {
+  metadataCache: MockMetadataCache;
+}
+
 interface MockCleanups {
   cleanups__: (() => void)[];
 }
 
-interface MockModuleWithExports {
-  exports: unknown;
+interface MockMetadataCache {
+  getFirstLinkpathDest: ReturnType<typeof vi.fn>;
 }
 
-interface MockPlatformResourcePath {
-  Platform: MockResourcePathPrefix;
+interface MockModuleWithExports {
+  exports: unknown;
 }
 
 interface MockPluginRequireAccessor {
@@ -117,10 +132,6 @@ interface MockPluginSettingsComponent {
 
 interface MockPluginSettingsComponentAccessor {
   pluginSettingsComponent: MockPluginSettingsComponent;
-}
-
-interface MockResourcePathPrefix {
-  resourcePathPrefix: string;
 }
 
 interface MockWindowRequire {
@@ -150,8 +161,7 @@ interface ResolveResult {
 }
 
 function windowCustomRequire(id: string, options?: Partial<RequireOptions>): unknown {
-  // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
-  return (window as unknown as CustomRequireWindow).require(id, options);
+  return castTo<CustomRequireWindow>(window).require(id, options);
 }
 
 describe('splitQuery', () => {
@@ -488,15 +498,13 @@ describe('RequireHandlerBase', () => {
 
     it('should register requireAsync on window', async () => {
       await handler.onload();
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
-      const requireWindow = window as unknown as RequireAsyncWindow;
+      const requireWindow = castTo<RequireAsyncWindow>(window);
       expect(requireWindow.requireAsync).toBeDefined();
     });
 
     it('should register requireAsyncWrapper on window', async () => {
       await handler.onload();
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
-      const requireWindow = window as unknown as RequireWindowFull;
+      const requireWindow = castTo<RequireWindowFull>(window);
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
     });
 
@@ -583,10 +591,8 @@ describe('RequireHandlerBase', () => {
       expect(result.resolvedId).toBe('/parent/dir*some-module');
     });
 
-    it('should resolve resource path prefix URLs as Path type', async () => {
-      // eslint-disable-next-line no-restricted-syntax -- dynamic import needed for test
-      const obsidian = await import('obsidian') as unknown as MockPlatformResourcePath;
-      const resourceUrl = `${obsidian.Platform.resourcePathPrefix}some/path.js`;
+    it('should resolve resource path prefix URLs as Path type', () => {
+      const resourceUrl = `${Platform.resourcePathPrefix}some/path.js`;
       const result = handler.exposeResolve(resourceUrl);
       expect(result.resolvedType).toBe(ResolvedType.Path);
       expect(result.resolvedId).toBe('some/path.js');
@@ -654,8 +660,7 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should delegate to pluginRequire for obsidian built-in module names', () => {
-      // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      const mockPluginRequire = (handler as unknown as MockPluginRequireAccessor).pluginRequire;
+      const mockPluginRequire = castTo<MockPluginRequireAccessor>(handler).pluginRequire;
       vi.mocked(mockPluginRequire).mockReturnValue({ obsidianModule: true });
 
       const result = handler.exposeRequireSpecialModule('obsidian', {});
@@ -838,6 +843,151 @@ describe('RequireHandlerBase', () => {
     });
   });
 
+  describe('wikilinks and markdown links', () => {
+    beforeEach(async () => {
+      await handler.onload();
+    });
+
+    it('should resolve wikilink in requireAsync', async () => {
+      const mockApp = App.createConfigured__();
+      const file = TFile.create__(mockApp.vault, 'scripts/helper.js').asOriginalType2__();
+
+      mockParseLink.mockReturnValueOnce({
+        isExternal: false,
+        isWikilink: true,
+        url: 'scripts/helper.js'
+      });
+
+      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(file);
+
+      handler.mockExistsFile.mockResolvedValue(true);
+      handler.mockReadFile.mockResolvedValue('module.exports = { wiki: true };');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { wiki: true };
+      });
+
+      const result = await handler.requireAsync('[[scripts/helper.js]]');
+
+      expect(result).toEqual(expect.objectContaining({ wiki: true }));
+    });
+
+    it('should resolve markdown link in requireAsync', async () => {
+      const mockApp = App.createConfigured__();
+      const file = TFile.create__(mockApp.vault, 'scripts/helper.js').asOriginalType2__();
+
+      mockParseLink.mockReturnValueOnce({
+        isExternal: false,
+        isWikilink: false,
+        url: 'scripts/helper.js'
+      });
+
+      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(file);
+
+      handler.mockExistsFile.mockResolvedValue(true);
+      handler.mockReadFile.mockResolvedValue('module.exports = { md: true };');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { md: true };
+      });
+
+      const result = await handler.requireAsync('[Link](scripts/helper.js)');
+
+      expect(result).toEqual(expect.objectContaining({ md: true }));
+    });
+
+    it('should resolve wikilink in sync require', () => {
+      const mockApp = App.createConfigured__();
+      const file = TFile.create__(mockApp.vault, 'scripts/module.cjs').asOriginalType2__();
+
+      mockParseLink.mockReturnValueOnce({
+        isExternal: false,
+        isWikilink: true,
+        url: 'scripts/module.cjs'
+      });
+
+      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(file);
+
+      handler.mockRequireNonCached.mockReturnValue({ wikiSync: true });
+      handler.mockCanRequireNonCached.mockReturnValue(true);
+
+      const result: unknown = window.require('[[scripts/module.cjs]]');
+      expect(result).toEqual(expect.objectContaining({ wikiSync: true }));
+    });
+
+    it('should resolve markdown link in sync require', () => {
+      const mockApp = App.createConfigured__();
+      const file = TFile.create__(mockApp.vault, 'scripts/module.cjs').asOriginalType2__();
+
+      mockParseLink.mockReturnValueOnce({
+        isExternal: false,
+        isWikilink: false,
+        url: 'scripts/module.cjs'
+      });
+
+      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(file);
+
+      handler.mockRequireNonCached.mockReturnValue({ mdSync: true });
+      handler.mockCanRequireNonCached.mockReturnValue(true);
+
+      const result: unknown = window.require('[Link](scripts/module.cjs)');
+      expect(result).toEqual(expect.objectContaining({ mdSync: true }));
+    });
+
+    it('should pass external link URL to requireAsync', async () => {
+      mockParseLink.mockReturnValueOnce({
+        encodedUrl: 'https://cdn.example.com/lib.js',
+        isExternal: true,
+        isWikilink: false,
+        url: 'https://cdn.example.com/lib.js'
+      });
+
+      mockRequestUrl.mockResolvedValueOnce({
+        headers: { 'content-type': 'application/javascript' },
+        text: 'module.exports = { external: true };'
+      });
+
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { external: true };
+      });
+
+      const result = await handler.requireAsync('[Lib](https://cdn.example.com/lib.js)');
+
+      expect(result).toEqual(expect.objectContaining({ external: true }));
+    });
+
+    it('should throw when link cannot be resolved without parentPath', async () => {
+      mockParseLink.mockReturnValueOnce({
+        isExternal: false,
+        isWikilink: true,
+        url: 'nonexistent.js'
+      });
+
+      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(null);
+
+      await expect(handler.requireAsync('[[nonexistent.js]]'))
+        .rejects.toThrow('Failed to resolve link: \'nonexistent.js\'.');
+    });
+
+    it('should throw with parentPath context when link cannot be resolved', async () => {
+      mockParseLink.mockReturnValueOnce({
+        isExternal: false,
+        isWikilink: true,
+        url: 'nonexistent.js'
+      });
+
+      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(null);
+
+      await expect(handler.requireAsync('[[nonexistent.js]]', { parentPath: 'scripts' }))
+        .rejects.toThrow('Failed to resolve link: \'nonexistent.js\' from \'scripts\'.');
+    });
+  });
+
   describe('requireVaultScriptAsync', () => {
     beforeEach(async () => {
       await handler.onload();
@@ -952,8 +1102,7 @@ describe('RequireHandlerBase', () => {
   describe('resolve with modulesRoot', () => {
     it('should resolve modules root prefix using configured modulesRoot', async () => {
       const params = createMockConstructorParams();
-      // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (params as unknown as MockPluginSettingsComponentAccessor)
+      castTo<MockPluginSettingsComponentAccessor>(params)
         .pluginSettingsComponent.settings.modulesRoot = 'custom/modules';
       const customHandler = new TestRequireHandler(params);
       await customHandler.onload();
@@ -967,8 +1116,7 @@ describe('RequireHandlerBase', () => {
   describe('onload cleanup callbacks', () => {
     it('should set up and tear down requireAsync on window', async () => {
       await handler.onload();
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
-      const requireWindow = window as unknown as RequireWindowFull;
+      const requireWindow = castTo<RequireWindowFull>(window);
       const hasRequireAsync = requireWindow.requireAsync !== undefined;
       const hasRequireAsyncWrapper = requireWindow.requireAsyncWrapper !== undefined;
       expect(hasRequireAsync).toBe(true);
@@ -2136,8 +2284,7 @@ describe('RequireHandlerBase', () => {
       class MockError extends OriginalError {
         public constructor(message?: string) {
           super(message);
-          // eslint-disable-next-line no-restricted-syntax -- testing undefined stack case requires explicit assignment
-          this.stack = undefined as unknown as string;
+          this.stack = castTo<string>(undefined);
         }
       }
       window.Error = MockError as typeof Error;
@@ -2585,8 +2732,7 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should pre-load requires and execute the function', async () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
-      const requireWindow = window as unknown as RequireAsyncWrapperWindow;
+      const requireWindow = castTo<RequireAsyncWrapperWindow>(window);
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
 
       // The requireAsyncWrapper parses the function body to extract require calls
@@ -2598,8 +2744,7 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should pre-load require calls found in the function body', async () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
-      const requireWindow = window as unknown as RequireAsyncWrapperTypedWindow;
+      const requireWindow = castTo<RequireAsyncWrapperTypedWindow>(window);
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
 
       // Pass a function that has a require call for a special module
@@ -2611,8 +2756,7 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should handle errors from pre-loaded requires gracefully', async () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access custom window property
-      const requireWindow = window as unknown as RequireAsyncWrapperTypedWindow;
+      const requireWindow = castTo<RequireAsyncWrapperTypedWindow>(window);
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
 
       handler.mockExistsFile.mockResolvedValue(false);
@@ -2772,8 +2916,7 @@ describe('RequireHandlerBase', () => {
   describe('onload cleanup restores window.require on unload', () => {
     it('should restore window.require to originalRequire after unload', async () => {
       const savedRequire = window.require;
-      // eslint-disable-next-line no-restricted-syntax -- NodeJS.Require mock requires double assertion
-      const sentinel = Object.assign((() => ({})) as unknown as NodeJS.Require, {
+      const sentinel = Object.assign(castTo<NodeJS.Require>(() => ({})), {
         cache: {},
         extensions: {},
         main: undefined as NodeJS.Module | undefined,
@@ -2789,8 +2932,7 @@ describe('RequireHandlerBase', () => {
       expect(window.require).not.toBe(sentinel);
 
       // Manually invoke all registered cleanups (since loaded__ is not set by onload)
-      // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      const cleanups = (testHandler as unknown as MockCleanups).cleanups__;
+      const cleanups = castTo<MockCleanups>(testHandler).cleanups__;
       for (const cleanup of cleanups) {
         cleanup();
       }
@@ -2818,8 +2960,7 @@ describe('RequireHandlerBase', () => {
       const handlerRequire = window.require;
 
       // Manually invoke all registered cleanups
-      // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      const cleanups = (testHandler as unknown as MockCleanups).cleanups__;
+      const cleanups = castTo<MockCleanups>(testHandler).cleanups__;
       for (const cleanup of cleanups) {
         cleanup();
       }
@@ -3072,8 +3213,7 @@ describe('RequireHandlerBase', () => {
     it('should continue when package.json does not exist for Module dependency root folder', async () => {
       // Use a modulesRoot that adds a second root folder
       const params = createMockConstructorParams();
-      // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (params as unknown as MockPluginSettingsComponentAccessor)
+      castTo<MockPluginSettingsComponentAccessor>(params)
         .pluginSettingsComponent.settings.modulesRoot = 'scripts';
       const customHandler = new TestRequireHandler(params);
       await customHandler.onload();
@@ -3428,6 +3568,9 @@ class TestRequireHandler extends RequireHandlerBase {
 function createMockConstructorParams(): RequireHandlerConstructorParams {
   const partial: Partial<RequireHandlerConstructorParams> = {
     app: {
+      metadataCache: {
+        getFirstLinkpathDest: vi.fn().mockReturnValue(null)
+      },
       vault: {
         adapter: {}
       },
@@ -3460,8 +3603,11 @@ function createMockNodeModule(id: string): NodeJS.Module {
     parent: null,
     path: '',
     paths: [],
-    // eslint-disable-next-line no-restricted-syntax, @typescript-eslint/no-unnecessary-type-assertion -- mock requires double assertion since vi.fn() doesn't overlap with NodeJS.Require
-    require: vi.fn().mockReturnValue({}) as unknown as NodeJS.Require
+    require: castTo<NodeJS.Require>(vi.fn().mockReturnValue({}))
   };
   return partial as NodeJS.Module;
+}
+
+function getMockGetFirstLinkpathDest(handler: TestRequireHandler): ReturnType<typeof vi.fn> {
+  return castTo<MockAppAccessor>(handler).app.metadataCache.getFirstLinkpathDest;
 }

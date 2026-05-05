@@ -395,6 +395,34 @@ describe('RequireHandler emulate-mobile integration', () => {
     });
   });
 
+  describe('wikilinks and markdown links', () => {
+    it('should requireAsync a module via wikilink in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`[[${dir}/module.cjs]]`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'emulate-mobile-ok');
+    });
+
+    it('should requireAsync a module via markdown link in emulate-mobile mode', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`[Module](${dir}/module.cjs)`)) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'emulate-mobile-ok');
+    });
+  });
+
   describe('features unavailable on mobile', () => {
     it('should throw when using synchronous require() in emulate-mobile mode', async () => {
       const result = await evalInObsidian({

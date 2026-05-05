@@ -17,6 +17,7 @@ import {
 } from 'obsidian-dev-utils/object-utils';
 import { AllWindowsEventHandler } from 'obsidian-dev-utils/obsidian/components/all-windows-event-handler';
 import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
+import { parseLink } from 'obsidian-dev-utils/obsidian/link';
 import {
   basename,
   dirname,
@@ -174,6 +175,7 @@ const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertA
 ]);
 const WILDCARD_MODULE_CONDITION_SUFFIX = '/*';
 export const VAULT_ROOT_PREFIX = '//';
+const DUMMY_FILE_NAME = 'dummy.md';
 
 export interface RequireHandler extends AsyncComponentBase {
   clearCache(): void;
@@ -282,6 +284,11 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
   public async requireAsync(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown> {
     if (id instanceof TFile) {
       return await this.requireAsync(`${VAULT_ROOT_PREFIX}${id.path}`, options);
+    }
+
+    const resolvedLink = this.resolveLink(id, options);
+    if (resolvedLink) {
+      return await this.requireAsync(resolvedLink, options);
     }
 
     const DEFAULT_OPTIONS: RequireOptions = {
@@ -889,6 +896,11 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
       return this.require(`${VAULT_ROOT_PREFIX}${id.path}`, options);
     }
 
+    const resolvedLink = this.resolveLink(id, options);
+    if (resolvedLink) {
+      return this.require(resolvedLink, options);
+    }
+
     const DEFAULT_OPTIONS: RequireOptions = {
       cacheInvalidationMode: CacheInvalidationMode.WhenPossible
     };
@@ -1156,6 +1168,26 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     arrayBuffer ??= await this.readFileBinaryAsync(path);
     const wasm = await WebAssembly.instantiate(arrayBuffer);
     return wasm.instance.exports;
+  }
+
+  private resolveLink(id: string, options?: Partial<RequireOptions>): null | string | TFile {
+    const parsedLink = parseLink(id);
+    if (!parsedLink) {
+      return null;
+    }
+    if (parsedLink.isExternal) {
+      return ensureNonNullable(parsedLink.encodedUrl);
+    }
+    const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(parsedLink.url, join(options?.parentPath ?? '', DUMMY_FILE_NAME));
+    if (resolvedFile) {
+      return resolvedFile;
+    }
+
+    if (options?.parentPath) {
+      throw new Error(`Failed to resolve link: '${parsedLink.url}' from '${options.parentPath}'.`);
+    }
+
+    throw new Error(`Failed to resolve link: '${parsedLink.url}'.`);
   }
 
   private resolvePathPrefix(id: string): null | ResolveResult {

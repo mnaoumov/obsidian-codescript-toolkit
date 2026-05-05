@@ -29,6 +29,8 @@ Most of the examples below will be shown using [`require()`][require], but you c
 - [System root path (Linux, MacOS)](./system-root-path.md)
 - [Vault-root-relative path](./vault-root-relative-path.md)
 - [TFile](./tfile.md)
+- [Wikilinks](./wikilinks.md)
+- [Markdown links](./markdown-links.md)
 - [`ECMAScript Modules` (`esm`)](./esm.md)
 - [`TypeScript` modules](./typescript.md)
 - [NPM modules](./npm-modules.md)

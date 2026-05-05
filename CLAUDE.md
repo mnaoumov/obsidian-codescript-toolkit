@@ -11,7 +11,7 @@ None.
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (125 tests)
+## Integration test coverage (134 tests)
 
 | Feature                                                                                        | Tests |
 |------------------------------------------------------------------------------------------------|-------|
@@ -40,6 +40,7 @@ None.
 | Resource URLs (resource prefix async + sync)                                                   | 2     |
 | HTTP URLs (requireAsync from CDN)                                                              | 1     |
 | TFile instances (requireAsync + sync require + options forwarding desktop, mobile, Android)    | 8     |
+| Wikilinks and markdown links (async + sync, alias, desktop, mobile, Android)                   | 9     |
 | Synchronous require (all desktop-supported modules)                                            | 16    |
 | Emulate-mobile (all mobile features, file/resource/HTTP URLs, WASM, sync/electron/node throw)  | 21    |
 | Android (all mobile features, file/resource/HTTP URLs, WASM, sync/electron/node throw)         | 20    |
@@ -47,7 +48,7 @@ None.
 
 ## Coverage status
 
-All features are now fully covered across code, docs, demo vault, and integration tests (129 tests).
+All features are now fully covered across code, docs, demo vault, and integration tests (134 tests).
 
 - ~~Integration test gaps (WASM, ASAR, node binaries)~~ — **Done**
 - ~~Demo vault gap (`requireAsyncWrapper()`)~~ — **Done**
