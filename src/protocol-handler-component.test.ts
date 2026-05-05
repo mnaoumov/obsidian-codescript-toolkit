@@ -189,6 +189,35 @@ describe('ProtocolHandlerComponent', () => {
       );
     });
 
+    it('should generate code that executes without reference errors when module is provided', async () => {
+      const mockModule = { invoke: vi.fn() };
+      const mockRequireAsync = vi.fn().mockResolvedValue(mockModule);
+
+      await registeredHandler({
+        action: 'CodeScriptToolkit',
+        module: '//Scripts/Test.js'
+      } as never);
+
+      interface MockCall {
+        code: string;
+      }
+      const generatedCode = (mockRequireStringAsync.mock.calls[0] as [MockCall])[0].code;
+
+      const originalWindow = window.window;
+      try {
+        (window as Record<string, unknown>)['window'] = { requireAsync: mockRequireAsync };
+        // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func -- intentionally evaluating generated code to verify it runs without reference errors.
+        const fn = new Function(`return (async () => { ${generatedCode} })()`) as () => Promise<void>;
+        await fn();
+      } finally {
+        (window as Record<string, unknown>)['window'] = originalWindow;
+      }
+
+      expect(mockRequireAsync).toHaveBeenCalledWith('//Scripts/Test.js');
+      // eslint-disable-next-line no-restricted-globals, @typescript-eslint/no-deprecated -- the generated code references the global `app`, so the assertion must too.
+      expect(mockModule.invoke).toHaveBeenCalledWith(app);
+    });
+
     it('should call requireStringAsync with code when code is provided', async () => {
       await registeredHandler({
         action: 'CodeScriptToolkit',

@@ -5,7 +5,6 @@ import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/c
 import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { toJson } from 'obsidian-dev-utils/object-utils';
-import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
@@ -96,7 +95,11 @@ export class ProtocolHandlerComponent extends Component {
 /* v8 ignore start -- serialized via toString() and evaluated in another runtime context via requireStringAsync. */
 async function invokeModuleFn(moduleSpecifier: string, functionName: string, args: unknown[]): Promise<void> {
   const windowWithRequireAsync = window as Partial<WindowWithRequireAsync>;
-  const module = await ensureNonNullable(windowWithRequireAsync.requireAsync)(moduleSpecifier);
+  const requireAsync = windowWithRequireAsync.requireAsync;
+  if (typeof requireAsync !== 'function') {
+    throw new Error('requireAsync is not defined in window.');
+  }
+  const module = await requireAsync(moduleSpecifier);
   const fn = module[functionName];
   if (typeof fn === 'undefined') {
     throw new Error(`Function ${functionName} in module ${moduleSpecifier} is not defined.`);
