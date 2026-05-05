@@ -176,7 +176,7 @@ describe('TempPluginRegistry', () => {
       });
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('SilentPlugin', mockPlugin);
-      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor' as keyof Notice);
+      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
 
       await silentRegistry.registerTempPlugin({ tempPluginClass });
 
