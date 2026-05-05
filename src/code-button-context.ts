@@ -1,7 +1,7 @@
 import type {
   App,
   MarkdownPostProcessorContext,
-  Plugin,
+  Plugin as ObsidianPlugin,
   PluginManifest,
   TFile
 } from 'obsidian';
@@ -44,6 +44,14 @@ export interface CodeButtonContext {
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#codebuttoncontextcontainer}
    */
   container: HTMLElement;
+
+  /**
+   * Get a temp plugin by class name or class itself.
+   *
+   * @param tempPluginClass - The class name or class itself of the temp plugin.
+   * @returns The temp plugin.
+   */
+  getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin;
 
   /**
    * Insert markdown after the code button block.
@@ -141,4 +149,4 @@ export interface RegisterTempPluginParams {
 /**
  * A temp plugin class signature.
  */
-export type TempPluginClass = new (app: App, manifest: PluginManifest) => Plugin;
+export type TempPluginClass = new (app: App, manifest: PluginManifest) => ObsidianPlugin;

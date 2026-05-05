@@ -14,9 +14,14 @@ import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
 import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 
-import type { RegisterTempPluginParams } from './code-button-context.ts';
+import type {
+  RegisterTempPluginParams,
+  TempPluginClass
+} from './code-button-context.ts';
 
 import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-plugin-command-handler.ts';
+
+const DEFAULT_TEMP_PLUGIN_CLASS_NAME = '_AnonymousPlugin';
 
 interface TempPluginRegistryConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
@@ -43,8 +48,14 @@ export class TempPluginRegistry extends Component {
     this.activeFileProvider = params.activeFileProvider;
   }
 
+  public getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin {
+    const tempPluginClassName = (typeof tempPluginClass === 'string' ? tempPluginClass : tempPluginClass.name) || DEFAULT_TEMP_PLUGIN_CLASS_NAME;
+    const id = makeTempPluginId(tempPluginClassName);
+    return this.tempPlugins.get(id) ?? null;
+  }
+
   public registerTempPlugin(params: RegisterTempPluginParams): void {
-    const tempPluginClassName = params.tempPluginClass.name || '_AnonymousPlugin';
+    const tempPluginClassName = params.tempPluginClass.name || DEFAULT_TEMP_PLUGIN_CLASS_NAME;
     const id = makeTempPluginId(tempPluginClassName);
 
     const existingPlugin = this.tempPlugins.get(id);

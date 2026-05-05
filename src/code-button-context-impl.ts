@@ -1,6 +1,7 @@
 import type {
   App,
   MarkdownPostProcessorContext,
+  Plugin as ObsidianPlugin,
   TFile
 } from 'obsidian';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
@@ -20,7 +21,8 @@ import {
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type {
   CodeButtonContext,
-  RegisterTempPluginParams
+  RegisterTempPluginParams,
+  TempPluginClass
 } from './code-button-context.ts';
 
 import { ConsoleWrapper } from './console-wrapper.ts';
@@ -64,6 +66,10 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     const wrappedConsole = new ConsoleWrapper({ resultEl: this.container });
     this.console = wrappedConsole.getConsoleInstance(this.config.shouldWrapConsole);
     this.tempPluginRegistry = params.tempPluginRegistry;
+  }
+
+  public getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin {
+    return this.tempPluginRegistry.getTempPlugin(tempPluginClass);
   }
 
   public async insertAfterCodeButtonBlock(markdown: string, lineOffset?: number, shouldPreserveLinePrefix?: boolean): Promise<void> {
