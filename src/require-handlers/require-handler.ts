@@ -1187,11 +1187,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
       return resolvedFile;
     }
 
-    if (options?.parentPath) {
-      throw new Error(`Failed to resolve link: '${parsedLink.url}' from '${options.parentPath}'.`);
-    }
-
-    throw new Error(`Failed to resolve link: '${parsedLink.url}'.`);
+    return `${VAULT_ROOT_PREFIX}${parsedLink.url}`;
   }
 
   private resolvePathPrefix(id: string): null | ResolveResult {

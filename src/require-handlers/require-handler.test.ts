@@ -961,7 +961,7 @@ describe('RequireHandlerBase', () => {
       expect(result).toEqual(expect.objectContaining({ external: true }));
     });
 
-    it('should throw when link cannot be resolved without parentPath', async () => {
+    it('should fall back to vault-root path when link cannot be resolved via metadata cache', async () => {
       mockParseLink.mockReturnValueOnce({
         isExternal: false,
         isWikilink: true,
@@ -970,11 +970,14 @@ describe('RequireHandlerBase', () => {
 
       getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(null);
 
+      const requireAsyncSpy = vi.spyOn(handler, 'requireAsync');
       await expect(handler.requireAsync('[[nonexistent.js]]'))
-        .rejects.toThrow('Failed to resolve link: \'nonexistent.js\'.');
+        .rejects.toThrow();
+
+      expect(requireAsyncSpy).toHaveBeenCalledWith('//nonexistent.js', undefined);
     });
 
-    it('should throw with parentPath context when link cannot be resolved', async () => {
+    it('should fall back to vault-root path with options when link cannot be resolved via metadata cache', async () => {
       mockParseLink.mockReturnValueOnce({
         isExternal: false,
         isWikilink: true,
@@ -983,8 +986,11 @@ describe('RequireHandlerBase', () => {
 
       getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(null);
 
+      const requireAsyncSpy = vi.spyOn(handler, 'requireAsync');
       await expect(handler.requireAsync('[[nonexistent.js]]', { parentPath: 'scripts' }))
-        .rejects.toThrow('Failed to resolve link: \'nonexistent.js\' from \'scripts\'.');
+        .rejects.toThrow();
+
+      expect(requireAsyncSpy).toHaveBeenCalledWith('//nonexistent.js', { parentPath: 'scripts' });
     });
   });
 
