@@ -19,6 +19,7 @@ import {
 } from 'vitest';
 
 import type { RegisterTempPluginParams } from './code-button-context.ts';
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
@@ -80,7 +81,8 @@ function createRegistry(): TempPluginRegistry {
     app: createMockApp(),
     commandRegistrar: {} as CommandRegistrar,
     menuEventRegistrar: {} as MenuEventRegistrar,
-    pluginName: 'test-plugin'
+    pluginName: 'test-plugin',
+    pluginSettingsComponent: {} as PluginSettingsComponent
   });
 }
 

@@ -38,20 +38,21 @@ export class Plugin extends PluginBase {
     const commandRegistrar = new PluginCommandRegistrar(this);
     const menuEventRegistrar = new AppMenuEventRegistrar(app, this);
 
+    const pluginSettingsComponent = this.addChild(
+      new PluginSettingsComponent({
+        app,
+        dataHandler: new PluginDataHandler(this)
+      })
+    );
+
     const tempPluginRegistry = this.addChild(
       new TempPluginRegistry({
         activeFileProvider,
         app,
         commandRegistrar,
         menuEventRegistrar,
-        pluginName: this.manifest.name
-      })
-    );
-
-    const pluginSettingsComponent = this.addChild(
-      new PluginSettingsComponent({
-        app,
-        dataHandler: new PluginDataHandler(this)
+        pluginName: this.manifest.name,
+        pluginSettingsComponent
       })
     );
 

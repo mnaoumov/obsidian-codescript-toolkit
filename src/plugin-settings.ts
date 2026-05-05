@@ -7,6 +7,7 @@ export class PluginSettings {
   public mobileChangesCheckingIntervalInSeconds = 30;
   public modulesRoot = '';
   public shouldHandleProtocolUrls = false;
+  public shouldShowTempPluginLoadUnloadNotices = true;
   public shouldUseSyncFallback = false;
   public startupScriptPath = '';
 

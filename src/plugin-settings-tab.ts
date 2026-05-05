@@ -230,6 +230,14 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
           .addToggle((toggle) => {
             this.bind(toggle, 'shouldHandleProtocolUrls');
           });
+      })
+      .addSettingEx((setting) => {
+        setting
+          .setName('Should show temp plugin load/unload notices')
+          .setDesc('Whether to show notices when the temp plugins are loaded/unloaded.')
+          .addToggle((toggle) => {
+            this.bind(toggle, 'shouldShowTempPluginLoadUnloadNotices');
+          });
       });
   }
 }

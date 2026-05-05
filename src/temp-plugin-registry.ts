@@ -18,6 +18,7 @@ import type {
   RegisterTempPluginParams,
   TempPluginClass
 } from './code-button-context.ts';
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-plugin-command-handler.ts';
 
@@ -31,6 +32,7 @@ interface TempPluginRegistryConstructorParams {
   readonly commandRegistrar: CommandRegistrar;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
+  readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
 export class TempPluginRegistry extends Component {
@@ -39,6 +41,7 @@ export class TempPluginRegistry extends Component {
   private readonly commandRegistrar: CommandRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
+  private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly tempPlugins = new Map<string, ObsidianPlugin>();
 
   public constructor(params: TempPluginRegistryConstructorParams) {
@@ -48,6 +51,7 @@ export class TempPluginRegistry extends Component {
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.activeFileProvider = params.activeFileProvider;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
 
   public getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin {
@@ -133,7 +137,9 @@ export class TempPluginRegistry extends Component {
     }
 
     function tempPluginLoad(): void {
-      new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
+      if (that.pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
+        new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
+      }
       if (params.cssText) {
         // eslint-disable-next-line obsidianmd/no-forbidden-elements, obsidianmd/prefer-active-doc -- Need dynamic `style` element. Need main document.
         styleEl = document.head.createEl('style', {
@@ -146,7 +152,7 @@ export class TempPluginRegistry extends Component {
     function tempPluginUnload(shouldShowUnloadNotice: boolean): void {
       that.tempPlugins.delete(id);
       that.removeChild(unloadTempPluginCommandHandlerComponent);
-      if (shouldShowUnloadNotice) {
+      if (shouldShowUnloadNotice && that.pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
         new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       }
       styleEl?.remove();
