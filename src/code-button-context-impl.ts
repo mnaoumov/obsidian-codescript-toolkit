@@ -96,8 +96,8 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     });
   }
 
-  public registerTempPlugin(params: RegisterTempPluginParams): void {
-    this.tempPluginRegistry.registerTempPlugin(params);
+  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin> {
+    return await this.tempPluginRegistry.registerTempPlugin<TPlugin>(params);
   }
 
   public async removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void> {

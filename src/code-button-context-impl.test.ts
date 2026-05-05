@@ -333,12 +333,12 @@ describe('CodeButtonContextImpl', () => {
   });
 
   describe('registerTempPlugin', () => {
-    it('should delegate to tempPluginRegistry.registerTempPlugin', () => {
+    it('should delegate to tempPluginRegistry.registerTempPlugin', async () => {
       const context = createContext();
       const params: RegisterTempPluginParams = {
         tempPluginClass: vi.fn() as never
       };
-      context.registerTempPlugin(params);
+      await context.registerTempPlugin(params);
 
       expect(mockRegisterTempPlugin).toHaveBeenCalledWith(params);
     });

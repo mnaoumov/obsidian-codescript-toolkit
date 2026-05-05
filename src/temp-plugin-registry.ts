@@ -21,6 +21,8 @@ import type {
 
 import { UnloadTempPluginCommandHandler } from './command-handlers/unload-temp-plugin-command-handler.ts';
 
+type LoadFn = () => Promise<void>;
+
 const DEFAULT_TEMP_PLUGIN_CLASS_NAME = '_AnonymousPlugin';
 
 interface TempPluginRegistryConstructorParams {
@@ -54,7 +56,7 @@ export class TempPluginRegistry extends Component {
     return this.tempPlugins.get(id) ?? null;
   }
 
-  public registerTempPlugin(params: RegisterTempPluginParams): void {
+  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin> {
     const tempPluginClassName = params.tempPluginClass.name || DEFAULT_TEMP_PLUGIN_CLASS_NAME;
     const id = makeTempPluginId(tempPluginClassName);
 
@@ -74,25 +76,63 @@ export class TempPluginRegistry extends Component {
 
     this.tempPlugins.set(id, tempPlugin);
 
-    type LoadFn = () => Promise<void>;
+    let styleEl: HTMLStyleElement | null = null;
+    const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler({
+      tempPlugin,
+      tempPluginClassName
+    });
+    const unloadTempPluginCommandHandlerComponent = this.addChild(
+      new CommandHandlerComponent({
+        activeFileProvider: this.activeFileProvider,
+        commandHandlers: [unloadTempPluginCommandHandler],
+        commandRegistrar: this.commandRegistrar,
+        menuEventRegistrar: this.menuEventRegistrar,
+        pluginName: this.pluginName
+      })
+    );
 
-    const loadFn = tempPlugin.load.bind(tempPlugin) as LoadFn;
-
-    invokeAsyncSafely(async () => {
-      let isLoaded = false;
+    const originalUnload = tempPlugin.unload.bind(tempPlugin);
+    tempPlugin.unload = (): void => {
+      tempPluginUnload(true);
       try {
-        await loadFn();
-        isLoaded = true;
+        originalUnload();
       } catch (error) {
-        new Notice(`Failed to load Temp Plugin: ${tempPluginClassName}. See console for details.`);
+        new Notice(`Failed to unload Temp Plugin: ${tempPluginClassName}. See console for details.`);
         printError(error);
       }
+    };
 
-      if (!isLoaded) {
-        return;
+    const loadFn = tempPlugin.load.bind(tempPlugin) as LoadFn;
+    const PLUGIN_HANG_TIMEOUT = 3000;
+    let hangNotice: Notice | null = null;
+
+    let isLoading = true;
+    const that = this;
+    invokeAsyncSafely(reportHang);
+
+    try {
+      await loadFn();
+      tempPluginLoad();
+    } catch (error) {
+      new Notice(`Failed to load Temp Plugin: ${tempPluginClassName}. See console for details.`);
+      printError(error);
+      tempPluginUnload(false);
+      return null;
+    } finally {
+      isLoading = false;
+      (hangNotice as Notice | null)?.hide();
+    }
+
+    return tempPlugin;
+
+    async function reportHang(): Promise<void> {
+      await sleep(PLUGIN_HANG_TIMEOUT);
+      if (isLoading) {
+        hangNotice = new Notice(`Temp Plugin "${tempPluginClassName}" is taking long to load.`, 0);
       }
+    }
 
-      let styleEl: HTMLStyleElement | null = null;
+    function tempPluginLoad(): void {
       new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
       if (params.cssText) {
         // eslint-disable-next-line obsidianmd/no-forbidden-elements, obsidianmd/prefer-active-doc -- Need dynamic `style` element. Need main document.
@@ -101,35 +141,16 @@ export class TempPluginRegistry extends Component {
           text: params.cssText
         });
       }
+    }
 
-      const unloadTempPluginCommandHandler = new UnloadTempPluginCommandHandler({
-        tempPlugin,
-        tempPluginClassName
-      });
-      const unloadTempPluginCommandHandlerComponent = this.addChild(
-        new CommandHandlerComponent({
-          activeFileProvider: this.activeFileProvider,
-          commandHandlers: [unloadTempPluginCommandHandler],
-          commandRegistrar: this.commandRegistrar,
-          menuEventRegistrar: this.menuEventRegistrar,
-          pluginName: this.pluginName
-        })
-      );
-
-      const originalUnload = tempPlugin.unload.bind(tempPlugin);
-      tempPlugin.unload = (): void => {
-        try {
-          originalUnload();
-        } catch (error) {
-          new Notice(`Failed to unload Temp Plugin: ${tempPluginClassName}. See console for details.`);
-          printError(error);
-        }
-        this.tempPlugins.delete(id);
-        this.removeChild(unloadTempPluginCommandHandlerComponent);
+    function tempPluginUnload(shouldShowUnloadNotice: boolean): void {
+      that.tempPlugins.delete(id);
+      that.removeChild(unloadTempPluginCommandHandlerComponent);
+      if (shouldShowUnloadNotice) {
         new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
-        styleEl?.remove();
-      };
-    });
+      }
+      styleEl?.remove();
+    }
   }
 
   public unloadTempPlugins(): void {

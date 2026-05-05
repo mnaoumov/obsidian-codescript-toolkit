@@ -99,7 +99,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#codebuttoncontextregistertempplugin}
    */
-  registerTempPlugin(params: RegisterTempPluginParams): void;
+  registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin>;
 
   /**
    * Remove the code button block.
@@ -141,12 +141,12 @@ export interface CodeButtonContext {
   sourceFile: TFile;
 }
 
-export interface RegisterTempPluginParams {
+export interface RegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> {
   readonly cssText?: string;
-  readonly tempPluginClass: TempPluginClass;
+  readonly tempPluginClass: TempPluginClass<TPlugin>;
 }
 
 /**
  * A temp plugin class signature.
  */
-export type TempPluginClass = new (app: App, manifest: PluginManifest) => ObsidianPlugin;
+export type TempPluginClass<TPlugin extends ObsidianPlugin = ObsidianPlugin> = new (app: App, manifest: PluginManifest) => TPlugin;

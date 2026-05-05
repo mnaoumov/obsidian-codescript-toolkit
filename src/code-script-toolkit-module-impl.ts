@@ -1,6 +1,9 @@
 import type { Plugin as ObsidianPlugin } from 'obsidian';
 
-import type { TempPluginClass } from './code-button-context.ts';
+import type {
+  RegisterTempPluginParams,
+  TempPluginClass
+} from './code-button-context.ts';
 import type { CodeScriptToolkitModule } from './code-script-toolkit-module.ts';
 
 import { TempPluginRegistry } from './temp-plugin-registry.ts';
@@ -13,11 +16,8 @@ export class CodeScriptToolkitModuleImpl implements CodeScriptToolkitModule {
     return this.tempPluginRegistry.getTempPlugin(tempPluginClass);
   }
 
-  public registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void {
-    this.tempPluginRegistry.registerTempPlugin({
-      cssText: cssText ?? '',
-      tempPluginClass
-    });
+  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin> {
+    return await this.tempPluginRegistry.registerTempPlugin<TPlugin>(params);
   }
 
   public unregisterTempPlugin(tempPluginClassName: string): void {

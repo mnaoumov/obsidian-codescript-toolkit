@@ -111,38 +111,38 @@ describe('TempPluginRegistry', () => {
   });
 
   describe('registerTempPlugin', () => {
-    it('should register a new temp plugin', () => {
+    it('should register a new temp plugin', async () => {
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
     });
 
-    it('should unload existing plugin when re-registering with same class name', () => {
+    it('should unload existing plugin when re-registering with same class name', async () => {
       const mockPlugin1 = createMockPlugin();
       const mockPlugin2 = createMockPlugin();
       const tempPluginClass1 = createTempPluginClass('TestPlugin', mockPlugin1);
       const tempPluginClass2 = createTempPluginClass('TestPlugin', mockPlugin2);
 
-      registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
+      await registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
 
       // The plugin stored in the map is created by the constructor, so we need to
       // Verify via the async callback. For the first registration, no unload happens.
       // For the second, the existing plugin should be unloaded.
-      registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
+      await registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
 
       // The first registered plugin instance gets unloaded
       // We verify the unloadTempPlugins path instead since we can't access internals
       expect(mockInvokeAsyncSafely).toHaveBeenCalledTimes(2);
     });
 
-    it('should use _AnonymousPlugin when class name is empty', () => {
+    it('should use _AnonymousPlugin when class name is empty', async () => {
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('', mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
     });
@@ -156,7 +156,7 @@ describe('TempPluginRegistry', () => {
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       await vi.waitFor(() => {
         expect(mockPlugin.load).toHaveBeenCalled();
@@ -174,7 +174,7 @@ describe('TempPluginRegistry', () => {
       mockPlugin.load.mockRejectedValue(loadError);
       const tempPluginClass = createTempPluginClass('FailPlugin', mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       await vi.waitFor(() => {
         expect(mockPrintError).toHaveBeenCalledWith(loadError);
@@ -193,7 +193,7 @@ describe('TempPluginRegistry', () => {
       const tempPluginClass = createTempPluginClass('StyledPlugin', mockPlugin);
       const CSS_TEXT = '.test { color: red; }';
 
-      registry.registerTempPlugin({ cssText: CSS_TEXT, tempPluginClass });
+      await registry.registerTempPlugin({ cssText: CSS_TEXT, tempPluginClass });
 
       await vi.waitFor(() => {
         expect(createElSpy).toHaveBeenCalledWith('style', {
@@ -216,7 +216,7 @@ describe('TempPluginRegistry', () => {
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('NoStylePlugin', mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       await vi.waitFor(() => {
         expect(mockPlugin.load).toHaveBeenCalled();
@@ -238,7 +238,7 @@ describe('TempPluginRegistry', () => {
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('WrappedPlugin', mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       await vi.waitFor(() => {
         expect(mockPlugin.load).toHaveBeenCalled();
@@ -274,7 +274,7 @@ describe('TempPluginRegistry', () => {
       });
       const tempPluginClass = createTempPluginClass('ErrorPlugin', mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       await vi.waitFor(() => {
         expect(mockPlugin.load).toHaveBeenCalled();
@@ -306,7 +306,7 @@ describe('TempPluginRegistry', () => {
       });
       const tempPluginClass = createTempPluginClass('CrashPlugin', mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       await vi.waitFor(() => {
         expect(mockPlugin.load).toHaveBeenCalled();
@@ -336,7 +336,7 @@ describe('TempPluginRegistry', () => {
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('StyledUnloadPlugin', mockPlugin);
 
-      registry.registerTempPlugin({ cssText: '.test { color: blue; }', tempPluginClass });
+      await registry.registerTempPlugin({ cssText: '.test { color: blue; }', tempPluginClass });
 
       await vi.waitFor(() => {
         expect(mockPlugin.load).toHaveBeenCalled();
@@ -351,14 +351,14 @@ describe('TempPluginRegistry', () => {
   });
 
   describe('unloadTempPlugins', () => {
-    it('should unload all registered temp plugins', () => {
+    it('should unload all registered temp plugins', async () => {
       const mockPlugin1 = createMockPlugin();
       const mockPlugin2 = createMockPlugin();
       const tempPluginClass1 = createTempPluginClass('Plugin1', mockPlugin1);
       const tempPluginClass2 = createTempPluginClass('Plugin2', mockPlugin2);
 
-      registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
-      registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
+      await registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
+      await registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
 
       registry.unloadTempPlugins();
 
@@ -385,12 +385,12 @@ describe('TempPluginRegistry', () => {
       expect(true).toBe(true);
     });
 
-    it('should unload the plugin when it is registered', () => {
+    it('should unload the plugin when it is registered', async () => {
       const mockPlugin = createMockPlugin();
       const PLUGIN_NAME = 'ExistingPlugin';
       const tempPluginClass = createTempPluginClass(PLUGIN_NAME, mockPlugin);
 
-      registry.registerTempPlugin({ tempPluginClass });
+      await registry.registerTempPlugin({ tempPluginClass });
 
       registry.unregisterTempPlugin(PLUGIN_NAME);
 

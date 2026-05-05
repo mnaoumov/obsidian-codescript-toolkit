@@ -1,6 +1,9 @@
 import type { Plugin as ObsidianPlugin } from 'obsidian';
 
-import type { TempPluginClass } from './code-button-context.ts';
+import type {
+  RegisterTempPluginParams,
+  TempPluginClass
+} from './code-button-context.ts';
 
 /**
  * Helper functions of the plugin.
@@ -19,7 +22,7 @@ export interface CodeScriptToolkitModule {
    * @param tempPluginClass - The class of the temporary plugin.
    * @param cssText - The CSS text of the temporary plugin (optional).
    */
-  registerTempPlugin(tempPluginClass: TempPluginClass, cssText?: string): void;
+  registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin>;
 
   /**
    * Unregister a temporary plugin.

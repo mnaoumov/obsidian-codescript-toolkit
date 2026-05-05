@@ -24,13 +24,16 @@ function createMockRegistry(): TempPluginRegistry {
 
 describe('CodeScriptToolkitModuleImpl', () => {
   describe('registerTempPlugin', () => {
-    it('should call registerTempPlugin on registry with cssText when provided', () => {
+    it('should call registerTempPlugin on registry with cssText when provided', async () => {
       const mockRegistry = createMockRegistry();
       const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
       const mockClass = vi.fn() as TempPluginClass;
       const cssText = '.foo { color: red; }';
 
-      impl.registerTempPlugin(mockClass, cssText);
+      await impl.registerTempPlugin({
+        cssText,
+        tempPluginClass: mockClass
+      });
 
       expect(mockRegistry.registerTempPlugin).toHaveBeenCalledWith({
         cssText,
@@ -38,12 +41,14 @@ describe('CodeScriptToolkitModuleImpl', () => {
       });
     });
 
-    it('should default cssText to empty string when not provided', () => {
+    it('should default cssText to empty string when not provided', async () => {
       const mockRegistry = createMockRegistry();
       const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
       const mockClass = vi.fn() as TempPluginClass;
 
-      impl.registerTempPlugin(mockClass);
+      await impl.registerTempPlugin({
+        tempPluginClass: mockClass
+      });
 
       expect(mockRegistry.registerTempPlugin).toHaveBeenCalledWith({
         cssText: '',
