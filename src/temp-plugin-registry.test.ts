@@ -110,14 +110,109 @@ describe('TempPluginRegistry', () => {
     });
   });
 
-  describe('registerTempPlugin', () => {
-    it('should register a new temp plugin', async () => {
+  describe('getTempPlugin', () => {
+    it('should return null when plugin is not registered', () => {
+      const result = registry.getTempPlugin('NonExistent');
+      expect(result).toBeNull();
+    });
+
+    it('should return plugin after registration by string name', async () => {
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
+      const result = registry.getTempPlugin('TestPlugin');
+      expect(result).not.toBeNull();
+    });
+
+    it('should return plugin after registration by class', async () => {
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+
+      await registry.registerTempPlugin({ tempPluginClass });
+
+      const result = registry.getTempPlugin(tempPluginClass);
+      expect(result).not.toBeNull();
+    });
+
+    it('should return null after plugin is unregistered', async () => {
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+
+      await registry.registerTempPlugin({ tempPluginClass });
+      registry.unregisterTempPlugin('TestPlugin');
+
+      const result = registry.getTempPlugin('TestPlugin');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('registerTempPlugin', () => {
+    it('should register a new temp plugin and return it', async () => {
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+
+      const result = await registry.registerTempPlugin({ tempPluginClass });
+
+      expect(result).not.toBeNull();
       expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
+    });
+
+    it('should return null when plugin load fails', async () => {
+      const mockPlugin = createMockPlugin();
+      mockPlugin.load.mockRejectedValue(new Error('Load failed'));
+      const tempPluginClass = createTempPluginClass('FailPlugin', mockPlugin);
+
+      const result = await registry.registerTempPlugin({ tempPluginClass });
+
+      expect(result).toBeNull();
+    });
+
+    it('should show hang notice when plugin load takes too long', async () => {
+      vi.useFakeTimers();
+      const HANG_TIMEOUT = 3000;
+
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        fn().catch(() => undefined);
+      });
+
+      let resolveLoad: (() => void) | undefined;
+      const mockPlugin = createMockPlugin();
+      mockPlugin.load.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolveLoad = resolve;
+        })
+      );
+      const tempPluginClass = createTempPluginClass('SlowPlugin', mockPlugin);
+
+      const registerPromise = registry.registerTempPlugin({ tempPluginClass });
+
+      await vi.advanceTimersByTimeAsync(HANG_TIMEOUT + 1);
+
+      resolveLoad?.();
+      await registerPromise;
+
+      vi.useRealTimers();
+    });
+
+    it('should not show hang notice when plugin loads before timeout', async () => {
+      vi.useFakeTimers();
+      const HANG_TIMEOUT = 3000;
+
+      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
+        fn().catch(() => undefined);
+      });
+
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('FastPlugin', mockPlugin);
+
+      await registry.registerTempPlugin({ tempPluginClass });
+
+      // Advance past the timeout — isLoading is already false
+      await vi.advanceTimersByTimeAsync(HANG_TIMEOUT + 1);
+
+      vi.useRealTimers();
     });
 
     it('should unload existing plugin when re-registering with same class name', async () => {
@@ -397,6 +492,19 @@ describe('TempPluginRegistry', () => {
       // The plugin in the map was created by the constructor in registerTempPlugin,
       // So unload is called on that instance
       expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
+    });
+
+    it('should unload the plugin when called with class instead of string', async () => {
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('ClassUnregister', mockPlugin);
+
+      await registry.registerTempPlugin({ tempPluginClass });
+
+      registry.unregisterTempPlugin(tempPluginClass);
+
+      // After unregistering, getTempPlugin should return null
+      const result = registry.getTempPlugin('ClassUnregister');
+      expect(result).toBeNull();
     });
   });
 });

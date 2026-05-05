@@ -11,7 +11,7 @@ None.
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (134 tests)
+## Integration test coverage (135 tests)
 
 | Feature                                                                                        | Tests |
 |------------------------------------------------------------------------------------------------|-------|
@@ -35,7 +35,7 @@ None.
 | Code-button config (shouldAutoOutput, shouldWrapConsole, removeAfterExecution)                 | 3     |
 | Startup script (invoke, cleanup+reload)                                                        | 2     |
 | Protocol handler (module via code, inline code)                                                | 2     |
-| Temp plugin registry (API access, register+unregister)                                         | 2     |
+| Temp plugin registry (API access, register+unregister, getTempPlugin)                          | 3     |
 | File URLs (file:/// async + sync)                                                              | 2     |
 | Resource URLs (resource prefix async + sync)                                                   | 2     |
 | HTTP URLs (requireAsync from CDN)                                                              | 1     |
@@ -48,7 +48,7 @@ None.
 
 ## Coverage status
 
-All features are now fully covered across code, docs, demo vault, and integration tests (134 tests).
+All features are now fully covered across code, docs, demo vault, and integration tests (135 tests).
 
 - ~~Integration test gaps (WASM, ASAR, node binaries)~~ — **Done**
 - ~~Demo vault gap (`requireAsyncWrapper()`)~~ — **Done**

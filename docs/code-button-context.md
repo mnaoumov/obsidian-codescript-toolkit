@@ -34,9 +34,15 @@ class MyPlugin extends Plugin {
   }
 }
 
-codeButtonContext.registerTempPlugin(MyPlugin);
+await codeButtonContext.registerTempPlugin({ tempPluginClass: MyPlugin });
 ```
 ````
+
+The method returns the loaded plugin instance, or `null` if loading failed:
+
+```js
+const plugin = await codeButtonContext.registerTempPlugin({ tempPluginClass: MyPlugin });
+```
 
 The loaded temp plugins can be unloaded using the `CodeScript Toolkit: Unload temp plugin: PluginName` / `CodeScript Toolkit: Unload temp plugins` commands.
 
@@ -45,7 +51,16 @@ Also all temp plugins are unloaded when current plugin is unloaded.
 You can also add custom CSS that is loaded and unloaded together with temp plugin:
 
 ```js
-codeButtonContext.registerTempPlugin(MyPlugin, '* { color: red; }');
+await codeButtonContext.registerTempPlugin({ tempPluginClass: MyPlugin, cssText: '* { color: red; }' });
+```
+
+## `codeButtonContext.getTempPlugin()`
+
+Retrieves a previously registered temp plugin by its class or class name:
+
+```js
+const plugin = codeButtonContext.getTempPlugin(MyPlugin);
+const plugin = codeButtonContext.getTempPlugin('MyPlugin');
 ```
 
 ## `codeButtonContext.renderMarkdown()`

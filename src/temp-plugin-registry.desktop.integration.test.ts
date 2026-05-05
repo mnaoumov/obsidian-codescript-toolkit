@@ -1,3 +1,5 @@
+import type { Plugin as ObsidianPlugin } from 'obsidian';
+
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
 import {
@@ -5,6 +7,14 @@ import {
   expect,
   it
 } from 'vitest';
+
+import type { RegisterTempPluginParams } from './code-button-context.ts';
+
+interface CodeScriptToolkitModule {
+  getTempPlugin(tempPluginClass: string): null | ObsidianPlugin;
+  registerTempPlugin(params: RegisterTempPluginParams): Promise<null | ObsidianPlugin>;
+  unregisterTempPlugin(tempPluginClass: string): void;
+}
 
 function vaultPath(): string {
   return getTempVault().path;
@@ -18,14 +28,15 @@ describe('TempPluginRegistry integration', () => {
         const cstModule = await requireAsync('codescript-toolkit');
 
         return {
+          hasGetTempPlugin: typeof cstModule['getTempPlugin'] === 'function',
           hasRegister: typeof cstModule['registerTempPlugin'] === 'function',
-          hasUnregister: typeof cstModule['unregisterTempPlugin'] === 'function',
-          keys: Object.keys(cstModule)
+          hasUnregister: typeof cstModule['unregisterTempPlugin'] === 'function'
         };
       },
       vaultPath: vaultPath()
     });
 
+    expect(result.hasGetTempPlugin).toBe(true);
     expect(result.hasRegister).toBe(true);
     expect(result.hasUnregister).toBe(true);
   });
@@ -33,12 +44,8 @@ describe('TempPluginRegistry integration', () => {
   it('should register and unregister a temp plugin', async () => {
     const result = await evalInObsidian({
       async fn({ obsidianModule }) {
-        const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<Record<string, unknown>>;
+        const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<CodeScriptToolkitModule>;
         const cstModule = await requireAsync('codescript-toolkit');
-        type RegisterFn = (cls: unknown, css?: string) => void;
-        type UnregisterFn = (name: string) => void;
-        const registerTempPlugin = (cstModule['registerTempPlugin'] as RegisterFn).bind(cstModule);
-        const unregisterTempPlugin = (cstModule['unregisterTempPlugin'] as UnregisterFn).bind(cstModule);
 
         const TEMP_PLUGIN_NAME = '__IntTestTempPlugin';
 
@@ -50,32 +57,52 @@ describe('TempPluginRegistry integration', () => {
         };
         Object.defineProperty(TestPlugin, 'name', { value: TEMP_PLUGIN_NAME });
 
-        let registerError: string | undefined;
-        try {
-          registerTempPlugin(TestPlugin);
-        } catch (e) {
-          registerError = String(e);
-        }
-
-        const LOAD_DELAY_MS = 500;
-        await sleep(LOAD_DELAY_MS);
-
+        const plugin = await cstModule.registerTempPlugin({ tempPluginClass: TestPlugin });
         const loaded = Reflect.get(window, '__tempPluginLoaded') === true;
+        const hasPlugin = plugin !== null;
 
-        let unregisterError: string | undefined;
-        try {
-          unregisterTempPlugin(TEMP_PLUGIN_NAME);
-        } catch (e) {
-          unregisterError = String(e);
-        }
+        cstModule.unregisterTempPlugin(TEMP_PLUGIN_NAME);
 
-        return { loaded, registerError, unregisterError };
+        return { hasPlugin, loaded };
       },
       vaultPath: vaultPath()
     });
 
-    expect(result.registerError).toBeUndefined();
     expect(result.loaded).toBe(true);
-    expect(result.unregisterError).toBeUndefined();
+    expect(result.hasPlugin).toBe(true);
+  });
+
+  it('should retrieve a registered temp plugin via getTempPlugin', async () => {
+    const result = await evalInObsidian({
+      async fn({ obsidianModule }) {
+        const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<CodeScriptToolkitModule>;
+        const cstModule = await requireAsync('codescript-toolkit');
+
+        const TEMP_PLUGIN_NAME = '__IntTestGetPlugin';
+
+        const TestPlugin = class extends obsidianModule.Plugin {
+          // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Test plugin intentionally skips super.onload.
+          public override onload(): void {
+            // No-op
+          }
+        };
+        Object.defineProperty(TestPlugin, 'name', { value: TEMP_PLUGIN_NAME });
+
+        const beforeRegister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
+
+        await cstModule.registerTempPlugin({ tempPluginClass: TestPlugin });
+        const afterRegister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
+
+        cstModule.unregisterTempPlugin(TEMP_PLUGIN_NAME);
+        const afterUnregister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
+
+        return { afterRegister, afterUnregister, beforeRegister };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.beforeRegister).toBe(false);
+    expect(result.afterRegister).toBe(true);
+    expect(result.afterUnregister).toBe(false);
   });
 });

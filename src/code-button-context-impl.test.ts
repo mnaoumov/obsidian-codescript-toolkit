@@ -25,6 +25,7 @@ const mockInsertBeforeCodeBlock = vi.fn();
 const mockRemoveCodeBlock = vi.fn();
 const mockReplaceCodeBlock = vi.fn();
 const mockGetConsoleInstance = vi.fn();
+const mockGetTempPlugin = vi.fn();
 const mockRegisterTempPlugin = vi.fn();
 const mockMarkdownRendererRender = vi.fn();
 
@@ -57,6 +58,10 @@ vi.mock('./console-wrapper.ts', () => ({
 
 vi.mock('./temp-plugin-registry.ts', () => ({
   TempPluginRegistry: class MockTempPluginRegistry {
+    public getTempPlugin(...args: unknown[]): unknown {
+      return mockGetTempPlugin(...args);
+    }
+
     public registerTempPlugin(...args: unknown[]): void {
       mockRegisterTempPlugin(...args);
     }
@@ -93,6 +98,7 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImpl 
   const ctx = partialCtx as MarkdownPostProcessorContext;
 
   const mockTempPluginRegistry: Partial<TempPluginRegistry> = {
+    getTempPlugin: mockGetTempPlugin,
     registerTempPlugin: mockRegisterTempPlugin
   };
 
@@ -329,6 +335,19 @@ describe('CodeButtonContextImpl', () => {
         context.sourceFile.path,
         context
       );
+    });
+  });
+
+  describe('getTempPlugin', () => {
+    it('should delegate to tempPluginRegistry.getTempPlugin', () => {
+      const context = createContext();
+      const mockPlugin = { id: 'test' };
+      mockGetTempPlugin.mockReturnValue(mockPlugin);
+
+      const result = context.getTempPlugin('TestPlugin');
+
+      expect(mockGetTempPlugin).toHaveBeenCalledWith('TestPlugin');
+      expect(result).toBe(mockPlugin);
     });
   });
 
