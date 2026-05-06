@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 13.0.1
+
+- feat: disable temp plugin notices
+- feat: add setting groups
+- fix: module execution re #52
+
 ## 13.0.0
 
 - test: increase Android integration test timeout to 60s
