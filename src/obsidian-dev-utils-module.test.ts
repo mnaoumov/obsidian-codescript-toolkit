@@ -35,6 +35,7 @@ vi.mock('../node_modules/obsidian-dev-utils/package.json', () => ({
       './*': './dist/*.js',
       './error': './dist/error.js',
       './my-utils': './dist/my-utils.js',
+      './obsidian/file-manager': './dist/obsidian/file-manager.js',
       './script-utils': './dist/script-utils.js'
     }
   }
@@ -90,17 +91,31 @@ describe('registerObsidianDevUtilsModule', () => {
     expect(hasTypes).toBe(false);
   });
 
-  it('should convert kebab-case to snake_case in property paths for nested modules', () => {
+  it('should preserve kebab-case in property paths for nested modules', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
     expect(mockGetNestedPropertyValue).toHaveBeenCalledWith(
       expect.anything(),
-      'my_utils'
+      'my-utils'
+    );
+  });
+
+  it('should preserve kebab-case in nested property paths with multiple segments', () => {
+    registerObsidianDevUtilsModule(specialModuleFactories);
+    expect(mockGetNestedPropertyValue).toHaveBeenCalledWith(
+      expect.anything(),
+      'obsidian.file-manager'
     );
   });
 
   it('should use the requireId with the original kebab-case path', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
     const factory = specialModuleFactories.get('obsidian-dev-utils/my-utils/nestedFunc');
+    expect(factory).toBeDefined();
+  });
+
+  it('should register nested kebab-case module exports', () => {
+    registerObsidianDevUtilsModule(specialModuleFactories);
+    const factory = specialModuleFactories.get('obsidian-dev-utils/obsidian/file-manager/nestedFunc');
     expect(factory).toBeDefined();
   });
 });

@@ -15,8 +15,6 @@ const LIB_NAME = 'obsidian-dev-utils';
 const PROPERTY_PATH_SEPARATOR = '.';
 const ROOT_EXPORT_PATH = '.';
 const WILDCARD_EXPORT_PATH = '*';
-const KEBAB_SEPARATOR = '-';
-const SNAKE_SEPARATOR = '_';
 
 export function registerObsidianDevUtilsModule(specialModuleFactories: Map<string, (options: Partial<RequireOptions>) => unknown>): void {
   specialModuleFactories.set(LIB_NAME, () => obsidianDevUtils);
@@ -34,8 +32,7 @@ export function registerObsidianDevUtilsModule(specialModuleFactories: Map<strin
     }
 
     const propertyPath = relativeExportPath
-      .replaceAll(EXPORT_PATH_SEPARATOR, PROPERTY_PATH_SEPARATOR)
-      .replaceAll(KEBAB_SEPARATOR, SNAKE_SEPARATOR);
+      .replaceAll(EXPORT_PATH_SEPARATOR, PROPERTY_PATH_SEPARATOR);
 
     const module = relativeExportPath === ROOT_EXPORT_PATH ? obsidianDevUtils : getNestedPropertyValue(obsidianDevUtils, propertyPath) as object;
 
