@@ -64,6 +64,7 @@
   },
   "overrides": {
     "@antfu/utils": "9.2.0",
+    "@eslint/config-helpers": "latest",
     "boolean": "npm:dry-uninstall",
     "dompurify": "3.0.1",
     "eslint": "latest",
