@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.0.2
+
+- chore: update libs
+- fix: preserve kebab-case in obsidian-dev-utils property paths
+
 ## 13.0.1
 
 - feat: disable temp plugin notices
