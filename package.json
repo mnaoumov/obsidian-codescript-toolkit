@@ -53,7 +53,7 @@
     "nano-staged": "latest",
     "obsidian": "latest",
     "obsidian-dev-utils": "latest",
-    "obsidian-integration-testing": "latest",
+    "obsidian-integration-testing": "^4.0.0",
     "obsidian-test-mocks": "latest",
     "obsidian-typings": "obsidian-public-latest",
     "remark": "latest",
