@@ -5,6 +5,7 @@ import type {
 
 import { AppActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
+import { OpenSettingsCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler';
 import { PluginCommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { PluginMarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
@@ -96,14 +97,16 @@ export class Plugin extends PluginBase {
 
     this.addChild(new CodeScriptBlockComponent());
 
+    const pluginSettingsTab = new PluginSettingsTab({
+      plugin: this,
+      pluginName: this.manifest.name,
+      pluginSettingsComponent
+    });
+
     this.addChild(
       new PluginSettingsTabComponent({
         plugin: this,
-        pluginSettingsTab: new PluginSettingsTab({
-          plugin: this,
-          pluginName: this.manifest.name,
-          pluginSettingsComponent
-        })
+        pluginSettingsTab
       })
     );
 
@@ -113,6 +116,7 @@ export class Plugin extends PluginBase {
         commandHandlers: [
           new ClearCacheCommandHandler(requireHandlerFactory),
           new InvokeScriptChooseCommandHandler(scriptManager),
+          new OpenSettingsCommandHandler(pluginSettingsTab),
           new ReloadStartupScriptCommandHandler(startupScriptComponent),
           new UnloadTempPluginsCommandHandler(tempPluginRegistry)
         ],
