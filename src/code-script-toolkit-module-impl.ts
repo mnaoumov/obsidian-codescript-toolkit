@@ -10,6 +10,9 @@ import { TempPluginRegistry } from './temp-plugin-registry.ts';
 
 export class CodeScriptToolkitModuleImpl implements CodeScriptToolkitModule {
   public constructor(private readonly tempPluginRegistry: TempPluginRegistry) {
+    this.getTempPlugin = this.getTempPlugin.bind(this);
+    this.registerTempPlugin = this.registerTempPlugin.bind(this);
+    this.unregisterTempPlugin = this.unregisterTempPlugin.bind(this);
   }
 
   public getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin {

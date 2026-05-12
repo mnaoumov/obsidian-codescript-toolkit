@@ -25,6 +25,19 @@ function createMockRegistry(): TempPluginRegistry {
 
 describe('CodeScriptToolkitModuleImpl', () => {
   describe('getTempPlugin', () => {
+    it('should work when destructured and called unbound', () => {
+      const mockRegistry = createMockRegistry();
+      const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
+      const mockPlugin = { id: 'test' };
+      vi.mocked(mockRegistry.getTempPlugin).mockReturnValue(mockPlugin as never);
+
+      const { getTempPlugin } = impl;
+      const result = getTempPlugin('TestPlugin');
+
+      expect(mockRegistry.getTempPlugin).toHaveBeenCalledWith('TestPlugin');
+      expect(result).toBe(mockPlugin);
+    });
+
     it('should delegate to registry.getTempPlugin with string', () => {
       const mockRegistry = createMockRegistry();
       const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
@@ -49,6 +62,17 @@ describe('CodeScriptToolkitModuleImpl', () => {
   });
 
   describe('registerTempPlugin', () => {
+    it('should work when destructured and called unbound', async () => {
+      const mockRegistry = createMockRegistry();
+      const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
+      const mockClass = vi.fn() as TempPluginClass;
+
+      const { registerTempPlugin } = impl;
+      await registerTempPlugin({ tempPluginClass: mockClass });
+
+      expect(mockRegistry.registerTempPlugin).toHaveBeenCalledWith({ tempPluginClass: mockClass });
+    });
+
     it('should call registerTempPlugin on registry with cssText when provided', async () => {
       const mockRegistry = createMockRegistry();
       const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
@@ -82,6 +106,17 @@ describe('CodeScriptToolkitModuleImpl', () => {
   });
 
   describe('unregisterTempPlugin', () => {
+    it('should work when destructured and called unbound', () => {
+      const mockRegistry = createMockRegistry();
+      const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
+      const mockClass = vi.fn() as TempPluginClass;
+
+      const { unregisterTempPlugin } = impl;
+      unregisterTempPlugin(mockClass);
+
+      expect(mockRegistry.unregisterTempPlugin).toHaveBeenCalledWith(mockClass);
+    });
+
     it('should call unregisterTempPlugin on registry with class name', () => {
       const mockRegistry = createMockRegistry();
       const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
