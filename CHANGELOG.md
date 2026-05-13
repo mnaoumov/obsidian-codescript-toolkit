@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.1.1
+
+- chore: switch versions
+
 ## 13.1.0
 
 - fix: bind `this` in CodeScriptToolkitModuleImpl to support destructured usage re #53
