@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 13.1.0
+
+- fix: bind `this` in CodeScriptToolkitModuleImpl to support destructured usage re #53
+- feat: open settings command
+- chore: update libs
+
 ## 13.0.2
 
 - chore: update libs
