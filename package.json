@@ -2,6 +2,10 @@
   "name": "fix-require-modules",
   "version": "13.1.1",
   "description": "Allows to do a lot of things with JavaScript/TypeScript scripts from inside the Obsidian itself.",
+  "keywords": [],
+  "license": "MIT",
+  "author": "mnaoumov",
+  "type": "module",
   "scripts": {
     "build": "jiti scripts/build.ts",
     "build:clean": "jiti scripts/build-clean.ts",
@@ -26,9 +30,15 @@
     "test:watch": "jiti scripts/test-watch.ts",
     "version": "jiti scripts/version.ts"
   },
-  "keywords": [],
-  "author": "mnaoumov",
-  "license": "MIT",
+  "overrides": {
+    "@antfu/utils": "9.2.0",
+    "@eslint/config-helpers": "^0.6.0",
+    "boolean": "npm:dry-uninstall",
+    "dompurify": "3.0.1",
+    "eslint": "^10.3.0",
+    "type-fest": "^5.6.0",
+    "typescript": "^6.0.3"
+  },
   "devDependencies": {
     "@babel/standalone": "^7.29.4",
     "@babel/types": "^7.29.0",
@@ -41,8 +51,7 @@
     "@vitest/coverage-v8": "^4.1.6",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "better-typescript-lib": "^2.12.0",
-    "commitizen": "^4.3.1",
-    "cz-conventional-changelog": "^3.3.0",
+    "czg": "^4.3.1",
     "debuggable-eval": "^2.2.1",
     "dedent": "^1.7.2",
     "eslint": "^10.3.0",
@@ -61,15 +70,5 @@
     "type-fest": "^5.6.0",
     "unist-util-visit": "^5.1.0",
     "vitest": "^4.1.6"
-  },
-  "overrides": {
-    "@antfu/utils": "9.2.0",
-    "@eslint/config-helpers": "^0.6.0",
-    "boolean": "npm:dry-uninstall",
-    "dompurify": "3.0.1",
-    "eslint": "^10.3.0",
-    "type-fest": "^5.6.0",
-    "typescript": "^6.0.3"
-  },
-  "type": "module"
+  }
 }
