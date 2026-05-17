@@ -34,7 +34,7 @@ import {
 import { typeAsserter } from 'obsidian-dev-utils/type';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import { isUrl } from 'obsidian-dev-utils/url';
-import { getDataAdapterEx } from 'obsidian-typings/implementations';
+import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';

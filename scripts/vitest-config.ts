@@ -27,8 +27,10 @@ export const config = defineConfig({
             obsidian: 'obsidian-test-mocks/obsidian'
           }
         },
-        ssr: {
-          noExternal: ['obsidian-dev-utils', 'obsidian-typings']
+        server: {
+          deps: {
+            inline: ['@obsidian-typings', 'obsidian-dev-utils']
+          }
         },
         test: {
           environment: 'jsdom',

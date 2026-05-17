@@ -43,7 +43,7 @@ interface MockDataAdapter {
   basePath: string;
 }
 
-vi.mock('obsidian-typings/implementations', () => ({
+vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   getDataAdapterEx: (): MockDataAdapter => ({
     basePath: '/vault'
   })

@@ -37,7 +37,7 @@ vi.mock('obsidian-dev-utils/obsidian/components/all-windows-event-handler', () =
   }
 }));
 
-vi.mock('obsidian-typings/implementations', () => ({
+vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   getDataAdapterEx: vi.fn().mockReturnValue({ basePath: '/vault' }),
   loadPrism: vi.fn()
 }));

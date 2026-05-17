@@ -6,7 +6,7 @@ import { watch } from 'node:fs';
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { join } from 'obsidian-dev-utils/path';
-import { getDataAdapterEx } from 'obsidian-typings/implementations';
+import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 
 import type { ScriptFolderWatcherConstructorParams } from './script-folder-watcher.ts';
 

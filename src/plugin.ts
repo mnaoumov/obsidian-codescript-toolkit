@@ -116,7 +116,10 @@ export class Plugin extends PluginBase {
         commandHandlers: [
           new ClearCacheCommandHandler(requireHandlerFactory),
           new InvokeScriptChooseCommandHandler(scriptManager),
-          new OpenSettingsCommandHandler(pluginSettingsTab),
+          new OpenSettingsCommandHandler({
+            app,
+            settingTab: pluginSettingsTab
+          })
           new ReloadStartupScriptCommandHandler(startupScriptComponent),
           new UnloadTempPluginsCommandHandler(tempPluginRegistry)
         ],

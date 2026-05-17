@@ -30,7 +30,7 @@ import {
   dirname
 } from 'obsidian-dev-utils/path';
 import { indent } from 'obsidian-dev-utils/string';
-import { getDataAdapterEx } from 'obsidian-typings/implementations';
+import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';

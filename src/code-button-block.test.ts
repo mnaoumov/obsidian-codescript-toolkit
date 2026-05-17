@@ -135,7 +135,7 @@ vi.mock('obsidian-dev-utils/string', () => ({
   indent: (str: string, prefix: string): string => str.split('\n').map((line) => `${prefix}${line}`).join('\n')
 }));
 
-vi.mock('obsidian-typings/implementations', () => ({
+vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   getDataAdapterEx: (...args: unknown[]): unknown => mockGetDataAdapterEx(...args)
 }));
 

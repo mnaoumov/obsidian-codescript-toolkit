@@ -22,7 +22,7 @@ interface WindowWithCodeMirror {
 
 const mockLoadPrism = vi.fn();
 
-vi.mock('obsidian-typings/implementations', () => ({
+vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   loadPrism: (...args: unknown[]): unknown => mockLoadPrism(...args)
 }));
 

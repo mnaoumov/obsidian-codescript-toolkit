@@ -1,6 +1,6 @@
 import { throwExpression } from 'obsidian-dev-utils/error';
 import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
-import { loadPrism } from 'obsidian-typings/implementations';
+import { loadPrism } from '@obsidian-typings/obsidian-public-latest/implementations';
 
 export const CODE_SCRIPT_BLOCK_LANGUAGE = 'code-script';
 
