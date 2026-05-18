@@ -9,9 +9,9 @@ import { OpenSettingsCommandHandler } from 'obsidian-dev-utils/obsidian/command-
 import { PluginCommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { PluginMarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
-import { AppMenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import { MenuEventRegistrarComponent } from 'obsidian-dev-utils/obsidian/components/menu-event-registrar-component';
 import { PluginObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
-import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-tab-component';
+import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
 import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 
 import { CodeButtonBlockComponent } from './code-button-block.ts';
@@ -110,6 +110,7 @@ export class Plugin extends PluginBase {
       })
     );
 
+    const menuEventRegistrar = this.addChild(new MenuEventRegistrarComponent(app));
     this.addChild(
       new CommandHandlerComponent({
         activeFileProvider,

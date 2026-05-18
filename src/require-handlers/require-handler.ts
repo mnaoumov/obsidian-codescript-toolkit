@@ -1,5 +1,5 @@
 import type { Code } from 'mdast';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 import type { Promisable } from 'type-fest';
 

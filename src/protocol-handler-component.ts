@@ -1,6 +1,6 @@
 import type { ObsidianProtocolData } from 'obsidian';
 import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/plugin/components/console-debug-component';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 
 import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';

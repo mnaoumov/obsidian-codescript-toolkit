@@ -3,7 +3,7 @@ import type { DataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { parseYaml } from 'obsidian';
-import { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/plugin/components/plugin-settings-component';
+import { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
 import {
   extname,
   join
