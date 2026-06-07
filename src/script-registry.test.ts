@@ -1,8 +1,14 @@
+import type { App } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
-import { noop } from 'obsidian-dev-utils/function';
+import {
+  noop,
+  noopAsync
+} from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -11,10 +17,13 @@ import {
   vi
 } from 'vitest';
 
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
+
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import {
   INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX,
-  ScriptRegistry
+  ScriptRegistryComponent
 } from './script-registry.ts';
 
 const mockPrintError = vi.fn();
@@ -31,9 +40,9 @@ vi.mock('obsidian-dev-utils/function', () => ({
 }));
 
 interface MockCommandHandlerParams {
-  icon: string;
-  id: string;
-  name: string;
+  readonly icon: string;
+  readonly id: string;
+  readonly name: string;
 }
 
 vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler', () => ({
@@ -55,9 +64,9 @@ vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler', () => ({
 }));
 
 interface MockGlobalCommandHandlerParams {
-  icon: string;
-  id: string;
-  name: string;
+  readonly icon: string;
+  readonly id: string;
+  readonly name: string;
 }
 
 vi.mock('obsidian-dev-utils/obsidian/command-handlers/global-command-handler', () => ({
@@ -75,20 +84,23 @@ vi.mock('obsidian-dev-utils/obsidian/command-handlers/global-command-handler', (
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler-component', () => ({
-  CommandHandlerComponent: vi.fn()
+  CommandHandlerComponent: class MockCommandHandlerComponent {
+    public load(): void {
+      noop();
+    }
+  }
 }));
 
 const onloadPromises: Promise<void>[] = [];
 
-vi.mock('obsidian-dev-utils/obsidian/components/async-component', () => {
+vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- Need to import Component inside mock factory; use mock path directly since require() doesn't go through Vite's alias resolution.
   const { Component: ObsidianComponent } = require('obsidian-test-mocks/obsidian') as typeof import('obsidian');
   return {
-    AsyncComponentBase: class MockAsyncComponentBase extends ObsidianComponent {
-      // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Mock intentionally replaces load to capture onload promises.
+    ComponentEx: class MockComponentEx extends ObsidianComponent {
       public override load(): void {
         const onload = Reflect.get(this, 'onload') as () => Promise<void>;
-        onloadPromises.push(Promise.resolve().then(() => onload.call(this)));
+        onloadPromises.push(noopAsync().then(() => onload.call(this)));
       }
     }
   };
@@ -108,6 +120,7 @@ vi.mock('obsidian-dev-utils/type-guards', () => ({
 
 vi.mock('./code-script-toolkit-note-settings.ts', () => ({
   getCodeScriptToolkitNoteSettings: vi.fn().mockResolvedValue({
+    defaultCodeScriptName: '',
     invocableCodeScriptName: '',
     isInvocable: false
   })
@@ -117,7 +130,7 @@ interface CreateRegistryOverrides {
   app?: MockApp;
   consoleDebugComponent?: MockConsoleDebugComponent;
   pluginSettingsComponent?: MockPluginSettingsComponent;
-  requireHandlerFactory?: MockRequireHandlerFactory;
+  RequireHandlerFactoryComponent?: MockRequireHandlerFactoryComponent;
 }
 
 interface MockAdapter {
@@ -136,7 +149,7 @@ interface MockPluginSettingsComponent {
   settings: MockSettings;
 }
 
-interface MockRequireHandlerFactory {
+interface MockRequireHandlerFactoryComponent {
   requireVaultScriptAsync: ReturnType<typeof vi.fn>;
 }
 
@@ -172,22 +185,24 @@ function createMockPluginSettingsComponent(): MockPluginSettingsComponent {
   };
 }
 
-function createMockRequireHandlerFactory(): MockRequireHandlerFactory {
+function createMockRequireHandlerFactoryComponent(): MockRequireHandlerFactoryComponent {
   return {
     requireVaultScriptAsync: vi.fn()
   };
 }
 
-function createRegistry(overrides?: CreateRegistryOverrides): ScriptRegistry {
-  return new ScriptRegistry({
-    activeFileProvider: {} as ActiveFileProvider,
-    app: (overrides?.app ?? createMockApp()) as never,
-    commandRegistrar: {} as CommandRegistrar,
-    consoleDebugComponent: (overrides?.consoleDebugComponent ?? createMockConsoleDebugComponent()) as never,
-    menuEventRegistrar: {} as MenuEventRegistrar,
+function createRegistry(overrides?: CreateRegistryOverrides): ScriptRegistryComponent {
+  return new ScriptRegistryComponent({
+    activeFileProvider: castTo<ActiveFileProvider>({}),
+    app: castTo<App>(overrides?.app ?? createMockApp()),
+    commandRegistrar: castTo<CommandRegistrar>({}),
+    consoleDebugComponent: castTo<ConsoleDebugComponent>(overrides?.consoleDebugComponent ?? createMockConsoleDebugComponent()),
+    menuEventRegistrar: castTo<MenuEventRegistrar>({}),
     pluginName: 'test-plugin',
-    pluginSettingsComponent: (overrides?.pluginSettingsComponent ?? createMockPluginSettingsComponent()) as never,
-    requireHandlerFactory: (overrides?.requireHandlerFactory ?? createMockRequireHandlerFactory()) as never
+    pluginSettingsComponent: castTo<PluginSettingsComponent>(overrides?.pluginSettingsComponent ?? createMockPluginSettingsComponent()),
+    RequireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>(
+      overrides?.RequireHandlerFactoryComponent ?? createMockRequireHandlerFactoryComponent()
+    )
   });
 }
 
@@ -201,8 +216,8 @@ describe('ScriptRegistry', () => {
   let mockApp: MockApp;
   let mockPluginSettingsComponent: MockPluginSettingsComponent;
   let mockConsoleDebugComponent: MockConsoleDebugComponent;
-  let mockRequireHandlerFactory: MockRequireHandlerFactory;
-  let registry: ScriptRegistry;
+  let mockRequireHandlerFactoryComponent: MockRequireHandlerFactoryComponent;
+  let registry: ScriptRegistryComponent;
 
   beforeEach(() => {
     onloadPromises.length = 0;
@@ -210,20 +225,21 @@ describe('ScriptRegistry', () => {
     mockNoopAsync.mockReset().mockResolvedValue(undefined);
     mockIsMarkdownFile.mockReset().mockReturnValue(false);
     vi.mocked(getCodeScriptToolkitNoteSettings).mockReset().mockResolvedValue({
+      defaultCodeScriptName: '',
       invocableCodeScriptName: '',
       isInvocable: false
-    } as never);
+    });
 
     mockApp = createMockApp();
     mockPluginSettingsComponent = createMockPluginSettingsComponent();
     mockConsoleDebugComponent = createMockConsoleDebugComponent();
-    mockRequireHandlerFactory = createMockRequireHandlerFactory();
+    mockRequireHandlerFactoryComponent = createMockRequireHandlerFactoryComponent();
 
     registry = createRegistry({
       app: mockApp,
       consoleDebugComponent: mockConsoleDebugComponent,
       pluginSettingsComponent: mockPluginSettingsComponent,
-      requireHandlerFactory: mockRequireHandlerFactory
+      RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent
     });
   });
 
@@ -249,9 +265,10 @@ describe('ScriptRegistry', () => {
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(true);
       vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({
+        defaultCodeScriptName: '',
         invocableCodeScriptName: '',
         isInvocable: false
-      } as never);
+      });
 
       await expect(registry.getScriptOrCommand(SCRIPT_PATH)).rejects.toThrow(
         `Script is not invocable: '${SCRIPT_PATH}'.`
@@ -264,14 +281,15 @@ describe('ScriptRegistry', () => {
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(true);
       vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({
+        defaultCodeScriptName: '',
         invocableCodeScriptName: CODE_SCRIPT_NAME,
         isInvocable: true
-      } as never);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
+      });
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
       await registry.getScriptOrCommand(SCRIPT_PATH);
 
-      expect(mockRequireHandlerFactory.requireVaultScriptAsync).toHaveBeenCalledWith(
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
         `scripts/${SCRIPT_PATH}?codeScriptName=${CODE_SCRIPT_NAME}`
       );
     });
@@ -281,14 +299,15 @@ describe('ScriptRegistry', () => {
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(true);
       vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({
+        defaultCodeScriptName: '',
         invocableCodeScriptName: '',
         isInvocable: true
-      } as never);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
+      });
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
       await registry.getScriptOrCommand(SCRIPT_PATH);
 
-      expect(mockRequireHandlerFactory.requireVaultScriptAsync).toHaveBeenCalledWith(
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
         `scripts/${SCRIPT_PATH}`
       );
     });
@@ -297,11 +316,11 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH = 'script.js';
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
       await registry.getScriptOrCommand(SCRIPT_PATH);
 
-      expect(mockRequireHandlerFactory.requireVaultScriptAsync).toHaveBeenCalledWith(
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
         `scripts/${SCRIPT_PATH}`
       );
     });
@@ -320,7 +339,7 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH = 'registered.js';
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: vi.fn()
       });
 
@@ -346,7 +365,7 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH = 'test.js';
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: vi.fn()
       });
 
@@ -392,7 +411,7 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH = 'test.js';
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: vi.fn()
       });
 
@@ -415,7 +434,7 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH_2 = 'test2.js';
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: vi.fn()
       });
 
@@ -439,7 +458,7 @@ describe('ScriptRegistry', () => {
       const mockInvoke = vi.fn().mockResolvedValue(undefined);
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke
       });
 
@@ -461,7 +480,7 @@ describe('ScriptRegistry', () => {
       const mockInvoke = vi.fn().mockRejectedValue(invokeError);
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke
       });
 
@@ -488,7 +507,7 @@ describe('ScriptRegistry', () => {
       const mockCallback = vi.fn();
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           callback: mockCallback
         }
@@ -513,7 +532,7 @@ describe('ScriptRegistry', () => {
       });
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           callback: mockCallback
         }
@@ -538,7 +557,7 @@ describe('ScriptRegistry', () => {
         .mockReturnValueOnce(undefined);
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           checkCallback: mockCheckCallback
         }
@@ -560,7 +579,7 @@ describe('ScriptRegistry', () => {
       const mockCheckCallback = vi.fn().mockReturnValue(false);
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           checkCallback: mockCheckCallback
         }
@@ -584,7 +603,7 @@ describe('ScriptRegistry', () => {
       });
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           checkCallback: mockCheckCallback
         }
@@ -612,7 +631,7 @@ describe('ScriptRegistry', () => {
         });
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           checkCallback: mockCheckCallback
         }
@@ -635,7 +654,7 @@ describe('ScriptRegistry', () => {
       const mockCallback = vi.fn();
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           callback: mockCallback,
           icon: 'star',
@@ -656,7 +675,7 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH = 'no-handler.js';
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({});
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({});
 
       await registry.registerScript(SCRIPT_PATH);
 
@@ -670,7 +689,7 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH = 'empty-command.js';
       mockApp.vault.adapter.exists.mockResolvedValue(true);
       mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {}
       });
 

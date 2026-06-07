@@ -1,4 +1,8 @@
+import type { App } from 'obsidian';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
+
 import { noop } from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -7,12 +11,14 @@ import {
   vi
 } from 'vitest';
 
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
-import { ScriptRegistry } from './script-registry.ts';
+import { ScriptRegistryComponent } from './script-registry.ts';
 import { ScriptManager } from './script.ts';
 
 interface SelectItemArgs {
-  itemTextFunc: (s: string) => string;
+  itemTextFunc(s: string): string;
 }
 
 const mockSelectItem = vi.fn();
@@ -30,11 +36,11 @@ vi.mock('obsidian-dev-utils/path', () => ({
 }));
 
 vi.mock('./code-script-toolkit-note-settings.ts', () => ({
-  getCodeScriptToolkitNoteSettings: vi.fn().mockResolvedValue({ isInvocable: false })
+  getCodeScriptToolkitNoteSettings: vi.fn().mockResolvedValue({ defaultCodeScriptName: '', invocableCodeScriptName: '', isInvocable: false })
 }));
 
 vi.mock('./script-registry.ts', () => ({
-  ScriptRegistry: class MockScriptRegistry {
+  ScriptRegistryComponent: class MockScriptRegistryComponent {
     public invokeScriptPath = vi.fn().mockResolvedValue(undefined);
     public registerScript = vi.fn().mockResolvedValue(undefined);
     public unregisterInvocableCommands = vi.fn();
@@ -95,23 +101,27 @@ describe('ScriptManager', () => {
   let mockApp: MockApp;
   let mockPluginSettingsComponent: MockPluginSettingsComponent;
   let mockConsoleDebugComponent: MockConsoleDebugComponent;
-  let scriptRegistry: ScriptRegistry;
+  let scriptRegistry: ScriptRegistryComponent;
   let scriptManager: ScriptManager;
 
   beforeEach(() => {
     mockSelectItem.mockReset();
     vi.mocked(getCodeScriptToolkitNoteSettings).mockReset();
-    vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({ isInvocable: false } as never);
+    vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({
+      defaultCodeScriptName: '',
+      invocableCodeScriptName: '',
+      isInvocable: false
+    });
 
     mockApp = createMockApp();
     mockPluginSettingsComponent = createMockPluginSettingsComponent();
     mockConsoleDebugComponent = createMockConsoleDebugComponent();
-    scriptRegistry = new ScriptRegistry({} as never);
+    scriptRegistry = castTo<ScriptRegistryComponent>(new ScriptRegistryComponent(castTo<ConstructorParameters<typeof ScriptRegistryComponent>[0]>({})));
 
     scriptManager = new ScriptManager({
-      app: mockApp as never,
-      consoleDebugComponent: mockConsoleDebugComponent as never,
-      pluginSettingsComponent: mockPluginSettingsComponent as never,
+      app: castTo<App>(mockApp),
+      consoleDebugComponent: castTo<ConsoleDebugComponent>(mockConsoleDebugComponent),
+      pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
       scriptRegistry
     });
   });
@@ -176,7 +186,7 @@ describe('ScriptManager', () => {
         files: ['scripts/note.md'],
         folders: []
       });
-      vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({ isInvocable: true } as never);
+      vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({ defaultCodeScriptName: '', invocableCodeScriptName: '', isInvocable: true });
 
       await scriptManager.registerInvocableScripts();
 
@@ -205,7 +215,7 @@ describe('ScriptManager', () => {
         files: ['scripts/note.md'],
         folders: []
       });
-      vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({ isInvocable: false } as never);
+      vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({ defaultCodeScriptName: '', invocableCodeScriptName: '', isInvocable: false });
 
       await scriptManager.registerInvocableScripts();
 

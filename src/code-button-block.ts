@@ -7,8 +7,8 @@ import type {
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import type { Promisable } from 'type-fest';
 
+import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import {
-  Component,
   getFrontMatterInfo,
   parseYaml,
   stringifyYaml
@@ -19,6 +19,7 @@ import {
   normalizeOptionalProperties,
   removeUndefinedProperties
 } from 'obsidian-dev-utils/object-utils';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import { getFile } from 'obsidian-dev-utils/obsidian/file-system';
 import {
   getCodeBlockMarkdownInfo,
@@ -30,29 +31,28 @@ import {
   dirname
 } from 'obsidian-dev-utils/path';
 import { indent } from 'obsidian-dev-utils/string';
-import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 
 import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
 import { ReplaceDynamicImportBabelPlugin } from './babel/replace-dynamic-import-babel-plugin.ts';
 import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-plugin.ts';
-import { CodeButtonContextImpl } from './code-button-context-impl.ts';
+import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
-import { TempPluginRegistry } from './temp-plugin-registry.ts';
+import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
-type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
-
-interface HandleClickParams {
+interface CodeButtonBlockComponentHandleClickParams {
   readonly buttonIndex: number;
   readonly code: string;
   readonly codeButtonContext: CodeButtonContext;
   readonly escapedCaption: string;
 }
+
+type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
 
 const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
 
@@ -75,33 +75,33 @@ interface CodeButtonBlockComponentConstructorParams {
   readonly app: App;
   readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
-  readonly tempPluginRegistry: TempPluginRegistry;
+  readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
+  readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
-interface ProcessCodeButtonBlockParams {
+interface CodeButtonBlockComponentProcessCodeButtonBlockParams {
   readonly ctx: MarkdownPostProcessorContext;
   readonly el: HTMLElement;
   readonly source: string;
 }
 
-export class CodeButtonBlockComponent extends Component {
+export class CodeButtonBlockComponent extends ComponentEx {
   private readonly app: App;
   private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly requireHandlerFactory: RequireHandlerFactory;
-  private readonly tempPluginRegistry: TempPluginRegistry;
+  private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
+  private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
     super();
     this.app = params.app;
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
-    this.requireHandlerFactory = params.requireHandlerFactory;
+    this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
     this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
-  public async handleClick(params: HandleClickParams): Promise<void> {
+  public async handleClick(params: CodeButtonBlockComponentHandleClickParams): Promise<void> {
     params.codeButtonContext.container.empty();
     const wrappedConsole = new ConsoleWrapper({ resultEl: params.codeButtonContext.container });
     if (params.codeButtonContext.config.shouldShowSystemMessages) {
@@ -118,7 +118,7 @@ export class CodeButtonBlockComponent extends Component {
         dirname(params.codeButtonContext.sourceFile.path),
         params.codeButtonContext.config.shouldAutoOutput
       );
-      const codeButtonBlockScriptWrapper = await this.requireHandlerFactory.requireStringAsync({
+      const codeButtonBlockScriptWrapper = await this.RequireHandlerFactoryComponent.requireStringAsync({
         code: script,
         path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
           String(params.buttonIndex)
@@ -169,8 +169,6 @@ export class CodeButtonBlockComponent extends Component {
   }
 
   public override onload(): void {
-    super.onload();
-
     registerCodeHighlighting();
     this.register(unregisterCodeHighlighting);
     this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor(
@@ -187,7 +185,7 @@ export class CodeButtonBlockComponent extends Component {
     );
   }
 
-  public async processCodeButtonBlock(params: ProcessCodeButtonBlockParams): Promise<void> {
+  public async processCodeButtonBlock(params: CodeButtonBlockComponentProcessCodeButtonBlockParams): Promise<void> {
     const sourceFile = getFile(this.app, params.ctx.sourcePath);
     lastButtonIndex++;
     const resultEl = params.el.createDiv({ cls: 'fix-require-modules console-log-container' });
@@ -282,11 +280,11 @@ export class CodeButtonBlockComponent extends Component {
       invokeAsyncSafely(() => that.handleClick(createHandleClickParams()));
     }
 
-    function createHandleClickParams(): HandleClickParams {
+    function createHandleClickParams(): CodeButtonBlockComponentHandleClickParams {
       return {
         buttonIndex: lastButtonIndex,
         code,
-        codeButtonContext: new CodeButtonContextImpl({
+        codeButtonContext: new CodeButtonContextImplComponent({
           app: that.app,
           config: fullConfig,
           markdownInfo,

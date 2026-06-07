@@ -32,7 +32,7 @@ import {
   PATH_SUFFIXES,
   PRIVATE_MODULE_PREFIX,
   RELATIVE_MODULE_PATH_SEPARATOR,
-  RequireHandlerBase,
+  RequireHandlerComponentBase,
   ResolvedType,
   SCOPED_MODULE_PREFIX,
   splitQuery,
@@ -46,11 +46,19 @@ const { mockAllWindowsHandlerCallback, mockDebuggableEval, mockParseLink, mockRe
   mockRequestUrl: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/components/all-windows-event-handler', () => ({
-  AllWindowsEventHandler: class {
+vi.mock('obsidian-dev-utils/obsidian/components/all-windows-event-component', () => ({
+  AllWindowsEventComponent: class {
+    public load(): void {
+      // Intentional noop for test mock.
+    }
+
     public registerAllWindowsHandler(cb: (win: Window) => void): void {
       mockAllWindowsHandlerCallback(cb);
       cb(window);
+    }
+
+    public unload(): void {
+      // Intentional noop for test mock.
     }
   }
 }));
@@ -95,7 +103,7 @@ vi.mock('../code-script-toolkit-module-impl.ts', () => ({
 }));
 
 interface CustomRequireWindow {
-  require: (id: string, options?: Partial<RequireOptions>) => unknown;
+  require(id: string, options?: Partial<RequireOptions>): unknown;
 }
 
 interface MockAppAccessor {
@@ -143,11 +151,11 @@ interface RequireAsyncWindow {
 }
 
 interface RequireAsyncWrapperTypedWindow {
-  requireAsyncWrapper?: (fn: (r: (id: string) => unknown) => unknown, r?: unknown) => Promise<unknown>;
+  requireAsyncWrapper?(fn: (r: (id: string) => unknown) => unknown, r?: unknown): Promise<unknown>;
 }
 
 interface RequireAsyncWrapperWindow {
-  requireAsyncWrapper?: (fn: (r: unknown) => unknown, r?: unknown) => Promise<unknown>;
+  requireAsyncWrapper?(fn: (r: unknown) => unknown, r?: unknown): Promise<unknown>;
 }
 
 interface RequireWindowFull {
@@ -158,6 +166,14 @@ interface RequireWindowFull {
 interface ResolveResult {
   resolvedId: string;
   resolvedType: ResolvedType;
+}
+
+interface WebAssemblyInstantiateSpy {
+  mockRestore(): void;
+}
+
+interface WebAssemblyInstantiateSpyFactory {
+  mockResolvedValue(value: WebAssembly.WebAssemblyInstantiatedSource): WebAssemblyInstantiateSpy;
 }
 
 function windowCustomRequire(id: string, options?: Partial<RequireOptions>): unknown {
@@ -428,13 +444,13 @@ describe('ResolvedType', () => {
   });
 });
 
-describe('RequireHandlerBase', () => {
-  let handler: TestRequireHandler;
+describe('RequireHandlerComponentBase', () => {
+  let handler: TestRequireHandlerComponent;
 
   beforeEach(() => {
     vi.clearAllMocks();
     const params = createMockConstructorParams();
-    handler = new TestRequireHandler(params);
+    handler = new TestRequireHandlerComponent(params);
   });
 
   afterEach(() => {
@@ -487,36 +503,36 @@ describe('RequireHandlerBase', () => {
 
   describe('onload', () => {
     it('should set vaultAbsolutePath from adapter basePath', async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
       expect(handler.exposeVaultAbsolutePath()).toBe('/vault');
     });
 
     it('should set window.require to the handler require', async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
       expect(window.require).toBeDefined();
     });
 
     it('should register requireAsync on window', async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
       const requireWindow = castTo<RequireAsyncWindow>(window);
       expect(requireWindow.requireAsync).toBeDefined();
     });
 
     it('should register requireAsyncWrapper on window', async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
       const requireWindow = castTo<RequireWindowFull>(window);
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
     });
 
     it('should call AllWindowsEventHandler with the handler callback', async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
       expect(mockAllWindowsHandlerCallback).toHaveBeenCalled();
     });
   });
 
   describe('resolve', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve a special module by name', () => {
@@ -601,7 +617,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireSpecialModule', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return the app for obsidian/app', () => {
@@ -671,7 +687,7 @@ describe('RequireHandlerBase', () => {
 
   describe('initModuleAndAddToCache', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should add a module to cache and return it', () => {
@@ -712,7 +728,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireAsync', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return special module immediately if found', async () => {
@@ -845,7 +861,7 @@ describe('RequireHandlerBase', () => {
 
   describe('wikilinks and markdown links', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve wikilink in requireAsync', async () => {
@@ -996,7 +1012,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireVaultScriptAsync', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should delegate to requireAsync with vault root prefix', async () => {
@@ -1009,7 +1025,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireStringAsync', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should evaluate code string and return module exports', async () => {
@@ -1055,7 +1071,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getCachedModule', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return null when module is not in cache', () => {
@@ -1076,7 +1092,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getPackageJsonPath', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should join folder with package.json', () => {
@@ -1087,7 +1103,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getRelativeModulePaths', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve module through requireAsync with path-based module', async () => {
@@ -1110,8 +1126,8 @@ describe('RequireHandlerBase', () => {
       const params = createMockConstructorParams();
       castTo<MockPluginSettingsComponentAccessor>(params)
         .pluginSettingsComponent.settings.modulesRoot = 'custom/modules';
-      const customHandler = new TestRequireHandler(params);
-      await customHandler.onload();
+      const customHandler = new TestRequireHandlerComponent(params);
+      await customHandler.loadWithPromises();
 
       const result = customHandler.exposeResolve('/my-script.js');
       expect(result.resolvedType).toBe(ResolvedType.Path);
@@ -1121,7 +1137,7 @@ describe('RequireHandlerBase', () => {
 
   describe('onload cleanup callbacks', () => {
     it('should set up and tear down requireAsync on window', async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
       const requireWindow = castTo<RequireWindowFull>(window);
       const hasRequireAsync = requireWindow.requireAsync !== undefined;
       const hasRequireAsyncWrapper = requireWindow.requireAsyncWrapper !== undefined;
@@ -1132,7 +1148,7 @@ describe('RequireHandlerBase', () => {
 
   describe('sync require via window.require', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return special module for obsidian/app via sync require', () => {
@@ -1271,7 +1287,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireAsync with .md extension', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should use resolvedId (with query) as cache key for .md files', async () => {
@@ -1295,7 +1311,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireAsync cache with query and clean id', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should add query alias when resolvedId differs from cleanResolvedId', async () => {
@@ -1316,7 +1332,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getRelativeModulePaths', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve module with package.json main field', async () => {
@@ -1444,7 +1460,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireJsonAsync', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should parse and return JSON content', async () => {
@@ -1459,7 +1475,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getRequireAsyncAdvice', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should include module id in advice string (tested via error message)', () => {
@@ -1476,7 +1492,7 @@ describe('RequireHandlerBase', () => {
 
   describe('sync require with Always mode and canRequireNonCached true', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should call requireNonCached when Always mode and canRequireNonCached is true', () => {
@@ -1506,7 +1522,7 @@ describe('RequireHandlerBase', () => {
 
   describe('makeChildRequire and makeChildRequireAsync', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should track dependencies when child require is used', async () => {
@@ -1541,7 +1557,7 @@ describe('RequireHandlerBase', () => {
 
   describe('resolve with no parentPath and no active file', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should fall back to fakeRoot.js when no active file', () => {
@@ -1553,7 +1569,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requirePathImplAsync module type dispatch', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should handle JSON modules via requireAsync', async () => {
@@ -1581,11 +1597,13 @@ describe('RequireHandlerBase', () => {
 
       const WASM_RETURN = 42;
       const mockWasmExports = { wasmFn: (): number => WASM_RETURN };
-      const instantiateSpy = vi.spyOn(WebAssembly, 'instantiate').mockResolvedValue(
-        {
+      const instantiateSpy = castTo<WebAssemblyInstantiateSpy>(
+        castTo<WebAssemblyInstantiateSpyFactory>(
+          vi.spyOn(WebAssembly, 'instantiate')
+        ).mockResolvedValue({
           instance: { exports: mockWasmExports },
-          module: {}
-        } as never
+          module: castTo<WebAssembly.Module>({})
+        })
       );
 
       const result = await handler.requireAsync('//module.wasm');
@@ -1606,7 +1624,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireModuleAsync with scoped packages', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve scoped packages like @scope/pkg', async () => {
@@ -1700,7 +1718,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should reload module when timestamp changes', async () => {
@@ -1730,7 +1748,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getExportsRelativeModulePaths', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve package with string exports', async () => {
@@ -1866,7 +1884,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireStringImpl with top-level await', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should call handleCodeWithTopLevelAwait for top-level await code', async () => {
@@ -1885,7 +1903,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireUrlAsync via requireAsync', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should fetch and evaluate a URL module', async () => {
@@ -1944,12 +1962,12 @@ describe('RequireHandlerBase', () => {
       });
 
       const mockWasmExports = { wasmUrlFn: (): number => 1 };
-      vi.spyOn(WebAssembly, 'instantiate').mockResolvedValue(
-        {
-          instance: { exports: mockWasmExports },
-          module: {}
-        } as never
-      );
+      castTo<WebAssemblyInstantiateSpyFactory>(
+        vi.spyOn(WebAssembly, 'instantiate')
+      ).mockResolvedValue({
+        instance: { exports: mockWasmExports },
+        module: castTo<WebAssembly.Module>({})
+      });
 
       const result = await handler.requireAsync('https://example.com/module.wasm');
       expect(result).toEqual(mockWasmExports);
@@ -2008,7 +2026,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireNonCachedAsync dispatch', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should handle ResolvedType.SpecialModule in requireNonCachedAsync', async () => {
@@ -2019,7 +2037,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync with dependency chains', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should follow module dependency chain for timestamp checking', async () => {
@@ -2062,7 +2080,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireModuleAsync with private modules', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve private module with # prefix', async () => {
@@ -2107,7 +2125,7 @@ describe('RequireHandlerBase', () => {
 
   describe('addToModuleCache default property', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should add a default property pointing to the module itself', () => {
@@ -2158,9 +2176,9 @@ describe('RequireHandlerBase', () => {
     it('should return early from cleanup when originalRequire is null', async () => {
       // Create a handler where originalRequire would be undefined
       const params = createMockConstructorParams();
-      const testHandler = new TestRequireHandler(params);
+      const testHandler = new TestRequireHandlerComponent(params);
 
-      await testHandler.onload();
+      await testHandler.loadWithPromises();
 
       // The callback registered is: if (!this.originalRequire) { return; }
       // Capture the registered callback from AllWindowsEventHandler
@@ -2184,7 +2202,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireAsync with CacheInvalidationMode.Always and cached module', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should break and proceed to reload when cacheInvalidationMode is Always', async () => {
@@ -2208,7 +2226,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getParentPathFromCallStack with anonymous or plugin paths', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return null when caller path contains <anonymous>', () => {
@@ -2332,7 +2350,7 @@ describe('RequireHandlerBase', () => {
 
   describe('handleCodeWithTopLevelAwait', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should call noop and not throw', () => {
@@ -2342,7 +2360,7 @@ describe('RequireHandlerBase', () => {
     });
 
     it('should be called when requireStringAsync encounters top-level await in code', async () => {
-      const handleSpy = vi.spyOn(handler, 'exposeHandleCodeWithTopLevelAwait' as never);
+      const handleSpy = vi.spyOn(handler, 'exposeHandleCodeWithTopLevelAwait');
 
       mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
         const mod = ctx['module'] as MockModuleWithExports;
@@ -2364,7 +2382,7 @@ describe('RequireHandlerBase', () => {
 
   describe('initModuleAndAddToCache returns cached module during initialization', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return cached module if getCachedModule returns truthy during init', () => {
@@ -2404,7 +2422,7 @@ describe('RequireHandlerBase', () => {
 
   describe('resolve with absolute path', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve a modules-root-prefixed path as Path type', () => {
@@ -2436,7 +2454,7 @@ describe('RequireHandlerBase', () => {
 
   describe('applyCondition with wildcard exports', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should resolve wildcard condition in package.json exports', async () => {
@@ -2487,7 +2505,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync with circular dependency chain', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return cached timestamp when dependency creates a cycle', async () => {
@@ -2540,7 +2558,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync dependency types', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should handle Path dependency type during re-require', async () => {
@@ -2688,7 +2706,7 @@ describe('RequireHandlerBase', () => {
 
   describe('makeChildRequireAsync', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should create a child requireAsync that passes parentPath and calls requireAsync', async () => {
@@ -2717,7 +2735,7 @@ describe('RequireHandlerBase', () => {
 
   describe('sync require with Always mode triggers requireAsync internally', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should warn when canRequireNonCached is false for Always mode with cached module', () => {
@@ -2734,7 +2752,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireAsyncWrapper', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should pre-load requires and execute the function', async () => {
@@ -2781,7 +2799,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireNonCachedAsync cases', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should handle SpecialModule in requireNonCachedAsync', async () => {
@@ -2800,7 +2818,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requirePathAsync with file not found', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should throw when file path cannot be found', async () => {
@@ -2812,7 +2830,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requireModuleAsync edge cases', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should skip folder that does not exist', async () => {
@@ -2891,7 +2909,7 @@ describe('RequireHandlerBase', () => {
 
   describe('resolveRelativeOrModule with non-absolute parentPath', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should prepend vaultAbsolutePath when parentPath is not absolute', () => {
@@ -2903,7 +2921,7 @@ describe('RequireHandlerBase', () => {
 
   describe('findExistingFilePathAsync returning null', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return null when no suffix matches', async () => {
@@ -2931,8 +2949,8 @@ describe('RequireHandlerBase', () => {
       window.require = sentinel;
 
       const params = createMockConstructorParams();
-      const testHandler = new TestRequireHandler(params);
-      await testHandler.onload();
+      const testHandler = new TestRequireHandlerComponent(params);
+      await testHandler.loadWithPromises();
 
       // After onload, window.require is replaced with the handler's requireEx
       expect(window.require).not.toBe(sentinel);
@@ -2958,8 +2976,8 @@ describe('RequireHandlerBase', () => {
       delete (window as Partial<MockWindowRequire & Window>).require;
 
       const params = createMockConstructorParams();
-      const testHandler = new TestRequireHandler(params);
-      await testHandler.onload();
+      const testHandler = new TestRequireHandlerComponent(params);
+      await testHandler.loadWithPromises();
 
       // Onload captured undefined as originalRequire
       // Capture the current window.require (set by onload to handler's requireEx)
@@ -2981,7 +2999,7 @@ describe('RequireHandlerBase', () => {
 
   describe('applyCondition with non-matching dot-prefixed condition', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return empty array for non-matching dot-prefixed condition', async () => {
@@ -3034,7 +3052,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getExportsRelativeModulePaths sorting with non-standard conditions', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should sort non-standard condition keys after standard ones', async () => {
@@ -3091,7 +3109,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync circular chain', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return cached timestamp when path is already in the chain', async () => {
@@ -3130,7 +3148,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync dependency file not found', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should throw when a Path dependency file is not found during timestamp check', async () => {
@@ -3171,7 +3189,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync Module dependency with package.json', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should check package.json timestamp for Module dependencies', async () => {
@@ -3221,8 +3239,8 @@ describe('RequireHandlerBase', () => {
       const params = createMockConstructorParams();
       castTo<MockPluginSettingsComponentAccessor>(params)
         .pluginSettingsComponent.settings.modulesRoot = 'scripts';
-      const customHandler = new TestRequireHandler(params);
-      await customHandler.onload();
+      const customHandler = new TestRequireHandlerComponent(params);
+      await customHandler.loadWithPromises();
 
       // Track which package.json existence checks happen during dependency resolution
       let packageJsonCheckCount = 0;
@@ -3276,7 +3294,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync skip reload', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should not reload when timestamp unchanged and module is cached', async () => {
@@ -3305,7 +3323,7 @@ describe('RequireHandlerBase', () => {
 
   describe('requirePathAsync nested require', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should not clear chain when not a root require', async () => {
@@ -3338,7 +3356,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync URL with Never mode', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should not update timestamp for URL dependency when cacheInvalidationMode is Never', async () => {
@@ -3384,7 +3402,7 @@ describe('RequireHandlerBase', () => {
 
   describe('getDependenciesTimestampChangedAndReloadIfNeededAsync circular chain returns cached timestamp', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should return 0 when path is in chain but has no stored timestamp', async () => {
@@ -3449,7 +3467,7 @@ describe('RequireHandlerBase', () => {
 
   describe('initModuleAndAddToCacheAsync with empty module', () => {
     beforeEach(async () => {
-      await handler.onload();
+      await handler.loadWithPromises();
     });
 
     it('should not add to cache when module is an empty proxy', async () => {
@@ -3469,7 +3487,7 @@ describe('RequireHandlerBase', () => {
   });
 });
 
-class TestRequireHandler extends RequireHandlerBase {
+class TestRequireHandlerComponent extends RequireHandlerComponentBase {
   public mockCanRequireNonCached = vi.fn().mockReturnValue(true);
   public mockExistsFile = vi.fn().mockResolvedValue(false);
   public mockExistsFolder = vi.fn().mockResolvedValue(false);
@@ -3573,7 +3591,7 @@ class TestRequireHandler extends RequireHandlerBase {
 
 function createMockConstructorParams(): RequireHandlerConstructorParams {
   const partial: Partial<RequireHandlerConstructorParams> = {
-    app: {
+    app: castTo<RequireHandlerConstructorParams['app']>({
       metadataCache: {
         getFirstLinkpathDest: vi.fn().mockReturnValue(null)
       },
@@ -3583,17 +3601,17 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
       workspace: {
         getActiveFile: vi.fn().mockReturnValue(null)
       }
-    } as never,
-    consoleDebugComponent: {
+    }),
+    consoleDebugComponent: castTo<RequireHandlerConstructorParams['consoleDebugComponent']>({
       debug: vi.fn()
-    } as never,
-    pluginRequire: vi.fn() as never,
-    pluginSettingsComponent: {
+    }),
+    pluginRequire: vi.fn(),
+    pluginSettingsComponent: castTo<RequireHandlerConstructorParams['pluginSettingsComponent']>({
       settings: {
         modulesRoot: ''
       }
-    } as never,
-    tempPluginRegistry: {} as never
+    }),
+    tempPluginRegistry: castTo<RequireHandlerConstructorParams['tempPluginRegistry']>({})
   };
   return partial as RequireHandlerConstructorParams;
 }
@@ -3614,6 +3632,6 @@ function createMockNodeModule(id: string): NodeJS.Module {
   return partial as NodeJS.Module;
 }
 
-function getMockGetFirstLinkpathDest(handler: TestRequireHandler): ReturnType<typeof vi.fn> {
+function getMockGetFirstLinkpathDest(handler: TestRequireHandlerComponent): ReturnType<typeof vi.fn> {
   return castTo<MockAppAccessor>(handler).app.metadataCache.getFirstLinkpathDest;
 }

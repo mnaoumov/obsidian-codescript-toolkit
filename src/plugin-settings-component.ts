@@ -1,5 +1,6 @@
 import type { App } from 'obsidian';
 import type { DataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
+import type { PluginEventSource } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
 import { parseYaml } from 'obsidian';
@@ -17,6 +18,7 @@ import { EXTENSIONS } from './require-handlers/require-handler.ts';
 interface PluginSettingsComponentConstructorParams {
   readonly app: App;
   readonly dataHandler: DataHandler;
+  readonly pluginEventSource: PluginEventSource;
 }
 
 class LegacySettings {
@@ -27,7 +29,10 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
   private readonly app: App;
 
   public constructor(params: PluginSettingsComponentConstructorParams) {
-    super(params.dataHandler);
+    super({
+      ...params,
+      pluginSettingsClass: PluginSettings
+    });
     this.app = params.app;
   }
 
@@ -50,11 +55,6 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
     }
   }
 
-  protected override createDefaultSettings(): PluginSettings {
-    return new PluginSettings();
-  }
-
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base registerLegacySettingsConverters is a noop extension point.
   protected override registerLegacySettingsConverters(): void {
     this.registerLegacySettingsConverter(LegacySettings, (legacySettings) => {
       if (legacySettings.invocableScriptsDirectory) {
@@ -63,7 +63,6 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
     });
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base registerValidators is a noop extension point.
   protected override registerValidators(): void {
     this.registerValidator('modulesRoot', async (value): Promise<MaybeReturn<string>> => {
       if (!value) {

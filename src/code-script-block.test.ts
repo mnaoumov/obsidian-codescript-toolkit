@@ -1,3 +1,4 @@
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -45,11 +46,10 @@ describe('CodeScriptBlockComponent', () => {
       typescript: { tokenize: vi.fn() }
     };
 
-    const windowWithCodeMirror = window as typeof window & WindowWithCodeMirror;
-    windowWithCodeMirror.CodeMirror = {
+    castTo<WindowWithCodeMirror>(window).CodeMirror = {
       defineMode: mockDefineMode,
       getMode: mockGetMode
-    } as never;
+    };
 
     mockLoadPrism.mockResolvedValue({ languages: prismLanguages });
     component = new CodeScriptBlockComponent();
@@ -57,10 +57,7 @@ describe('CodeScriptBlockComponent', () => {
 
   describe('onload', () => {
     async function loadComponent(comp: CodeScriptBlockComponent): Promise<void> {
-      // eslint-disable-next-line no-restricted-syntax -- accessing private property for test setup
-      const componentRecord = comp as unknown as Record<string, boolean>;
-      componentRecord['loaded__'] = true;
-      await comp.onload();
+      await comp.loadWithPromises();
     }
 
     it('should define CodeMirror mode for code-script', async () => {

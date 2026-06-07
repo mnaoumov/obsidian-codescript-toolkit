@@ -1,6 +1,9 @@
 import type { ObsidianProtocolData } from 'obsidian';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
+import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 
 import { noop } from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import { ensureGenericObject } from 'obsidian-dev-utils/type-guards';
 import {
   beforeEach,
@@ -9,6 +12,9 @@ import {
   it,
   vi
 } from 'vitest';
+
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 
@@ -29,6 +35,8 @@ vi.mock('obsidian-dev-utils/async', () => ({
 }));
 
 vi.mock('obsidian-dev-utils/object-utils', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- T is required for the mock cast to work at call sites.
+  castTo: <T>(value: unknown): T => value as T,
   toJson: (...args: unknown[]): unknown => (mockToJson as (...a: unknown[]) => unknown)(...args)
 }));
 
@@ -65,16 +73,16 @@ describe('ProtocolHandlerComponent', () => {
     mockConvertAsyncToSync.mockImplementation((fn: unknown) => fn);
 
     component = new ProtocolHandlerComponent({
-      consoleDebugComponent: { debug: mockDebug } as never,
-      obsidianProtocolHandlerRegistrar: {
+      consoleDebugComponent: castTo<ConsoleDebugComponent>({ debug: mockDebug }),
+      obsidianProtocolHandlerRegistrar: castTo<ObsidianProtocolHandlerRegistrar>({
         registerObsidianProtocolHandler: mockRegisterObsidianProtocolHandler
-      } as never,
-      pluginSettingsComponent: {
+      }),
+      pluginSettingsComponent: castTo<PluginSettingsComponent>({
         settings: mockSettings
-      } as never,
-      requireHandlerFactory: {
+      }),
+      RequireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>({
         requireStringAsync: mockRequireStringAsync
-      } as never
+      })
     });
 
     component.onload();
@@ -96,31 +104,31 @@ describe('ProtocolHandlerComponent', () => {
         noop();
       });
       mockSettings.shouldHandleProtocolUrls = false;
-      await registeredHandler({ action: 'CodeScriptToolkit' } as ObsidianProtocolData);
+      await registeredHandler(castTo<ObsidianProtocolData>({ action: 'CodeScriptToolkit' }));
       expect(warnSpy).toHaveBeenCalledWith('Handling of protocol URLs is disabled in plugin settings.');
       expect(mockRequireStringAsync).not.toHaveBeenCalled();
       warnSpy.mockRestore();
     });
 
     it('should throw when neither module nor code is provided', async () => {
-      await expect(registeredHandler({ action: 'CodeScriptToolkit' } as ObsidianProtocolData))
+      await expect(registeredHandler(castTo<ObsidianProtocolData>({ action: 'CodeScriptToolkit' })))
         .rejects.toThrow('URL provided neither module nor code parameters');
     });
 
     it('should throw when both module and code are provided', async () => {
-      await expect(registeredHandler({
+      await expect(registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
         code: 'console.log("hi")',
         module: 'my-module'
-      } as never))
+      })))
         .rejects.toThrow('URL provided both module and code parameters');
     });
 
     it('should construct code from module and call requireStringAsync', async () => {
-      await registeredHandler({
+      await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
         module: 'my-module'
-      } as never);
+      }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
         args: 'app',
@@ -135,11 +143,11 @@ describe('ProtocolHandlerComponent', () => {
     });
 
     it('should use custom functionName when provided', async () => {
-      await registeredHandler({
+      await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
         functionName: 'run',
         module: 'my-module'
-      } as never);
+      }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
         args: '',
@@ -149,11 +157,11 @@ describe('ProtocolHandlerComponent', () => {
     });
 
     it('should use custom args when provided', async () => {
-      await registeredHandler({
+      await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
         args: 'arg1, arg2',
         module: 'my-module'
-      } as never);
+      }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
         args: 'arg1, arg2',
@@ -163,10 +171,10 @@ describe('ProtocolHandlerComponent', () => {
     });
 
     it('should default args to app when functionName is invoke', async () => {
-      await registeredHandler({
+      await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
         module: 'my-module'
-      } as never);
+      }));
 
       expect(mockDebug).toHaveBeenCalledWith(
         'Invoking script file from URL action:',
@@ -177,11 +185,11 @@ describe('ProtocolHandlerComponent', () => {
     });
 
     it('should default args to empty string when functionName is not invoke', async () => {
-      await registeredHandler({
+      await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
         functionName: 'custom',
         module: 'my-module'
-      } as never);
+      }));
 
       expect(mockDebug).toHaveBeenCalledWith(
         'Invoking script file from URL action:',
@@ -195,10 +203,10 @@ describe('ProtocolHandlerComponent', () => {
       const mockModule = { invoke: vi.fn() };
       const mockRequireAsync = vi.fn().mockResolvedValue(mockModule);
 
-      await registeredHandler({
+      await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
         module: '//Scripts/Test.js'
-      } as never);
+      }));
 
       interface MockCall {
         code: string;
@@ -222,10 +230,10 @@ describe('ProtocolHandlerComponent', () => {
     });
 
     it('should call requireStringAsync with code when code is provided', async () => {
-      await registeredHandler({
+      await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
         code: 'console.log("hello")'
-      } as never);
+      }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking code from URL action:', {
         code: 'console.log("hello")'

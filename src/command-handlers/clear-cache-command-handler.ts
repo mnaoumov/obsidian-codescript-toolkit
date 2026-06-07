@@ -1,9 +1,9 @@
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 
-import type { RequireHandlerFactory } from '../require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
 
 export class ClearCacheCommandHandler extends GlobalCommandHandler {
-  public constructor(private readonly requireHandlerFactory: RequireHandlerFactory) {
+  public constructor(private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent) {
     super({
       icon: 'trash',
       id: 'clear-cache',
@@ -12,6 +12,6 @@ export class ClearCacheCommandHandler extends GlobalCommandHandler {
   }
 
   public override execute(): void {
-    this.requireHandlerFactory.clearCache();
+    this.RequireHandlerFactoryComponent.clearCache();
   }
 }

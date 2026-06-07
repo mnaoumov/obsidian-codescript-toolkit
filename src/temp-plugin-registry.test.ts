@@ -10,6 +10,7 @@ import {
   Component,
   Notice
 } from 'obsidian';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -21,18 +22,18 @@ import {
 import type { RegisterTempPluginParams } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
-import { TempPluginRegistry } from './temp-plugin-registry.ts';
+import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 const mockPrintError = vi.fn();
 const mockInvokeAsyncSafely = vi.fn();
 
 interface ObsidianDocumentHead {
-  createEl: (...args: unknown[]) => HTMLElement;
+  createEl(...args: unknown[]): HTMLElement;
 }
 
 function getObsidianDocumentHead(): ObsidianDocumentHead {
-  // eslint-disable-next-line no-restricted-syntax, obsidianmd/prefer-active-doc -- mock requires double assertion to access Obsidian-augmented DOM method; helper function used only in tests where activeDocument is not available
-  return document.head as unknown as ObsidianDocumentHead;
+  // eslint-disable-next-line obsidianmd/prefer-active-doc -- mock requires double assertion to access Obsidian-augmented DOM method; helper function used only in tests where activeDocument is not available
+  return document.head;
 }
 
 vi.mock('obsidian-dev-utils/async', () => ({
@@ -75,16 +76,16 @@ function createMockPlugin(): MockPlugin {
   };
 }
 
-function createRegistry(): TempPluginRegistry {
-  return new TempPluginRegistry({
-    activeFileProvider: {} as ActiveFileProvider,
-    app: createMockApp(),
-    commandRegistrar: {} as CommandRegistrar,
-    menuEventRegistrar: {} as MenuEventRegistrar,
+function createRegistry(): TempPluginRegistryComponent {
+  return new TempPluginRegistryComponent({
+    activeFileProvider: castTo<ActiveFileProvider>({}),
+    app: castTo<App>(createMockApp()),
+    commandRegistrar: castTo<CommandRegistrar>({}),
+    menuEventRegistrar: castTo<MenuEventRegistrar>({}),
     pluginName: 'test-plugin',
-    pluginSettingsComponent: {
+    pluginSettingsComponent: castTo<PluginSettingsComponent>({
       settings: { shouldShowTempPluginLoadUnloadNotices: true }
-    } as PluginSettingsComponent
+    })
   });
 }
 
@@ -93,14 +94,14 @@ function createTempPluginClass(name: string, mockPlugin: MockPlugin): RegisterTe
   const pluginFn = function pluginFn(this: MockPlugin, _app: App, _manifest: PluginManifest): void {
     Object.assign(this, mockPlugin);
   };
-  const intermediate = pluginFn as never;
-  const PluginClass = intermediate as RegisterTempPluginParams['tempPluginClass'];
+  const intermediate = pluginFn;
+  const PluginClass = castTo<RegisterTempPluginParams['tempPluginClass']>(intermediate);
   Object.defineProperty(PluginClass, 'name', { value: name });
   return PluginClass;
 }
 
 describe('TempPluginRegistry', () => {
-  let registry: TempPluginRegistry;
+  let registry: TempPluginRegistryComponent;
 
   beforeEach(() => {
     mockInvokeAsyncSafely.mockReset();
@@ -164,15 +165,15 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should not show load notice when shouldShowTempPluginLoadUnloadNotices is false', async () => {
-      const silentRegistry = new TempPluginRegistry({
-        activeFileProvider: {} as ActiveFileProvider,
-        app: createMockApp(),
-        commandRegistrar: {} as CommandRegistrar,
-        menuEventRegistrar: {} as MenuEventRegistrar,
+      const silentRegistry = new TempPluginRegistryComponent({
+        activeFileProvider: castTo<ActiveFileProvider>({}),
+        app: castTo<App>(createMockApp()),
+        commandRegistrar: castTo<CommandRegistrar>({}),
+        menuEventRegistrar: castTo<MenuEventRegistrar>({}),
         pluginName: 'test-plugin',
-        pluginSettingsComponent: {
+        pluginSettingsComponent: castTo<PluginSettingsComponent>({
           settings: { shouldShowTempPluginLoadUnloadNotices: false }
-        } as PluginSettingsComponent
+        })
       });
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('SilentPlugin', mockPlugin);
@@ -307,7 +308,7 @@ describe('TempPluginRegistry', () => {
       }
       mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('StyledPlugin', mockPlugin);
@@ -331,7 +332,7 @@ describe('TempPluginRegistry', () => {
       }
       mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('NoStylePlugin', mockPlugin);
@@ -353,7 +354,7 @@ describe('TempPluginRegistry', () => {
       }
       mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('WrappedPlugin', mockPlugin);
@@ -384,7 +385,7 @@ describe('TempPluginRegistry', () => {
       }
       mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       // Create a plugin whose unload throws
       const unloadError = new Error('Unload failed');
@@ -415,9 +416,7 @@ describe('TempPluginRegistry', () => {
       }
       mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue({} as never);
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to spy on constructor
-      const noticeSpy = vi.spyOn(Notice.prototype as unknown as { constructor: () => void }, 'constructor');
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const unloadError = new Error('Unload crash');
       const mockPlugin = createMockPlugin();
@@ -441,7 +440,6 @@ describe('TempPluginRegistry', () => {
       expect(mockPrintError).toHaveBeenCalledWith(unloadError);
 
       createElSpy.mockRestore();
-      noticeSpy.mockRestore();
     });
 
     it('should remove style element when unloading a plugin that has cssText', async () => {
@@ -450,8 +448,8 @@ describe('TempPluginRegistry', () => {
       }
       mockInvokeAsyncSafely.mockImplementation(invokeImpl);
 
-      const mockStyleEl = { remove: vi.fn() };
-      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(mockStyleEl as never);
+      const mockStyleEl = castTo<HTMLElement>({ remove: vi.fn() });
+      const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(mockStyleEl);
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('StyledUnloadPlugin', mockPlugin);

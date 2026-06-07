@@ -1,33 +1,31 @@
 import { Platform } from 'obsidian';
-import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type {
-  ScriptFolderWatcher,
-  ScriptFolderWatcherConstructorParams
+  ScriptFolderWatcherComponentBase,
+  ScriptFolderWatcherComponentBaseConstructorParams
 } from './script-folder-watcher.ts';
 
-export class ScriptFolderWatcherFactory extends AsyncComponentBase {
-  public get platformScriptFolderWatcher(): ScriptFolderWatcher {
+export class ScriptFolderWatcherFactoryComponent extends ComponentEx {
+  public get platformScriptFolderWatcher(): ScriptFolderWatcherComponentBase {
     return ensureNonNullable(this._platformScriptFolderWatcher);
   }
 
-  private _platformScriptFolderWatcher?: ScriptFolderWatcher;
+  private _platformScriptFolderWatcher?: ScriptFolderWatcherComponentBase;
 
-  public constructor(private readonly params: ScriptFolderWatcherConstructorParams) {
+  public constructor(private readonly params: ScriptFolderWatcherComponentBaseConstructorParams) {
     super();
   }
 
-  public override async onload(): Promise<void> {
-    await super.onload();
-
+  public override async onloadAsync(): Promise<void> {
     // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document.
     if (document.body.hasClass('emulate-mobile') || Platform.isMobile) {
       // eslint-disable-next-line no-restricted-syntax -- We need dynamic import.
-      this._platformScriptFolderWatcher = new (await import('./script-folder-watcher-mobile.ts')).ScriptFolderWatcherMobile(this.params);
+      this._platformScriptFolderWatcher = new (await import('./script-folder-watcher-mobile.ts')).ScriptFolderWatcherMobileComponent(this.params);
     } else {
       // eslint-disable-next-line no-restricted-syntax -- We need dynamic import.
-      this._platformScriptFolderWatcher = new (await import('./script-folder-watcher-desktop.ts')).ScriptFolderWatcherDesktop(this.params);
+      this._platformScriptFolderWatcher = new (await import('./script-folder-watcher-desktop.ts')).ScriptFolderWatcherDesktopComponent(this.params);
     }
 
     this.addChild(this._platformScriptFolderWatcher);

@@ -15,9 +15,9 @@ import {
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { RegisterTempPluginParams } from './code-button-context.ts';
-import type { TempPluginRegistry } from './temp-plugin-registry.ts';
+import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
-import { CodeButtonContextImpl } from './code-button-context-impl.ts';
+import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 
 const mockGetFile = vi.fn();
 const mockInsertAfterCodeBlock = vi.fn();
@@ -69,13 +69,13 @@ vi.mock('./temp-plugin-registry.ts', () => ({
 }));
 
 interface CreateContextParams {
-  config?: Partial<CodeButtonBlockConfig>;
-  markdownInfo?: CodeBlockMarkdownInformation | null;
-  source?: string;
-  sourcePath?: string;
+  readonly config?: Partial<CodeButtonBlockConfig>;
+  readonly markdownInfo?: CodeBlockMarkdownInformation | null;
+  readonly source?: string;
+  readonly sourcePath?: string;
 }
 
-function createContext(params: CreateContextParams = {}): CodeButtonContextImpl {
+function createContext(params: CreateContextParams = {}): CodeButtonContextImplComponent {
   const partialApp: Partial<App> = { vault: {} as App['vault'] };
   const mockApp = partialApp as App;
   const mockSourceFile = { path: 'notes/test.md' };
@@ -97,12 +97,12 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImpl 
   };
   const ctx = partialCtx as MarkdownPostProcessorContext;
 
-  const mockTempPluginRegistry: Partial<TempPluginRegistry> = {
+  const mockTempPluginRegistry: Partial<TempPluginRegistryComponent> = {
     getTempPlugin: mockGetTempPlugin,
     registerTempPlugin: mockRegisterTempPlugin
   };
 
-  return new CodeButtonContextImpl({
+  return new CodeButtonContextImplComponent({
     app: mockApp,
     config,
     markdownInfo: params.markdownInfo ?? null,
@@ -110,7 +110,7 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImpl 
     parentEl,
     resultEl,
     source: params.source ?? 'console.log("hello")',
-    tempPluginRegistry: mockTempPluginRegistry as TempPluginRegistry
+    tempPluginRegistry: mockTempPluginRegistry as TempPluginRegistryComponent
   });
 }
 
@@ -127,7 +127,7 @@ function createMockConfig(overrides: Partial<CodeButtonBlockConfig> = {}): CodeB
   };
 }
 
-describe('CodeButtonContextImpl', () => {
+describe('CodeButtonContextImplComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -355,7 +355,7 @@ describe('CodeButtonContextImpl', () => {
     it('should delegate to tempPluginRegistry.registerTempPlugin', async () => {
       const context = createContext();
       const params: RegisterTempPluginParams = {
-        tempPluginClass: vi.fn() as never
+        tempPluginClass: vi.fn()
       };
       await context.registerTempPlugin(params);
 

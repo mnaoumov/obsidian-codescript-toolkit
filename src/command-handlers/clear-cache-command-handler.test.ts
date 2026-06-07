@@ -5,7 +5,7 @@ import {
   vi
 } from 'vitest';
 
-import type { RequireHandlerFactory } from '../require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
 
 import { ClearCacheCommandHandler } from './clear-cache-command-handler.ts';
 
@@ -14,11 +14,11 @@ vi.mock('obsidian-dev-utils/obsidian/command-handlers/global-command-handler', (
 }));
 
 describe('ClearCacheCommandHandler', () => {
-  it('should call clearCache on the requireHandlerFactory when executed', () => {
-    const partial: Partial<RequireHandlerFactory> = {
+  it('should call clearCache on the RequireHandlerFactoryComponent when executed', () => {
+    const partial: Partial<RequireHandlerFactoryComponent> = {
       clearCache: vi.fn()
     };
-    const mockFactory = partial as RequireHandlerFactory;
+    const mockFactory = partial as RequireHandlerFactoryComponent;
 
     const handler = new ClearCacheCommandHandler(mockFactory);
     handler.execute();

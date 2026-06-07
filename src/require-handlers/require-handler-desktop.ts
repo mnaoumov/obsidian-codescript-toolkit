@@ -4,12 +4,13 @@ import {
   FileSystemAdapter,
   TFile
 } from 'obsidian';
+import { noopAsync } from 'obsidian-dev-utils/function';
 import {
   castTo,
   getPrototypeOf,
   normalizeOptionalProperties
 } from 'obsidian-dev-utils/object-utils';
-import { registerPatch } from 'obsidian-dev-utils/obsidian/monkey-around';
+import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/monkey-around-component';
 import {
   dirname,
   join,
@@ -32,13 +33,13 @@ import {
   PATH_SUFFIXES,
   PRIVATE_MODULE_PREFIX,
   RELATIVE_MODULE_PATH_SEPARATOR,
-  RequireHandlerBase,
+  RequireHandlerComponentBase,
   ResolvedType,
   SCOPED_MODULE_PREFIX,
   splitQuery
 } from './require-handler.ts';
 
-export class RequireHandlerDesktop extends RequireHandlerBase {
+export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase {
   private _fs?: typeof import('node:fs');
   private _fsPromises?: typeof import('node:fs/promises');
   private originalModulePrototypeRequire?: RequireFn;
@@ -86,12 +87,14 @@ export class RequireHandlerDesktop extends RequireHandlerBase {
     return (await this.fsPromises.stat(path)).mtimeMs;
   }
 
-  public override async onload(): Promise<void> {
-    await super.onload();
+  public override async onloadAsync(): Promise<void> {
+    await super.onloadAsync();
 
     const moduleProto = getPrototypeOf(window.module);
     type ModuleProtoRequireFn = typeof moduleProto.require;
-    registerPatch(this, moduleProto, {
+
+    const patch = this.addChild(new MonkeyAroundComponent());
+    patch.registerPatch(moduleProto, {
       require: (next: ModuleProtoRequireFn): ModuleProtoRequireFn => {
         this.originalModulePrototypeRequire = castTo<RequireFn>(next);
         const that = this;
@@ -133,7 +136,6 @@ export class RequireHandlerDesktop extends RequireHandlerBase {
     return type !== ResolvedType.Url;
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base handleCodeWithTopLevelAwait is a noop; this override throws to enforce async usage.
   protected override handleCodeWithTopLevelAwait(path: string): void {
     throw new Error(`Cannot load module: ${path}.
 Top-level await is not supported in sync require.
@@ -150,7 +152,7 @@ ${this.getRequireAsyncAdvice(path)}`);
   }
 
   protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
-    await Promise.resolve();
+    await noopAsync();
     if (arrayBuffer) {
       const tempDir = join(this.app.vault.configDir, 'temp');
       if (!this.existsFolder(tempDir)) {

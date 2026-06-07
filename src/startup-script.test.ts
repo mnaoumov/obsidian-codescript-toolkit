@@ -1,8 +1,11 @@
+import type { App } from 'obsidian';
+
 import {
   Component,
   Notice
 } from 'obsidian';
 import { noop } from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -10,6 +13,9 @@ import {
   it,
   vi
 } from 'vitest';
+
+import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 
 import { StartupScriptComponent } from './startup-script.ts';
 
@@ -25,7 +31,7 @@ interface MockPluginSettingsComponent {
   settings: MockSettings;
 }
 
-interface MockRequireHandlerFactory {
+interface MockRequireHandlerFactoryComponent {
   requireVaultScriptAsync: ReturnType<typeof vi.fn>;
 }
 
@@ -53,7 +59,7 @@ function createMockPluginSettingsComponent(): MockPluginSettingsComponent {
   };
 }
 
-function createMockRequireHandlerFactory(): MockRequireHandlerFactory {
+function createMockRequireHandlerFactoryComponent(): MockRequireHandlerFactoryComponent {
   return {
     requireVaultScriptAsync: vi.fn()
   };
@@ -62,18 +68,18 @@ function createMockRequireHandlerFactory(): MockRequireHandlerFactory {
 describe('StartupScriptComponent', () => {
   let mockApp: MockApp;
   let mockPluginSettingsComponent: MockPluginSettingsComponent;
-  let mockRequireHandlerFactory: MockRequireHandlerFactory;
+  let mockRequireHandlerFactoryComponent: MockRequireHandlerFactoryComponent;
   let component: StartupScriptComponent;
 
   beforeEach(() => {
     mockApp = createMockApp();
     mockPluginSettingsComponent = createMockPluginSettingsComponent();
-    mockRequireHandlerFactory = createMockRequireHandlerFactory();
+    mockRequireHandlerFactoryComponent = createMockRequireHandlerFactoryComponent();
 
     component = new StartupScriptComponent({
-      app: mockApp as never,
-      pluginSettingsComponent: mockPluginSettingsComponent as never,
-      requireHandlerFactory: mockRequireHandlerFactory as never
+      app: castTo<App>(mockApp),
+      pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
+      RequireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>(mockRequireHandlerFactoryComponent)
     });
   });
 
@@ -86,7 +92,7 @@ describe('StartupScriptComponent', () => {
   describe('cleanupStartupScript', () => {
     it('should return immediately when no startup script is loaded', async () => {
       await component.cleanupStartupScript();
-      expect(mockRequireHandlerFactory.requireVaultScriptAsync).not.toHaveBeenCalled();
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
     });
 
     it('should call cleanup on the startup script when it has a cleanup function', async () => {
@@ -95,7 +101,7 @@ describe('StartupScriptComponent', () => {
 
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue('startup.ts');
       mockApp.vault.exists.mockResolvedValue(true);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         cleanup: mockCleanup,
         invoke: mockInvoke
       });
@@ -111,7 +117,7 @@ describe('StartupScriptComponent', () => {
 
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue('startup.ts');
       mockApp.vault.exists.mockResolvedValue(true);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke
       });
 
@@ -129,7 +135,7 @@ describe('StartupScriptComponent', () => {
 
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue('startup.ts');
       mockApp.vault.exists.mockResolvedValue(true);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke
       });
 
@@ -144,7 +150,7 @@ describe('StartupScriptComponent', () => {
 
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue('startup.ts');
       mockApp.vault.exists.mockResolvedValue(true);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke
       });
 
@@ -158,7 +164,7 @@ describe('StartupScriptComponent', () => {
 
       await component.invokeStartupScript();
 
-      expect(mockRequireHandlerFactory.requireVaultScriptAsync).not.toHaveBeenCalled();
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
     });
 
     it('should show notice and return when startup script file does not exist', async () => {
@@ -173,7 +179,7 @@ describe('StartupScriptComponent', () => {
       try {
         await component.invokeStartupScript();
 
-        expect(mockRequireHandlerFactory.requireVaultScriptAsync).not.toHaveBeenCalled();
+        expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
         expect(consoleErrorSpy).toHaveBeenCalledWith(`Startup script not found: ${SCRIPT_PATH}`);
       } finally {
         consoleErrorSpy.mockRestore();
@@ -186,13 +192,13 @@ describe('StartupScriptComponent', () => {
 
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue(SCRIPT_PATH);
       mockApp.vault.exists.mockResolvedValue(true);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke
       });
 
       await component.invokeStartupScript();
 
-      expect(mockRequireHandlerFactory.requireVaultScriptAsync).toHaveBeenCalledWith(SCRIPT_PATH);
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(SCRIPT_PATH);
       expect(mockInvoke).toHaveBeenCalledWith(mockApp);
     });
   });
@@ -205,7 +211,7 @@ describe('StartupScriptComponent', () => {
 
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue(SCRIPT_PATH);
       mockApp.vault.exists.mockResolvedValue(true);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         cleanup: mockCleanup,
         invoke: mockInvoke
       });
@@ -221,7 +227,7 @@ describe('StartupScriptComponent', () => {
       await component.onLayoutReady();
 
       // No error should occur; the method completes gracefully
-      expect(mockRequireHandlerFactory.requireVaultScriptAsync).not.toHaveBeenCalled();
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
     });
 
     it('should invoke the registered cleanup callback', async () => {
@@ -231,7 +237,7 @@ describe('StartupScriptComponent', () => {
 
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue(SCRIPT_PATH);
       mockApp.vault.exists.mockResolvedValue(true);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         cleanup: mockCleanup,
         invoke: mockInvoke
       });
@@ -244,8 +250,8 @@ describe('StartupScriptComponent', () => {
       await component.onLayoutReady();
 
       expect(registeredCallback).not.toBeNull();
-      const asyncCallback = registeredCallback as never;
-      await (asyncCallback as () => Promise<void>)();
+      const asyncCallback = registeredCallback;
+      await castTo<() => Promise<void>>(asyncCallback)();
 
       expect(mockCleanup).toHaveBeenCalledWith(mockApp);
       registerSpy.mockRestore();
@@ -260,7 +266,7 @@ describe('StartupScriptComponent', () => {
 
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue(SCRIPT_PATH);
       mockApp.vault.exists.mockResolvedValue(true);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         cleanup: mockCleanup,
         invoke: mockInvoke
       });
@@ -268,7 +274,7 @@ describe('StartupScriptComponent', () => {
       await component.invokeStartupScript();
 
       const mockInvoke2 = vi.fn().mockResolvedValue(undefined);
-      mockRequireHandlerFactory.requireVaultScriptAsync.mockResolvedValue({
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke2
       });
 
@@ -283,7 +289,7 @@ describe('StartupScriptComponent', () => {
 
       await component.reloadStartupScript();
 
-      expect(mockRequireHandlerFactory.requireVaultScriptAsync).not.toHaveBeenCalled();
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
     });
   });
 

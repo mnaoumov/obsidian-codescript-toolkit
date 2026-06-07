@@ -1,13 +1,17 @@
 import { CapacitorAdapter } from 'obsidian';
+import { noopAsync } from 'obsidian-dev-utils/function';
 
 import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
 import {
-  RequireHandlerBase,
+  RequireHandlerComponentBase,
   splitQuery
 } from './require-handler.ts';
 
-export class RequireHandlerMobile extends RequireHandlerBase {
+/** @see {@link RequireHandlerConstructorParams} */
+export type CreateRequireHandlerParams = RequireHandlerConstructorParams;
+
+export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
   private get capacitorAdapter(): CapacitorAdapter {
     const adapter = this.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {
@@ -30,7 +34,7 @@ export class RequireHandlerMobile extends RequireHandlerBase {
   }
 
   public override async requireNodeBinaryAsync(id: string): Promise<unknown> {
-    await Promise.resolve();
+    await noopAsync();
     throw new Error(`Cannot require module: ${id}. Node binary modules are not available on mobile.`);
   }
 
@@ -84,6 +88,6 @@ export class RequireHandlerMobile extends RequireHandlerBase {
   }
 }
 
-export function createRequireHandler(params: RequireHandlerConstructorParams): RequireHandlerMobile {
-  return new RequireHandlerMobile(params);
+export function createRequireHandler(params: CreateRequireHandlerParams): RequireHandlerMobileComponent {
+  return new RequireHandlerMobileComponent(params);
 }

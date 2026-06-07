@@ -6,10 +6,13 @@ import type {
 } from './code-button-context.ts';
 import type { CodeScriptToolkitModule } from './code-script-toolkit-module.ts';
 
-import { TempPluginRegistry } from './temp-plugin-registry.ts';
+import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
+
+/** @see {@link RegisterTempPluginParams} */
+export type CodeScriptToolkitModuleImplRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
 
 export class CodeScriptToolkitModuleImpl implements CodeScriptToolkitModule {
-  public constructor(private readonly tempPluginRegistry: TempPluginRegistry) {
+  public constructor(private readonly tempPluginRegistry: TempPluginRegistryComponent) {
     this.getTempPlugin = this.getTempPlugin.bind(this);
     this.registerTempPlugin = this.registerTempPlugin.bind(this);
     this.unregisterTempPlugin = this.unregisterTempPlugin.bind(this);
@@ -19,7 +22,9 @@ export class CodeScriptToolkitModuleImpl implements CodeScriptToolkitModule {
     return this.tempPluginRegistry.getTempPlugin(tempPluginClass);
   }
 
-  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin> {
+  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(
+    params: CodeScriptToolkitModuleImplRegisterTempPluginParams<TPlugin>
+  ): Promise<null | TPlugin> {
     return await this.tempPluginRegistry.registerTempPlugin<TPlugin>(params);
   }
 

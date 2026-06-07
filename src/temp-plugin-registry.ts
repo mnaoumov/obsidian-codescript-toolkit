@@ -6,13 +6,11 @@ import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
-import {
-  Component,
-  Notice
-} from 'obsidian';
+import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
 import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 
 import type {
   RegisterTempPluginParams,
@@ -26,7 +24,10 @@ type LoadFn = () => Promise<void>;
 
 const DEFAULT_TEMP_PLUGIN_CLASS_NAME = '_AnonymousPlugin';
 
-interface TempPluginRegistryConstructorParams {
+/** @see {@link RegisterTempPluginParams} */
+export type TempPluginRegistryComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
+
+interface TempPluginRegistryComponentConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
   readonly commandRegistrar: CommandRegistrar;
@@ -35,7 +36,7 @@ interface TempPluginRegistryConstructorParams {
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
-export class TempPluginRegistry extends Component {
+export class TempPluginRegistryComponent extends ComponentEx {
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly commandRegistrar: CommandRegistrar;
@@ -44,7 +45,7 @@ export class TempPluginRegistry extends Component {
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly tempPlugins = new Map<string, ObsidianPlugin>();
 
-  public constructor(params: TempPluginRegistryConstructorParams) {
+  public constructor(params: TempPluginRegistryComponentConstructorParams) {
     super();
     this.app = params.app;
     this.pluginName = params.pluginName;
@@ -60,7 +61,9 @@ export class TempPluginRegistry extends Component {
     return this.tempPlugins.get(id) ?? null;
   }
 
-  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin> {
+  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(
+    params: TempPluginRegistryComponentRegisterTempPluginParams<TPlugin>
+  ): Promise<null | TPlugin> {
     const tempPluginClassName = getTempPluginClassName(params.tempPluginClass);
     const id = makeTempPluginId(tempPluginClassName);
 

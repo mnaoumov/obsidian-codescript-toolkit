@@ -4,13 +4,12 @@ import type {
 } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
+import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { Promisable } from 'type-fest';
 
 import {
   App,
-  Component,
   Notice
 } from 'obsidian';
 import { printError } from 'obsidian-dev-utils/error';
@@ -18,13 +17,13 @@ import { noopAsync } from 'obsidian-dev-utils/function';
 import { CommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler';
 import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
-import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
 import { join } from 'obsidian-dev-utils/path';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 import type { Script } from './script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
@@ -47,7 +46,7 @@ interface FunctionWrapperCommandHandlerConstructorParams {
   readonly defaultCommandIcon: IconName;
   readonly defaultCommandId: string;
   readonly defaultName: string;
-  readonly invoke: (app: App) => Promisable<void>;
+  invoke(this: void, app: App): Promisable<void>;
   readonly relativeScriptPath: string;
 }
 
@@ -70,7 +69,7 @@ interface ScriptOrCommand extends Partial<Script> {
   invokeCommand?: Partial<Command>;
 }
 
-interface ScriptRegistryConstructorParams {
+interface ScriptRegistryComponentConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
   readonly commandRegistrar: CommandRegistrar;
@@ -78,7 +77,7 @@ interface ScriptRegistryConstructorParams {
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
+  readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 }
 
 interface WrapperCommandHandler extends CommandHandler {
@@ -186,7 +185,7 @@ class FunctionWrapperCommandHandler extends GlobalCommandHandler implements Wrap
   }
 }
 
-class WrapperCommandHandlerComponent extends AsyncComponentBase {
+class WrapperCommandHandlerComponent extends ComponentEx {
   private _wrapperCommandHandler?: WrapperCommandHandler;
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
@@ -217,9 +216,7 @@ class WrapperCommandHandlerComponent extends AsyncComponentBase {
     await this.wrapperCommandHandler.forceInvoke();
   }
 
-  public override async onload(): Promise<void> {
-    await super.onload();
-
+  public override onload(): void {
     const DEFAULT_COMMAND_ICON: IconName = 'play';
     const DEFAULT_COMMAND_ID = `${INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX}${this.relativeScriptPath}`;
     const DEFAULT_NAME = `Invoke script: ${this.relativeScriptPath}`;
@@ -260,7 +257,7 @@ class WrapperCommandHandlerComponent extends AsyncComponentBase {
   }
 }
 
-export class ScriptRegistry extends Component {
+export class ScriptRegistryComponent extends ComponentEx {
   private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
   private readonly commandRegistrar: CommandRegistrar;
@@ -269,9 +266,9 @@ export class ScriptRegistry extends Component {
   private readonly pluginName: string;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly registeredWrapperCommandHandlerComponents = new Map<string, WrapperCommandHandlerComponent>();
-  private readonly requireHandlerFactory: RequireHandlerFactory;
+  private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 
-  public constructor(params: ScriptRegistryConstructorParams) {
+  public constructor(params: ScriptRegistryComponentConstructorParams) {
     super();
     this.app = params.app;
     this.commandRegistrar = params.commandRegistrar;
@@ -280,7 +277,7 @@ export class ScriptRegistry extends Component {
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
-    this.requireHandlerFactory = params.requireHandlerFactory;
+    this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
   }
 
   public async getScriptOrCommand(relativeScriptPath: string): Promise<ScriptOrCommand> {
@@ -298,7 +295,7 @@ export class ScriptRegistry extends Component {
         vaultScriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
       }
     }
-    return await this.requireHandlerFactory.requireVaultScriptAsync(vaultScriptPath) as Partial<ScriptOrCommand>;
+    return await this.RequireHandlerFactoryComponent.requireVaultScriptAsync(vaultScriptPath) as Partial<ScriptOrCommand>;
   }
 
   public async invokeScriptPath(relativeScriptPath: string): Promise<void> {

@@ -6,10 +6,8 @@ import type {
 } from 'obsidian';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 
-import {
-  Component,
-  MarkdownRenderer
-} from 'obsidian';
+import { MarkdownRenderer } from 'obsidian';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import { getFile } from 'obsidian-dev-utils/obsidian/file-system';
 import {
   insertAfterCodeBlock,
@@ -26,9 +24,12 @@ import type {
 } from './code-button-context.ts';
 
 import { ConsoleWrapper } from './console-wrapper.ts';
-import { TempPluginRegistry } from './temp-plugin-registry.ts';
+import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
-interface CodeButtonContextImplConstructorParams {
+/** @see {@link RegisterTempPluginParams} */
+export type CodeButtonContextImplComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
+
+interface CodeButtonContextImplComponentConstructorParams {
   readonly app: App;
   readonly config: CodeButtonBlockConfig;
   readonly markdownInfo: CodeBlockMarkdownInformation | null;
@@ -36,10 +37,10 @@ interface CodeButtonContextImplConstructorParams {
   readonly parentEl: HTMLElement;
   readonly resultEl: HTMLElement;
   readonly source: string;
-  readonly tempPluginRegistry: TempPluginRegistry;
+  readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
-export class CodeButtonContextImpl extends Component implements CodeButtonContext {
+export class CodeButtonContextImplComponent extends ComponentEx implements CodeButtonContext {
   public readonly app: App;
   public readonly config: CodeButtonBlockConfig;
   public readonly console: Console;
@@ -50,9 +51,9 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
   public readonly source: string;
   public readonly sourceFile: TFile;
 
-  private readonly tempPluginRegistry: TempPluginRegistry;
+  private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
-  public constructor(params: CodeButtonContextImplConstructorParams) {
+  public constructor(params: CodeButtonContextImplComponentConstructorParams) {
     super();
     this.app = params.app;
     this.config = params.config;
@@ -96,7 +97,9 @@ export class CodeButtonContextImpl extends Component implements CodeButtonContex
     });
   }
 
-  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin> {
+  public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(
+    params: CodeButtonContextImplComponentRegisterTempPluginParams<TPlugin>
+  ): Promise<null | TPlugin> {
     return await this.tempPluginRegistry.registerTempPlugin<TPlugin>(params);
   }
 

@@ -1,13 +1,13 @@
 import type { ObsidianProtocolData } from 'obsidian';
-import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
+import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 
-import { Component } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { toJson } from 'obsidian-dev-utils/object-utils';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
@@ -17,7 +17,7 @@ interface ProtocolHandlerComponentConstructorParams {
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
+  readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 }
 
 interface Query {
@@ -28,24 +28,23 @@ interface Query {
 }
 
 interface WindowWithRequireAsync {
-  requireAsync: (id: string) => Promise<Record<string, unknown>>;
+  requireAsync(id: string): Promise<Record<string, unknown>>;
 }
 
-export class ProtocolHandlerComponent extends Component {
+export class ProtocolHandlerComponent extends ComponentEx {
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly requireHandlerFactory: RequireHandlerFactory;
+  private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
     this.obsidianProtocolHandlerRegistrar = params.obsidianProtocolHandlerRegistrar;
-    this.requireHandlerFactory = params.requireHandlerFactory;
+    this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base Component.onload is an empty virtual method.
   public override onload(): void {
     this.obsidianProtocolHandlerRegistrar.registerObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, convertAsyncToSync(this.processQuery.bind(this)));
   }
@@ -85,7 +84,7 @@ export class ProtocolHandlerComponent extends Component {
       });
     }
 
-    await this.requireHandlerFactory.requireStringAsync({
+    await this.RequireHandlerFactoryComponent.requireStringAsync({
       code: parsedQuery.code,
       path: 'dynamic-script-from-url-handler.ts'
     });

@@ -55,8 +55,8 @@ vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar', (
   PluginMarkdownCodeBlockProcessorRegistrar: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/menu-event-registrar', () => ({
-  AppMenuEventRegistrar: vi.fn()
+vi.mock('obsidian-dev-utils/obsidian/components/menu-event-registrar-component', () => ({
+  MenuEventRegistrarComponent: vi.fn()
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar', () => ({
@@ -104,15 +104,15 @@ vi.mock('./protocol-handler-component.ts', () => ({
 }));
 
 vi.mock('./require-handlers/require-handler-factory.ts', () => ({
-  RequireHandlerFactory: vi.fn()
+  RequireHandlerFactoryComponent: vi.fn()
 }));
 
 vi.mock('./script-folder-watchers/script-folder-watcher-factory.ts', () => ({
-  ScriptFolderWatcherFactory: vi.fn()
+  ScriptFolderWatcherFactoryComponent: vi.fn()
 }));
 
 vi.mock('./script-registry.ts', () => ({
-  ScriptRegistry: vi.fn()
+  ScriptRegistryComponent: vi.fn()
 }));
 
 vi.mock('./script.ts', () => ({
@@ -124,11 +124,11 @@ vi.mock('./startup-script.ts', () => ({
 }));
 
 vi.mock('./temp-plugin-registry.ts', () => ({
-  TempPluginRegistry: vi.fn()
+  TempPluginRegistryComponent: vi.fn()
 }));
 
 describe('Plugin', () => {
-  const EXPECTED_ADD_CHILD_COUNT = 11;
+  const EXPECTED_ADD_CHILD_COUNT = 12;
 
   it('should call addChild for all components', () => {
     const mockApp: Partial<App> = { vault: {} as App['vault'] };

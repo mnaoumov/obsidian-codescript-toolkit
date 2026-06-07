@@ -3,6 +3,7 @@ import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/componen
 import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 import type { Promisable } from 'type-fest';
 
+import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import { debuggableEval } from 'debuggable-eval';
 import {
   App,
@@ -15,8 +16,8 @@ import {
   castTo,
   normalizeOptionalProperties
 } from 'obsidian-dev-utils/object-utils';
-import { AllWindowsEventHandler } from 'obsidian-dev-utils/obsidian/components/all-windows-event-handler';
-import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
+import { AllWindowsEventComponent } from 'obsidian-dev-utils/obsidian/components/all-windows-event-component';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import { parseLink } from 'obsidian-dev-utils/obsidian/link';
 import {
   basename,
@@ -34,13 +35,12 @@ import {
 import { typeAsserter } from 'obsidian-dev-utils/type';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import { isUrl } from 'obsidian-dev-utils/url';
-import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
-import type { TempPluginRegistry } from '../temp-plugin-registry.ts';
+import type { TempPluginRegistryComponent } from '../temp-plugin-registry.ts';
 import type {
   ParentPathOptions,
   require,
@@ -104,7 +104,7 @@ interface RequireStringImplOptions {
 }
 
 interface RequireStringImplResult {
-  exportsFn: () => unknown;
+  exportsFn(): unknown;
   promisable: Promisable<void>;
 }
 
@@ -177,19 +177,28 @@ const WILDCARD_MODULE_CONDITION_SUFFIX = '/*';
 export const VAULT_ROOT_PREFIX = '//';
 const DUMMY_FILE_NAME = 'dummy.md';
 
-export interface RequireHandler extends AsyncComponentBase {
+export interface RequireHandler extends ComponentEx {
   clearCache(): void;
   requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown>;
   requireStringAsync(params: RequireStringAsyncParams): Promise<unknown>;
   requireVaultScriptAsync(id: string): Promise<unknown>;
 }
 
+/** @see {@link RequireHandlerConstructorParams} */
+export type RequireHandlerComponentBaseConstructorParams = RequireHandlerConstructorParams;
+
+/** @see {@link RequireStringAsyncParams} */
+export type RequireHandlerComponentBaseRequireStringAsyncParams = RequireStringAsyncParams;
+
+/** @see {@link RequireStringImplOptions} */
+export type RequireHandlerComponentBaseRequireStringImplOptions = RequireStringImplOptions;
+
 export interface RequireHandlerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly pluginRequire: PluginRequireFn;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly tempPluginRegistry: TempPluginRegistry;
+  readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
 export interface RequireStringAsyncParams {
@@ -198,7 +207,7 @@ export interface RequireStringAsyncParams {
   readonly urlSuffix?: string | undefined;
 }
 
-export abstract class RequireHandlerBase extends AsyncComponentBase implements RequireHandler {
+export abstract class RequireHandlerComponentBase extends ComponentEx implements RequireHandler {
   protected readonly app: App;
   protected readonly currentModulesTimestampChain = new Set<string>();
   protected readonly moduleDependencies = new Map<string, Set<string>>();
@@ -206,7 +215,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
   protected readonly moduleTimestamps = new Map<string, number>();
   protected pluginRequire: PluginRequireFn;
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
-  protected readonly tempPluginRegistry: TempPluginRegistry;
+  protected readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   protected get requireEx(): RequireExFn {
     if (!this._requireEx) {
@@ -227,7 +236,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
   private originalRequire?: NodeJS.Require;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
 
-  public constructor(params: RequireHandlerConstructorParams) {
+  public constructor(params: RequireHandlerComponentBaseConstructorParams) {
     super();
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
@@ -250,8 +259,8 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     }
   }
 
-  public override async onload(): Promise<void> {
-    await super.onload();
+  public override async onloadAsync(): Promise<void> {
+    await super.onloadAsync();
     this.initSpecialModuleFactories();
 
     const adapter = getDataAdapterEx(this.app);
@@ -262,7 +271,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
       cache: {}
     }, this.originalRequire) as RequireExFn;
     this.modulesCache = this.requireEx.cache;
-    new AllWindowsEventHandler(this.app, this).registerAllWindowsHandler((win) => {
+    this.addChild(new AllWindowsEventComponent(this.app)).registerAllWindowsHandler((win) => {
       const requireWindow = win as Partial<RequireWindow>;
 
       requireWindow.require = this.requireEx;
@@ -370,7 +379,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     return module;
   }
 
-  public async requireStringAsync(params: RequireStringAsyncParams): Promise<unknown> {
+  public async requireStringAsync(params: RequireHandlerComponentBaseRequireStringAsyncParams): Promise<unknown> {
     const urlSuffix = params.urlSuffix ? `/${params.urlSuffix}` : '';
 
     try {
@@ -498,7 +507,7 @@ export abstract class RequireHandlerBase extends AsyncComponentBase implements R
     return this.specialModuleFactories.get(cleanId)?.(options);
   }
 
-  protected requireStringImpl(options: RequireStringImplOptions): RequireStringImplResult {
+  protected requireStringImpl(options: RequireHandlerComponentBaseRequireStringImplOptions): RequireStringImplResult {
     const folder = isUrl(options.path) ? '' : dirname(options.path);
     const filename = isUrl(options.path) ? options.path : basename(options.path);
     const url = convertPathToObsidianUrl(options.path) + options.urlSuffix;

@@ -1,17 +1,20 @@
 import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
-import { RequireHandlerDesktop } from './require-handler-desktop.ts';
-import { RequireHandlerMobile } from './require-handler-mobile.ts';
-import { RequireHandlerBase } from './require-handler.ts';
+import { RequireHandlerDesktopComponent } from './require-handler-desktop.ts';
+import { RequireHandlerMobileComponent } from './require-handler-mobile.ts';
+import { RequireHandlerComponentBase } from './require-handler.ts';
 
-export class RequireHandlerEmulateMobile extends RequireHandlerBase {
-  private readonly desktopRequireHandler: RequireHandlerDesktop;
-  private readonly mobileRequireHandler: RequireHandlerMobile;
+/** @see {@link RequireHandlerConstructorParams} */
+export type RequireHandlerEmulateMobileComponentConstructorParams = RequireHandlerConstructorParams;
 
-  public constructor(params: RequireHandlerConstructorParams) {
+export class RequireHandlerEmulateMobileComponent extends RequireHandlerComponentBase {
+  private readonly desktopRequireHandler: RequireHandlerDesktopComponent;
+  private readonly mobileRequireHandler: RequireHandlerMobileComponent;
+
+  public constructor(params: RequireHandlerEmulateMobileComponentConstructorParams) {
     super(params);
-    this.desktopRequireHandler = new RequireHandlerDesktop(params);
-    this.mobileRequireHandler = new RequireHandlerMobile(params);
+    this.desktopRequireHandler = new RequireHandlerDesktopComponent(params);
+    this.mobileRequireHandler = new RequireHandlerMobileComponent(params);
   }
 
   protected override canRequireNonCached(): boolean {

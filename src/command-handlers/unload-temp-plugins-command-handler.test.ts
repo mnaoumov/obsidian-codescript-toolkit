@@ -5,7 +5,7 @@ import {
   vi
 } from 'vitest';
 
-import type { TempPluginRegistry } from '../temp-plugin-registry.ts';
+import type { TempPluginRegistryComponent } from '../temp-plugin-registry.ts';
 
 import { UnloadTempPluginsCommandHandler } from './unload-temp-plugins-command-handler.ts';
 
@@ -15,10 +15,10 @@ vi.mock('obsidian-dev-utils/obsidian/command-handlers/global-command-handler', (
 
 describe('UnloadTempPluginsCommandHandler', () => {
   it('should call unloadTempPlugins on the tempPluginRegistry when executed', () => {
-    const partial: Partial<TempPluginRegistry> = {
+    const partial: Partial<TempPluginRegistryComponent> = {
       unloadTempPlugins: vi.fn()
     };
-    const mockRegistry = partial as TempPluginRegistry;
+    const mockRegistry = partial as TempPluginRegistryComponent;
 
     const handler = new UnloadTempPluginsCommandHandler(mockRegistry);
     handler.execute();

@@ -585,7 +585,7 @@ Require stack:
 
 ## 8.7.0
 
-- Switch to plugin.consoleDebug
+- Switch to consoleDebugComponent.debug
 - Add import.meta converters
 - Check all export conditions
 - Output error

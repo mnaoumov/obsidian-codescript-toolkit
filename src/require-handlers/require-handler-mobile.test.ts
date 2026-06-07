@@ -1,3 +1,4 @@
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -10,7 +11,7 @@ import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
 import {
   createRequireHandler,
-  RequireHandlerMobile
+  RequireHandlerMobileComponent
 } from './require-handler-mobile.ts';
 
 const { MockCapacitorAdapterClass, mockCapacitorFs } = vi.hoisted(() => {
@@ -87,61 +88,61 @@ interface ReadFileBinaryAsyncAccessor {
   readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
 }
 
-function asExistsFileAsync(obj: RequireHandlerMobile): ExistsFileAsyncAccessor {
+function asExistsFileAsync(obj: RequireHandlerMobileComponent): ExistsFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as ExistsFileAsyncAccessor;
 }
 
-function asExistsFolderAsync(obj: RequireHandlerMobile): ExistsFolderAsyncAccessor {
+function asExistsFolderAsync(obj: RequireHandlerMobileComponent): ExistsFolderAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as ExistsFolderAsyncAccessor;
 }
 
-function asGetTimestampAsync(obj: RequireHandlerMobile): GetTimestampAsyncAccessor {
+function asGetTimestampAsync(obj: RequireHandlerMobileComponent): GetTimestampAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as GetTimestampAsyncAccessor;
 }
 
-function asReadFileAsync(obj: RequireHandlerMobile): ReadFileAsyncAccessor {
+function asReadFileAsync(obj: RequireHandlerMobileComponent): ReadFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as ReadFileAsyncAccessor;
 }
 
-function asReadFileBinaryAsync(obj: RequireHandlerMobile): ReadFileBinaryAsyncAccessor {
+function asReadFileBinaryAsync(obj: RequireHandlerMobileComponent): ReadFileBinaryAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as ReadFileBinaryAsyncAccessor;
 }
 
 function createMockParams(adapter?: unknown): RequireHandlerConstructorParams {
   const partial: Partial<RequireHandlerConstructorParams> = {
-    app: {
+    app: castTo<RequireHandlerConstructorParams['app']>({
       vault: {
         adapter: adapter ?? {}
       },
       workspace: {
         getActiveFile: vi.fn().mockReturnValue(null)
       }
-    } as never,
-    consoleDebugComponent: {
+    }),
+    consoleDebugComponent: castTo<RequireHandlerConstructorParams['consoleDebugComponent']>({
       debug: vi.fn()
-    } as never,
-    pluginRequire: vi.fn() as never,
-    pluginSettingsComponent: {
+    }),
+    pluginRequire: vi.fn(),
+    pluginSettingsComponent: castTo<RequireHandlerConstructorParams['pluginSettingsComponent']>({
       settings: {
         modulesRoot: ''
       }
-    } as never,
-    tempPluginRegistry: {} as never
+    }),
+    tempPluginRegistry: castTo<RequireHandlerConstructorParams['tempPluginRegistry']>({})
   };
   return partial as RequireHandlerConstructorParams;
 }
 
-describe('RequireHandlerMobile', () => {
-  let handler: RequireHandlerMobile;
+describe('RequireHandlerMobileComponent', () => {
+  let handler: RequireHandlerMobileComponent;
 
-  function createHandler(adapter?: unknown): RequireHandlerMobile {
+  function createHandler(adapter?: unknown): RequireHandlerMobileComponent {
     const params = createMockParams(adapter);
-    return new RequireHandlerMobile(params);
+    return new RequireHandlerMobileComponent(params);
   }
 
   beforeEach(() => {
@@ -390,9 +391,9 @@ describe('RequireHandlerMobile', () => {
 });
 
 describe('createRequireHandler', () => {
-  it('should return a RequireHandlerMobile instance', () => {
+  it('should return a RequireHandlerMobileComponent instance', () => {
     const params = createMockParams();
     const result = createRequireHandler(params);
-    expect(result).toBeInstanceOf(RequireHandlerMobile);
+    expect(result).toBeInstanceOf(RequireHandlerMobileComponent);
   });
 });

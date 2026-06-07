@@ -34,7 +34,6 @@ export class ExtractRequireArgsListBabelPlugin extends BabelPluginBase<ExtractRe
     super(data);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base getVisitor returns empty object; subclass provides its own visitor.
   public override getVisitor(): Visitor<PluginPass> {
     return {
       ArrowFunctionExpression: (path): void => {

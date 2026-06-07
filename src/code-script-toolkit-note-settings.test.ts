@@ -30,8 +30,8 @@ vi.mock('obsidian-dev-utils/obsidian/metadata-cache', () => ({
 }));
 
 interface CreateMockAppOptions {
-  fileByPath?: null | object;
-  readContent?: string;
+  readonly fileByPath?: null | object;
+  readonly readContent?: string;
 }
 
 function createMockApp(options?: CreateMockAppOptions): App {

@@ -58,7 +58,6 @@ export class PathSuggest extends AbstractInputSuggest<PathEntry> {
     el.setText(value.path || '(blank)');
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Intentionally replaces base selectSuggestion with custom path-setting and delayed close behavior.
   public override selectSuggestion(value: PathEntry): void {
     this.setValue(value.path);
     this.textInputEl.dispatchEvent(new Event('input'));

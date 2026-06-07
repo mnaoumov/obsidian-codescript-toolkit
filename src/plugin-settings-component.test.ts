@@ -1,5 +1,6 @@
 import type { App } from 'obsidian';
 
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -16,7 +17,6 @@ interface LegacySettingsInstance {
 }
 
 interface PluginSettingsComponentPrivateApi {
-  createDefaultSettings(): PluginSettings;
   registerLegacySettingsConverters(): void;
   registerValidators(): void;
 }
@@ -79,7 +79,8 @@ describe('PluginSettingsComponent', () => {
 
     component = new PluginSettingsComponent({
       app: mockApp,
-      dataHandler: {} as never
+      dataHandler: castTo<import('obsidian-dev-utils/obsidian/data-handler').DataHandler>({}),
+      pluginEventSource: castTo<import('obsidian-dev-utils/obsidian/plugin/plugin-event-source').PluginEventSource>({})
     });
   });
 
@@ -137,14 +138,6 @@ describe('PluginSettingsComponent', () => {
       mockParseYaml.mockReturnValue({ caption: 'Default' });
       const result = component.parseDefaultCodeButtonConfig();
       expect(result).toEqual({ caption: 'Default' });
-    });
-  });
-
-  describe('createDefaultSettings', () => {
-    it('should return a PluginSettings instance', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      const result = (component as unknown as PluginSettingsComponentPrivateApi).createDefaultSettings();
-      expect(result).toBeInstanceOf(PluginSettings);
     });
   });
 

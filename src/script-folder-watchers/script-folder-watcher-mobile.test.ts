@@ -1,3 +1,12 @@
+import type {
+  App,
+  ListedFiles,
+  Stat
+} from 'obsidian';
+import type { Mock } from 'vitest';
+
+import { noopAsync } from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -6,7 +15,10 @@ import {
   vi
 } from 'vitest';
 
-import { ScriptFolderWatcherMobile } from './script-folder-watcher-mobile.ts';
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { ScriptManager } from '../script.ts';
+
+import { ScriptFolderWatcherMobileComponent } from './script-folder-watcher-mobile.ts';
 
 const mockSuperOnload = vi.fn();
 const mockRegisterAsyncEvent = vi.fn();
@@ -21,10 +33,15 @@ vi.mock('obsidian-dev-utils/async', () => ({
   invokeAsyncSafely: vi.fn((fn: () => unknown) => fn())
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/components/async-component', () => ({
-  AsyncComponentBase: class MockAsyncComponentBase {
-    public async onload(): Promise<void> {
+vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => ({
+  ComponentEx: class MockComponentEx {
+    public async loadWithPromises(): Promise<void> {
       await mockSuperOnload();
+      await this.onloadAsync();
+    }
+
+    public onloadAsync(): Promise<void> {
+      return noopAsync();
     }
 
     public register(fn: () => void): void {
@@ -40,8 +57,8 @@ vi.mock('obsidian-dev-utils/obsidian/components/async-events-component', () => (
 const CHECKING_INTERVAL_IN_SECONDS = 10;
 
 interface MockAdapter {
-  list: ReturnType<typeof vi.fn>;
-  stat: ReturnType<typeof vi.fn>;
+  list: Mock<(normalizedPath: string) => Promise<ListedFiles>>;
+  stat: Mock<(normalizedPath: string) => Promise<null | Stat>>;
 }
 
 interface MockApp {
@@ -72,7 +89,7 @@ interface MutableMobileSettings {
 }
 
 describe('ScriptFolderWatcherMobile', () => {
-  let watcher: ScriptFolderWatcherMobile;
+  let watcher: ScriptFolderWatcherMobileComponent;
   let mockApp: MockApp;
   let mockPluginSettingsComponent: MockPluginSettingsComponent;
   let mockScriptManager: MockScriptManager;
@@ -85,8 +102,8 @@ describe('ScriptFolderWatcherMobile', () => {
     mockApp = {
       vault: {
         adapter: {
-          list: vi.fn().mockResolvedValue({ files: [], folders: [] }),
-          stat: vi.fn().mockResolvedValue({ mtime: 0, type: 'folder' })
+          list: vi.fn<(normalizedPath: string) => Promise<ListedFiles>>().mockResolvedValue({ files: [], folders: [] }),
+          stat: vi.fn<(normalizedPath: string) => Promise<null | Stat>>().mockResolvedValue({ ctime: 0, mtime: 0, size: 0, type: 'folder' })
         },
         exists: vi.fn().mockResolvedValue(true)
       }
@@ -104,10 +121,10 @@ describe('ScriptFolderWatcherMobile', () => {
       registerInvocableScripts: vi.fn().mockResolvedValue(undefined)
     };
 
-    watcher = new ScriptFolderWatcherMobile({
-      app: mockApp as never,
-      pluginSettingsComponent: mockPluginSettingsComponent as never,
-      scriptManager: mockScriptManager as never
+    watcher = new ScriptFolderWatcherMobileComponent({
+      app: castTo<App>(mockApp),
+      pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
+      scriptManager: castTo<ScriptManager>(mockScriptManager)
     });
   });
 
@@ -192,7 +209,7 @@ describe('ScriptFolderWatcherMobile', () => {
       const INITIAL_MTIME = 100;
       const UPDATED_MTIME = 200;
 
-      vi.mocked(mockApp.vault.adapter.stat).mockResolvedValue({ mtime: INITIAL_MTIME, type: 'folder' });
+      vi.mocked(mockApp.vault.adapter.stat).mockResolvedValue({ ctime: 0, mtime: INITIAL_MTIME, size: 0, type: 'folder' });
 
       const onChange = vi.fn().mockResolvedValue(undefined);
       await watcher['startWatcher'](onChange);
@@ -202,7 +219,7 @@ describe('ScriptFolderWatcherMobile', () => {
       onChange.mockClear();
 
       // Update mtime for next check
-      vi.mocked(mockApp.vault.adapter.stat).mockResolvedValue({ mtime: UPDATED_MTIME, type: 'folder' });
+      vi.mocked(mockApp.vault.adapter.stat).mockResolvedValue({ ctime: 0, mtime: UPDATED_MTIME, size: 0, type: 'folder' });
 
       // Run the scheduled timeout
       await vi.advanceTimersByTimeAsync(CHECKING_INTERVAL_IN_SECONDS * 1000);
@@ -213,7 +230,7 @@ describe('ScriptFolderWatcherMobile', () => {
     it('should not call onChange when files have not changed', async () => {
       const STATIC_MTIME = 100;
 
-      vi.mocked(mockApp.vault.adapter.stat).mockResolvedValue({ mtime: STATIC_MTIME, type: 'folder' });
+      vi.mocked(mockApp.vault.adapter.stat).mockResolvedValue({ ctime: 0, mtime: STATIC_MTIME, size: 0, type: 'folder' });
 
       const onChange = vi.fn().mockResolvedValue(undefined);
       await watcher['startWatcher'](onChange);
@@ -231,9 +248,9 @@ describe('ScriptFolderWatcherMobile', () => {
     it('should recursively check subfiles and subfolders', async () => {
       const MTIME = 50;
 
-      vi.mocked(mockApp.vault.adapter.stat).mockResolvedValue({ mtime: MTIME, type: 'folder' });
+      vi.mocked(mockApp.vault.adapter.stat).mockResolvedValue({ ctime: 0, mtime: MTIME, size: 0, type: 'folder' });
       vi.mocked(mockApp.vault.adapter.list).mockImplementation(
-        ((path: string) => {
+        (path: string) => {
           if (path === 'scripts') {
             return Promise.resolve({ files: ['scripts/a.ts'], folders: ['scripts/sub'] });
           }
@@ -241,7 +258,7 @@ describe('ScriptFolderWatcherMobile', () => {
             return Promise.resolve({ files: ['scripts/sub/b.ts'], folders: [] });
           }
           return Promise.resolve({ files: [], folders: [] });
-        }) as never
+        }
       );
 
       const onChange = vi.fn().mockResolvedValue(undefined);
@@ -261,20 +278,20 @@ describe('ScriptFolderWatcherMobile', () => {
       let subfileMtime = SUBFILE_INITIAL_MTIME;
 
       vi.mocked(mockApp.vault.adapter.stat).mockImplementation(
-        ((path: string) => {
+        (path: string) => {
           if (path === 'scripts') {
-            return Promise.resolve({ mtime: FOLDER_MTIME, type: 'folder' });
+            return Promise.resolve({ ctime: 0, mtime: FOLDER_MTIME, size: 0, type: 'folder' });
           }
-          return Promise.resolve({ mtime: subfileMtime, type: 'file' });
-        }) as never
+          return Promise.resolve({ ctime: 0, mtime: subfileMtime, size: 0, type: 'file' });
+        }
       );
       vi.mocked(mockApp.vault.adapter.list).mockImplementation(
-        ((path: string) => {
+        (path: string) => {
           if (path === 'scripts') {
             return Promise.resolve({ files: ['scripts/a.ts'], folders: [] });
           }
           return Promise.resolve({ files: [], folders: [] });
-        }) as never
+        }
       );
 
       const onChange = vi.fn().mockResolvedValue(undefined);

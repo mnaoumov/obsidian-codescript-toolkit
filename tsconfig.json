@@ -10,7 +10,7 @@
     "inlineSources": true,
     "lib": [
       "DOM",
-        "DOM.Iterable",
+      "DOM.Iterable",
       "ES2024"
     ],
     "libReplacement": true,

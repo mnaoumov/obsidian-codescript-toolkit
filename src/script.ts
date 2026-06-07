@@ -12,7 +12,7 @@ import {
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
-import { ScriptRegistry } from './script-registry.ts';
+import { ScriptRegistryComponent } from './script-registry.ts';
 
 export interface Script {
   invoke(app: App): Promisable<void>;
@@ -24,14 +24,14 @@ interface ScriptManagerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly scriptRegistry: ScriptRegistry;
+  readonly scriptRegistry: ScriptRegistryComponent;
 }
 
 export class ScriptManager {
   private readonly app: App;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly scriptRegistry: ScriptRegistry;
+  private readonly scriptRegistry: ScriptRegistryComponent;
 
   public constructor(private readonly params: ScriptManagerConstructorParams) {
     this.app = this.params.app;

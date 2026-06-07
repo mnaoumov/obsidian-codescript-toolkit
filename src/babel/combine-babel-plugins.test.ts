@@ -31,7 +31,6 @@ class ErrorBabelPlugin extends BabelPluginBase<Record<string, never>> {
     super({});
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base getVisitor returns empty object; subclass provides its own visitor.
   public override getVisitor(): Visitor<PluginPass> {
     return {
       Program: (): void => {
@@ -46,7 +45,6 @@ class RenameFooBabelPlugin extends BabelPluginBase<RenameData> {
     super({ renamed: false });
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base getVisitor returns empty object; subclass provides its own visitor.
   public override getVisitor(): Visitor<PluginPass> {
     return {
       Identifier: (path): void => {
@@ -64,7 +62,6 @@ class WrapInCallBabelPlugin extends BabelPluginBase<WrapData> {
     super({ wrapped: false });
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Base getVisitor returns empty object; subclass provides its own visitor.
   public override getVisitor(): Visitor<PluginPass> {
     return {
       ExpressionStatement: (path): void => {

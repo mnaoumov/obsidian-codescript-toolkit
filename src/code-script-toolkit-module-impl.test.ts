@@ -1,3 +1,4 @@
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   describe,
   expect,
@@ -6,7 +7,7 @@ import {
 } from 'vitest';
 
 import type { TempPluginClass } from './code-button-context.ts';
-import type { TempPluginRegistry } from './temp-plugin-registry.ts';
+import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 import { CodeScriptToolkitModuleImpl } from './code-script-toolkit-module-impl.ts';
 
@@ -14,13 +15,13 @@ vi.mock('./temp-plugin-registry.ts', () => ({
   TempPluginRegistry: vi.fn()
 }));
 
-function createMockRegistry(): TempPluginRegistry {
-  const partial: Partial<TempPluginRegistry> = {
+function createMockRegistry(): TempPluginRegistryComponent {
+  const partial: Partial<TempPluginRegistryComponent> = {
     getTempPlugin: vi.fn(),
     registerTempPlugin: vi.fn(),
     unregisterTempPlugin: vi.fn()
   };
-  return partial as TempPluginRegistry;
+  return partial as TempPluginRegistryComponent;
 }
 
 describe('CodeScriptToolkitModuleImpl', () => {
@@ -28,8 +29,8 @@ describe('CodeScriptToolkitModuleImpl', () => {
     it('should work when destructured and called unbound', () => {
       const mockRegistry = createMockRegistry();
       const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
-      const mockPlugin = { id: 'test' };
-      vi.mocked(mockRegistry.getTempPlugin).mockReturnValue(mockPlugin as never);
+      const mockPlugin = castTo<import('obsidian').Plugin>({ id: 'test' });
+      vi.mocked(mockRegistry.getTempPlugin).mockReturnValue(mockPlugin);
 
       const { getTempPlugin } = impl;
       const result = getTempPlugin('TestPlugin');
@@ -41,8 +42,8 @@ describe('CodeScriptToolkitModuleImpl', () => {
     it('should delegate to registry.getTempPlugin with string', () => {
       const mockRegistry = createMockRegistry();
       const impl = new CodeScriptToolkitModuleImpl(mockRegistry);
-      const mockPlugin = { id: 'test' };
-      vi.mocked(mockRegistry.getTempPlugin).mockReturnValue(mockPlugin as never);
+      const mockPlugin = castTo<import('obsidian').Plugin>({ id: 'test' });
+      vi.mocked(mockRegistry.getTempPlugin).mockReturnValue(mockPlugin);
 
       const result = impl.getTempPlugin('TestPlugin');
 

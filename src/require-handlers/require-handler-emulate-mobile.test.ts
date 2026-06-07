@@ -1,3 +1,4 @@
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -8,7 +9,7 @@ import {
 
 import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
-import { RequireHandlerEmulateMobile } from './require-handler-emulate-mobile.ts';
+import { RequireHandlerEmulateMobileComponent } from './require-handler-emulate-mobile.ts';
 
 const mockDesktopExistsFileAsync = vi.fn();
 const mockDesktopExistsFolderAsync = vi.fn();
@@ -23,7 +24,7 @@ const mockMobileRequireNodeBuiltInModule = vi.fn();
 const mockMobileRequireNonCached = vi.fn();
 
 vi.mock('./require-handler-desktop.ts', () => ({
-  RequireHandlerDesktop: class MockDesktop {
+  RequireHandlerDesktopComponent: class MockDesktop {
     public existsFileAsync = mockDesktopExistsFileAsync;
     public existsFolderAsync = mockDesktopExistsFolderAsync;
     public getTimestampAsync = mockDesktopGetTimestampAsync;
@@ -33,7 +34,7 @@ vi.mock('./require-handler-desktop.ts', () => ({
 }));
 
 vi.mock('./require-handler-mobile.ts', () => ({
-  RequireHandlerMobile: class MockMobile {
+  RequireHandlerMobileComponent: class MockMobile {
     public canRequireNonCached = mockMobileCanRequireNonCached;
     public requireAsarPackedModule = mockMobileRequireAsarPackedModule;
     public requireElectronModule = mockMobileRequireElectronModule;
@@ -44,7 +45,7 @@ vi.mock('./require-handler-mobile.ts', () => ({
 }));
 
 vi.mock('./require-handler.ts', () => ({
-  RequireHandlerBase: class MockRequireHandlerBase {
+  RequireHandlerComponentBase: class MockRequireHandlerComponentBase {
     public addChild<T>(child: T): T {
       return child;
     }
@@ -95,77 +96,77 @@ interface RequireNonCachedAccessor {
   requireNonCached(id: string): unknown;
 }
 
-function asCanRequireNonCached(obj: RequireHandlerEmulateMobile): CanRequireNonCachedAccessor {
+function asCanRequireNonCached(obj: RequireHandlerEmulateMobileComponent): CanRequireNonCachedAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as CanRequireNonCachedAccessor;
 }
 
-function asExistsFileAsync(obj: RequireHandlerEmulateMobile): ExistsFileAsyncAccessor {
+function asExistsFileAsync(obj: RequireHandlerEmulateMobileComponent): ExistsFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as ExistsFileAsyncAccessor;
 }
 
-function asExistsFolderAsync(obj: RequireHandlerEmulateMobile): ExistsFolderAsyncAccessor {
+function asExistsFolderAsync(obj: RequireHandlerEmulateMobileComponent): ExistsFolderAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as ExistsFolderAsyncAccessor;
 }
 
-function asGetTimestampAsync(obj: RequireHandlerEmulateMobile): GetTimestampAsyncAccessor {
+function asGetTimestampAsync(obj: RequireHandlerEmulateMobileComponent): GetTimestampAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as GetTimestampAsyncAccessor;
 }
 
-function asReadFileAsync(obj: RequireHandlerEmulateMobile): ReadFileAsyncAccessor {
+function asReadFileAsync(obj: RequireHandlerEmulateMobileComponent): ReadFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as ReadFileAsyncAccessor;
 }
 
-function asReadFileBinaryAsync(obj: RequireHandlerEmulateMobile): ReadFileBinaryAsyncAccessor {
+function asReadFileBinaryAsync(obj: RequireHandlerEmulateMobileComponent): ReadFileBinaryAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as ReadFileBinaryAsyncAccessor;
 }
 
-function asRequireAsarPackedModule(obj: RequireHandlerEmulateMobile): RequireAsarPackedModuleAccessor {
+function asRequireAsarPackedModule(obj: RequireHandlerEmulateMobileComponent): RequireAsarPackedModuleAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as RequireAsarPackedModuleAccessor;
 }
 
-function asRequireElectronModule(obj: RequireHandlerEmulateMobile): RequireElectronModuleAccessor {
+function asRequireElectronModule(obj: RequireHandlerEmulateMobileComponent): RequireElectronModuleAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as RequireElectronModuleAccessor;
 }
 
-function asRequireNodeBinaryAsync(obj: RequireHandlerEmulateMobile): RequireNodeBinaryAsyncAccessor {
+function asRequireNodeBinaryAsync(obj: RequireHandlerEmulateMobileComponent): RequireNodeBinaryAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as RequireNodeBinaryAsyncAccessor;
 }
 
-function asRequireNodeBuiltInModule(obj: RequireHandlerEmulateMobile): RequireNodeBuiltInModuleAccessor {
+function asRequireNodeBuiltInModule(obj: RequireHandlerEmulateMobileComponent): RequireNodeBuiltInModuleAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as RequireNodeBuiltInModuleAccessor;
 }
 
-function asRequireNonCached(obj: RequireHandlerEmulateMobile): RequireNonCachedAccessor {
+function asRequireNonCached(obj: RequireHandlerEmulateMobileComponent): RequireNonCachedAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as RequireNonCachedAccessor;
 }
 
-describe('RequireHandlerEmulateMobile', () => {
-  let handler: RequireHandlerEmulateMobile;
+describe('RequireHandlerEmulateMobileComponent', () => {
+  let handler: RequireHandlerEmulateMobileComponent;
   let mockParams: RequireHandlerConstructorParams;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockParams = {
-      app: {} as never,
-      consoleDebugComponent: {} as never,
+    mockParams = castTo<RequireHandlerConstructorParams>({
+      app: {},
+      consoleDebugComponent: {},
       pluginRequire: vi.fn(),
-      pluginSettingsComponent: {} as never,
-      tempPluginRegistry: {} as never
-    };
+      pluginSettingsComponent: {},
+      tempPluginRegistry: {}
+    });
 
-    handler = new RequireHandlerEmulateMobile(mockParams);
+    handler = new RequireHandlerEmulateMobileComponent(mockParams);
   });
 
   describe('canRequireNonCached', () => {

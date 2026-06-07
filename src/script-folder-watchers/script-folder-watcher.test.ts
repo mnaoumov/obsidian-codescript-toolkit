@@ -1,6 +1,8 @@
 import type { App } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
+import { noopAsync } from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -9,16 +11,24 @@ import {
   vi
 } from 'vitest';
 
-import { ScriptFolderWatcher } from './script-folder-watcher.ts';
+import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+import type { ScriptManager } from '../script.ts';
+
+import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
 
 const mockRegisterAsyncEvent = vi.fn();
 const mockSuperOnload = vi.fn();
 const registeredCallbacks: (() => void)[] = [];
 
-vi.mock('obsidian-dev-utils/obsidian/components/async-component', () => ({
-  AsyncComponentBase: class MockAsyncComponentBase {
-    public async onload(): Promise<void> {
+vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => ({
+  ComponentEx: class MockComponentEx {
+    public async loadWithPromises(): Promise<void> {
       await mockSuperOnload();
+      await this.onloadAsync();
+    }
+
+    public onloadAsync(): Promise<void> {
+      return noopAsync();
     }
 
     public register(fn: () => void): void {
@@ -39,7 +49,7 @@ interface MockScriptManager {
   registerInvocableScripts: ReturnType<typeof vi.fn>;
 }
 
-class TestScriptFolderWatcher extends ScriptFolderWatcher {
+class TestScriptFolderWatcherComponent extends ScriptFolderWatcherComponentBase {
   public startWatcherMock = vi.fn<(onChange: () => Promise<void>) => Promisable<boolean>>().mockResolvedValue(false);
   public stopWatcherMock = vi.fn();
 
@@ -53,7 +63,7 @@ class TestScriptFolderWatcher extends ScriptFolderWatcher {
 }
 
 describe('ScriptFolderWatcher', () => {
-  let watcher: TestScriptFolderWatcher;
+  let watcher: TestScriptFolderWatcherComponent;
   let mockApp: Partial<App>;
   let mockPluginSettingsComponent: MockPluginSettingsComponent;
   let mockScriptManager: MockScriptManager;
@@ -78,10 +88,10 @@ describe('ScriptFolderWatcher', () => {
       registerInvocableScripts: vi.fn().mockResolvedValue(undefined)
     };
 
-    watcher = new TestScriptFolderWatcher({
-      app: mockApp as App,
-      pluginSettingsComponent: mockPluginSettingsComponent as never,
-      scriptManager: mockScriptManager as never
+    watcher = new TestScriptFolderWatcherComponent({
+      app: castTo<App>(mockApp),
+      pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
+      scriptManager: castTo<ScriptManager>(mockScriptManager)
     });
   });
 
@@ -97,25 +107,25 @@ describe('ScriptFolderWatcher', () => {
 
   describe('onload', () => {
     it('should call super.onload', async () => {
-      await watcher.onload();
+      await watcher.loadWithPromises();
       expect(mockSuperOnload).toHaveBeenCalledOnce();
     });
 
     it('should register async events for loadSettings and saveSettings', async () => {
-      await watcher.onload();
+      await watcher.loadWithPromises();
 
       const EVENT_COUNT = 2;
       expect(mockRegisterAsyncEvent).toHaveBeenCalledTimes(EVENT_COUNT);
     });
 
     it('should register loadSettings event listener', async () => {
-      await watcher.onload();
+      await watcher.loadWithPromises();
 
       expect(mockPluginSettingsComponent.on).toHaveBeenCalledWith('loadSettings', expect.any(Function));
     });
 
     it('should register saveSettings event listener', async () => {
-      await watcher.onload();
+      await watcher.loadWithPromises();
 
       expect(mockPluginSettingsComponent.on).toHaveBeenCalledWith('saveSettings', expect.any(Function));
     });
@@ -176,7 +186,7 @@ describe('ScriptFolderWatcher', () => {
 
   describe('applyNewSettings', () => {
     it('should call register2 with registerInvocableScripts when loadSettings event fires', async () => {
-      await watcher.onload();
+      await watcher.loadWithPromises();
 
       // Find the loadSettings event handler from the on() mock
       const onCalls = vi.mocked(mockPluginSettingsComponent.on).mock.calls;
@@ -192,7 +202,7 @@ describe('ScriptFolderWatcher', () => {
     });
 
     it('should call register2 with registerInvocableScripts when saveSettings event fires', async () => {
-      await watcher.onload();
+      await watcher.loadWithPromises();
 
       const onCalls = vi.mocked(mockPluginSettingsComponent.on).mock.calls;
       const eventName = 'saveSettings';

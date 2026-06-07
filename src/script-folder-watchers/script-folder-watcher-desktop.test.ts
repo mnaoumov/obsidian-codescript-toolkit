@@ -1,5 +1,7 @@
 import type { App } from 'obsidian';
 
+import { noopAsync } from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -13,7 +15,7 @@ import type { ScriptManager } from '../script.ts';
 
 import {
   createScriptFolderWatcher,
-  ScriptFolderWatcherDesktop
+  ScriptFolderWatcherDesktopComponent
 } from './script-folder-watcher-desktop.ts';
 
 const mockWatch = vi.fn();
@@ -49,10 +51,15 @@ vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   })
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/components/async-component', () => ({
-  AsyncComponentBase: class MockAsyncComponentBase {
-    public async onload(): Promise<void> {
+vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => ({
+  ComponentEx: class MockComponentEx {
+    public async loadWithPromises(): Promise<void> {
       await mockSuperOnload();
+      await this.onloadAsync();
+    }
+
+    public onloadAsync(): Promise<void> {
+      return noopAsync();
     }
 
     public register(fn: () => void): void {
@@ -86,8 +93,8 @@ interface MockVault {
   exists: ReturnType<typeof vi.fn>;
 }
 
-describe('ScriptFolderWatcherDesktop', () => {
-  let watcher: ScriptFolderWatcherDesktop;
+describe('ScriptFolderWatcherDesktopComponent', () => {
+  let watcher: ScriptFolderWatcherDesktopComponent;
   let mockApp: MockApp;
   let mockPluginSettingsComponent: MockPluginSettingsComponent;
   let mockScriptManager: MockScriptManager;
@@ -113,10 +120,10 @@ describe('ScriptFolderWatcherDesktop', () => {
       registerInvocableScripts: vi.fn().mockResolvedValue(undefined)
     };
 
-    watcher = new ScriptFolderWatcherDesktop({
-      app: mockApp as never,
-      pluginSettingsComponent: mockPluginSettingsComponent as never,
-      scriptManager: mockScriptManager as never
+    watcher = new ScriptFolderWatcherDesktopComponent({
+      app: castTo<App>(mockApp),
+      pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
+      scriptManager: castTo<ScriptManager>(mockScriptManager)
     });
   });
 
@@ -235,18 +242,15 @@ describe('ScriptFolderWatcherDesktop', () => {
 });
 
 describe('createScriptFolderWatcher', () => {
-  it('should return a ScriptFolderWatcherDesktop instance', () => {
-    const mockPartialApp: Partial<App> = {};
-    const mockPartialPluginSettingsComponent: Partial<PluginSettingsComponent> = { on: vi.fn() as never, settings: {} as never };
-    const mockPartialScriptManager: Partial<ScriptManager> = {};
+  it('should return a ScriptFolderWatcherDesktopComponent instance', () => {
     const params = {
-      app: mockPartialApp as App,
-      pluginSettingsComponent: mockPartialPluginSettingsComponent as PluginSettingsComponent,
-      scriptManager: mockPartialScriptManager as ScriptManager
+      app: castTo<App>({}),
+      pluginSettingsComponent: castTo<PluginSettingsComponent>({ on: vi.fn(), settings: {} }),
+      scriptManager: castTo<ScriptManager>({})
     };
 
     const result = createScriptFolderWatcher(params);
 
-    expect(result).toBeInstanceOf(ScriptFolderWatcherDesktop);
+    expect(result).toBeInstanceOf(ScriptFolderWatcherDesktopComponent);
   });
 });

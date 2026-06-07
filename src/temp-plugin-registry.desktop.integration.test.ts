@@ -50,7 +50,6 @@ describe('TempPluginRegistry integration', () => {
         const TEMP_PLUGIN_NAME = '__IntTestTempPlugin';
 
         const TestPlugin = class extends obsidianModule.Plugin {
-          // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Test plugin intentionally replaces onload to set a window flag.
           public override onload(): void {
             Reflect.set(window, '__tempPluginLoaded', true);
           }
@@ -81,7 +80,6 @@ describe('TempPluginRegistry integration', () => {
         const TEMP_PLUGIN_NAME = '__IntTestGetPlugin';
 
         const TestPlugin = class extends obsidianModule.Plugin {
-          // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Test plugin intentionally skips super.onload.
           public override onload(): void {
             // No-op
           }

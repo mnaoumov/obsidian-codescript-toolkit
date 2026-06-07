@@ -24,7 +24,6 @@ abstract class CombineBabelPlugins<DataList extends unknown[]> extends BabelPlug
 }
 
 export class SequentialBabelPlugin<DataList extends unknown[]> extends CombineBabelPlugins<DataList> {
-  // eslint-disable-next-line obsidian-dev-utils/require-super-call -- Intentionally replaces base transform with sequential multi-plugin pipeline.
   public override transform(code: string, filename: string, folder?: string): TransformResult<TupleToIntersection<DataList>> {
     for (const plugin of this.plugins) {
       try {

@@ -7,6 +7,7 @@ import type {
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
@@ -16,11 +17,14 @@ import {
   vi
 } from 'vitest';
 
-import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
+import type {
+  CodeButtonBlockConfig,
+  RemoveAfterExecutionConfig
+} from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
-import type { TempPluginRegistry } from './temp-plugin-registry.ts';
+import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
+import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 import {
   CodeButtonBlockComponent,
@@ -99,19 +103,23 @@ vi.mock('obsidian-dev-utils/error', () => ({
   printError: (...args: unknown[]): unknown => mockPrintError(...args)
 }));
 
-vi.mock('obsidian-dev-utils/object-utils', () => ({
-  normalizeOptionalProperties: <T>(obj: T): T => obj,
-  removeUndefinedProperties: <T>(obj: T): T => {
-    const result = { ...obj } as Record<string, unknown>;
-    for (const key of Object.keys(result)) {
-      if (result[key] === undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- mock implementation requires dynamic property deletion
-        delete result[key];
+vi.mock('obsidian-dev-utils/object-utils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('obsidian-dev-utils/object-utils')>();
+  return {
+    ...actual,
+    normalizeOptionalProperties: <T>(obj: T): T => obj,
+    removeUndefinedProperties: <T>(obj: T): T => {
+      const result = { ...obj } as Record<string, unknown>;
+      for (const key of Object.keys(result)) {
+        if (result[key] === undefined) {
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- mock implementation requires dynamic property deletion
+          delete result[key];
+        }
       }
+      return result as T;
     }
-    return result as T;
-  }
-}));
+  };
+});
 
 vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
   getFile: (...args: unknown[]): unknown => mockGetFile(...args)
@@ -179,12 +187,12 @@ vi.mock('./console-wrapper.ts', () => ({
 }));
 
 interface MockConstructorParams {
-  app: unknown;
-  config: CodeButtonBlockConfig;
-  markdownInfo: unknown;
-  markdownPostProcessorContext: unknown;
-  parentEl: HTMLElement;
-  source: string;
+  readonly app: unknown;
+  readonly config: CodeButtonBlockConfig;
+  readonly markdownInfo: unknown;
+  readonly markdownPostProcessorContext: unknown;
+  readonly parentEl: HTMLElement;
+  readonly source: string;
 }
 
 interface MockSourceFile {
@@ -192,7 +200,7 @@ interface MockSourceFile {
 }
 
 vi.mock('./code-button-context-impl.ts', () => ({
-  CodeButtonContextImpl: class MockCodeButtonContextImpl {
+  CodeButtonContextImplComponent: class MockCodeButtonContextImplComponent {
     public readonly app: unknown;
     public readonly config: CodeButtonBlockConfig;
     public readonly container: HTMLElement;
@@ -256,7 +264,7 @@ describe('DEFAULT_CODE_BUTTON_BLOCK_CONFIG', () => {
 });
 
 interface ButtonCreateElOptions {
-  onclick?: () => Promise<void>;
+  onclick?(): Promise<void>;
 }
 
 interface CodeMirrorApi {
@@ -318,8 +326,8 @@ describe('CodeButtonBlockComponent', () => {
   let mockApp: App;
   let mockMarkdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   let mockPluginSettingsComponent: PluginSettingsComponent;
-  let mockRequireHandlerFactory: RequireHandlerFactory;
-  let mockTempPluginRegistry: TempPluginRegistry;
+  let mockRequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
+  let mockTempPluginRegistry: TempPluginRegistryComponent;
   let mockDefineMode: ReturnType<typeof vi.fn>;
   let mockGetMode: ReturnType<typeof vi.fn>;
 
@@ -329,11 +337,10 @@ describe('CodeButtonBlockComponent', () => {
     mockDefineMode = vi.fn();
     mockGetMode = vi.fn().mockReturnValue({});
 
-    const windowWithCodeMirror = window as typeof window & WindowWithCodeMirror;
-    windowWithCodeMirror.CodeMirror = {
+    castTo<WindowWithCodeMirror>(window).CodeMirror = {
       defineMode: mockDefineMode,
       getMode: mockGetMode
-    } as never;
+    };
 
     const partialApp: Partial<App> = { vault: {} as App['vault'] };
     mockApp = partialApp as App;
@@ -344,12 +351,12 @@ describe('CodeButtonBlockComponent', () => {
       parseDefaultCodeButtonConfig: vi.fn().mockReturnValue({})
     };
     mockPluginSettingsComponent = partialPluginSettings as PluginSettingsComponent;
-    const partialRequireHandlerFactory: Partial<RequireHandlerFactory> = {
+    const partialRequireHandlerFactoryComponent: Partial<RequireHandlerFactoryComponent> = {
       requireStringAsync: vi.fn()
     };
-    mockRequireHandlerFactory = partialRequireHandlerFactory as RequireHandlerFactory;
-    const partialTempPluginRegistry: Partial<TempPluginRegistry> = {};
-    mockTempPluginRegistry = partialTempPluginRegistry as TempPluginRegistry;
+    mockRequireHandlerFactoryComponent = partialRequireHandlerFactoryComponent as RequireHandlerFactoryComponent;
+    const partialTempPluginRegistry: Partial<TempPluginRegistryComponent> = {};
+    mockTempPluginRegistry = partialTempPluginRegistry as TempPluginRegistryComponent;
 
     mockGetFile.mockReturnValue({ path: 'notes/test.md' });
     mockGetCodeBlockMarkdownInfo.mockResolvedValue(null);
@@ -360,7 +367,7 @@ describe('CodeButtonBlockComponent', () => {
       app: mockApp,
       markdownCodeBlockProcessorRegistrar: mockMarkdownCodeBlockProcessorRegistrar,
       pluginSettingsComponent: mockPluginSettingsComponent,
-      requireHandlerFactory: mockRequireHandlerFactory,
+      RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent,
       tempPluginRegistry: mockTempPluginRegistry
     });
   });
@@ -393,7 +400,7 @@ describe('CodeButtonBlockComponent', () => {
     });
 
     it('should register unregisterCodeHighlighting cleanup callback', () => {
-      const registerSpy = vi.spyOn(component, 'register' as never);
+      const registerSpy = vi.spyOn(component, 'register');
       component.onload();
 
       // Register is called with unregisterCodeHighlighting
@@ -406,7 +413,7 @@ describe('CodeButtonBlockComponent', () => {
       // RegisterSpy captures the unregisterCodeHighlighting callback
       // The second defineMode call is from unregisterCodeHighlighting when invoked
       // We find the register callback and invoke it
-      const registerSpy = vi.spyOn(component, 'register' as never);
+      const registerSpy = vi.spyOn(component, 'register');
       mockDefineMode.mockClear();
       component.onload();
 
@@ -572,7 +579,7 @@ describe('CodeButtonBlockComponent', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
 
-      vi.mocked(obsidian).parseYaml = originalParseYaml as never;
+      vi.mocked(obsidian).parseYaml = castTo(originalParseYaml);
       consoleErrorSpy.mockRestore();
     });
 
@@ -648,7 +655,7 @@ describe('CodeButtonBlockComponent', () => {
       }
     });
 
-    it('should pass updated sourcePath from sourceFile to CodeButtonContextImpl', async () => {
+    it('should pass updated sourcePath from sourceFile to CodeButtonContextImplComponent', async () => {
       mockGetFile.mockReturnValue({ path: 'updated/path.md' });
       const el = createDiv();
       el.createDiv = vi.fn().mockReturnValue(createDiv());
@@ -662,7 +669,7 @@ describe('CodeButtonBlockComponent', () => {
       const source = '---\nshouldAutoRun: true\n---\nconsole.log("test")';
 
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       await component.processCodeButtonBlock({ ctx, el, source });
 
@@ -709,7 +716,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should empty the container before execution', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const codeButtonContext = createCodeButtonContext();
 
@@ -725,7 +732,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should show executing message when shouldShowSystemMessages is true', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const codeButtonContext = createCodeButtonContext();
 
@@ -741,7 +748,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should call requireStringAsync and execute the wrapper', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const codeButtonContext = createCodeButtonContext({
         config: {
@@ -757,7 +764,7 @@ describe('CodeButtonBlockComponent', () => {
         escapedCaption: 'Run'
       });
 
-      expect(mockRequireHandlerFactory.requireStringAsync).toHaveBeenCalled();
+      expect(mockRequireHandlerFactoryComponent.requireStringAsync).toHaveBeenCalled();
       expect(mockScriptWrapper).toHaveBeenCalledWith(codeButtonContext);
     });
 
@@ -786,7 +793,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should handle errors from requireStringAsync', async () => {
       const testError = new Error('Script failed');
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockRejectedValue(testError);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockRejectedValue(testError);
 
       const codeButtonContext = createCodeButtonContext();
 
@@ -803,7 +810,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should remove button when removeAfterExecution.when is "always"', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const mockRemoveCodeButtonBlock = vi.fn();
       const codeButtonContext = createCodeButtonContext({
@@ -828,7 +835,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should remove button on success when removeAfterExecution.when is "onSuccess"', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const mockRemoveCodeButtonBlock = vi.fn();
       const codeButtonContext = createCodeButtonContext({
@@ -853,7 +860,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should not remove button on success when removeAfterExecution.when is "onError"', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const mockRemoveCodeButtonBlock = vi.fn();
       const codeButtonContext = createCodeButtonContext({
@@ -877,7 +884,7 @@ describe('CodeButtonBlockComponent', () => {
     });
 
     it('should remove button on error when removeAfterExecution.when is "onError"', async () => {
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('fail'));
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('fail'));
 
       const mockRemoveCodeButtonBlock = vi.fn();
       const codeButtonContext = createCodeButtonContext({
@@ -902,7 +909,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should not remove button when removeAfterExecution.when is "never"', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const mockRemoveCodeButtonBlock = vi.fn();
       const codeButtonContext = createCodeButtonContext({
@@ -927,7 +934,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should show message when cannot remove block without markdownInfo', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const codeButtonContext = createCodeButtonContext({
         config: {
@@ -949,7 +956,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should not show system messages when shouldShowSystemMessages is false and execution succeeds', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const codeButtonContext = createCodeButtonContext({
         config: {
@@ -969,7 +976,7 @@ describe('CodeButtonBlockComponent', () => {
     });
 
     it('should not show error system message when shouldShowSystemMessages is false', async () => {
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('fail'));
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('fail'));
 
       const codeButtonContext = createCodeButtonContext({
         config: {
@@ -1013,15 +1020,15 @@ describe('CodeButtonBlockComponent', () => {
       // Invoke the onclick handler
       if (options?.onclick) {
         const mockScriptWrapper = vi.fn();
-        vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+        vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
         await options.onclick();
-        expect(mockRequireHandlerFactory.requireStringAsync).toHaveBeenCalled();
+        expect(mockRequireHandlerFactoryComponent.requireStringAsync).toHaveBeenCalled();
       }
     });
 
     it('should log error for unknown removeAfterExecution.when value', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
         // Intentional noop for test mock.
@@ -1030,7 +1037,7 @@ describe('CodeButtonBlockComponent', () => {
       const codeButtonContext = createCodeButtonContext({
         config: {
           ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG,
-          removeAfterExecution: { shouldKeepGap: false, when: 'unknownValue' as never },
+          removeAfterExecution: castTo<RemoveAfterExecutionConfig>({ shouldKeepGap: false, when: 'unknownValue' }),
           shouldShowSystemMessages: false
         },
         markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] })
@@ -1049,7 +1056,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should handle error from removeCodeButtonBlock gracefully', async () => {
       const mockScriptWrapper = vi.fn();
-      vi.mocked(mockRequireHandlerFactory.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
       const removeError = new Error('Failed to remove');
       const mockRemoveCodeButtonBlock = vi.fn().mockRejectedValue(removeError);

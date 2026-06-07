@@ -1,4 +1,8 @@
+import type { Plugin } from 'obsidian';
+import type { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
+
 import { noop } from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
   beforeEach,
   describe,
@@ -11,17 +15,19 @@ import type { PluginSettings } from './plugin-settings.ts';
 
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 
+/* eslint-disable @typescript-eslint/no-deprecated -- tab.display() tests verify settings tab rendering. The deprecation propagates from SettingTab.display() via TS getJsDocTags to PluginSettingsTab.display(). */
+
 interface MockBindOptions {
-  onChanged: () => void;
+  onChanged(): void;
 }
 
 interface MockPathSuggestInstance {
-  getRootPath: () => string;
+  getRootPath(): string;
   refresh: ReturnType<typeof vi.fn>;
 }
 
 interface MockPathSuggestParams {
-  getRootPath: () => string;
+  getRootPath(): string;
 }
 
 interface MockPluginSettingsComponent {
@@ -224,12 +230,12 @@ describe('PluginSettingsTab', () => {
     };
 
     tab = new PluginSettingsTab({
-      plugin: mockPlugin as never,
+      plugin: castTo<Plugin>(mockPlugin),
       pluginName: 'CodeScript Toolkit',
-      pluginSettingsComponent: {
+      pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
         editAndSave: vi.fn(),
-        settings: { modulesRoot: '' }
-      } as never
+        settings: castTo<PluginSettings>({ modulesRoot: '' })
+      })
     });
   });
 
@@ -405,12 +411,12 @@ describe('PluginSettingsTab', () => {
       };
 
       const tabWithMock = new PluginSettingsTab({
-        plugin: mockPlugin as never,
+        plugin: castTo<Plugin>(mockPlugin),
         pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: {
+        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
           editAndSave: vi.fn(),
-          settings: { modulesRoot: '' }
-        } as never
+          settings: castTo<PluginSettings>({ modulesRoot: '' })
+        })
       });
 
       tabWithMock.display();
@@ -435,12 +441,12 @@ describe('PluginSettingsTab', () => {
       };
 
       const tabWithMock = new PluginSettingsTab({
-        plugin: mockPlugin as never,
+        plugin: castTo<Plugin>(mockPlugin),
         pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: {
+        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
           editAndSave: mockEditAndSave,
-          settings: { modulesRoot: '' }
-        } as never
+          settings: castTo<PluginSettings>({ modulesRoot: '' })
+        })
       });
 
       tabWithMock.display();
@@ -508,12 +514,12 @@ describe('PluginSettingsTab', () => {
       };
 
       const tabWithMock = new PluginSettingsTab({
-        plugin: mockPlugin as never,
+        plugin: castTo<Plugin>(mockPlugin),
         pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: {
+        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
           editAndSave: vi.fn(),
-          settings: { modulesRoot: '' }
-        } as never
+          settings: castTo<PluginSettings>({ modulesRoot: '' })
+        })
       });
 
       mockButtonClickHandlers.length = 0;
@@ -550,12 +556,12 @@ describe('PluginSettingsTab', () => {
       };
 
       const tabWithMock = new PluginSettingsTab({
-        plugin: mockPlugin as never,
+        plugin: castTo<Plugin>(mockPlugin),
         pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: {
+        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
           editAndSave: mockEditAndSave,
-          settings: { modulesRoot: '' }
-        } as never
+          settings: castTo<PluginSettings>({ modulesRoot: '' })
+        })
       });
 
       mockButtonClickHandlers.length = 0;
@@ -593,12 +599,12 @@ describe('PluginSettingsTab', () => {
       };
 
       const tabWithMock = new PluginSettingsTab({
-        plugin: mockPlugin as never,
+        plugin: castTo<Plugin>(mockPlugin),
         pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: {
+        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
           editAndSave: vi.fn(),
-          settings: { modulesRoot: 'startup/root' }
-        } as never
+          settings: castTo<PluginSettings>({ modulesRoot: 'startup/root' })
+        })
       });
 
       mockPathSuggestInstances.length = 0;
@@ -623,12 +629,12 @@ describe('PluginSettingsTab', () => {
       };
 
       const tabWithMock = new PluginSettingsTab({
-        plugin: mockPlugin as never,
+        plugin: castTo<Plugin>(mockPlugin),
         pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: {
+        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
           editAndSave: vi.fn(),
-          settings: { modulesRoot: 'custom/root' }
-        } as never
+          settings: castTo<PluginSettings>({ modulesRoot: 'custom/root' })
+        })
       });
 
       mockPathSuggestInstances.length = 0;
@@ -641,3 +647,5 @@ describe('PluginSettingsTab', () => {
     });
   });
 });
+
+/* eslint-enable @typescript-eslint/no-deprecated -- re-enable after test file */

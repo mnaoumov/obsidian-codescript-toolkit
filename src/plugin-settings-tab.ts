@@ -27,6 +27,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
   }
 
   public override display(): void {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- super.display() calls the PluginSettingsTabBase override; the inherited @deprecated tag on Obsidian's SettingTab.display propagates via TS getJsDocTags.
     super.display();
     this.containerEl.empty();
     const events = new Events();
@@ -196,6 +197,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
                   const yaml = stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG);
                   settings.defaultCodeButtonConfig = `---\n${yaml}---`;
                 });
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- this.display() calls the PluginSettingsTab override; the inherited @deprecated tag on Obsidian's SettingTab.display propagates via TS getJsDocTags.
                 this.display();
               }))
           );

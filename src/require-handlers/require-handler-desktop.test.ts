@@ -2,7 +2,6 @@ import type { App } from 'obsidian';
 
 import { FileSystemAdapter } from 'obsidian';
 import { castTo } from 'obsidian-dev-utils/object-utils';
-import { registerPatch } from 'obsidian-dev-utils/obsidian/monkey-around';
 import {
   beforeEach,
   describe,
@@ -21,18 +20,26 @@ import {
   CacheInvalidationMode,
   ModuleType
 } from '../types.ts';
-import { RequireHandlerDesktop } from './require-handler-desktop.ts';
+import { RequireHandlerDesktopComponent } from './require-handler-desktop.ts';
 import {
   MODULE_NAME_SEPARATOR,
   PATH_SUFFIXES,
-  RequireHandlerBase,
+  RequireHandlerComponentBase,
   ResolvedType
 } from './require-handler.ts';
 
-vi.mock('obsidian-dev-utils/obsidian/components/all-windows-event-handler', () => ({
-  AllWindowsEventHandler: class {
+vi.mock('obsidian-dev-utils/obsidian/components/all-windows-event-component', () => ({
+  AllWindowsEventComponent: class {
+    public load(): void {
+      // Intentional noop for test mock.
+    }
+
     public registerAllWindowsHandler(): void {
-      // Stub
+      // Intentional noop for test mock.
+    }
+
+    public unload(): void {
+      // Intentional noop for test mock.
     }
   }
 }));
@@ -64,8 +71,12 @@ vi.mock('../code-script-toolkit-module-impl.ts', () => ({
   CodeScriptToolkitModuleImpl: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/monkey-around', () => ({
-  registerPatch: vi.fn()
+const mockRegisterPatch = vi.fn();
+
+vi.mock('obsidian-dev-utils/obsidian/components/monkey-around-component', () => ({
+  MonkeyAroundComponent: class {
+    public registerPatch = mockRegisterPatch;
+  }
 }));
 
 vi.mock('obsidian-dev-utils/object-utils', async (importOriginal) => {
@@ -191,11 +202,11 @@ interface OriginalModulePrototypeRequireWrappedAccessor {
 }
 
 interface PatchRequireConfig {
-  require: (next: unknown) => unknown;
+  require(next: unknown): unknown;
 }
 
 interface PatchRequireConfigWithReturn {
-  require: (next: unknown) => (id: string) => unknown;
+  require(next: unknown): (id: string) => unknown;
 }
 
 interface PluginSettingsModulesRootAccessor {
@@ -259,7 +270,7 @@ interface RequireStringImplAccessor {
 }
 
 interface RequireStringImplResult {
-  exportsFn: () => unknown;
+  exportsFn(): unknown;
   promisable: unknown;
 }
 
@@ -288,7 +299,7 @@ let mockFs: MockFs;
 let mockFsPromises: MockFsPromises;
 let mockOriginalModulePrototypeRequire: ReturnType<typeof vi.fn>;
 
-class TestableRequireHandlerDesktop extends RequireHandlerDesktop {
+class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopComponent {
   public exposeCanRequireNonCached(type: ResolvedType): boolean {
     return this.canRequireNonCached(type);
   }
@@ -350,9 +361,9 @@ class TestableRequireHandlerDesktop extends RequireHandlerDesktop {
   }
 }
 
-function createHandler(): TestableRequireHandlerDesktop {
+function createHandler(): TestableRequireHandlerDesktopComponent {
   const params = createMockConstructorParams();
-  const handler = new TestableRequireHandlerDesktop(params);
+  const handler = new TestableRequireHandlerDesktopComponent(params);
 
   mockFs = {
     existsSync: vi.fn().mockReturnValue(false),
@@ -379,7 +390,7 @@ function createHandler(): TestableRequireHandlerDesktop {
 
 function createMockConstructorParams(): RequireHandlerConstructorParams {
   const params: Partial<RequireHandlerConstructorParams> = {
-    app: {
+    app: castTo<App>({
       vault: {
         adapter: Object.create(FileSystemAdapter.prototype) as App['vault']['adapter'],
         configDir: MOCK_CONFIG_DIR
@@ -387,24 +398,24 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
       workspace: {
         getActiveFile: vi.fn().mockReturnValue(null)
       }
-    } as never,
-    consoleDebugComponent: {
+    }),
+    consoleDebugComponent: castTo<RequireHandlerConstructorParams['consoleDebugComponent']>({
       debug: vi.fn()
-    } as never,
-    pluginRequire: vi.fn() as never,
-    pluginSettingsComponent: {
+    }),
+    pluginRequire: vi.fn(),
+    pluginSettingsComponent: castTo<RequireHandlerConstructorParams['pluginSettingsComponent']>({
       settings: {
         modulesRoot: '',
         shouldUseSyncFallback: false
       }
-    } as never,
-    tempPluginRegistry: {} as never
+    }),
+    tempPluginRegistry: castTo<RequireHandlerConstructorParams['tempPluginRegistry']>({})
   };
   return params as RequireHandlerConstructorParams;
 }
 
-describe('RequireHandlerDesktop', () => {
-  let handler: TestableRequireHandlerDesktop;
+describe('RequireHandlerDesktopComponent', () => {
+  let handler: TestableRequireHandlerDesktopComponent;
 
   beforeEach(() => {
     handler = createHandler();
@@ -696,7 +707,7 @@ describe('RequireHandlerDesktop', () => {
   describe('requireAsync', () => {
     it('should call super.requireAsync and return its result on success', async () => {
       const EXPECTED_MODULE = { loaded: true };
-      const superRequireAsync = vi.spyOn(RequireHandlerBase.prototype, 'requireAsync')
+      const superRequireAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'requireAsync')
         .mockResolvedValue(EXPECTED_MODULE);
 
       const result = await handler.requireAsync('some-module');
@@ -706,7 +717,7 @@ describe('RequireHandlerDesktop', () => {
     });
 
     it('should rethrow error when shouldUseSyncFallback is false', async () => {
-      const superRequireAsync = vi.spyOn(RequireHandlerBase.prototype, 'requireAsync')
+      const superRequireAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'requireAsync')
         .mockRejectedValue(new Error('async failed'));
 
       await expect(handler.requireAsync('failing-module')).rejects.toThrow('async failed');
@@ -715,7 +726,7 @@ describe('RequireHandlerDesktop', () => {
 
     it('should fall back to sync requireEx when shouldUseSyncFallback is true and async fails', async () => {
       const SYNC_MODULE = { syncLoaded: true };
-      const superRequireAsync = vi.spyOn(RequireHandlerBase.prototype, 'requireAsync')
+      const superRequireAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'requireAsync')
         .mockRejectedValue(new Error('async failed'));
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -741,7 +752,7 @@ describe('RequireHandlerDesktop', () => {
     });
 
     it('should clear currentModulesTimestampChain before sync fallback', async () => {
-      const superRequireAsync = vi.spyOn(RequireHandlerBase.prototype, 'requireAsync')
+      const superRequireAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'requireAsync')
         .mockRejectedValue(new Error('async failed'));
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -770,7 +781,7 @@ describe('RequireHandlerDesktop', () => {
 
   describe('onload', () => {
     it('should call super.onload', async () => {
-      const superOnload = vi.spyOn(RequireHandlerBase.prototype, 'onload')
+      const superOnload = vi.spyOn(RequireHandlerComponentBase.prototype, 'onload')
         .mockResolvedValue(undefined);
 
       Object.defineProperty(window, 'module', {
@@ -779,15 +790,17 @@ describe('RequireHandlerDesktop', () => {
         writable: true
       });
 
-      await handler.onload();
+      await handler.loadWithPromises();
 
       expect(superOnload).toHaveBeenCalledOnce();
       superOnload.mockRestore();
     });
 
     it('should call registerPatch with module prototype', async () => {
-      const superOnload = vi.spyOn(RequireHandlerBase.prototype, 'onload')
+      const superOnloadAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'onloadAsync')
         .mockResolvedValue(undefined);
+      const addChildSpy = vi.spyOn(handler, 'addChild')
+        .mockImplementation(<T>(component: T): T => component);
 
       Object.defineProperty(window, 'module', {
         configurable: true,
@@ -795,12 +808,13 @@ describe('RequireHandlerDesktop', () => {
         writable: true
       });
 
-      vi.mocked(registerPatch).mockClear();
+      mockRegisterPatch.mockClear();
 
-      await handler.onload();
+      await handler.onloadAsync();
 
-      expect(registerPatch).toHaveBeenCalledOnce();
-      superOnload.mockRestore();
+      expect(mockRegisterPatch).toHaveBeenCalledOnce();
+      addChildSpy.mockRestore();
+      superOnloadAsync.mockRestore();
     });
   });
 
@@ -915,7 +929,7 @@ describe('RequireHandlerDesktop', () => {
       const params = createMockConstructorParams();
       // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion
       params.app.vault.adapter = {} as unknown as FileSystemAdapter;
-      const badHandler = new TestableRequireHandlerDesktop(params);
+      const badHandler = new TestableRequireHandlerDesktopComponent(params);
 
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -1008,8 +1022,10 @@ describe('RequireHandlerDesktop', () => {
 
   describe('onload registerPatch internals', () => {
     it('should set originalModulePrototypeRequire when patch factory is called', async () => {
-      const superOnload = vi.spyOn(RequireHandlerBase.prototype, 'onload')
+      const superOnloadAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'onloadAsync')
         .mockResolvedValue(undefined);
+      const addChildSpy = vi.spyOn(handler, 'addChild')
+        .mockImplementation(<T>(component: T): T => component);
 
       Object.defineProperty(window, 'module', {
         configurable: true,
@@ -1017,23 +1033,26 @@ describe('RequireHandlerDesktop', () => {
         writable: true
       });
 
-      vi.mocked(registerPatch).mockClear();
+      mockRegisterPatch.mockClear();
 
-      await handler.onload();
+      await handler.onloadAsync();
 
-      const patchCall = vi.mocked(registerPatch).mock.calls[0];
-      const patchConfig = patchCall?.[2] as PatchRequireConfig;
+      const patchCall = mockRegisterPatch.mock.calls[0];
+      const patchConfig = patchCall?.[1] as PatchRequireConfig;
       const mockNext = vi.fn();
       patchConfig.require(mockNext);
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       expect((handler as unknown as OriginalModulePrototypeRequireAccessor).originalModulePrototypeRequire).toBe(mockNext);
-      superOnload.mockRestore();
+      addChildSpy.mockRestore();
+      superOnloadAsync.mockRestore();
     });
 
     it('should return a patched function that calls modulePrototypeRequire', async () => {
-      const superOnload = vi.spyOn(RequireHandlerBase.prototype, 'onload')
+      const superOnloadAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'onloadAsync')
         .mockResolvedValue(undefined);
+      const addChildSpy = vi.spyOn(handler, 'addChild')
+        .mockImplementation(<T>(component: T): T => component);
 
       Object.defineProperty(window, 'module', {
         configurable: true,
@@ -1041,12 +1060,12 @@ describe('RequireHandlerDesktop', () => {
         writable: true
       });
 
-      vi.mocked(registerPatch).mockClear();
+      mockRegisterPatch.mockClear();
 
-      await handler.onload();
+      await handler.onloadAsync();
 
-      const patchCall = vi.mocked(registerPatch).mock.calls[0];
-      const patchConfig = patchCall?.[2] as PatchRequireConfigWithReturn;
+      const patchCall = mockRegisterPatch.mock.calls[0];
+      const patchConfig = patchCall?.[1] as PatchRequireConfigWithReturn;
       const mockNext = vi.fn();
       const patchedRequire = patchConfig.require(mockNext);
 
@@ -1064,7 +1083,8 @@ describe('RequireHandlerDesktop', () => {
       expect(modulePrototypeRequireSpy).toHaveBeenCalledWith('some-id', mockModule);
 
       modulePrototypeRequireSpy.mockRestore();
-      superOnload.mockRestore();
+      addChildSpy.mockRestore();
+      superOnloadAsync.mockRestore();
     });
   });
 
@@ -1880,7 +1900,7 @@ describe('RequireHandlerDesktop', () => {
   });
 
   describe('getDependenciesTimestampChangedAndReloadIfNeeded - dependency resolution', () => {
-    function setupDependencyTest(testHandler: TestableRequireHandlerDesktop): void {
+    function setupDependencyTest(testHandler: TestableRequireHandlerDesktopComponent): void {
       mockFs.statSync.mockReturnValue({ isFile: (): boolean => true, mtimeMs: MOCK_MTIME_MS });
 
       vi.spyOn(

@@ -1,33 +1,32 @@
 import type { App } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
-import { AsyncComponentBase } from 'obsidian-dev-utils/obsidian/components/async-component';
 import { registerAsyncEvent } from 'obsidian-dev-utils/obsidian/components/async-events-component';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { ScriptManager } from '../script.ts';
 
-export interface ScriptFolderWatcherConstructorParams {
+export interface ScriptFolderWatcherComponentBaseConstructorParams {
   readonly app: App;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly scriptManager: ScriptManager;
 }
 
-export abstract class ScriptFolderWatcher extends AsyncComponentBase {
+export abstract class ScriptFolderWatcherComponentBase extends ComponentEx {
   protected readonly app: App;
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly scriptManager: ScriptManager;
   private wasRegisteredInPlugin = false;
 
-  public constructor(params: ScriptFolderWatcherConstructorParams) {
+  public constructor(params: ScriptFolderWatcherComponentBaseConstructorParams) {
     super();
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.scriptManager = params.scriptManager;
   }
 
-  public override async onload(): Promise<void> {
-    await super.onload();
+  public override async onloadAsync(): Promise<void> {
     registerAsyncEvent(this, this.pluginSettingsComponent.on('loadSettings', this.applyNewSettings.bind(this)));
     registerAsyncEvent(this, this.pluginSettingsComponent.on('saveSettings', this.applyNewSettings.bind(this)));
     await this.applyNewSettings();

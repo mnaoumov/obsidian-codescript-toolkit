@@ -1,13 +1,10 @@
-import type { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/components/layout-ready-component';
 import type { Promisable } from 'type-fest';
 
-import {
-  App,
-  Component
-} from 'obsidian';
+import { App } from 'obsidian';
+import { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/components/layout-ready-component';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactory } from './require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 import type { Script } from './script.ts';
 
 interface StartupScript extends Script {
@@ -17,21 +14,19 @@ interface StartupScript extends Script {
 interface StartupScriptComponentConstructorParams {
   readonly app: App;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly requireHandlerFactory: RequireHandlerFactory;
+  readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 }
 
-export class StartupScriptComponent extends Component implements LayoutReadyComponent {
-  private readonly app: App;
+export class StartupScriptComponent extends LayoutReadyComponent {
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly requireHandlerFactory: RequireHandlerFactory;
+  private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 
   private startupScript: null | StartupScript = null;
 
   public constructor(params: StartupScriptComponentConstructorParams) {
-    super();
-    this.app = params.app;
+    super(params.app);
     this.pluginSettingsComponent = params.pluginSettingsComponent;
-    this.requireHandlerFactory = params.requireHandlerFactory;
+    this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
   }
 
   public async cleanupStartupScript(): Promise<void> {
@@ -54,11 +49,11 @@ export class StartupScriptComponent extends Component implements LayoutReadyComp
       return;
     }
 
-    this.startupScript = await this.requireHandlerFactory.requireVaultScriptAsync(startupScriptPath) as StartupScript;
+    this.startupScript = await this.RequireHandlerFactoryComponent.requireVaultScriptAsync(startupScriptPath) as StartupScript;
     await this.startupScript.invoke(this.app);
   }
 
-  public async onLayoutReady(): Promise<void> {
+  public override async onLayoutReady(): Promise<void> {
     await this.invokeStartupScript();
     this.register(() => this.cleanupStartupScript());
   }
