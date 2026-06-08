@@ -64,7 +64,7 @@
     "nano-staged": "^1.0.2",
     "obsidian": "^1.13.0",
     "obsidian-dev-utils": "^69.2.4",
-    "obsidian-integration-testing": "^4.2.2",
+    "obsidian-integration-testing": "^4.2.3",
     "obsidian-test-mocks": "^3.0.0",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
