@@ -142,7 +142,7 @@ interface MockApp {
 }
 
 interface MockConsoleDebugComponent {
-  debug: ReturnType<typeof vi.fn>;
+  consoleDebug: ReturnType<typeof vi.fn>;
 }
 
 interface MockPluginSettingsComponent {
@@ -173,7 +173,7 @@ function createMockApp(): MockApp {
 
 function createMockConsoleDebugComponent(): MockConsoleDebugComponent {
   return {
-    debug: vi.fn()
+    consoleDebug: vi.fn()
   };
 }
 
@@ -354,7 +354,7 @@ describe('ScriptRegistry', () => {
         // Expected: forceInvoke fails because async onload hasn't completed
       }
 
-      expect(mockConsoleDebugComponent.debug).toHaveBeenCalledWith(
+      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith(
         `Invoking script: ${SCRIPT_PATH}.`
       );
     });
@@ -469,7 +469,7 @@ describe('ScriptRegistry', () => {
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(mockInvoke).toHaveBeenCalledWith(mockApp);
-      expect(mockConsoleDebugComponent.debug).toHaveBeenCalledWith(
+      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith(
         `${SCRIPT_PATH} invocable script executed successfully`
       );
     });
@@ -519,7 +519,7 @@ describe('ScriptRegistry', () => {
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(mockCallback).toHaveBeenCalled();
-      expect(mockConsoleDebugComponent.debug).toHaveBeenCalledWith(
+      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith(
         `${SCRIPT_PATH} command executed successfully`
       );
     });
@@ -699,7 +699,7 @@ describe('ScriptRegistry', () => {
       // ForceInvoke with no callback/checkCallback should just complete without error
       await registry.invokeScriptPath(SCRIPT_PATH);
 
-      expect(mockConsoleDebugComponent.debug).toHaveBeenCalledWith(
+      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith(
         `Invoking script: ${SCRIPT_PATH}.`
       );
     });

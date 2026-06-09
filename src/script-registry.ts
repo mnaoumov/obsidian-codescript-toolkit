@@ -135,7 +135,7 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
 
       try {
         command.checkCallback(false);
-        this.consoleDebugComponent.debug(`${this.relativeScriptPath} command executed successfully`);
+        this.consoleDebugComponent.consoleDebug(`${this.relativeScriptPath} command executed successfully`);
       } catch (error) {
         printError(new Error(`Error invoking ${this.relativeScriptPath} command`, { cause: error }));
         new Notice(`Error invoking ${this.relativeScriptPath} command. See console for details.`);
@@ -143,7 +143,7 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
     } else if (command.callback) {
       try {
         command.callback();
-        this.consoleDebugComponent.debug(`${this.relativeScriptPath} command executed successfully`);
+        this.consoleDebugComponent.consoleDebug(`${this.relativeScriptPath} command executed successfully`);
       } catch (error) {
         printError(new Error(`Error invoking ${this.relativeScriptPath} command`, { cause: error }));
         new Notice(`Error invoking ${this.relativeScriptPath} command. See console for details.`);
@@ -177,7 +177,7 @@ class FunctionWrapperCommandHandler extends GlobalCommandHandler implements Wrap
   protected override async execute(): Promise<void> {
     try {
       await this.invoke(this.app);
-      this.consoleDebugComponent.debug(`${this.relativeScriptPath} invocable script executed successfully`);
+      this.consoleDebugComponent.consoleDebug(`${this.relativeScriptPath} invocable script executed successfully`);
     } catch (error) {
       printError(new Error(`Error invoking ${this.relativeScriptPath}`, { cause: error }));
       new Notice(`Error invoking ${this.relativeScriptPath}. See console for details.`);
@@ -299,7 +299,7 @@ export class ScriptRegistryComponent extends ComponentEx {
   }
 
   public async invokeScriptPath(relativeScriptPath: string): Promise<void> {
-    this.consoleDebugComponent.debug(`Invoking script: ${relativeScriptPath}.`);
+    this.consoleDebugComponent.consoleDebug(`Invoking script: ${relativeScriptPath}.`);
 
     const commandHandlerComponent = this.registeredWrapperCommandHandlerComponents.get(relativeScriptPath);
     if (!commandHandlerComponent) {

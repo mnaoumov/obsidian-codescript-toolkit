@@ -86,7 +86,9 @@ describe('CodeScriptBlockComponent', () => {
       prismLanguages = {};
       mockLoadPrism.mockResolvedValue({ languages: prismLanguages });
 
-      await expect(loadComponent(component)).rejects.toThrow('Prism typescript language not found.');
+      await expect(loadComponent(component)).rejects.toMatchObject({
+        errors: [expect.objectContaining({ message: 'Prism typescript language not found.' })]
+      });
     });
 
     it('should register cleanup that resets CodeMirror mode to null', async () => {

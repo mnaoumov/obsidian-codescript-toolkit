@@ -69,7 +69,7 @@ export class ProtocolHandlerComponent extends ComponentEx {
       parsedQuery.functionName ??= 'invoke';
       parsedQuery.args ??= parsedQuery.functionName === 'invoke' ? 'app' : '';
 
-      this.consoleDebugComponent.debug('Invoking script file from URL action:', {
+      this.consoleDebugComponent.consoleDebug('Invoking script file from URL action:', {
         args: parsedQuery.args,
         functionName: parsedQuery.functionName,
         module: parsedQuery.module
@@ -79,7 +79,7 @@ export class ProtocolHandlerComponent extends ComponentEx {
     } else {
       parsedQuery.code ??= '';
 
-      this.consoleDebugComponent.debug('Invoking code from URL action:', {
+      this.consoleDebugComponent.consoleDebug('Invoking code from URL action:', {
         code: parsedQuery.code
       });
     }

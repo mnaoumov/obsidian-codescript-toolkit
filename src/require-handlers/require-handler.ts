@@ -419,7 +419,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   protected getParentPathFromCallStack(callerLineIndex = CALLER_LINE_INDEX): null | string {
     const callStackLines = new Error().stack?.split('\n') ?? [];
-    this.consoleDebugComponent.debug('callStackLines', { callStackLines });
+    this.consoleDebugComponent.consoleDebug('callStackLines', { callStackLines });
     const callStackMatch = callStackLines.at(callerLineIndex)?.match(/^ {4}at .+? \((?<ParentPath>.+?):\d+:\d+\)$/);
     let parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
 

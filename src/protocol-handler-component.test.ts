@@ -73,7 +73,7 @@ describe('ProtocolHandlerComponent', () => {
     mockConvertAsyncToSync.mockImplementation((fn: unknown) => fn);
 
     component = new ProtocolHandlerComponent({
-      consoleDebugComponent: castTo<ConsoleDebugComponent>({ debug: mockDebug }),
+      consoleDebugComponent: castTo<ConsoleDebugComponent>({ consoleDebug: mockDebug }),
       obsidianProtocolHandlerRegistrar: castTo<ObsidianProtocolHandlerRegistrar>({
         registerObsidianProtocolHandler: mockRegisterObsidianProtocolHandler
       }),

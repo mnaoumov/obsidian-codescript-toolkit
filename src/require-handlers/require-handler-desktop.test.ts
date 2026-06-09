@@ -76,6 +76,10 @@ const mockRegisterPatch = vi.fn();
 vi.mock('obsidian-dev-utils/obsidian/components/monkey-around-component', () => ({
   MonkeyAroundComponent: class {
     public registerPatch = mockRegisterPatch;
+
+    public load(): void {
+      // Intentional noop for test mock.
+    }
   }
 }));
 
@@ -400,7 +404,7 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
       }
     }),
     consoleDebugComponent: castTo<RequireHandlerConstructorParams['consoleDebugComponent']>({
-      debug: vi.fn()
+      consoleDebug: vi.fn()
     }),
     pluginRequire: vi.fn(),
     pluginSettingsComponent: castTo<RequireHandlerConstructorParams['pluginSettingsComponent']>({

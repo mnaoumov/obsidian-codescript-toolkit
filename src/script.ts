@@ -83,7 +83,7 @@ export class ScriptManager {
     });
 
     if (scriptPath === null) {
-      this.consoleDebugComponent.debug('No script selected');
+      this.consoleDebugComponent.consoleDebug('No script selected');
       return;
     }
 

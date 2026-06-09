@@ -7,6 +7,14 @@ import {
   it
 } from 'vitest';
 
+interface ProtocolHandlerRegistry {
+  handlers: Map<string, (data: Record<string, string>) => void>;
+}
+
+interface WorkspaceWithProtocolHandler {
+  protocolHandler: ProtocolHandlerRegistry;
+}
+
 const MODULES_ROOT = '_int-test-protocol';
 const PLUGIN_ID = 'fix-require-modules';
 const EXECUTION_DELAY_MS = 3000;
@@ -51,7 +59,7 @@ describe('ProtocolHandler integration', () => {
       async fn({ app, executionDelay }) {
         Reflect.deleteProperty(window, '__protoInvoked');
 
-        const handler = app.workspace.protocolHandlers.get('CodeScriptToolkit');
+        const handler = (app.workspace as typeof app.workspace & WorkspaceWithProtocolHandler).protocolHandler.handlers.get('CodeScriptToolkit');
         if (!handler) {
           return { error: 'Protocol handler not registered', invoked: false };
         }
@@ -60,7 +68,7 @@ describe('ProtocolHandler integration', () => {
           action: 'CodeScriptToolkit',
           code: 'const m = await requireAsync("//_int-test-protocol/proto-module.js"); m.invoke();'
         };
-        (handler as (data: Record<string, string>) => void)(protocolData);
+        handler(protocolData);
 
         await sleep(executionDelay);
 
@@ -80,13 +88,13 @@ describe('ProtocolHandler integration', () => {
       async fn({ app, executionDelay }) {
         Reflect.deleteProperty(window, '__protoCodeResult');
 
-        const handler = app.workspace.protocolHandlers.get('CodeScriptToolkit');
+        const handler = (app.workspace as typeof app.workspace & WorkspaceWithProtocolHandler).protocolHandler.handlers.get('CodeScriptToolkit');
         if (!handler) {
           return { error: 'Protocol handler not registered', executed: false };
         }
 
         const protocolData = { action: 'CodeScriptToolkit', code: 'window.__protoCodeResult = "executed";' };
-        (handler as (data: Record<string, string>) => void)(protocolData);
+        handler(protocolData);
 
         await sleep(executionDelay);
 

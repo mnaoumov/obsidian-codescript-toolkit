@@ -3603,7 +3603,7 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
       }
     }),
     consoleDebugComponent: castTo<RequireHandlerConstructorParams['consoleDebugComponent']>({
-      debug: vi.fn()
+      consoleDebug: vi.fn()
     }),
     pluginRequire: vi.fn(),
     pluginSettingsComponent: castTo<RequireHandlerConstructorParams['pluginSettingsComponent']>({

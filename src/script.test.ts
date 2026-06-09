@@ -57,7 +57,7 @@ interface MockApp {
 }
 
 interface MockConsoleDebugComponent {
-  debug: ReturnType<typeof vi.fn>;
+  consoleDebug: ReturnType<typeof vi.fn>;
 }
 
 interface MockPluginSettingsComponent {
@@ -85,7 +85,7 @@ function createMockApp(): MockApp {
 
 function createMockConsoleDebugComponent(): MockConsoleDebugComponent {
   return {
-    debug: vi.fn()
+    consoleDebug: vi.fn()
   };
 }
 
@@ -302,7 +302,7 @@ describe('ScriptManager', () => {
 
       await scriptManager.selectAndInvokeScript();
 
-      expect(mockConsoleDebugComponent.debug).toHaveBeenCalledWith('No script selected');
+      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith('No script selected');
     });
 
     it('should not invoke when an error item is selected', async () => {
