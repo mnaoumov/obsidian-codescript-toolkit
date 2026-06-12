@@ -56,8 +56,7 @@
 
 - docs: fix url
 - fix: description
-- chore: ignore claude
-- chore: add English language requirement to issue templates Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+- chore: add English language requirement to issue templates
 
 ## 11.7.1
 
