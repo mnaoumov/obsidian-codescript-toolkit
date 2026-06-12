@@ -1,20 +1,17 @@
 # CHANGELOG
 
+## 13.1.4
+
+- fix: push options
+- chore: update version script
+
 ## 13.1.3
 
 - chore: update libs
 
 ## 13.1.2
 
-- chore: update libs
-- chore(deps): upgrade obsidian-integration-testing to ^4.2.3 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
-- refactor(test): replace block eslint-disable with per-line disables Swap the file-spanning `/* eslint-disable @typescript-eslint/no-deprecated */` block (and its matching enable) in plugin-settings-tab.test.ts for targeted `eslint-disable-next-line` comments above each `.display()` call. A block disable hid any new no-deprecated violations across the whole file; per-line disables suppress only the intended call sites. Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
-- chore: upgrade dependencies and green up all tests Upgraded all ^-spec dependencies via ncu. Migrated source and test code from removed AsyncComponentBase/async-component and AllWindowsEventHandler/all-windows-event-handler APIs to their replacements ComponentEx/component-ex and AllWindowsEventComponent. Updated renamed class exports (ScriptRegistry, ScriptFolderWatcherFactory, TempPluginRegistry), added new required Stat fields (ctime, size), removed obsolete createDefaultSettings test, and fixed castTo mock to use importOriginal spread. All 836 unit tests pass at 100% coverage. Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
-- chore: update libs
-- refactor: migrate to @obsidian-typings/obsidian-public-latest - Replace obsidian-typings with @obsidian-typings/obsidian-public-latest - Update vitest config: replace ssr.noExternal with server.deps.inline - Add DOM.Iterable to tsconfig lib - Remove obsolete overrides (@antfu/utils, boolean, dompurify) - Upgrade dependencies via npm-check-updates
-- build: replace commitizen with czg Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
-- build: replace commitizen with czg Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
-- chore: release 13.1.1
+- chore: update template
 
 ## 13.1.1
 
