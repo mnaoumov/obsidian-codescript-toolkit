@@ -120,9 +120,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
       );
       const codeButtonBlockScriptWrapper = await this.RequireHandlerFactoryComponent.requireStringAsync({
         code: script,
-        path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${
-          String(params.buttonIndex)
-        }.${params.escapedCaption}.ts`
+        path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${String(params.buttonIndex)}.${params.escapedCaption}.ts`
       }) as CodeButtonBlockScriptWrapper;
       await codeButtonBlockScriptWrapper(params.codeButtonContext);
       if (params.codeButtonContext.config.shouldShowSystemMessages) {

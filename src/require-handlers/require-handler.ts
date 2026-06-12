@@ -492,9 +492,9 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   protected abstract requireElectronModule(id: string, options: Partial<RequireOptions>): unknown;
 
-  protected abstract requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown>;
+  protected abstract requireNodeBinaryAsync(path: string, options: Partial<RequireOptions>, arrayBuffer?: ArrayBuffer): Promise<unknown>;
 
-  protected abstract requireNodeBuiltInModule(id: string): unknown;
+  protected abstract requireNodeBuiltInModule(id: string, options: Partial<RequireOptions>): unknown;
 
   protected abstract requireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown;
 
@@ -669,11 +669,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return null;
   }
 
-  private async getDependenciesTimestampChangedAndReloadIfNeededAsync(
-    path: string,
-    cacheInvalidationMode?: CacheInvalidationMode,
-    moduleType?: ModuleType
-  ): Promise<number> {
+  private async getDependenciesTimestampChangedAndReloadIfNeededAsync(path: string, options: Partial<RequireOptions>): Promise<number> {
     if (this.currentModulesTimestampChain.has(path)) {
       /* v8 ignore start -- timestamp is always set before adding to chain so the fallback to 0 is defensive. */
       return this.moduleTimestamps.get(path) ?? 0;
@@ -701,7 +697,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
               continue;
             }
 
-            const dependencyTimestamp = await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(packageJsonPath, cacheInvalidationMode);
+            const dependencyTimestamp = await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(packageJsonPath, options);
             updateTimestamp(dependencyTimestamp);
           }
           break;
@@ -711,14 +707,14 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
             throw new Error(`File not found: '${resolvedId}'.`);
           }
 
-          const dependencyTimestamp = await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, cacheInvalidationMode);
+          const dependencyTimestamp = await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, options);
           updateTimestamp(dependencyTimestamp);
           break;
         }
         case ResolvedType.SpecialModule:
           break;
         case ResolvedType.Url: {
-          if (cacheInvalidationMode !== CacheInvalidationMode.Never) {
+          if (options.cacheInvalidationMode !== CacheInvalidationMode.Never) {
             updateTimestamp(Date.now());
           }
           break;
@@ -732,7 +728,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
     /* v8 ignore start -- skip-reload branch requires both unchanged timestamp and cached module, which only occurs during concurrent circular dependency loads. */
     if (timestamp > cachedTimestamp || !this.getCachedModule(path)) {
-      await this.initModuleAndAddToCacheAsync(path, () => this.requirePathImplAsync(path, moduleType));
+      await this.initModuleAndAddToCacheAsync(path, () => this.requirePathImplAsync(path, options));
     }
     /* v8 ignore stop */
     return timestamp;
@@ -848,9 +844,9 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
 
     for (const id of SPECIAL_MODULE_NAMES.nodeBuiltInModuleNames) {
-      this.specialModuleFactories.set(id, () => this.requireNodeBuiltInModule(id));
+      this.specialModuleFactories.set(id, (options) => this.requireNodeBuiltInModule(id, options));
       const NODE_BUILT_IN_MODULE_PREFIX = 'node:';
-      this.specialModuleFactories.set(NODE_BUILT_IN_MODULE_PREFIX + id, () => this.requireNodeBuiltInModule(id));
+      this.specialModuleFactories.set(NODE_BUILT_IN_MODULE_PREFIX + id, (options) => this.requireNodeBuiltInModule(id, options));
     }
 
     for (const id of SPECIAL_MODULE_NAMES.electronModuleNames) {
@@ -950,9 +946,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
         case CacheInvalidationMode.Always:
           if (!this.canRequireNonCached(resolvedType, fullOptions)) {
             throw new Error(
-              `Cached module ${resolvedId} cannot be invalidated synchronously when cacheInvalidationMode=${CacheInvalidationMode.Always}. ${
-                this.getRequireAsyncAdvice(resolvedId)
-              }`
+              `Cached module ${resolvedId} cannot be invalidated synchronously when cacheInvalidationMode=${CacheInvalidationMode.Always}. ${this.getRequireAsyncAdvice(resolvedId)}`
             );
           }
           break;
@@ -965,9 +959,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
           if (!this.canRequireNonCached(resolvedType, fullOptions)) {
             console.warn(
-              `Cached module ${resolvedId} cannot be invalidated synchronously when cacheInvalidationMode=${CacheInvalidationMode.WhenPossible}. The cached version will be used. ${
-                this.getRequireAsyncAdvice(resolvedId)
-              }`
+              `Cached module ${resolvedId} cannot be invalidated synchronously when cacheInvalidationMode=${CacheInvalidationMode.WhenPossible}. The cached version will be used. ${this.getRequireAsyncAdvice(resolvedId)}`
             );
             return cachedModuleEntry.exports;
           }
@@ -1040,12 +1032,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     });
   }
 
-  private async requireModuleAsync(
-    moduleName: string,
-    parentFolder: string,
-    cacheInvalidationMode?: CacheInvalidationMode,
-    moduleType?: ModuleType
-  ): Promise<unknown> {
+  private async requireModuleAsync(moduleName: string, parentFolder: string, options: Partial<RequireOptions>): Promise<unknown> {
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
@@ -1086,7 +1073,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
           continue;
         }
 
-        return this.requirePathAsync(existingPath, cacheInvalidationMode, moduleType);
+        return this.requirePathAsync(existingPath, options);
       }
     }
 
@@ -1099,16 +1086,16 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       /* v8 ignore stop */
       case ResolvedType.Module: {
         const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return await this.requireModuleAsync(moduleName, parentFolder, options.cacheInvalidationMode, options.moduleType);
+        return await this.requireModuleAsync(moduleName, parentFolder, options);
       }
       case ResolvedType.Path:
-        return await this.requirePathAsync(id, options.cacheInvalidationMode, options.moduleType);
+        return await this.requirePathAsync(id, options);
       /* v8 ignore start -- special modules are handled early in requireAsync before reaching requireNonCachedAsync. */
       case ResolvedType.SpecialModule:
         return this.requireSpecialModule(id, options);
       /* v8 ignore stop */
       case ResolvedType.Url:
-        return await this.requireUrlAsync(id, options.moduleType);
+        return await this.requireUrlAsync(id, options);
       /* v8 ignore start -- defensive default case: all ResolvedType values are handled above. */
       default:
         throw new Error(`Unknown resolvedType: '${type as string}'.`);
@@ -1116,7 +1103,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
   }
 
-  private async requirePathAsync(path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): Promise<unknown> {
+  private async requirePathAsync(path: string, options: Partial<RequireOptions>): Promise<unknown> {
     const existingFilePath = await this.findExistingFilePathAsync(path);
     if (existingFilePath === null) {
       throw new Error(`File not found: '${path}'.`);
@@ -1125,7 +1112,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const isRootRequire = this.currentModulesTimestampChain.size === 0;
 
     try {
-      await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, cacheInvalidationMode, moduleType);
+      await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, options);
     } finally {
       if (isRootRequire) {
         this.currentModulesTimestampChain.clear();
@@ -1135,8 +1122,8 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return this.modulesCache[existingFilePath]?.exports;
   }
 
-  private async requirePathImplAsync(path: string, moduleType?: ModuleType): Promise<unknown> {
-    moduleType ??= getModuleTypeFromPath(path);
+  private async requirePathImplAsync(path: string, options: Partial<RequireOptions>): Promise<unknown> {
+    const moduleType = options.moduleType ?? getModuleTypeFromPath(path);
     switch (moduleType) {
       case ModuleType.Json:
         return this.requireJsonAsync(path);
@@ -1145,7 +1132,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       case ModuleType.Markdown:
         return this.requireMdAsync(path);
       case ModuleType.Node:
-        return this.requireNodeBinaryAsync(path);
+        return this.requireNodeBinaryAsync(path, options);
       case ModuleType.Wasm:
         return this.requireWasmAsync(path);
       default:
@@ -1153,9 +1140,9 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
   }
 
-  private async requireUrlAsync(url: string, moduleType?: ModuleType): Promise<unknown> {
+  private async requireUrlAsync(url: string, options: Partial<RequireOptions>): Promise<unknown> {
     const response = await requestUrl(url);
-    moduleType ??= getModuleTypeFromContentType(response.headers['content-type'], url);
+    const moduleType = options.moduleType ?? getModuleTypeFromContentType(response.headers['content-type'], url);
 
     switch (moduleType) {
       case ModuleType.Json:
@@ -1165,7 +1152,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       case ModuleType.Markdown:
         return this.requireMdAsync(url, response.text);
       case ModuleType.Node:
-        return this.requireNodeBinaryAsync(url, response.arrayBuffer);
+        return this.requireNodeBinaryAsync(url, options, response.arrayBuffer);
       case ModuleType.Wasm:
         return this.requireWasmAsync(url, response.arrayBuffer);
       default:

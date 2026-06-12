@@ -68,8 +68,7 @@ export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase 
       return this._fsPromises;
     }
 
-    const fsPromises =
-      (this.originalModulePrototypeRequireWrapped('node:fs/promises', {}) ?? this.fileSystemAdapter.fsPromises) as typeof import('node:fs/promises');
+    const fsPromises = (this.originalModulePrototypeRequireWrapped('node:fs/promises', {}) ?? this.fileSystemAdapter.fsPromises) as typeof import('node:fs/promises');
     this._fsPromises = fsPromises;
     return this._fsPromises;
   }
@@ -151,7 +150,7 @@ ${this.getRequireAsyncAdvice(path)}`);
     return this.originalModulePrototypeRequireWrapped(id, options);
   }
 
-  protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
+  protected override async requireNodeBinaryAsync(path: string, options: Partial<RequireOptions>, arrayBuffer?: ArrayBuffer): Promise<unknown> {
     await noopAsync();
     if (arrayBuffer) {
       const tempDir = join(this.app.vault.configDir, 'temp');
@@ -161,27 +160,27 @@ ${this.getRequireAsyncAdvice(path)}`);
       const tmpFilePath = join(tempDir, `${String(Date.now())}.node`);
       await this.writeFileBinaryAsync(tmpFilePath, arrayBuffer);
       try {
-        return this.requireNodeBinary(tmpFilePath);
+        return this.requireNodeBinary(tmpFilePath, options);
       } finally {
         await this.fsPromises.rm(tmpFilePath);
       }
     }
 
-    return this.requireNodeBinary(path);
+    return this.requireNodeBinary(path, options);
   }
 
-  protected override requireNodeBuiltInModule(id: string): unknown {
-    return this.originalModulePrototypeRequire?.(id);
+  protected override requireNodeBuiltInModule(id: string, options: Partial<RequireOptions>): unknown {
+    return this.originalModulePrototypeRequireWrapped(id, options);
   }
 
   protected override requireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown {
     switch (type) {
       case ResolvedType.Module: {
         const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return this.requireModule(moduleName, parentFolder, options.cacheInvalidationMode, options.moduleType);
+        return this.requireModule(moduleName, parentFolder, options);
       }
       case ResolvedType.Path:
-        return this.requirePath(id, options.cacheInvalidationMode, options.moduleType);
+        return this.requirePath(id, options);
       case ResolvedType.SpecialModule:
         return this.requireSpecialModule(id, options);
       case ResolvedType.Url:
@@ -212,7 +211,7 @@ ${this.getRequireAsyncAdvice(path)}`);
     return null;
   }
 
-  private getDependenciesTimestampChangedAndReloadIfNeeded(path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): number {
+  private getDependenciesTimestampChangedAndReloadIfNeeded(path: string, options: Partial<RequireOptions>): number {
     if (this.currentModulesTimestampChain.has(path)) {
       return this.moduleTimestamps.get(path) ?? 0;
     }
@@ -238,7 +237,7 @@ ${this.getRequireAsyncAdvice(path)}`);
               continue;
             }
 
-            const dependencyTimestamp = this.getDependenciesTimestampChangedAndReloadIfNeeded(packageJsonPath, cacheInvalidationMode);
+            const dependencyTimestamp = this.getDependenciesTimestampChangedAndReloadIfNeeded(packageJsonPath, options);
             updateTimestamp(dependencyTimestamp);
           }
           break;
@@ -248,15 +247,15 @@ ${this.getRequireAsyncAdvice(path)}`);
             continue;
           }
 
-          const dependencyTimestamp = this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, cacheInvalidationMode);
+          const dependencyTimestamp = this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, options);
           updateTimestamp(dependencyTimestamp);
           break;
         }
         case ResolvedType.SpecialModule:
           break;
         case ResolvedType.Url: {
-          const errorMessage = this.getUrlDependencyErrorMessage(path, resolvedId, cacheInvalidationMode);
-          switch (cacheInvalidationMode) {
+          const errorMessage = this.getUrlDependencyErrorMessage(path, resolvedId, options.cacheInvalidationMode);
+          switch (options.cacheInvalidationMode) {
             case CacheInvalidationMode.Always:
               throw new Error(errorMessage);
             case CacheInvalidationMode.Never:
@@ -265,7 +264,7 @@ ${this.getRequireAsyncAdvice(path)}`);
               console.warn(errorMessage);
               break;
             default:
-              throw new Error(`Unknown cacheInvalidationMode: '${String(cacheInvalidationMode)}'.`);
+              throw new Error(`Unknown cacheInvalidationMode: '${String(options.cacheInvalidationMode)}'.`);
           }
           break;
         }
@@ -275,7 +274,7 @@ ${this.getRequireAsyncAdvice(path)}`);
     }
 
     if (timestamp > cachedTimestamp || !this.getCachedModule(path)) {
-      this.initModuleAndAddToCache(path, () => this.requirePathImpl(path, moduleType));
+      this.initModuleAndAddToCache(path, () => this.requirePathImpl(path, options));
     }
     return timestamp;
   }
@@ -381,7 +380,7 @@ ${this.getRequireAsyncAdvice(path)}`;
     return this.requireString(code, `${path}.code-script.${codeScriptName ?? '(default)'}.ts`);
   }
 
-  private requireModule(moduleName: string, parentFolder: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): unknown {
+  private requireModule(moduleName: string, parentFolder: string, options: Partial<RequireOptions>): unknown {
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
@@ -422,18 +421,18 @@ ${this.getRequireAsyncAdvice(path)}`;
           continue;
         }
 
-        return this.requirePath(existingPath, cacheInvalidationMode, moduleType);
+        return this.requirePath(existingPath, options);
       }
     }
 
     throw new Error(`Could not resolve module: '${moduleName}'.`);
   }
 
-  private requireNodeBinary(path: string): unknown {
-    return this.originalModulePrototypeRequire?.(path);
+  private requireNodeBinary(path: string, options: Partial<RequireOptions>): unknown {
+    return this.originalModulePrototypeRequireWrapped(path, options);
   }
 
-  private requirePath(path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): unknown {
+  private requirePath(path: string, options: Partial<RequireOptions>): unknown {
     const existingFilePath = this.findExistingFilePath(path);
     if (existingFilePath === null) {
       throw new Error(`File not found: '${path}'.`);
@@ -442,7 +441,7 @@ ${this.getRequireAsyncAdvice(path)}`;
     const isRootRequire = this.currentModulesTimestampChain.size === 0;
 
     try {
-      this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, cacheInvalidationMode, moduleType);
+      this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, options);
     } finally {
       if (isRootRequire) {
         this.currentModulesTimestampChain.clear();
@@ -451,8 +450,8 @@ ${this.getRequireAsyncAdvice(path)}`;
     return this.modulesCache[existingFilePath]?.exports;
   }
 
-  private requirePathImpl(path: string, moduleType?: ModuleType): unknown {
-    moduleType ??= getModuleTypeFromPath(path);
+  private requirePathImpl(path: string, options: Partial<RequireOptions>): unknown {
+    const moduleType = options.moduleType ?? getModuleTypeFromPath(path);
     switch (moduleType) {
       case ModuleType.Json:
         return this.requireJson(path);
@@ -461,7 +460,7 @@ ${this.getRequireAsyncAdvice(path)}`;
       case ModuleType.Markdown:
         return this.requireMd(path);
       case ModuleType.Node:
-        return this.requireNodeBinary(path);
+        return this.requireNodeBinary(path, options);
       case ModuleType.Wasm:
         return this.requireWasm(path);
       default:

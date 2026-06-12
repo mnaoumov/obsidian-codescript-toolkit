@@ -24,15 +24,11 @@ beforeAll(async () => {
       shouldUseSyncFallback: false,
       startupScriptPath: ''
     }),
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/check-callback.cjs`]:
-      'exports.invokeCommand = { checkCallback: (checking) => { if (checking) { return true; } window.__checkCallbackInvoked = true; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/check-callback.cjs`]: 'exports.invokeCommand = { checkCallback: (checking) => { if (checking) { return true; } window.__checkCallbackInvoked = true; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/cmd-invoke.cjs`]: 'exports.invokeCommand = { callback: () => { window.__cmdInvoked = true; } };',
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-callback.cjs`]:
-      'exports.invokeCommand = { editorCallback: (editor) => { window.__editorCallbackInvoked = true; window.__editorExists = typeof editor.getValue === "function"; } };',
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-check-callback.cjs`]:
-      'exports.invokeCommand = { editorCheckCallback: (checking, editor) => { if (checking) { return editor !== undefined; } window.__editorCheckCallbackInvoked = true; window.__editorCheckHasEditor = typeof editor.getValue === "function"; } };',
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/hotkey-invoke.cjs`]:
-      'exports.invokeCommand = { hotkeys: [{ modifiers: ["Ctrl", "Shift"], key: "F9" }], callback: () => { window.__hotkeyInvoked = true; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-callback.cjs`]: 'exports.invokeCommand = { editorCallback: (editor) => { window.__editorCallbackInvoked = true; window.__editorExists = typeof editor.getValue === "function"; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-check-callback.cjs`]: 'exports.invokeCommand = { editorCheckCallback: (checking, editor) => { if (checking) { return editor !== undefined; } window.__editorCheckCallbackInvoked = true; window.__editorCheckHasEditor = typeof editor.getValue === "function"; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/hotkey-invoke.cjs`]: 'exports.invokeCommand = { hotkeys: [{ modifiers: ["Ctrl", "Shift"], key: "F9" }], callback: () => { window.__hotkeyInvoked = true; } };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/scratch.md`]: '# Scratch note for editor tests',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke.cjs`]: 'exports.invoke = () => { window.__invocableResult = "invoked"; };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/ts-invoke.ts`]: 'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'

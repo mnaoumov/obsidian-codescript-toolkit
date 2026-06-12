@@ -128,7 +128,7 @@ interface GetCachedModuleAccessor {
 }
 
 interface GetDependenciesTimestampAccessor {
-  getDependenciesTimestampChangedAndReloadIfNeeded(path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): number;
+  getDependenciesTimestampChangedAndReloadIfNeeded(path: string, options?: Partial<RequireOptions>): number;
 }
 
 interface GetParentPathFromCallStackAccessor {
@@ -258,7 +258,7 @@ interface RequirePathAccessor {
 }
 
 interface RequirePathImplAccessor {
-  requirePathImpl(path: string, moduleType?: ModuleType): unknown;
+  requirePathImpl(path: string, options?: Partial<RequireOptions>): unknown;
 }
 
 interface RequireSpecialModuleAccessor {
@@ -320,12 +320,12 @@ class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopCompon
     return this.requireElectronModule(id, options);
   }
 
-  public async exposeRequireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
-    return this.requireNodeBinaryAsync(path, arrayBuffer);
+  public async exposeRequireNodeBinaryAsync(path: string, options: Partial<RequireOptions>, arrayBuffer?: ArrayBuffer): Promise<unknown> {
+    return this.requireNodeBinaryAsync(path, options, arrayBuffer);
   }
 
-  public exposeRequireNodeBuiltInModule(id: string): unknown {
-    return this.requireNodeBuiltInModule(id);
+  public exposeRequireNodeBuiltInModule(id: string, options: Partial<RequireOptions>): unknown {
+    return this.requireNodeBuiltInModule(id, options);
   }
 
   public exposeRequireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown {
@@ -518,15 +518,15 @@ describe('RequireHandlerDesktopComponent', () => {
       const MOCK_FS = { readFile: vi.fn() };
       mockOriginalModulePrototypeRequire.mockReturnValue(MOCK_FS);
 
-      const result = handler.exposeRequireNodeBuiltInModule('node:fs');
+      const result = handler.exposeRequireNodeBuiltInModule('node:fs', {});
 
       expect(result).toBe(MOCK_FS);
     });
 
     it('should call originalModulePrototypeRequire with the module id', () => {
-      handler.exposeRequireNodeBuiltInModule('node:path');
+      handler.exposeRequireNodeBuiltInModule('node:path', {});
 
-      expect(mockOriginalModulePrototypeRequire).toHaveBeenCalledWith('node:path');
+      expect(mockOriginalModulePrototypeRequire).toHaveBeenCalledWith('node:path', {});
     });
 
     it('should return undefined when originalModulePrototypeRequire is not set', () => {
@@ -535,7 +535,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       handler['originalModulePrototypeRequire'] = castTo<RequireFn>(undefined);
 
-      const result = handler.exposeRequireNodeBuiltInModule('node:fs');
+      const result = handler.exposeRequireNodeBuiltInModule('node:fs', {});
 
       expect(result).toBeUndefined();
     });
@@ -827,10 +827,10 @@ describe('RequireHandlerDesktopComponent', () => {
       const EXPECTED_MODULE = { nativeBinary: true };
       mockOriginalModulePrototypeRequire.mockReturnValue(EXPECTED_MODULE);
 
-      const result = await handler.exposeRequireNodeBinaryAsync('/path/to/native.node');
+      const result = await handler.exposeRequireNodeBinaryAsync('/path/to/native.node', {});
 
       expect(result).toBe(EXPECTED_MODULE);
-      expect(mockOriginalModulePrototypeRequire).toHaveBeenCalledWith('/path/to/native.node');
+      expect(mockOriginalModulePrototypeRequire).toHaveBeenCalledWith('/path/to/native.node', {});
     });
 
     it('should write to temp file and clean up when arrayBuffer is provided', async () => {
@@ -843,7 +843,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const BYTE_VALUES = [1, 2, 3];
       const arrayBuffer = new Uint8Array(BYTE_VALUES).buffer;
 
-      const result = await handler.exposeRequireNodeBinaryAsync('/path/to/native.node', arrayBuffer);
+      const result = await handler.exposeRequireNodeBinaryAsync('/path/to/native.node', {}, arrayBuffer);
 
       expect(result).toBe(EXPECTED_MODULE);
       expect(mockFsPromises.writeFile).toHaveBeenCalledOnce();
@@ -858,7 +858,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const BYTE_VALUES = [1, 2, 3];
       const arrayBuffer = new Uint8Array(BYTE_VALUES).buffer;
 
-      await handler.exposeRequireNodeBinaryAsync('/path/to/native.node', arrayBuffer);
+      await handler.exposeRequireNodeBinaryAsync('/path/to/native.node', {}, arrayBuffer);
 
       expect(mockFsPromises.mkdir).toHaveBeenCalledOnce();
     });
@@ -874,7 +874,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const BYTE_VALUES = [1, 2, 3];
       const arrayBuffer = new Uint8Array(BYTE_VALUES).buffer;
 
-      await expect(handler.exposeRequireNodeBinaryAsync('/path/to/native.node', arrayBuffer))
+      await expect(handler.exposeRequireNodeBinaryAsync('/path/to/native.node', {}, arrayBuffer))
         .rejects.toThrow('native load failed');
       expect(mockFsPromises.rm).toHaveBeenCalledOnce();
     });
@@ -898,8 +898,10 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(requireModuleSpy).toHaveBeenCalledWith(
         'my-module',
         '/parent/folder',
-        CacheInvalidationMode.WhenPossible,
-        ModuleType.JsTs
+        {
+          cacheInvalidationMode: CacheInvalidationMode.WhenPossible,
+          moduleType: ModuleType.JsTs
+        }
       );
       requireModuleSpy.mockRestore();
     });
@@ -921,8 +923,10 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(result).toEqual({ pathResult: true });
       expect(requirePathSpy).toHaveBeenCalledWith(
         '/path/to/file.ts',
-        CacheInvalidationMode.Always,
-        ModuleType.JsTs
+        {
+          cacheInvalidationMode: CacheInvalidationMode.Always,
+          moduleType: ModuleType.JsTs
+        }
       );
       requirePathSpy.mockRestore();
     });
@@ -1303,7 +1307,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as RequirePathImplAccessor)
-        .requirePathImpl('/path/to/file.json', ModuleType.Json);
+        .requirePathImpl('/path/to/file.json', { moduleType: ModuleType.Json });
 
       expect(result).toEqual({ key: 'value' });
       requireJsonSpy.mockRestore();
@@ -1318,7 +1322,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as RequirePathImplAccessor)
-        .requirePathImpl('/path/to/file.ts', ModuleType.JsTs);
+        .requirePathImpl('/path/to/file.ts', { moduleType: ModuleType.JsTs });
 
       expect(result).toEqual({ js: true });
       requireJsTsSpy.mockRestore();
@@ -1333,7 +1337,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as RequirePathImplAccessor)
-        .requirePathImpl('/path/to/file.md', ModuleType.Markdown);
+        .requirePathImpl('/path/to/file.md', { moduleType: ModuleType.Markdown });
 
       expect(result).toEqual({ md: true });
       requireMdSpy.mockRestore();
@@ -1345,7 +1349,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as RequirePathImplAccessor)
-        .requirePathImpl('/path/to/file.node', ModuleType.Node);
+        .requirePathImpl('/path/to/file.node', { moduleType: ModuleType.Node });
 
       expect(result).toBe(EXPECTED_MODULE);
     });
@@ -1354,7 +1358,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequirePathImplAccessor)
-          .requirePathImpl('/path/to/file.wasm', ModuleType.Wasm);
+          .requirePathImpl('/path/to/file.wasm', { moduleType: ModuleType.Wasm });
       }).toThrow('Cannot require WASM synchronously.');
     });
 
@@ -1362,7 +1366,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequirePathImplAccessor)
-          .requirePathImpl('/path/to/file.xyz', 'unknown' as ModuleType);
+          .requirePathImpl('/path/to/file.xyz', { moduleType: 'unknown' as ModuleType });
       }).toThrow('Unknown module type: \'unknown\'.');
     });
 
@@ -1375,7 +1379,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as RequirePathImplAccessor)
-        .requirePathImpl('/path/to/data.json');
+        .requirePathImpl('/path/to/data.json', {});
 
       expect(result).toEqual({ inferred: true });
       requireJsonSpy.mockRestore();
@@ -1937,7 +1941,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       (handler as unknown as GetDependenciesTimestampAccessor)
-        .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', CacheInvalidationMode.WhenPossible);
+        .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', { cacheInvalidationMode: CacheInvalidationMode.WhenPossible });
 
       expect(resolveSpy).toHaveBeenCalledWith('some-module', '/path/to/file.js');
       resolveSpy.mockRestore();
@@ -2062,7 +2066,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as GetDependenciesTimestampAccessor)
-          .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', CacheInvalidationMode.Always);
+          .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', { cacheInvalidationMode: CacheInvalidationMode.Always });
       }).toThrow('URL dependencies validation is not supported');
     });
 
@@ -2082,7 +2086,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const result =
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as GetDependenciesTimestampAccessor)
-          .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', CacheInvalidationMode.Never);
+          .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', { cacheInvalidationMode: CacheInvalidationMode.Never });
 
       expect(result).toBe(MOCK_MTIME_MS);
     });
@@ -2104,7 +2108,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       (handler as unknown as GetDependenciesTimestampAccessor)
-        .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', CacheInvalidationMode.WhenPossible);
+        .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', { cacheInvalidationMode: CacheInvalidationMode.WhenPossible });
 
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('URL dependencies validation is not supported'));
       warnSpy.mockRestore();
@@ -2126,7 +2130,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as GetDependenciesTimestampAccessor)
-          .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', 'invalid' as CacheInvalidationMode);
+          .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', { cacheInvalidationMode: 'invalid' as CacheInvalidationMode });
       }).toThrow('Unknown cacheInvalidationMode: \'invalid\'.');
     });
 

@@ -645,13 +645,13 @@ describe('RequireHandlerComponentBase', () => {
     it('should return node built-in module for registered node module', () => {
       const result = handler.exposeRequireSpecialModule('fs', {});
       expect(result).toBeDefined();
-      expect(handler.mockRequireNodeBuiltInModule).toHaveBeenCalledWith('fs');
+      expect(handler.mockRequireNodeBuiltInModule).toHaveBeenCalledWith('fs', {});
     });
 
     it('should return node built-in module with node: prefix', () => {
       const result = handler.exposeRequireSpecialModule('node:fs', {});
       expect(result).toBeDefined();
-      expect(handler.mockRequireNodeBuiltInModule).toHaveBeenCalledWith('fs');
+      expect(handler.mockRequireNodeBuiltInModule).toHaveBeenCalledWith('fs', {});
     });
 
     it('should throw for deprecated obsidian built-in modules', () => {
@@ -3576,12 +3576,12 @@ class TestRequireHandlerComponent extends RequireHandlerComponentBase {
     return this.mockRequireElectronModule(id, options) as unknown;
   }
 
-  protected override async requireNodeBinaryAsync(path: string, arrayBuffer?: ArrayBuffer): Promise<unknown> {
-    return this.mockRequireNodeBinaryAsync(path, arrayBuffer) as Promise<unknown>;
+  protected override async requireNodeBinaryAsync(path: string, options: Partial<RequireOptions>, arrayBuffer?: ArrayBuffer): Promise<unknown> {
+    return this.mockRequireNodeBinaryAsync(path, options, arrayBuffer) as Promise<unknown>;
   }
 
-  protected override requireNodeBuiltInModule(id: string): unknown {
-    return this.mockRequireNodeBuiltInModule(id) as unknown;
+  protected override requireNodeBuiltInModule(id: string, options: Partial<RequireOptions>): unknown {
+    return this.mockRequireNodeBuiltInModule(id, options) as unknown;
   }
 
   protected override requireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown {
