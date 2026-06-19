@@ -156,7 +156,7 @@ vi.mock('obsidian-dev-utils/obsidian/plugin/plugin-settings-tab', () => ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- base class stub
-    public display(): void {}
+    public displayLegacy(): void {}
   }
 }));
 
@@ -245,8 +245,7 @@ describe('PluginSettingsTab', () => {
 
   describe('display', () => {
     it('should create settings for all configuration options', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const EXPECTED_SETTING_COUNT = 10;
       const totalSettingCalls = mockSettingExSetName.mock.calls.length + mockSettingExAddButton.mock.calls.length;
@@ -254,78 +253,67 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should create Script modules root setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Script modules root');
     });
 
     it('should create Invocable scripts folder setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Invocable scripts folder');
     });
 
     it('should create Startup script path setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Startup script path');
     });
 
     it('should create Hotkeys setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Hotkeys');
     });
 
     it('should create Mobile changes checking interval setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Mobile: Changes checking interval');
     });
 
     it('should create Desktop synchronous fallback setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Desktop: Synchronous fallback');
     });
 
     it('should create Handle protocol URLs setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Handle protocol URLs');
     });
 
     it('should create Should show temp plugin load/unload notices setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Should show temp plugin load/unload notices');
     });
 
     it('should create Default code button config setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockSettingExSetName).toHaveBeenCalledWith('Default code button config');
     });
 
     it('should bind text inputs to settings', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       expect(mockBind).toHaveBeenCalled();
     });
 
     it('should bind modulesRoot with onChanged callback that triggers modulesRootChanged', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       // Find the bind call for modulesRoot
       const modulesRootBindCall = mockBind.mock.calls.find(
@@ -344,8 +332,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should bind invocableScriptsFolder setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const bindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'invocableScriptsFolder'
@@ -354,8 +341,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should bind startupScriptPath setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const bindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'startupScriptPath'
@@ -364,8 +350,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should bind mobileChangesCheckingIntervalInSeconds setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const bindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'mobileChangesCheckingIntervalInSeconds'
@@ -374,8 +359,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should bind shouldUseSyncFallback setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const bindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'shouldUseSyncFallback'
@@ -384,8 +368,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should bind shouldHandleProtocolUrls setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const bindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'shouldHandleProtocolUrls'
@@ -394,8 +377,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should bind shouldShowTempPluginLoadUnloadNotices setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const bindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'shouldShowTempPluginLoadUnloadNotices'
@@ -404,8 +386,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should bind defaultCodeButtonConfig setting', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const bindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'defaultCodeButtonConfig'
@@ -436,8 +417,7 @@ describe('PluginSettingsTab', () => {
         })
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tabWithMock.display();
+      tabWithMock.displayLegacy();
 
       // Find the button callback and invoke it
       const buttonCalls = mockSettingExAddButton.mock.calls;
@@ -467,16 +447,14 @@ describe('PluginSettingsTab', () => {
         })
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tabWithMock.display();
+      tabWithMock.displayLegacy();
 
       // The last addButton call should be the reset button
       expect(mockSettingExAddButton).toHaveBeenCalled();
     });
 
     it('should invoke modulesRootChanged event which calls onChanged and refresh on dependent settings', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       // Find the bind call for modulesRoot and invoke onChanged
       const modulesRootBindCall = mockBind.mock.calls.find(
@@ -500,8 +478,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should call refresh on PathSuggest instances when modulesRootChanged fires', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       const modulesRootBindCall = mockBind.mock.calls.find(
         (call) => call[1] === 'modulesRoot'
@@ -544,8 +521,8 @@ describe('PluginSettingsTab', () => {
       });
 
       mockButtonClickHandlers.length = 0;
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tabWithMock.display();
+
+      tabWithMock.displayLegacy();
 
       // Second button click handler is for Hotkeys "Configure" (after "Reset" button in Code button blocks)
       const HOTKEYS_BUTTON_INDEX = 1;
@@ -587,8 +564,8 @@ describe('PluginSettingsTab', () => {
       });
 
       mockButtonClickHandlers.length = 0;
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tabWithMock.display();
+
+      tabWithMock.displayLegacy();
 
       // First button click handler is for "Reset to plugin default code button config" (in Code button blocks group)
       const RESET_BUTTON_INDEX = 0;
@@ -601,8 +578,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should return empty string from modulesRoot PathSuggest getRootPath', () => {
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tab.display();
+      tab.displayLegacy();
 
       // First PathSuggest instance is for modulesRoot (getRootPath returns '')
       const PATH_SUGGEST_INDEX_MODULES_ROOT = 0;
@@ -632,8 +608,8 @@ describe('PluginSettingsTab', () => {
       });
 
       mockPathSuggestInstances.length = 0;
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tabWithMock.display();
+
+      tabWithMock.displayLegacy();
 
       // Third PathSuggest instance is for startupScriptPath
       const PATH_SUGGEST_INDEX_STARTUP = 2;
@@ -663,8 +639,8 @@ describe('PluginSettingsTab', () => {
       });
 
       mockPathSuggestInstances.length = 0;
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- PluginSettingsTab.display() is deprecated via inherited SettingTab.display() JSDoc; tests must call it to verify rendering.
-      tabWithMock.display();
+
+      tabWithMock.displayLegacy();
 
       // Second PathSuggest instance is for invocableScriptsFolder
       const PATH_SUGGEST_INDEX_INVOCABLE = 1;

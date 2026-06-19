@@ -164,8 +164,8 @@ interface RequireWindowFull {
 }
 
 interface ResolveResult {
-  resolvedId: string;
-  resolvedType: ResolvedType;
+  readonly resolvedId: string;
+  readonly resolvedType: ResolvedType;
 }
 
 interface WebAssemblyInstantiateSpy {

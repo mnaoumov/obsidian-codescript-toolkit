@@ -41,4 +41,12 @@ describe('ReplaceDynamicImportBabelPlugin', () => {
     expect(result.error).toBeUndefined();
     expect(result.transformedCode).toContain('requireAsync("./relative-path")');
   });
+
+  it('should preserve the import options argument', () => {
+    const plugin = new ReplaceDynamicImportBabelPlugin();
+    const result = plugin.transform('const m = import("my-module", { with: { type: "json" } });', TEST_FILENAME);
+    expect(result.error).toBeUndefined();
+    expect(result.transformedCode).toContain('requireAsync("my-module", {');
+    expect(result.transformedCode).toContain('type: "json"');
+  });
 });

@@ -3,6 +3,7 @@ import type {
   PluginManifest
 } from 'obsidian';
 
+import { noop } from 'obsidian-dev-utils/function';
 import {
   describe,
   expect,
@@ -27,10 +28,15 @@ vi.mock('obsidian-dev-utils/obsidian/plugin/plugin', () => ({
     public constructor(app: unknown, manifest: PluginManifest) {
       this.app = app;
       this.manifest = manifest;
+      this.onloadImpl();
     }
 
     public addChild(child: unknown): unknown {
       return mockAddChild(child);
+    }
+
+    protected onloadImpl(): void {
+      noop();
     }
   }
 }));

@@ -275,7 +275,7 @@ interface RequireStringImplAccessor {
 
 interface RequireStringImplResult {
   exportsFn(): unknown;
-  promisable: unknown;
+  readonly promisable: unknown;
 }
 
 interface RequireWasmAccessor {
@@ -287,8 +287,8 @@ interface ResolveAccessor {
 }
 
 interface ResolveResult {
-  resolvedId: string;
-  resolvedType: ResolvedType;
+  readonly resolvedId: string;
+  readonly resolvedType: ResolvedType;
 }
 
 interface SyncFallbackSetting {

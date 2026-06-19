@@ -41,13 +41,13 @@ const mockGetDataAdapterEx = vi.fn();
 const mockGetOsAndObsidianUnsafePathCharsRegExp = vi.fn();
 
 interface BabelTransformResult {
-  error: Error | undefined;
-  transformedCode: string;
+  readonly error: Error | undefined;
+  readonly transformedCode: string;
 }
 
 interface FrontMatterResult {
-  contentStart: number;
-  frontmatter: string;
+  readonly contentStart: number;
+  readonly frontmatter: string;
 }
 
 vi.mock('obsidian', async (importOriginal) => ({

@@ -1,9 +1,9 @@
 import { transform as babelTransform } from '@babel/standalone';
-import babelPluginTransformImportMeta from 'babel-plugin-transform-import-meta';
 
 import type { TransformResult } from './babel-plugin-base.ts';
 
 import { BabelPluginBase } from './babel-plugin-base.ts';
+import { transformImportMetaBabelPlugin } from './transform-import-meta-babel-plugin.ts';
 
 interface TransformCodeToCommonJsData {
   hasTopLevelAwait: boolean;
@@ -18,7 +18,6 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
     try {
       const result = babelTransform(code, {
         ast: true,
-        cwd: folder,
         filename,
         parserOpts: {
           allowReturnOutsideFunction: true
@@ -26,10 +25,11 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
         plugins: [
           'transform-modules-commonjs',
           'transform-export-namespace-from',
-          [babelPluginTransformImportMeta(), { module: 'ES6' }]
+          transformImportMetaBabelPlugin
         ],
         presets: ['typescript'],
-        sourceMaps: 'inline'
+        sourceMaps: 'inline',
+        ...folder === undefined ? {} : { cwd: folder }
       });
 
       return {

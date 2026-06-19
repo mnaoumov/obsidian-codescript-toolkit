@@ -31,6 +31,7 @@ import {
   dirname
 } from 'obsidian-dev-utils/path';
 import { indent } from 'obsidian-dev-utils/string';
+import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
@@ -261,13 +262,13 @@ export class CodeButtonBlockComponent extends ComponentEx {
     const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
     fullConfig.removeAfterExecution = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG.removeAfterExecution, ...config.removeAfterExecution };
 
-    const that = this;
+    const thisWrapper = ValueWrapper.of(this);
 
     if (!fullConfig.isRaw) {
       params.el.createEl('button', {
         cls: 'mod-cta',
         async onclick(): Promise<void> {
-          await that.handleClick(createHandleClickParams());
+          await thisWrapper.value.handleClick(createHandleClickParams());
         },
         prepend: true,
         text: fullConfig.caption
@@ -275,7 +276,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     }
 
     if (fullConfig.shouldAutoRun) {
-      invokeAsyncSafely(() => that.handleClick(createHandleClickParams()));
+      invokeAsyncSafely(() => thisWrapper.value.handleClick(createHandleClickParams()));
     }
 
     function createHandleClickParams(): CodeButtonBlockComponentHandleClickParams {
@@ -283,14 +284,14 @@ export class CodeButtonBlockComponent extends ComponentEx {
         buttonIndex: lastButtonIndex,
         code,
         codeButtonContext: new CodeButtonContextImplComponent({
-          app: that.app,
+          app: thisWrapper.value.app,
           config: fullConfig,
           markdownInfo,
           markdownPostProcessorContext: updateSourcePath(params.ctx, sourceFile),
           parentEl: params.el,
           resultEl,
           source: params.source,
-          tempPluginRegistry: that.tempPluginRegistry
+          tempPluginRegistry: thisWrapper.value.tempPluginRegistry
         }),
         escapedCaption: escapeForFileName(fullConfig.caption)
       };

@@ -8,7 +8,6 @@ import {
   splitQuery
 } from './require-handler.ts';
 
-/** @see {@link RequireHandlerConstructorParams} */
 export type CreateRequireHandlerParams = RequireHandlerConstructorParams;
 
 export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {

@@ -4,7 +4,6 @@ import { RequireHandlerDesktopComponent } from './require-handler-desktop.ts';
 import { RequireHandlerMobileComponent } from './require-handler-mobile.ts';
 import { RequireHandlerComponentBase } from './require-handler.ts';
 
-/** @see {@link RequireHandlerConstructorParams} */
 export type RequireHandlerEmulateMobileComponentConstructorParams = RequireHandlerConstructorParams;
 
 export class RequireHandlerEmulateMobileComponent extends RequireHandlerComponentBase {

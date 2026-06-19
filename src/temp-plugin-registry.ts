@@ -11,6 +11,7 @@ import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
 import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
+import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 import type {
   RegisterTempPluginParams,
@@ -24,7 +25,6 @@ type LoadFn = () => Promise<void>;
 
 const DEFAULT_TEMP_PLUGIN_CLASS_NAME = '_AnonymousPlugin';
 
-/** @see {@link RegisterTempPluginParams} */
 export type TempPluginRegistryComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
 
 interface TempPluginRegistryComponentConstructorParams {
@@ -114,7 +114,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
     let hangNotice: Notice | null = null;
 
     let isLoading = true;
-    const that = this;
+    const thisWrapper = ValueWrapper.of(this);
     invokeAsyncSafely(reportHang);
 
     try {
@@ -140,7 +140,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
     }
 
     function tempPluginLoad(): void {
-      if (that.pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
+      if (thisWrapper.value.pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
         new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
       }
       if (params.cssText) {
@@ -153,9 +153,9 @@ export class TempPluginRegistryComponent extends ComponentEx {
     }
 
     function tempPluginUnload(shouldShowUnloadNotice: boolean): void {
-      that.tempPlugins.delete(id);
-      that.removeChild(unloadTempPluginCommandHandlerComponent);
-      if (shouldShowUnloadNotice && that.pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
+      thisWrapper.value.tempPlugins.delete(id);
+      thisWrapper.value.removeChild(unloadTempPluginCommandHandlerComponent);
+      if (shouldShowUnloadNotice && thisWrapper.value.pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
         new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       }
       styleEl?.remove();

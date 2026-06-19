@@ -1,8 +1,3 @@
-import type {
-  App,
-  PluginManifest
-} from 'obsidian';
-
 import { AppActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import { OpenSettingsCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler';
@@ -32,17 +27,15 @@ import { StartupScriptComponent } from './startup-script.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 export class Plugin extends PluginBase {
-  public constructor(app: App, manifest: PluginManifest) {
-    super(app, manifest);
-
+  protected override onloadImpl(): void {
     const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);
-    const activeFileProvider = new AppActiveFileProvider(app);
+    const activeFileProvider = new AppActiveFileProvider(this.app);
     const commandRegistrar = new PluginCommandRegistrar(this);
-    const menuEventRegistrar = this.addChild(new MenuEventRegistrarComponent(app));
+    const menuEventRegistrar = this.addChild(new MenuEventRegistrarComponent(this.app));
 
     const pluginSettingsComponent = this.addChild(
       new PluginSettingsComponent({
-        app,
+        app: this.app,
         dataHandler: new PluginDataHandler(this),
         pluginEventSource: new PluginEventSourceImpl(this)
       })
@@ -51,7 +44,7 @@ export class Plugin extends PluginBase {
     const tempPluginRegistry = this.addChild(
       new TempPluginRegistryComponent({
         activeFileProvider,
-        app,
+        app: this.app,
         commandRegistrar,
         menuEventRegistrar,
         pluginName: this.manifest.name,
@@ -119,7 +112,7 @@ export class Plugin extends PluginBase {
           new ClearCacheCommandHandler(requireHandlerFactory),
           new InvokeScriptChooseCommandHandler(scriptManager),
           new OpenSettingsCommandHandler({
-            app,
+            app: this.app,
             settingTab: pluginSettingsTab
           }),
           new ReloadStartupScriptCommandHandler(startupScriptComponent),

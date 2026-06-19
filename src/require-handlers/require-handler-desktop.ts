@@ -16,6 +16,7 @@ import {
   join,
   toPosixPath
 } from 'obsidian-dev-utils/path';
+import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 import type { RequireOptions } from '../types.ts';
 import type { RequireFn } from './require-handler.ts';
@@ -96,9 +97,9 @@ export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase 
     patch.registerPatch(moduleProto, {
       require: (next: ModuleProtoRequireFn): ModuleProtoRequireFn => {
         this.originalModulePrototypeRequire = castTo<RequireFn>(next);
-        const that = this;
+        const thisWrapper = ValueWrapper.of(this);
         return function modulePrototypeRequirePatched(this: NodeJS.Module, id: string | TFile): unknown {
-          return that.modulePrototypeRequire(id, this);
+          return thisWrapper.value.modulePrototypeRequire(id, this);
         };
       }
     });

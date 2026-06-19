@@ -2,7 +2,10 @@ import type { ObsidianProtocolData } from 'obsidian';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 
-import { noop } from 'obsidian-dev-utils/function';
+import {
+  createFunction,
+  noop
+} from 'obsidian-dev-utils/function';
 import { castTo } from 'obsidian-dev-utils/object-utils';
 import { ensureGenericObject } from 'obsidian-dev-utils/type-guards';
 import {
@@ -217,8 +220,9 @@ describe('ProtocolHandlerComponent', () => {
       const originalRequireAsync = genericObjectWindow['requireAsync'];
       try {
         genericObjectWindow['requireAsync'] = mockRequireAsync;
-        // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func -- intentionally evaluating generated code to verify it runs without reference errors.
-        const fn = new Function(`return (async () => { ${generatedCode} })()`) as () => Promise<void>;
+        const fn = createFunction<() => Promise<void>>({
+          functionBody: `return (async () => { ${generatedCode} })()`
+        });
         await fn();
       } finally {
         genericObjectWindow['requireAsync'] = originalRequireAsync;

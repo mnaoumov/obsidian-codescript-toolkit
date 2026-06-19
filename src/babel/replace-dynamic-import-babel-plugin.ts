@@ -1,10 +1,10 @@
 import type { PluginPass } from '@babel/core';
 import type { Visitor } from '@babel/traverse';
+import type { Expression } from '@babel/types';
 
 import {
   callExpression,
-  identifier,
-  isImport
+  identifier
 } from '@babel/types';
 
 import { BabelPluginBase } from './babel-plugin-base.ts';
@@ -16,10 +16,12 @@ export class ReplaceDynamicImportBabelPlugin extends BabelPluginBase {
 
   public override getVisitor(): Visitor<PluginPass> {
     return {
-      CallExpression(path): void {
-        if (isImport(path.node.callee)) {
-          path.replaceWith(callExpression(identifier('requireAsync'), path.node.arguments));
+      ImportExpression(path): void {
+        const args: Expression[] = [path.node.source];
+        if (path.node.options !== null && path.node.options !== undefined) {
+          args.push(path.node.options);
         }
+        path.replaceWith(callExpression(identifier('requireAsync'), args));
       }
     };
   }

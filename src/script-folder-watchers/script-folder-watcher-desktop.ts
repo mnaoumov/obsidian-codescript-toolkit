@@ -12,7 +12,6 @@ import type { ScriptFolderWatcherComponentBaseConstructorParams } from './script
 
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
 
-/** @see {@link ScriptFolderWatcherComponentBaseConstructorParams} */
 export type CreateScriptFolderWatcherParams = ScriptFolderWatcherComponentBaseConstructorParams;
 
 export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComponentBase {

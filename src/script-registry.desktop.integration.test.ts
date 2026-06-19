@@ -10,6 +10,9 @@ import {
 const MODULES_ROOT = '_int-test-invocables';
 const INVOCABLES_FOLDER = 'scripts';
 const PLUGIN_ID = 'fix-require-modules';
+// The first script execution in a fresh Obsidian session loads babel-standalone and primes the require pipeline — a one-time cost far larger than a warm run. The poll timeout is generous enough to absorb that cold start.
+const POLL_TIMEOUT_MS = 20_000;
+const POLL_INTERVAL_MS = 100;
 
 beforeAll(async () => {
   const vault = getTempVault();
@@ -159,18 +162,28 @@ describe('ScriptRegistry integration', () => {
   it('should execute editorCallback invocable script with editor context', async () => {
     // Open a markdown file to ensure an active editor exists
     await evalInObsidian({
-      args: { invocablesFolder: INVOCABLES_FOLDER, modulesRoot: MODULES_ROOT },
-      async fn({ app, invocablesFolder, modulesRoot }) {
+      args: { intervalMs: POLL_INTERVAL_MS, invocablesFolder: INVOCABLES_FOLDER, modulesRoot: MODULES_ROOT, timeoutMs: POLL_TIMEOUT_MS },
+      async fn({ app, intervalMs, invocablesFolder, modulesRoot, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText(`${modulesRoot}/${invocablesFolder}/scratch`, '', false);
-        const SETTLE_DELAY_MS = 1000;
-        await sleep(SETTLE_DELAY_MS);
+
+        await waitUntil(() => app.workspace.getActiveViewOfType(obsidianModule.MarkdownView)?.editor !== undefined);
+
+        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
+          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            if (await check()) {
+              return;
+            }
+            await sleep(intervalMs);
+          }
+        }
       },
       vaultPath: vaultPath()
     });
 
     const result = await evalInObsidian({
-      args: { pluginId: PLUGIN_ID },
-      async fn({ app, pluginId }) {
+      args: { intervalMs: POLL_INTERVAL_MS, pluginId: PLUGIN_ID, timeoutMs: POLL_TIMEOUT_MS },
+      async fn({ app, intervalMs, obsidianModule, pluginId, timeoutMs }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-callback'));
 
@@ -178,15 +191,27 @@ describe('ScriptRegistry integration', () => {
           return { editorExists: false, error: 'Command not found', executed: false };
         }
 
+        await waitUntil(() => app.workspace.getActiveViewOfType(obsidianModule.MarkdownView)?.editor !== undefined);
+
         Reflect.deleteProperty(window, '__editorCallbackInvoked');
         Reflect.deleteProperty(window, '__editorExists');
         app.commands.executeCommandById(commandId);
-        const COMMAND_EXECUTION_DELAY_MS = 500;
-        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        await waitUntil(() => Reflect.get(window, '__editorCallbackInvoked') === true);
 
         const executed = Reflect.get(window, '__editorCallbackInvoked') === true;
         const editorExists = Reflect.get(window, '__editorExists') === true;
         return { editorExists, executed };
+
+        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
+          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            if (await check()) {
+              return;
+            }
+            await sleep(intervalMs);
+          }
+        }
       },
       vaultPath: vaultPath()
     });
@@ -198,8 +223,8 @@ describe('ScriptRegistry integration', () => {
   it('should execute editorCheckCallback invocable script with condition check and editor', async () => {
     // The previous test already opened a markdown file — editor should still be active
     const result = await evalInObsidian({
-      args: { pluginId: PLUGIN_ID },
-      async fn({ app, pluginId }) {
+      args: { intervalMs: POLL_INTERVAL_MS, pluginId: PLUGIN_ID, timeoutMs: POLL_TIMEOUT_MS },
+      async fn({ app, intervalMs, obsidianModule, pluginId, timeoutMs }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-check-callback'));
 
@@ -207,15 +232,27 @@ describe('ScriptRegistry integration', () => {
           return { editorHasEditor: false, error: 'Command not found', executed: false };
         }
 
+        await waitUntil(() => app.workspace.getActiveViewOfType(obsidianModule.MarkdownView)?.editor !== undefined);
+
         Reflect.deleteProperty(window, '__editorCheckCallbackInvoked');
         Reflect.deleteProperty(window, '__editorCheckHasEditor');
         app.commands.executeCommandById(commandId);
-        const COMMAND_EXECUTION_DELAY_MS = 500;
-        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        await waitUntil(() => Reflect.get(window, '__editorCheckCallbackInvoked') === true);
 
         const executed = Reflect.get(window, '__editorCheckCallbackInvoked') === true;
         const editorHasEditor = Reflect.get(window, '__editorCheckHasEditor') === true;
         return { editorHasEditor, executed };
+
+        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
+          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            if (await check()) {
+              return;
+            }
+            await sleep(intervalMs);
+          }
+        }
       },
       vaultPath: vaultPath()
     });

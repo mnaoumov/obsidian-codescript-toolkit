@@ -16,9 +16,6 @@ type RequireAsyncFn = (id: string | TFile, options?: Record<string, unknown>) =>
 
 const SCRIPTS_DIR = '_int-test-emulate-mobile';
 
-/**
- * Creates a minimal valid WASM binary that exports an `add(i32, i32) -> i32` function.
- */
 function createMinimalWasm(): Uint8Array {
   return new Uint8Array([
     // Magic + version

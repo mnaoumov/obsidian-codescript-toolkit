@@ -1,17 +1,18 @@
 import type {
-  BabelFile,
-  PluginObj,
+  File,
+  PluginObject,
   PluginPass
 } from '@babel/core';
 import type { Visitor } from '@babel/traverse';
 
 import { transform as babelTransform } from '@babel/standalone';
 import { noop } from 'obsidian-dev-utils/function';
+import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 export interface TransformResult<Data> {
-  data: Data;
-  error?: Error;
-  transformedCode: string;
+  readonly data: Data;
+  readonly error?: Error;
+  readonly transformedCode: string;
 }
 
 export abstract class BabelPluginBase<Data = unknown> {
@@ -19,7 +20,7 @@ export abstract class BabelPluginBase<Data = unknown> {
     noop();
   }
 
-  public getInherits(): unknown {
+  public getInherits(): PluginObject['inherits'] {
     return undefined;
   }
 
@@ -32,27 +33,27 @@ export abstract class BabelPluginBase<Data = unknown> {
     noop();
   }
 
-  public post(_state: PluginPass, _file: BabelFile): void {
+  public post(_state: PluginPass, _file: File): void {
     noop();
   }
 
-  public pre(_state: PluginPass, _file: BabelFile): void {
+  public pre(_state: PluginPass, _file: File): void {
     noop();
   }
 
   public transform(code: string, filename: string, folder?: string): TransformResult<Data> {
     try {
       const result = babelTransform(code, {
-        cwd: folder,
         filename,
         parserOpts: {
           allowReturnOutsideFunction: true
         },
         plugins: [
-          this.getPluginObj()
+          (): PluginObject => this.getPluginObj()
         ],
         presets: ['typescript'],
-        sourceMaps: 'inline'
+        sourceMaps: 'inline',
+        ...folder === undefined ? {} : { cwd: folder }
       });
 
       if (result.code === null || result.code === undefined) {
@@ -72,29 +73,29 @@ export abstract class BabelPluginBase<Data = unknown> {
     }
   }
 
-  private getPluginObj(): PluginObj {
-    const that = this;
+  private getPluginObj(): PluginObject {
+    const thisWrapper = ValueWrapper.of(this);
     const visitor = this.getVisitor();
     const inherits = this.getInherits();
 
     function manipulateOptions(opts: unknown, parserOpts: unknown): void {
-      that.manipulateOptions(opts, parserOpts);
+      thisWrapper.value.manipulateOptions(opts, parserOpts);
     }
 
-    function pre(this: PluginPass, file: BabelFile): void {
-      that.pre(this, file);
+    function pre(this: PluginPass, file: File): void {
+      thisWrapper.value.pre(this, file);
     }
 
-    function post(this: PluginPass, file: BabelFile): void {
-      that.post(this, file);
+    function post(this: PluginPass, file: File): void {
+      thisWrapper.value.post(this, file);
     }
 
     return {
-      inherits,
       manipulateOptions,
       post,
       pre,
-      visitor
+      visitor,
+      ...inherits === undefined ? {} : { inherits }
     };
   }
 }

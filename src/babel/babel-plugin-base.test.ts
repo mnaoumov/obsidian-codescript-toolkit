@@ -1,4 +1,7 @@
-import type { BabelFileMetadata } from '@babel/core';
+import type {
+  FileResult,
+  PluginObject
+} from '@babel/core';
 
 import { transform } from '@babel/standalone';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
@@ -21,6 +24,16 @@ vi.mock('@babel/standalone', async (importOriginal) => {
 
 const TEST_FILENAME = 'test.ts';
 
+class InheritingBabelPlugin extends BabelPluginBase<Record<string, never>> {
+  public constructor() {
+    super({});
+  }
+
+  public override getInherits(): PluginObject['inherits'] {
+    return (): PluginObject => ({ visitor: {} });
+  }
+}
+
 class MinimalBabelPlugin extends BabelPluginBase<Record<string, never>> {
   public constructor() {
     super({});
@@ -37,6 +50,13 @@ describe('BabelPluginBase', () => {
     it('should return undefined from getInherits', () => {
       const plugin = new MinimalBabelPlugin();
       expect(plugin.getInherits()).toBeUndefined();
+    });
+
+    it('should include inherits in the plugin object when getInherits returns a value', () => {
+      const plugin = new InheritingBabelPlugin();
+      const result = plugin.transform('const x: number = 1;', TEST_FILENAME);
+      expect(result.error).toBeUndefined();
+      expect(result.transformedCode).toContain('const x = 1');
     });
 
     it('should not throw from manipulateOptions', () => {
@@ -79,7 +99,7 @@ describe('BabelPluginBase', () => {
         ast: null,
         code: null,
         map: null,
-        metadata: strictProxy<BabelFileMetadata>({})
+        metadata: strictProxy<FileResult['metadata']>({})
       });
 
       const plugin = new MinimalBabelPlugin();

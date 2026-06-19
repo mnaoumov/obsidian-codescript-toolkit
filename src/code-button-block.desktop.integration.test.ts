@@ -3,13 +3,16 @@ import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
 import {
   afterAll,
+  afterEach,
   beforeAll,
   describe,
   expect,
   it
 } from 'vitest';
 
-const RENDER_DELAY_MS = 3000;
+// The first code-button execution in a fresh Obsidian session loads babel-standalone and primes the require pipeline — a one-time cost far larger than a warm run. The poll timeout is generous enough to absorb that cold start; the first such test effectively warms the pipeline for the rest.
+const POLL_TIMEOUT_MS = 20_000;
+const POLL_INTERVAL_MS = 100;
 
 beforeAll(() => {
   const vault = getTempVault();
@@ -51,6 +54,16 @@ beforeAll(() => {
   });
 });
 
+afterEach(async () => {
+  // Detach markdown leaves between tests so a prior test's still-in-flight async code-button execution cannot interfere with the next test's rendering.
+  await evalInObsidian({
+    fn({ app }) {
+      app.workspace.detachLeavesOfType('markdown');
+    },
+    vaultPath: getTempVault().path
+  });
+});
+
 afterAll(async () => {
   // Close any open leaves to avoid interfering with subsequent test files
   await evalInObsidian({
@@ -68,8 +81,8 @@ function vaultPath(): string {
 describe('CodeButtonBlock integration', () => {
   it('should render a code button in markdown', async () => {
     const result = await evalInObsidian({
-      args: { renderDelay: RENDER_DELAY_MS },
-      async fn({ app, obsidianModule, renderDelay }) {
+      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      async fn({ app, intervalMs, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-buttons/basic', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -77,15 +90,29 @@ describe('CodeButtonBlock integration', () => {
           type: 'markdown'
         });
 
-        await sleep(renderDelay);
+        await waitUntil(() => getButtonCount() > 0);
 
         const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
         if (!view) {
           return { buttonCount: 0, error: 'No active MarkdownView' };
         }
 
-        const codeButtons = view.containerEl.querySelectorAll('.fix-require-modules');
-        return { buttonCount: codeButtons.length, mode: view.getMode() };
+        return { buttonCount: getButtonCount(), mode: view.getMode() };
+
+        function getButtonCount(): number {
+          const activeView = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
+          return activeView?.containerEl.querySelectorAll('.fix-require-modules').length ?? 0;
+        }
+
+        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
+          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            if (await check()) {
+              return;
+            }
+            await sleep(intervalMs);
+          }
+        }
       },
       vaultPath: vaultPath()
     });
@@ -95,8 +122,8 @@ describe('CodeButtonBlock integration', () => {
 
   it('should auto-run code button with shouldAutoRun: true', async () => {
     const result = await evalInObsidian({
-      args: { renderDelay: RENDER_DELAY_MS },
-      async fn({ app, renderDelay }) {
+      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      async fn({ app, intervalMs, timeoutMs }) {
         Reflect.deleteProperty(window, '__autoRunResult');
 
         await app.workspace.openLinkText('_int-test-buttons/auto-run', '', false);
@@ -106,10 +133,20 @@ describe('CodeButtonBlock integration', () => {
           type: 'markdown'
         });
 
-        await sleep(renderDelay);
+        await waitUntil(() => Reflect.get(window, '__autoRunResult') !== undefined);
 
         const autoRunResult = Reflect.get(window, '__autoRunResult') as string | undefined;
         return { autoRunResult };
+
+        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
+          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            if (await check()) {
+              return;
+            }
+            await sleep(intervalMs);
+          }
+        }
       },
       vaultPath: vaultPath()
     });
@@ -119,8 +156,8 @@ describe('CodeButtonBlock integration', () => {
 
   it('should execute isRaw code button without visible button', async () => {
     const result = await evalInObsidian({
-      args: { renderDelay: RENDER_DELAY_MS },
-      async fn({ app, obsidianModule, renderDelay }) {
+      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      async fn({ app, intervalMs, obsidianModule, timeoutMs }) {
         Reflect.deleteProperty(window, '__rawResult');
 
         await app.workspace.openLinkText('_int-test-buttons/raw', '', false);
@@ -129,7 +166,8 @@ describe('CodeButtonBlock integration', () => {
           state: { file: '_int-test-buttons/raw.md', mode: 'preview' },
           type: 'markdown'
         });
-        await sleep(renderDelay);
+
+        await waitUntil(() => Reflect.get(window, '__rawResult') !== undefined);
 
         const rawResult = Reflect.get(window, '__rawResult') as string | undefined;
 
@@ -138,6 +176,16 @@ describe('CodeButtonBlock integration', () => {
         const buttons = view?.containerEl.querySelectorAll('button.fix-require-modules-run-button') ?? [];
 
         return { buttonCount: buttons.length, rawResult };
+
+        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
+          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            if (await check()) {
+              return;
+            }
+            await sleep(intervalMs);
+          }
+        }
       },
       vaultPath: vaultPath()
     });
@@ -148,8 +196,8 @@ describe('CodeButtonBlock integration', () => {
 
   it('should transform import statements in code buttons', async () => {
     const result = await evalInObsidian({
-      args: { renderDelay: RENDER_DELAY_MS },
-      async fn({ app, renderDelay }) {
+      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      async fn({ app, intervalMs, timeoutMs }) {
         Reflect.deleteProperty(window, '__importResult');
 
         await app.workspace.openLinkText('_int-test-buttons/with-import', '', false);
@@ -159,10 +207,20 @@ describe('CodeButtonBlock integration', () => {
           type: 'markdown'
         });
 
-        await sleep(renderDelay);
+        await waitUntil(() => Reflect.get(window, '__importResult') !== undefined);
 
         const importResult = Reflect.get(window, '__importResult') as string | undefined;
         return { importResult };
+
+        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
+          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            if (await check()) {
+              return;
+            }
+            await sleep(intervalMs);
+          }
+        }
       },
       vaultPath: vaultPath()
     });

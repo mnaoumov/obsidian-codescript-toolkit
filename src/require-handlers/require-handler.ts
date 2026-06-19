@@ -35,6 +35,7 @@ import {
 import { typeAsserter } from 'obsidian-dev-utils/type';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import { isUrl } from 'obsidian-dev-utils/url';
+import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
@@ -87,8 +88,8 @@ interface EmptyModule {
 }
 
 interface ExtractCodeScriptResult {
-  code: string;
-  codeScriptName: string | undefined;
+  readonly code: string;
+  readonly codeScriptName: string | undefined;
 }
 
 interface Module {
@@ -105,7 +106,7 @@ interface RequireStringImplOptions {
 
 interface RequireStringImplResult {
   exportsFn(): unknown;
-  promisable: Promisable<void>;
+  readonly promisable: Promisable<void>;
 }
 
 interface RequireWindow {
@@ -115,8 +116,8 @@ interface RequireWindow {
 }
 
 interface ResolveResult {
-  resolvedId: string;
-  resolvedType: ResolvedType;
+  readonly resolvedId: string;
+  readonly resolvedType: ResolvedType;
 }
 
 type ScriptWrapper = (ctx: ScriptWrapperContext) => Promisable<void>;
@@ -132,8 +133,8 @@ interface ScriptWrapperContext {
 }
 
 interface SplitQueryResult {
-  cleanStr: string;
-  query: string;
+  readonly cleanStr: string;
+  readonly query: string;
 }
 
 interface WrapRequireOptions {
@@ -143,15 +144,6 @@ interface WrapRequireOptions {
   readonly require: RequireExFn;
 }
 
-/**
- * The caller line index is 4 because the call stack is as follows:
- *
- * 0: Error
- * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
- * 2:     at RequireHandlerImpl.resolve (plugin:fix-require-modules:?:?)
- * 3:     at RequireHandlerImpl.require (plugin:fix-require-modules:?:?)
- * 4:     at functionName (path/to/caller.js:?:?)
- */
 const CALLER_LINE_INDEX = 4;
 
 export const ENTRY_POINT = '.';
@@ -882,12 +874,12 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   private makeChildRequireAsync(parentPath: string): RequireAsyncFn {
-    const that = this;
+    const thisWrapper = ValueWrapper.of(this);
     return wrapped;
 
     async function wrapped(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown> {
       const newOptions = normalizeOptionalProperties<Partial<RequireOptions>>({ parentPath, ...options });
-      return await that.requireAsync(id, newOptions);
+      return await thisWrapper.value.requireAsync(id, newOptions);
     }
   }
 

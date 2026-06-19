@@ -16,14 +16,6 @@ type RequireFn = (id: string | TFile, options?: Record<string, unknown>) => unkn
 
 const SCRIPTS_DIR = '_int-test-scripts';
 
-/**
- * Creates a minimal valid ASAR archive containing a single file.
- *
- * ASAR format: [size pickle][header pickle][file data]
- * - Size pickle: 4-byte payload length + 4-byte header-pickle size
- * - Header pickle: 4-byte payload length + 4-byte JSON length + padded JSON string
- * - File data: raw file bytes at the offset specified in the header
- */
 function createMinimalAsar(fileName: string, content: string): Uint8Array {
   const fileBytes = new TextEncoder().encode(content);
   const headerJson = JSON.stringify({
@@ -72,16 +64,6 @@ function createMinimalAsar(fileName: string, content: string): Uint8Array {
   return new Uint8Array(buffer);
 }
 
-/**
- * Creates a minimal valid WASM binary that exports an `add(i32, i32) -> i32` function.
- *
- * Layout:
- * - Magic + version header
- * - Type section: one func type (i32, i32) -> i32
- * - Function section: one function referencing type 0
- * - Export section: exports function 0 as "add"
- * - Code section: local.get 0 + local.get 1 + i32.add
- */
 function createMinimalWasm(): Uint8Array {
   return new Uint8Array([
     // Magic + version

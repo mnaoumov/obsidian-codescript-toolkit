@@ -26,7 +26,6 @@ import type {
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
-/** @see {@link RegisterTempPluginParams} */
 export type CodeButtonContextImplComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
 
 interface CodeButtonContextImplComponentConstructorParams {

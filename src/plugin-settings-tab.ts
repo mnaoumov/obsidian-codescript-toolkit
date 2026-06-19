@@ -8,6 +8,7 @@ import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { appendCodeBlock } from 'obsidian-dev-utils/html-element';
 import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
 import { SettingGroupEx } from 'obsidian-dev-utils/obsidian/setting-group-ex';
+import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 import type { PluginSettings } from './plugin-settings.ts';
 
@@ -26,12 +27,11 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
     this.pluginName = params.pluginName;
   }
 
-  public override display(): void {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- super.display() calls the PluginSettingsTabBase override; the inherited @deprecated tag on Obsidian's SettingTab.display propagates via TS getJsDocTags.
-    super.display();
-    this.containerEl.empty();
+  public override displayLegacy(): void {
+    super.displayLegacy();
+
     const events = new Events();
-    const that = this;
+    const thisWrapper = ValueWrapper.of(this);
 
     new SettingGroupEx(this.containerEl)
       .setHeading('Paths')
@@ -84,7 +84,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             const suggest = new PathSuggest({
               app: this.app,
               getRootPath(): string {
-                return that.pluginSettingsComponent.settings.modulesRoot;
+                return thisWrapper.value.pluginSettingsComponent.settings.modulesRoot;
               },
               textInputEl: text.inputEl,
               type: 'folder'
@@ -113,7 +113,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             const suggest = new PathSuggest({
               app: this.app,
               getRootPath(): string {
-                return that.pluginSettingsComponent.settings.modulesRoot;
+                return thisWrapper.value.pluginSettingsComponent.settings.modulesRoot;
               },
               textInputEl: text.inputEl,
               type: 'file'
@@ -197,8 +197,8 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
                   const yaml = stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG);
                   settings.defaultCodeButtonConfig = `---\n${yaml}---`;
                 });
-                // eslint-disable-next-line @typescript-eslint/no-deprecated -- this.display() calls the PluginSettingsTab override; the inherited @deprecated tag on Obsidian's SettingTab.display propagates via TS getJsDocTags.
-                this.display();
+
+                this.displayLegacy();
               }))
           );
       });
