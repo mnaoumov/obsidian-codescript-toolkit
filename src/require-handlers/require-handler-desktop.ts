@@ -5,22 +5,18 @@ import {
   TFile
 } from 'obsidian';
 import { noopAsync } from 'obsidian-dev-utils/function';
-import {
-  castTo,
-  getPrototypeOf,
-  normalizeOptionalProperties
-} from 'obsidian-dev-utils/object-utils';
-import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/monkey-around-component';
+import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
 import {
   dirname,
   join,
   toPosixPath
 } from 'obsidian-dev-utils/path';
-import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
+import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { RequireOptions } from '../types.ts';
 import type { RequireFn } from './require-handler.ts';
 
+import { ModuleRequirePatchComponent } from '../patches/module-require-patch-component.ts';
 import {
   CacheInvalidationMode,
   ModuleType
@@ -87,22 +83,32 @@ export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase 
     return (await this.fsPromises.stat(path)).mtimeMs;
   }
 
+  public modulePrototypeRequire(id: string | TFile, module: NodeJS.Module): unknown {
+    /**
+     * The caller line index is 6 because the call stack is as follows:
+     *
+     * 0: Error
+     * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
+     * 2:     at RequireHandlerImpl.modulePrototypeRequire (plugin:fix-require-modules:?:?)
+     * 3:     at Module.modulePrototypeRequirePatched (plugin:fix-require-modules:?:?)
+     * 4:     at Module.wrapper [as require] (plugin:fix-require-modules:?:?)
+     * 5:     at require (node:internal/modules/helpers:?:?)
+     * 6:     at functionName (path/to/caller.js:?:?)
+     */
+    const CALLER_LINE_INDEX = 6;
+    const parentPath = this.getParentPathFromCallStack(CALLER_LINE_INDEX) ?? undefined;
+    const options = normalizeOptionalProperties<RequireOptions>({
+      parentModule: module,
+      parentPath
+    });
+    return this.requireEx(id, options);
+  }
+
   public override async onloadAsync(): Promise<void> {
     await super.onloadAsync();
 
-    const moduleProto = getPrototypeOf(window.module);
-    type ModuleProtoRequireFn = typeof moduleProto.require;
-
-    const patch = this.addChild(new MonkeyAroundComponent());
-    patch.registerPatch(moduleProto, {
-      require: (next: ModuleProtoRequireFn): ModuleProtoRequireFn => {
-        this.originalModulePrototypeRequire = castTo<RequireFn>(next);
-        const thisWrapper = ValueWrapper.of(this);
-        return function modulePrototypeRequirePatched(this: NodeJS.Module, id: string | TFile): unknown {
-          return thisWrapper.value.modulePrototypeRequire(id, this);
-        };
-      }
-    });
+    const patch = this.addChild(new ModuleRequirePatchComponent(this));
+    this.originalModulePrototypeRequire = ensureNonNullable(patch.originalModulePrototypeRequire);
   }
 
   public override async readFileAsync(path: string): Promise<string> {
@@ -324,27 +330,6 @@ ${this.getRequireAsyncAdvice(path)}`);
 URL dependencies validation is not supported when cacheInvalidationMode=${cacheInvalidationMode ?? CacheInvalidationMode.WhenPossible}.
 Consider using cacheInvalidationMode=${CacheInvalidationMode.Never}.
 ${this.getRequireAsyncAdvice(path)}`;
-  }
-
-  private modulePrototypeRequire(id: string | TFile, module: NodeJS.Module): unknown {
-    /**
-     * The caller line index is 6 because the call stack is as follows:
-     *
-     * 0: Error
-     * 1:     at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:?:?)
-     * 2:     at RequireHandlerImpl.modulePrototypeRequire (plugin:fix-require-modules:?:?)
-     * 3:     at Module.modulePrototypeRequirePatched (plugin:fix-require-modules:?:?)
-     * 4:     at Module.wrapper [as require] (plugin:fix-require-modules:?:?)
-     * 5:     at require (node:internal/modules/helpers:?:?)
-     * 6:     at functionName (path/to/caller.js:?:?)
-     */
-    const CALLER_LINE_INDEX = 6;
-    const parentPath = this.getParentPathFromCallStack(CALLER_LINE_INDEX) ?? undefined;
-    const options = normalizeOptionalProperties<RequireOptions>({
-      parentModule: module,
-      parentPath
-    });
-    return this.requireEx(id, options);
   }
 
   private originalModulePrototypeRequireWrapped(id: string, options: Partial<RequireOptions>): unknown {
