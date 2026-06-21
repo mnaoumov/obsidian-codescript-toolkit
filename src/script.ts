@@ -33,10 +33,10 @@ export class ScriptManager {
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly scriptRegistry: ScriptRegistryComponent;
 
-  public constructor(private readonly params: ScriptManagerConstructorParams) {
-    this.app = this.params.app;
-    this.pluginSettingsComponent = this.params.pluginSettingsComponent;
-    this.consoleDebugComponent = this.params.consoleDebugComponent;
+  public constructor(params: ScriptManagerConstructorParams) {
+    this.app = params.app;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
+    this.consoleDebugComponent = params.consoleDebugComponent;
     this.scriptRegistry = params.scriptRegistry;
   }
 
