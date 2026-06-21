@@ -20,8 +20,8 @@ export class ModuleRequirePatchComponent extends MonkeyAroundComponent {
     const requireHandlerDesktopComponent = this.requireHandlerDesktopComponent;
 
     this.registerFunctionPatch({
-      obj: getPrototypeOf(window.module),
       functionName: 'require',
+      obj: getPrototypeOf(window.module),
       patchHandler: (originalFn) => {
         this.originalModulePrototypeRequire = castTo<RequireFn>(originalFn);
         return modulePrototypeRequirePatched;
