@@ -6,7 +6,7 @@ import { trimStart } from 'obsidian-dev-utils/string';
 import type { RequireOptions } from './types.ts';
 
 // eslint-disable-next-line import-x/no-relative-packages -- package.json is not exported.
-import packageJson from '../node_modules/obsidian-dev-utils/package.json' with { type: 'json' };
+import packageJson from '../node_modules/obsidian-dev-utils/package.json';
 
 const EXPORT_PATH_PREFIX = './';
 const EXPORT_PATH_SEPARATOR = '/';

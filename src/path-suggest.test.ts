@@ -45,9 +45,6 @@ describe('PathSuggest', () => {
       textInputEl,
       type: 'file'
     });
-    // The real obsidian-test-mocks AbstractInputSuggest stores the element as a private `inputEl`,
-    // So supply the `textInputEl` field that real Obsidian exposes and PathSuggest relies on.
-    suggest.textInputEl = textInputEl;
   });
 
   describe('getSuggestions', () => {
