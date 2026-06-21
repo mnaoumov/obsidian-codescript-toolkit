@@ -7,6 +7,7 @@ import type {
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 
+import { waitForAllAsyncOperations } from 'obsidian-dev-utils/async';
 import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
@@ -35,7 +36,6 @@ import {
 const mockGetFile = vi.fn();
 const mockGetCodeBlockMarkdownInfo = vi.fn();
 const mockReplaceCodeBlock = vi.fn();
-const mockInvokeAsyncSafely = vi.fn((fn: () => unknown) => fn());
 const mockPrintError = vi.fn();
 const mockGetDataAdapterEx = vi.fn();
 const mockGetOsAndObsidianUnsafePathCharsRegExp = vi.fn();
@@ -44,10 +44,6 @@ interface BabelTransformResult {
   readonly error: Error | undefined;
   readonly transformedCode: string;
 }
-
-vi.mock('obsidian-dev-utils/async', () => ({
-  invokeAsyncSafely: (...args: unknown[]): unknown => (mockInvokeAsyncSafely as (...a: unknown[]) => unknown)(...args)
-}));
 
 vi.mock('obsidian-dev-utils/error', () => ({
   printError: (...args: unknown[]): unknown => mockPrintError(...args)
@@ -348,7 +344,7 @@ describe('CodeButtonBlockComponent', () => {
   });
 
   describe('onload markdown processor callback', () => {
-    it('should invoke processCodeButtonBlock via invokeAsyncSafely when callback is triggered', () => {
+    it('should invoke processCodeButtonBlock via invokeAsyncSafely when callback is triggered', async () => {
       component.load();
 
       const registerMock = vi.mocked(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor);
@@ -364,9 +360,15 @@ describe('CodeButtonBlockComponent', () => {
       mockGetFile.mockReturnValue({ path: 'test.md' });
       mockGetCodeBlockMarkdownInfo.mockResolvedValue(null);
 
+      const processSpy = vi.spyOn(component, 'processCodeButtonBlock');
+
       callback?.('source code', el, ctx);
 
-      expect(mockInvokeAsyncSafely).toHaveBeenCalled();
+      // The callback schedules processCodeButtonBlock via the real invokeAsyncSafely (fire-and-forget).
+      // Drain the tracked operation before asserting.
+      await waitForAllAsyncOperations();
+
+      expect(processSpy).toHaveBeenCalled();
     });
   });
 
@@ -439,10 +441,14 @@ describe('CodeButtonBlockComponent', () => {
 
       const source = '---\nisRaw: true\n---\nconsole.log("test")';
 
+      const handleClickSpy = vi.spyOn(component, 'handleClick').mockResolvedValue(undefined);
+
       await component.processCodeButtonBlock({ ctx, el, source });
 
-      // When isRaw is true, shouldAutoRun is set to true, so handleClick should be called
-      expect(mockInvokeAsyncSafely).toHaveBeenCalled();
+      // When isRaw is true, shouldAutoRun is set to true, so handleClick is scheduled via the real
+      // Fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
+      await waitForAllAsyncOperations();
+      expect(handleClickSpy).toHaveBeenCalled();
     });
 
     it('should auto-run when shouldAutoRun is true', async () => {
@@ -458,9 +464,14 @@ describe('CodeButtonBlockComponent', () => {
 
       const source = '---\nshouldAutoRun: true\n---\nconsole.log("test")';
 
+      const handleClickSpy = vi.spyOn(component, 'handleClick').mockResolvedValue(undefined);
+
       await component.processCodeButtonBlock({ ctx, el, source });
 
-      expect(mockInvokeAsyncSafely).toHaveBeenCalled();
+      // Auto-run schedules handleClick via the real invokeAsyncSafely (fire-and-forget).
+      // Drain the tracked operation before asserting.
+      await waitForAllAsyncOperations();
+      expect(handleClickSpy).toHaveBeenCalled();
     });
 
     it('should show YAML error message when parseYaml throws', async () => {
@@ -546,18 +557,14 @@ describe('CodeButtonBlockComponent', () => {
       const button = fragmentArg?.querySelector('button');
       expect(button).toBeDefined();
 
-      if (button) {
-        button.click();
-        // The click handler calls invokeAsyncSafely which is mocked
-        expect(mockInvokeAsyncSafely).toHaveBeenCalled();
+      expect(button).not.toBeNull();
+      button?.click();
 
-        // Execute the async callback passed to invokeAsyncSafely
-        const asyncFn = mockInvokeAsyncSafely.mock.calls[0]?.[0] as (() => Promise<void>) | undefined;
-        if (asyncFn) {
-          await asyncFn();
-          expect(mockReplaceCodeBlock).toHaveBeenCalled();
-        }
-      }
+      // The click handler schedules its work via the real invokeAsyncSafely (fire-and-forget).
+      // Drain the tracked operation before asserting the observable effect.
+      await waitForAllAsyncOperations();
+
+      expect(mockReplaceCodeBlock).toHaveBeenCalled();
     });
 
     it('should pass updated sourcePath from sourceFile to CodeButtonContextImplComponent', async () => {
@@ -576,11 +583,14 @@ describe('CodeButtonBlockComponent', () => {
       const mockScriptWrapper = vi.fn();
       vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
+      const handleClickSpy = vi.spyOn(component, 'handleClick').mockResolvedValue(undefined);
+
       await component.processCodeButtonBlock({ ctx, el, source });
 
-      // HandleClick is invoked via shouldAutoRun, which uses updateSourcePath
-      // The requireStringAsync call path includes the updated sourcePath
-      expect(mockInvokeAsyncSafely).toHaveBeenCalled();
+      // Auto-run schedules handleClick (which uses the updated sourcePath) via the real
+      // Fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
+      await waitForAllAsyncOperations();
+      expect(handleClickSpy).toHaveBeenCalled();
     });
 
     it('should use updateSourcePath to set sourcePath from sourceFile', async () => {
