@@ -45,56 +45,6 @@ interface BabelTransformResult {
   readonly transformedCode: string;
 }
 
-interface FrontMatterResult {
-  readonly contentStart: number;
-  readonly frontmatter: string;
-}
-
-vi.mock('obsidian', async (importOriginal) => ({
-  ...await importOriginal<typeof import('obsidian')>(),
-  Component: class MockComponent {
-    public onload(): void {
-      // Intentional noop for test mock.
-    }
-
-    public register(_fn: unknown): void {
-      // Intentional noop for test mock.
-    }
-  },
-  getFrontMatterInfo: (source: string): FrontMatterResult => {
-    const match = /^---\n(?<frontmatter>[\s\S]*?)\n---\n?/.exec(source);
-    if (match) {
-      return { contentStart: match[0].length, frontmatter: match[1] ?? '' };
-    }
-    return { contentStart: 0, frontmatter: '' };
-  },
-  parseYaml: (yaml: string): unknown => {
-    if (!yaml) {
-      return undefined;
-    }
-    const result: Record<string, unknown> = {};
-    for (const line of yaml.split('\n')) {
-      const colonIndex = line.indexOf(':');
-      if (colonIndex > 0) {
-        const key = line.slice(0, colonIndex).trim();
-        const value = line.slice(colonIndex + 1).trim();
-        if (value === 'true') {
-          result[key] = true;
-        } else if (value === 'false') {
-          result[key] = false;
-        } else {
-          result[key] = value;
-        }
-      }
-    }
-    return result;
-  },
-  stringifyYaml: (obj: unknown): string => {
-    const entries = Object.entries(obj as Record<string, unknown>);
-    return `${entries.map(([k, v]) => `${k}: ${String(v)}`).join('\n')}\n`;
-  }
-}));
-
 vi.mock('obsidian-dev-utils/async', () => ({
   invokeAsyncSafely: (...args: unknown[]): unknown => (mockInvokeAsyncSafely as (...a: unknown[]) => unknown)(...args)
 }));
@@ -102,24 +52,6 @@ vi.mock('obsidian-dev-utils/async', () => ({
 vi.mock('obsidian-dev-utils/error', () => ({
   printError: (...args: unknown[]): unknown => mockPrintError(...args)
 }));
-
-vi.mock('obsidian-dev-utils/object-utils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('obsidian-dev-utils/object-utils')>();
-  return {
-    ...actual,
-    normalizeOptionalProperties: <T>(obj: T): T => obj,
-    removeUndefinedProperties: <T>(obj: T): T => {
-      const result = { ...obj } as Record<string, unknown>;
-      for (const key of Object.keys(result)) {
-        if (result[key] === undefined) {
-          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- mock implementation requires dynamic property deletion
-          delete result[key];
-        }
-      }
-      return result as T;
-    }
-  };
-});
 
 vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
   getFile: (...args: unknown[]): unknown => mockGetFile(...args)
@@ -132,15 +64,6 @@ vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor', () => ({
 
 vi.mock('obsidian-dev-utils/obsidian/validation', () => ({
   getOsAndObsidianUnsafePathCharsRegExp: (...args: unknown[]): unknown => mockGetOsAndObsidianUnsafePathCharsRegExp(...args)
-}));
-
-vi.mock('obsidian-dev-utils/path', () => ({
-  basename: (path: string): string => path.split('/').pop() ?? '',
-  dirname: (path: string): string => path.split('/').slice(0, -1).join('/')
-}));
-
-vi.mock('obsidian-dev-utils/string', () => ({
-  indent: (str: string, prefix: string): string => str.split('\n').map((line) => `${prefix}${line}`).join('\n')
 }));
 
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
@@ -374,7 +297,7 @@ describe('CodeButtonBlockComponent', () => {
 
   describe('onload', () => {
     it('should register a markdown code block processor for code-button', () => {
-      component.onload();
+      component.load();
 
       expect(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor).toHaveBeenCalledWith(
         'code-button',
@@ -383,13 +306,13 @@ describe('CodeButtonBlockComponent', () => {
     });
 
     it('should register code highlighting on load', () => {
-      component.onload();
+      component.load();
 
       expect(mockDefineMode).toHaveBeenCalledWith('code-button', expect.any(Function));
     });
 
     it('should invoke the defineMode callback which calls getMode with text/typescript', () => {
-      component.onload();
+      component.load();
 
       // The first call to defineMode is registerCodeHighlighting
       const defineModeCallback = mockDefineMode.mock.calls[0]?.[1] as (config: unknown) => unknown;
@@ -401,29 +324,19 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should register unregisterCodeHighlighting cleanup callback', () => {
       const registerSpy = vi.spyOn(component, 'register');
-      component.onload();
+      component.load();
 
       // Register is called with unregisterCodeHighlighting
       expect(registerSpy).toHaveBeenCalled();
     });
 
     it('should call unregisterCodeHighlighting which redefines mode to null', () => {
-      component.onload();
-
-      // RegisterSpy captures the unregisterCodeHighlighting callback
-      // The second defineMode call is from unregisterCodeHighlighting when invoked
-      // We find the register callback and invoke it
-      const registerSpy = vi.spyOn(component, 'register');
-      mockDefineMode.mockClear();
-      component.onload();
-
-      // Get the first registered callback (unregisterCodeHighlighting)
-      const registeredCallbacks = (registerSpy as ReturnType<typeof vi.fn>).mock.calls;
-      const unregisterCallback = registeredCallbacks[0]?.[0] as (() => void) | undefined;
-      expect(unregisterCallback).toBeDefined();
+      // Drive the real Component lifecycle: `load()` registers the cleanup, then
+      // `unload()` invokes every registered cleanup (here unregisterCodeHighlighting).
+      component.load();
 
       mockDefineMode.mockClear();
-      unregisterCallback?.();
+      component.unload();
 
       expect(mockDefineMode).toHaveBeenCalledWith('code-button', expect.any(Function));
       // The callback should call getMode with 'null'
@@ -436,7 +349,7 @@ describe('CodeButtonBlockComponent', () => {
 
   describe('onload markdown processor callback', () => {
     it('should invoke processCodeButtonBlock via invokeAsyncSafely when callback is triggered', () => {
-      component.onload();
+      component.load();
 
       const registerMock = vi.mocked(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor);
       const registerCall = registerMock.mock.calls[0];
@@ -551,14 +464,6 @@ describe('CodeButtonBlockComponent', () => {
     });
 
     it('should show YAML error message when parseYaml throws', async () => {
-      // Temporarily override the obsidian mock parseYaml to throw
-      // eslint-disable-next-line no-restricted-syntax -- dynamic import needed to override mock at runtime
-      const obsidian = await import('obsidian');
-      const originalParseYaml = obsidian.parseYaml;
-      vi.mocked(obsidian).parseYaml = vi.fn().mockImplementation(() => {
-        throw new Error('Invalid YAML');
-      });
-
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
         // Intentional noop for test mock.
       });
@@ -572,14 +477,14 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      const source = '---\ninvalid: yaml\n---\ncode';
+      // Genuinely malformed YAML so the REAL parseYaml throws (unclosed flow sequence).
+      const source = '---\nfoo: [unclosed\n---\ncode';
 
       await component.processCodeButtonBlock({ ctx, el, source });
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
 
-      vi.mocked(obsidian).parseYaml = castTo(originalParseYaml);
       consoleErrorSpy.mockRestore();
     });
 

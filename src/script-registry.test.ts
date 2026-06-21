@@ -3,12 +3,11 @@ import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { Mock } from 'vitest';
 
-import {
-  noop,
-  noopAsync
-} from 'obsidian-dev-utils/function';
-import { castTo } from 'obsidian-dev-utils/object-utils';
+import { Component } from 'obsidian';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { App as ObsidianTestApp } from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
   describe,
@@ -27,97 +26,19 @@ import {
 } from './script-registry.ts';
 
 const mockPrintError = vi.fn();
-const mockNoopAsync = vi.fn().mockResolvedValue(undefined);
-const mockIsMarkdownFile = vi.fn();
 
-vi.mock('obsidian-dev-utils/error', () => ({
-  printError: (...args: unknown[]): unknown => mockPrintError(...args)
+const INVOCABLE_SCRIPTS_FOLDER = 'scripts';
+
+// Only `printError` is stubbed (a thin return-value passthrough so the test can assert which error
+// Was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
+// The real command-handler infrastructure) are preserved via `importOriginal`. No dev-utils logic is
+// Reimplemented (printError only logs to console).
+vi.mock('obsidian-dev-utils/error', async (importOriginal) => ({
+  ...await importOriginal<typeof import('obsidian-dev-utils/error')>(),
+  printError: (...args: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...args)
 }));
 
-vi.mock('obsidian-dev-utils/function', () => ({
-  noop: vi.fn(),
-  noopAsync: (...args: unknown[]): unknown => mockNoopAsync(...args)
-}));
-
-interface MockCommandHandlerParams {
-  readonly icon: string;
-  readonly id: string;
-  readonly name: string;
-}
-
-vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler', () => ({
-  CommandHandler: class MockCommandHandler {
-    public icon: string;
-    public id: string;
-    public name: string;
-
-    public constructor(params: MockCommandHandlerParams) {
-      this.icon = params.icon;
-      this.id = params.id;
-      this.name = params.name;
-    }
-
-    public buildCommand(): Record<string, unknown> {
-      return { icon: this.icon, id: this.id, name: this.name };
-    }
-  }
-}));
-
-interface MockGlobalCommandHandlerParams {
-  readonly icon: string;
-  readonly id: string;
-  readonly name: string;
-}
-
-vi.mock('obsidian-dev-utils/obsidian/command-handlers/global-command-handler', () => ({
-  GlobalCommandHandler: class MockGlobalCommandHandler {
-    public icon: string;
-    public id: string;
-    public name: string;
-
-    public constructor(params: MockGlobalCommandHandlerParams) {
-      this.icon = params.icon;
-      this.id = params.id;
-      this.name = params.name;
-    }
-  }
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler-component', () => ({
-  CommandHandlerComponent: class MockCommandHandlerComponent {
-    public load(): void {
-      noop();
-    }
-  }
-}));
-
-const onloadPromises: Promise<void>[] = [];
-
-vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- Need to import Component inside mock factory; use mock path directly since require() doesn't go through Vite's alias resolution.
-  const { Component: ObsidianComponent } = require('obsidian-test-mocks/obsidian') as typeof import('obsidian');
-  return {
-    ComponentEx: class MockComponentEx extends ObsidianComponent {
-      public override load(): void {
-        const onload = Reflect.get(this, 'onload') as () => Promise<void>;
-        onloadPromises.push(noopAsync().then(() => onload.call(this)));
-      }
-    }
-  };
-});
-
-vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
-  isMarkdownFile: (...args: unknown[]): unknown => mockIsMarkdownFile(...args)
-}));
-
-vi.mock('obsidian-dev-utils/path', () => ({
-  join: (...segments: string[]): string => segments.filter(Boolean).join('/')
-}));
-
-vi.mock('obsidian-dev-utils/type-guards', () => ({
-  ensureNonNullable: <T>(v: T): T => v
-}));
-
+// `getCodeScriptToolkitNoteSettings` is the plugin's OWN sibling module; stubbing it is allowed.
 vi.mock('./code-script-toolkit-note-settings.ts', () => ({
   getCodeScriptToolkitNoteSettings: vi.fn().mockResolvedValue({
     defaultCodeScriptName: '',
@@ -127,83 +48,61 @@ vi.mock('./code-script-toolkit-note-settings.ts', () => ({
 }));
 
 interface CreateRegistryOverrides {
-  app?: MockApp;
-  consoleDebugComponent?: MockConsoleDebugComponent;
-  pluginSettingsComponent?: MockPluginSettingsComponent;
-  RequireHandlerFactoryComponent?: MockRequireHandlerFactoryComponent;
-}
-
-interface MockAdapter {
-  exists: ReturnType<typeof vi.fn>;
-}
-
-interface MockApp {
-  vault: MockVault;
-}
-
-interface MockConsoleDebugComponent {
-  consoleDebug: ReturnType<typeof vi.fn>;
-}
-
-interface MockPluginSettingsComponent {
-  settings: MockSettings;
+  app?: App;
+  consoleDebugComponent?: ConsoleDebugComponent;
+  RequireHandlerFactoryComponent?: RequireHandlerFactoryComponent;
 }
 
 interface MockRequireHandlerFactoryComponent {
-  requireVaultScriptAsync: ReturnType<typeof vi.fn>;
+  requireVaultScriptAsync: Mock<(id: string) => Promise<unknown>>;
 }
 
-interface MockSettings {
-  getInvocableScriptsFolder: ReturnType<typeof vi.fn>;
+function createApp(files: Record<string, string> = {}): App {
+  return ObsidianTestApp.createConfigured__({ files }).asOriginalType__();
 }
 
-interface MockVault {
-  adapter: MockAdapter;
+function createConsoleDebugComponent(): ConsoleDebugComponent {
+  return strictProxy<ConsoleDebugComponent>({
+    consoleDebug: vi.fn<(message: string, ...args: unknown[]) => void>()
+  });
 }
 
-function createMockApp(): MockApp {
-  return {
-    vault: {
-      adapter: {
-        exists: vi.fn()
-      }
-    }
-  };
-}
-
-function createMockConsoleDebugComponent(): MockConsoleDebugComponent {
-  return {
-    consoleDebug: vi.fn()
-  };
-}
-
-function createMockPluginSettingsComponent(): MockPluginSettingsComponent {
-  return {
-    settings: {
-      getInvocableScriptsFolder: vi.fn().mockReturnValue('scripts')
-    }
-  };
-}
-
-function createMockRequireHandlerFactoryComponent(): MockRequireHandlerFactoryComponent {
-  return {
-    requireVaultScriptAsync: vi.fn()
-  };
+function createPluginSettingsComponent(): PluginSettingsComponent {
+  return strictProxy<PluginSettingsComponent>({
+    settings: strictProxy<PluginSettingsComponent['settings']>({
+      getInvocableScriptsFolder: (): string => INVOCABLE_SCRIPTS_FOLDER
+    })
+  });
 }
 
 function createRegistry(overrides?: CreateRegistryOverrides): ScriptRegistryComponent {
   return new ScriptRegistryComponent({
-    activeFileProvider: castTo<ActiveFileProvider>({}),
-    app: castTo<App>(overrides?.app ?? createMockApp()),
-    commandRegistrar: castTo<CommandRegistrar>({}),
-    consoleDebugComponent: castTo<ConsoleDebugComponent>(overrides?.consoleDebugComponent ?? createMockConsoleDebugComponent()),
-    menuEventRegistrar: castTo<MenuEventRegistrar>({}),
+    activeFileProvider: strictProxy<ActiveFileProvider>({
+      getActiveFile: vi.fn().mockReturnValue(null)
+    }),
+    app: overrides?.app ?? createApp(),
+    commandRegistrar: strictProxy<CommandRegistrar>({
+      addCommand: vi.fn(),
+      removeCommand: vi.fn()
+    }),
+    consoleDebugComponent: overrides?.consoleDebugComponent ?? createConsoleDebugComponent(),
+    menuEventRegistrar: strictProxy<MenuEventRegistrar>({
+      registerEditorMenuEventHandler: vi.fn(),
+      registerFileMenuEventHandler: vi.fn(),
+      registerFilesMenuEventHandler: vi.fn()
+    }),
     pluginName: 'test-plugin',
-    pluginSettingsComponent: castTo<PluginSettingsComponent>(overrides?.pluginSettingsComponent ?? createMockPluginSettingsComponent()),
-    RequireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>(
-      overrides?.RequireHandlerFactoryComponent ?? createMockRequireHandlerFactoryComponent()
+    pluginSettingsComponent: createPluginSettingsComponent(),
+    RequireHandlerFactoryComponent: strictProxy<RequireHandlerFactoryComponent>(
+      overrides?.RequireHandlerFactoryComponent ?? createRequireHandlerFactoryComponent()
     )
   });
+}
+
+function createRequireHandlerFactoryComponent(): MockRequireHandlerFactoryComponent {
+  return {
+    requireVaultScriptAsync: vi.fn()
+  };
 }
 
 describe('INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX', () => {
@@ -213,47 +112,43 @@ describe('INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX', () => {
 });
 
 describe('ScriptRegistry', () => {
-  let mockApp: MockApp;
-  let mockPluginSettingsComponent: MockPluginSettingsComponent;
-  let mockConsoleDebugComponent: MockConsoleDebugComponent;
-  let mockRequireHandlerFactoryComponent: MockRequireHandlerFactoryComponent;
+  let consoleDebugComponent: ConsoleDebugComponent;
+  let consoleDebug: Mock<(message: string, ...args: unknown[]) => void>;
+  let requireHandlerFactoryComponent: MockRequireHandlerFactoryComponent;
   let registry: ScriptRegistryComponent;
 
   beforeEach(() => {
-    onloadPromises.length = 0;
     mockPrintError.mockReset();
-    mockNoopAsync.mockReset().mockResolvedValue(undefined);
-    mockIsMarkdownFile.mockReset().mockReturnValue(false);
     vi.mocked(getCodeScriptToolkitNoteSettings).mockReset().mockResolvedValue({
       defaultCodeScriptName: '',
       invocableCodeScriptName: '',
       isInvocable: false
     });
 
-    mockApp = createMockApp();
-    mockPluginSettingsComponent = createMockPluginSettingsComponent();
-    mockConsoleDebugComponent = createMockConsoleDebugComponent();
-    mockRequireHandlerFactoryComponent = createMockRequireHandlerFactoryComponent();
-
-    registry = createRegistry({
-      app: mockApp,
-      consoleDebugComponent: mockConsoleDebugComponent,
-      pluginSettingsComponent: mockPluginSettingsComponent,
-      RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent
-    });
+    consoleDebug = vi.fn();
+    consoleDebugComponent = strictProxy<ConsoleDebugComponent>({ consoleDebug });
+    requireHandlerFactoryComponent = createRequireHandlerFactoryComponent();
   });
+
+  function createRegistryWithFiles(files: Record<string, string> = {}): ScriptRegistryComponent {
+    return createRegistry({
+      app: createApp(files),
+      consoleDebugComponent,
+      RequireHandlerFactoryComponent: strictProxy<RequireHandlerFactoryComponent>(requireHandlerFactoryComponent)
+    });
+  }
 
   describe('constructor', () => {
     it('should create a ScriptRegistry that extends Component', () => {
-      noop();
-      expect(registry).toBeDefined();
+      registry = createRegistryWithFiles();
+      expect(registry).toBeInstanceOf(Component);
     });
   });
 
   describe('getScriptOrCommand', () => {
     it('should throw when script file does not exist', async () => {
       const SCRIPT_PATH = 'nonexistent.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(false);
+      registry = createRegistryWithFiles();
 
       await expect(registry.getScriptOrCommand(SCRIPT_PATH)).rejects.toThrow(
         `Script not found: '${SCRIPT_PATH}'.`
@@ -262,8 +157,7 @@ describe('ScriptRegistry', () => {
 
     it('should throw when markdown file is not invocable', async () => {
       const SCRIPT_PATH = 'note.md';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(true);
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({
         defaultCodeScriptName: '',
         invocableCodeScriptName: '',
@@ -278,50 +172,47 @@ describe('ScriptRegistry', () => {
     it('should append codeScriptName query param for markdown with invocable code script name', async () => {
       const SCRIPT_PATH = 'note.md';
       const CODE_SCRIPT_NAME = 'myScript';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(true);
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({
         defaultCodeScriptName: '',
         invocableCodeScriptName: CODE_SCRIPT_NAME,
         isInvocable: true
       });
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
       await registry.getScriptOrCommand(SCRIPT_PATH);
 
-      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
-        `scripts/${SCRIPT_PATH}?codeScriptName=${CODE_SCRIPT_NAME}`
+      expect(requireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
+        `${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}?codeScriptName=${CODE_SCRIPT_NAME}`
       );
     });
 
     it('should require vault script for invocable markdown without code script name', async () => {
       const SCRIPT_PATH = 'note.md';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(true);
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       vi.mocked(getCodeScriptToolkitNoteSettings).mockResolvedValue({
         defaultCodeScriptName: '',
         invocableCodeScriptName: '',
         isInvocable: true
       });
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
       await registry.getScriptOrCommand(SCRIPT_PATH);
 
-      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
-        `scripts/${SCRIPT_PATH}`
+      expect(requireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
+        `${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`
       );
     });
 
     it('should require vault script for non-markdown files', async () => {
       const SCRIPT_PATH = 'script.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
       await registry.getScriptOrCommand(SCRIPT_PATH);
 
-      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
-        `scripts/${SCRIPT_PATH}`
+      expect(requireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
+        `${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`
       );
     });
   });
@@ -329,6 +220,7 @@ describe('ScriptRegistry', () => {
   describe('invokeScriptPath', () => {
     it('should throw when no command is registered for the script path', async () => {
       const SCRIPT_PATH = 'unregistered.js';
+      registry = createRegistryWithFiles();
 
       await expect(registry.invokeScriptPath(SCRIPT_PATH)).rejects.toThrow(
         `No command registered for script path: ${SCRIPT_PATH}`
@@ -337,24 +229,16 @@ describe('ScriptRegistry', () => {
 
     it('should debug log when invoking a script path', async () => {
       const SCRIPT_PATH = 'registered.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: vi.fn()
       });
 
       await registry.registerScript(SCRIPT_PATH);
+      await registry.invokeScriptPath(SCRIPT_PATH);
 
-      // The invoke will fail because WrapperCommandHandlerComponent.onload is async
-      // And Component.load() doesn't await it, so _wrapperCommandHandler is undefined.
-      // But we can verify the debug log was called before the error.
-      try {
-        await registry.invokeScriptPath(SCRIPT_PATH);
-      } catch {
-        // Expected: forceInvoke fails because async onload hasn't completed
-      }
-
-      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith(
+      expect(consoleDebug).toHaveBeenCalledWith(
         `Invoking script: ${SCRIPT_PATH}.`
       );
     });
@@ -363,27 +247,21 @@ describe('ScriptRegistry', () => {
   describe('registerScript', () => {
     it('should register a script and add it to the internal map', async () => {
       const SCRIPT_PATH = 'test.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: vi.fn()
       });
 
       await registry.registerScript(SCRIPT_PATH);
 
-      // After registration, invokeScriptPath should NOT throw "No command registered"
-      // (it will fail later in forceInvoke due to async onload, but the map entry exists)
-      try {
-        await registry.invokeScriptPath(SCRIPT_PATH);
-      } catch (error) {
-        // Should NOT be "No command registered" — that would mean registration failed
-        expect((error as Error).message).not.toContain('No command registered');
-      }
+      // After registration, invokeScriptPath should NOT throw "No command registered".
+      await expect(registry.invokeScriptPath(SCRIPT_PATH)).resolves.toBeUndefined();
     });
 
     it('should handle require error gracefully', async () => {
       const SCRIPT_PATH = 'broken.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(false);
+      registry = createRegistryWithFiles();
 
       await registry.registerScript(SCRIPT_PATH);
 
@@ -396,7 +274,7 @@ describe('ScriptRegistry', () => {
 
     it('should not register the script when require fails', async () => {
       const SCRIPT_PATH = 'broken.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(false);
+      registry = createRegistryWithFiles();
 
       await registry.registerScript(SCRIPT_PATH);
 
@@ -409,9 +287,9 @@ describe('ScriptRegistry', () => {
   describe('unregisterInvocableCommands', () => {
     it('should clear all registered commands so they cannot be invoked', async () => {
       const SCRIPT_PATH = 'test.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: vi.fn()
       });
 
@@ -424,17 +302,21 @@ describe('ScriptRegistry', () => {
     });
 
     it('should do nothing when no commands are registered', () => {
-      registry.unregisterInvocableCommands();
-      // After clearing, invoking any script should throw
-      expect(registry.unregisterInvocableCommands).toBeDefined();
+      registry = createRegistryWithFiles();
+      expect(() => {
+        registry.unregisterInvocableCommands();
+      }).not.toThrow();
     });
 
     it('should clear multiple registered commands', async () => {
       const SCRIPT_PATH_1 = 'test1.js';
       const SCRIPT_PATH_2 = 'test2.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      registry = createRegistryWithFiles({
+        [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH_1}`]: '',
+        [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH_2}`]: ''
+      });
+      registry.load();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: vi.fn()
       });
 
@@ -448,45 +330,40 @@ describe('ScriptRegistry', () => {
   });
 
   describe('FunctionWrapperCommandHandler via registerScript + invokeScriptPath', () => {
-    beforeEach(() => {
-      // Registry must be loaded for addChild to trigger load on children
-      Reflect.set(registry, 'loaded__', true);
-    });
-
     it('should invoke script with invoke function successfully', async () => {
       const SCRIPT_PATH = 'invoke-test.js';
+      const app = createApp({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry = createRegistry({
+        app,
+        consoleDebugComponent,
+        RequireHandlerFactoryComponent: strictProxy<RequireHandlerFactoryComponent>(requireHandlerFactoryComponent)
+      });
+      registry.load();
       const mockInvoke = vi.fn().mockResolvedValue(undefined);
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      // Wait for async onload to complete
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
-      expect(mockInvoke).toHaveBeenCalledWith(mockApp);
-      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith(
+      expect(mockInvoke).toHaveBeenCalledWith(app);
+      expect(consoleDebug).toHaveBeenCalledWith(
         `${SCRIPT_PATH} invocable script executed successfully`
       );
     });
 
     it('should handle error from invoke function gracefully', async () => {
       const SCRIPT_PATH = 'error-invoke.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
       const invokeError = new Error('invoke failed');
       const mockInvoke = vi.fn().mockRejectedValue(invokeError);
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invoke: mockInvoke
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(mockPrintError).toHaveBeenCalledWith(
@@ -498,49 +375,41 @@ describe('ScriptRegistry', () => {
   });
 
   describe('CommandWrapperCommandHandler via registerScript + invokeScriptPath', () => {
-    beforeEach(() => {
-      Reflect.set(registry, 'loaded__', true);
-    });
-
     it('should invoke script with invokeCommand callback successfully', async () => {
       const SCRIPT_PATH = 'command-test.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
       const mockCallback = vi.fn();
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           callback: mockCallback
         }
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(mockCallback).toHaveBeenCalled();
-      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith(
+      expect(consoleDebug).toHaveBeenCalledWith(
         `${SCRIPT_PATH} command executed successfully`
       );
     });
 
     it('should handle error from invokeCommand callback', async () => {
       const SCRIPT_PATH = 'command-error.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
       const callbackError = new Error('callback failed');
       const mockCallback = vi.fn().mockImplementation(() => {
         throw callbackError;
       });
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           callback: mockCallback
         }
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(mockPrintError).toHaveBeenCalledWith(
@@ -552,20 +421,18 @@ describe('ScriptRegistry', () => {
 
     it('should invoke checkCallback and execute when check passes', async () => {
       const SCRIPT_PATH = 'check-pass.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
       const mockCheckCallback = vi.fn()
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(undefined);
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           checkCallback: mockCheckCallback
         }
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       // CheckCallback should be called twice: once with true (check), once with false (execute)
@@ -576,18 +443,16 @@ describe('ScriptRegistry', () => {
 
     it('should show notice when checkCallback returns false (condition not met)', async () => {
       const SCRIPT_PATH = 'check-fail.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
       const mockCheckCallback = vi.fn().mockReturnValue(false);
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           checkCallback: mockCheckCallback
         }
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       // Only called once with true (the check), not called with false (execute)
@@ -597,21 +462,19 @@ describe('ScriptRegistry', () => {
 
     it('should handle error from checkCallback check phase', async () => {
       const SCRIPT_PATH = 'check-error.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
       const checkError = new Error('check failed');
       const mockCheckCallback = vi.fn().mockImplementation(() => {
         throw checkError;
       });
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           checkCallback: mockCheckCallback
         }
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(mockPrintError).toHaveBeenCalledWith(
@@ -623,23 +486,21 @@ describe('ScriptRegistry', () => {
 
     it('should handle error from checkCallback execution phase', async () => {
       const SCRIPT_PATH = 'check-exec-error.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
       const execError = new Error('execution failed');
       const mockCheckCallback = vi.fn()
         .mockReturnValueOnce(true)
         .mockImplementationOnce(() => {
           throw execError;
         });
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           checkCallback: mockCheckCallback
         }
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(mockPrintError).toHaveBeenCalledWith(
@@ -651,10 +512,10 @@ describe('ScriptRegistry', () => {
 
     it('should use custom command properties when provided', async () => {
       const SCRIPT_PATH = 'custom-cmd.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
       const mockCallback = vi.fn();
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {
           callback: mockCallback,
           icon: 'star',
@@ -664,8 +525,6 @@ describe('ScriptRegistry', () => {
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
-
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(mockCallback).toHaveBeenCalled();
@@ -673,33 +532,32 @@ describe('ScriptRegistry', () => {
 
     it('should throw when script exports neither invoke nor invokeCommand', async () => {
       const SCRIPT_PATH = 'no-handler.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({});
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({});
 
-      await registry.registerScript(SCRIPT_PATH);
-
-      // Onload throws because the script has neither invoke nor invokeCommand
-      await expect(Promise.all(onloadPromises)).rejects.toThrow(
+      // Because the registry is loaded, addChild eagerly loads the new wrapper component, whose
+      // Real onload throws synchronously when the script exports neither invoke nor invokeCommand.
+      // The throw propagates out of registerScript.
+      await expect(registry.registerScript(SCRIPT_PATH)).rejects.toThrow(
         `${SCRIPT_PATH} does not export invoke() function`
       );
     });
 
     it('should do nothing when invokeCommand has neither callback nor checkCallback', async () => {
       const SCRIPT_PATH = 'empty-command.js';
-      mockApp.vault.adapter.exists.mockResolvedValue(true);
-      mockIsMarkdownFile.mockReturnValue(false);
-      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         invokeCommand: {}
       });
 
       await registry.registerScript(SCRIPT_PATH);
-      await Promise.all(onloadPromises);
 
-      // ForceInvoke with no callback/checkCallback should just complete without error
+      // ForceInvoke with no callback/checkCallback should just complete without error.
       await registry.invokeScriptPath(SCRIPT_PATH);
 
-      expect(mockConsoleDebugComponent.consoleDebug).toHaveBeenCalledWith(
+      expect(consoleDebug).toHaveBeenCalledWith(
         `Invoking script: ${SCRIPT_PATH}.`
       );
     });

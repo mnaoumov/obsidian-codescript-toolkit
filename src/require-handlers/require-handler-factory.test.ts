@@ -1,6 +1,9 @@
-import { Platform } from 'obsidian';
-import { noopAsync } from 'obsidian-dev-utils/function';
+import {
+  Component,
+  Platform
+} from 'obsidian';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import {
   beforeEach,
   describe,
@@ -18,52 +21,30 @@ const mockRequireAsync = vi.fn();
 const mockRequireStringAsync = vi.fn();
 const mockRequireVaultScriptAsync = vi.fn();
 
-class MockRequireHandler {
+interface MockIsMobile {
+  isMobile: boolean;
+}
+
+// Stub for the plugin's own sibling platform-handler modules. Extends the real
+// Test-mock `Component` so the real `ComponentEx.addChild` can eager-load it
+// Through the genuine load lifecycle (no hand-rolled `load`).
+class MockRequireHandlerComponent extends Component {
   public clearCache = mockClearCache;
   public requireAsync = mockRequireAsync;
   public requireStringAsync = mockRequireStringAsync;
   public requireVaultScriptAsync = mockRequireVaultScriptAsync;
 }
 
-const mockAddChild = vi.fn((child: unknown) => child);
-
-interface MockIsMobile {
-  isMobile: boolean;
-}
-
-vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => ({
-  ComponentEx: class MockComponentEx {
-    public addChild = mockAddChild;
-
-    public async loadWithPromises(): Promise<void> {
-      await this.onloadAsync();
-    }
-
-    public onloadAsync(): Promise<void> {
-      return noopAsync();
-    }
-  }
-}));
-
-vi.mock('obsidian-dev-utils/type-guards', () => ({
-  ensureNonNullable: <T>(value: T | undefined): T => {
-    if (value === undefined || value === null) {
-      throw new Error('Value is null or undefined');
-    }
-    return value;
-  }
-}));
-
 vi.mock('./require-handler-emulate-mobile.ts', () => ({
-  RequireHandlerEmulateMobileComponent: MockRequireHandler
+  RequireHandlerEmulateMobileComponent: MockRequireHandlerComponent
 }));
 
 vi.mock('./require-handler-mobile.ts', () => ({
-  RequireHandlerMobileComponent: MockRequireHandler
+  RequireHandlerMobileComponent: MockRequireHandlerComponent
 }));
 
 vi.mock('./require-handler-desktop.ts', () => ({
-  RequireHandlerDesktopComponent: MockRequireHandler
+  RequireHandlerDesktopComponent: MockRequireHandlerComponent
 }));
 
 vi.mock('obsidian', async (importOriginal) => ({
@@ -98,27 +79,35 @@ describe('RequireHandlerFactoryComponent', () => {
 
   describe('onload', () => {
     it('should create desktop handler when not mobile and not emulating mobile', async () => {
+      const addChildSpy = vi.spyOn(ComponentEx.prototype, 'addChild');
       await factory.loadWithPromises();
-      expect(mockAddChild).toHaveBeenCalledOnce();
+      expect(addChildSpy).toHaveBeenCalledOnce();
+      expect(addChildSpy.mock.calls[0]?.[0]).toBeInstanceOf(MockRequireHandlerComponent);
     });
 
     it('should create mobile handler when Platform.isMobile is true', async () => {
       (Platform as MockIsMobile).isMobile = true;
+      const addChildSpy = vi.spyOn(ComponentEx.prototype, 'addChild');
       await factory.loadWithPromises();
-      expect(mockAddChild).toHaveBeenCalledOnce();
+      expect(addChildSpy).toHaveBeenCalledOnce();
+      expect(addChildSpy.mock.calls[0]?.[0]).toBeInstanceOf(MockRequireHandlerComponent);
     });
 
     it('should create emulate-mobile handler when body has emulate-mobile class', async () => {
       activeDocument.body.classList.add('emulate-mobile');
+      const addChildSpy = vi.spyOn(ComponentEx.prototype, 'addChild');
       await factory.loadWithPromises();
-      expect(mockAddChild).toHaveBeenCalledOnce();
+      expect(addChildSpy).toHaveBeenCalledOnce();
+      expect(addChildSpy.mock.calls[0]?.[0]).toBeInstanceOf(MockRequireHandlerComponent);
     });
 
     it('should prefer emulate-mobile over mobile when both conditions are true', async () => {
       activeDocument.body.classList.add('emulate-mobile');
       (Platform as MockIsMobile).isMobile = true;
+      const addChildSpy = vi.spyOn(ComponentEx.prototype, 'addChild');
       await factory.loadWithPromises();
-      expect(mockAddChild).toHaveBeenCalledOnce();
+      expect(addChildSpy).toHaveBeenCalledOnce();
+      expect(addChildSpy.mock.calls[0]?.[0]).toBeInstanceOf(MockRequireHandlerComponent);
     });
   });
 

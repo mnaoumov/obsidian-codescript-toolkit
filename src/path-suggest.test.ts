@@ -14,45 +14,6 @@ import {
 
 import { PathSuggest } from './path-suggest.ts';
 
-vi.mock('obsidian', () => ({
-  AbstractInputSuggest: class MockAbstractInputSuggest {
-    protected readonly app: unknown;
-    protected readonly textInputEl: HTMLInputElement;
-
-    public constructor(app: unknown, textInputEl: HTMLInputElement) {
-      this.app = app;
-      this.textInputEl = textInputEl;
-    }
-
-    public close(): void {
-      // Intentional noop for test mock.
-    }
-
-    public setValue(_value: string): void {
-      // Intentional noop for test mock.
-    }
-  }
-}));
-
-vi.mock('obsidian-dev-utils/path', () => ({
-  basename: (path: string): string => path.split('/').pop() ?? '',
-  extname: (path: string): string => {
-    const base = path.split('/').pop() ?? '';
-    const dotIndex = base.lastIndexOf('.');
-    return dotIndex === -1 ? '' : base.slice(dotIndex);
-  },
-  relative: (from: string, to: string): string => {
-    if (to.startsWith(from)) {
-      let result = to.slice(from.length);
-      if (result.startsWith('/')) {
-        result = result.slice(1);
-      }
-      return result;
-    }
-    return to;
-  }
-}));
-
 vi.mock('./require-handlers/require-handler.ts', () => ({
   EXTENSIONS: ['.js', '.ts']
 }));
@@ -84,6 +45,9 @@ describe('PathSuggest', () => {
       textInputEl,
       type: 'file'
     });
+    // The real obsidian-test-mocks AbstractInputSuggest stores the element as a private `inputEl`,
+    // So supply the `textInputEl` field that real Obsidian exposes and PathSuggest relies on.
+    suggest.textInputEl = textInputEl;
   });
 
   describe('getSuggestions', () => {

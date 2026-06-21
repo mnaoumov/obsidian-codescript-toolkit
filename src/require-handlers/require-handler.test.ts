@@ -39,28 +39,10 @@ import {
   VAULT_ROOT_PREFIX
 } from './require-handler.ts';
 
-const { mockAllWindowsHandlerCallback, mockDebuggableEval, mockParseLink, mockRequestUrl } = vi.hoisted(() => ({
-  mockAllWindowsHandlerCallback: vi.fn(),
+const { mockDebuggableEval, mockParseLink, mockRequestUrl } = vi.hoisted(() => ({
   mockDebuggableEval: vi.fn(),
   mockParseLink: vi.fn().mockReturnValue(null),
   mockRequestUrl: vi.fn()
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/components/all-windows-event-component', () => ({
-  AllWindowsEventComponent: class {
-    public load(): void {
-      // Intentional noop for test mock.
-    }
-
-    public registerAllWindowsHandler(cb: (win: Window) => void): void {
-      mockAllWindowsHandlerCallback(cb);
-      cb(window);
-    }
-
-    public unload(): void {
-      // Intentional noop for test mock.
-    }
-  }
 }));
 
 vi.mock('obsidian', async (importOriginal) => {
@@ -526,7 +508,10 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should call AllWindowsEventHandler with the handler callback', async () => {
       await handler.loadWithPromises();
-      expect(mockAllWindowsHandlerCallback).toHaveBeenCalled();
+      const requireWindow = castTo<RequireWindowFull>(window);
+      expect(window.require).toBeDefined();
+      expect(requireWindow.requireAsync).toBeDefined();
+      expect(requireWindow.requireAsyncWrapper).toBeDefined();
     });
   });
 
@@ -2174,29 +2159,31 @@ describe('RequireHandlerComponentBase', () => {
 
   describe('onload cleanup with null originalRequire', () => {
     it('should return early from cleanup when originalRequire is null', async () => {
-      // Create a handler where originalRequire would be undefined
+      const savedRequire = window.require;
+
+      // Remove window.require before onload so the captured originalRequire is undefined.
+      delete (window as Partial<MockWindowRequire & Window>).require;
+
       const params = createMockConstructorParams();
       const testHandler = new TestRequireHandlerComponent(params);
 
       await testHandler.loadWithPromises();
 
-      // The callback registered is: if (!this.originalRequire) { return; }
-      // Capture the registered callback from AllWindowsEventHandler
-      const cb = mockAllWindowsHandlerCallback.mock.calls[0]?.[0] as (win: Window) => void;
-      expect(cb).toBeDefined();
+      // After onload, window.require is the handler's requireEx.
+      const handlerRequire = window.require;
+      expect(handlerRequire).toBeDefined();
 
-      // Simulate window.require being undefined before onload (originalRequire is falsy)
-      const savedRequire = window.require;
-      // Force originalRequire to be undefined by manipulating the handler
-      Object.defineProperty(testHandler, 'originalRequire', { value: undefined, writable: true });
+      // The require-restore cleanup returns early when originalRequire is undefined.
+      // Window.require stays the handler's requireEx after running cleanups.
+      const cleanups = castTo<MockCleanups>(testHandler).cleanups__;
+      for (const cleanup of cleanups) {
+        cleanup();
+      }
 
-      // The cleanup callback for require should return early when originalRequire is undefined
-      // We can verify by calling unload which triggers all registered cleanup callbacks
-      testHandler.unload();
+      expect(window.require).toBe(handlerRequire);
 
       // Restore
       window.require = savedRequire;
-      expect(true).toBe(true);
     });
   });
 
@@ -3590,18 +3577,11 @@ class TestRequireHandlerComponent extends RequireHandlerComponentBase {
 }
 
 function createMockConstructorParams(): RequireHandlerConstructorParams {
+  const app = App.createConfigured__().asOriginalType__();
+  // Tests control link resolution through getMockGetFirstLinkpathDest, which expects a vi.fn here.
+  app.metadataCache.getFirstLinkpathDest = vi.fn().mockReturnValue(null);
   const partial: Partial<RequireHandlerConstructorParams> = {
-    app: castTo<RequireHandlerConstructorParams['app']>({
-      metadataCache: {
-        getFirstLinkpathDest: vi.fn().mockReturnValue(null)
-      },
-      vault: {
-        adapter: {}
-      },
-      workspace: {
-        getActiveFile: vi.fn().mockReturnValue(null)
-      }
-    }),
+    app,
     consoleDebugComponent: castTo<RequireHandlerConstructorParams['consoleDebugComponent']>({
       consoleDebug: vi.fn()
     }),

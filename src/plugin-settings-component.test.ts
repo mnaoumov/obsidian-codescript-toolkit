@@ -1,7 +1,20 @@
-import type { App } from 'obsidian';
+import type { App as ObsidianApp } from 'obsidian';
+import type { SettingsValidator } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
+import type { DataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
+import type { PluginEventSource } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
+import type { GenericObject } from 'obsidian-dev-utils/type-guards';
 
-import { castTo } from 'obsidian-dev-utils/object-utils';
 import {
+  noop,
+  noopAsync
+} from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
+import { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { assertNonNullable } from 'obsidian-dev-utils/type-guards';
+import { App } from 'obsidian-test-mocks/obsidian';
+import {
+  afterEach,
   beforeEach,
   describe,
   expect,
@@ -12,6 +25,11 @@ import {
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
+interface LegacyConverter {
+  converter(record: GenericObject): void;
+  legacySettingsClass: new () => LegacySettingsInstance;
+}
+
 interface LegacySettingsInstance {
   invocableScriptsDirectory: string;
 }
@@ -21,35 +39,16 @@ interface PluginSettingsComponentPrivateApi {
   registerValidators(): void;
 }
 
+interface RegisteredValidator {
+  propertyName: string;
+  validator: SettingsValidator<PluginSettings>;
+}
+
 const mockParseYaml = vi.fn();
-const mockRegisterLegacySettingsConverter = vi.fn();
-const mockRegisterValidator = vi.fn();
 
 vi.mock('obsidian', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian')>(),
   parseYaml: (...args: unknown[]): unknown => mockParseYaml(...args)
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/components/plugin-settings-component', () => ({
-  PluginSettingsComponentBase: class MockPluginSettingsComponentBase {
-    public settings: unknown = {};
-
-    public registerLegacySettingsConverter(...args: unknown[]): void {
-      mockRegisterLegacySettingsConverter(...args);
-    }
-
-    public registerValidator(...args: unknown[]): void {
-      mockRegisterValidator(...args);
-    }
-  }
-}));
-
-vi.mock('obsidian-dev-utils/path', () => ({
-  extname: (path: string): string => {
-    const dotIndex = path.lastIndexOf('.');
-    return dotIndex === -1 ? '' : path.slice(dotIndex);
-  },
-  join: (...segments: string[]): string => segments.join('/')
 }));
 
 vi.mock('./require-handlers/require-handler.ts', () => ({
@@ -58,30 +57,51 @@ vi.mock('./require-handlers/require-handler.ts', () => ({
 
 describe('PluginSettingsComponent', () => {
   let component: PluginSettingsComponent;
-  let mockApp: App;
+  let mockApp: ObsidianApp;
+  let registeredValidators: RegisteredValidator[];
+  let registeredLegacyConverters: LegacyConverter[];
+  let mockExists: ReturnType<typeof vi.fn>;
+  let mockStat: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockParseYaml.mockReset();
-    mockRegisterLegacySettingsConverter.mockReset();
-    mockRegisterValidator.mockReset();
 
-    const partialAdapter: Partial<App['vault']['adapter']> = {
-      stat: vi.fn() as App['vault']['adapter']['stat']
-    };
-    const partialVault: Partial<App['vault']> = {
-      adapter: partialAdapter as App['vault']['adapter'],
-      exists: vi.fn() as App['vault']['exists']
-    };
-    const partialApp: Partial<App> = {
-      vault: partialVault as App['vault']
-    };
-    mockApp = partialApp as App;
+    mockExists = vi.fn();
+    mockStat = vi.fn();
+    registeredValidators = [];
+    registeredLegacyConverters = [];
+
+    const appMock = App.createConfigured__();
+    mockApp = appMock.asOriginalType__();
+    mockApp.vault.exists = mockExists as ObsidianApp['vault']['exists'];
+    mockApp.vault.adapter.stat = mockStat as ObsidianApp['vault']['adapter']['stat'];
+
+    vi.spyOn(PluginSettingsComponentBase.prototype, 'registerValidator').mockImplementation(
+      (propertyName, validator) => {
+        registeredValidators.push({
+          propertyName,
+          validator: validator as SettingsValidator<PluginSettings>
+        });
+      }
+    );
+    vi.spyOn(PluginSettingsComponentBase.prototype, 'registerLegacySettingsConverter').mockImplementation(
+      (legacySettingsClass, converter) => {
+        registeredLegacyConverters.push({
+          converter: converter as (record: GenericObject) => void,
+          legacySettingsClass: legacySettingsClass as new () => LegacySettingsInstance
+        });
+      }
+    );
 
     component = new PluginSettingsComponent({
       app: mockApp,
-      dataHandler: castTo<import('obsidian-dev-utils/obsidian/data-handler').DataHandler>({}),
-      pluginEventSource: castTo<import('obsidian-dev-utils/obsidian/plugin/plugin-event-source').PluginEventSource>({})
+      dataHandler: createMockDataHandler(),
+      pluginEventSource: createMockPluginEventSource()
     });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe('parseDefaultCodeButtonConfig', () => {
@@ -91,8 +111,6 @@ describe('PluginSettingsComponent', () => {
     });
 
     it('should return empty object when yaml is undefined and settings default is empty', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to override readonly getter
-      (component as unknown as { settings: PluginSettings }).settings = new PluginSettings();
       const result = component.parseDefaultCodeButtonConfig();
       expect(result).toEqual({});
     });
@@ -130,218 +148,202 @@ describe('PluginSettingsComponent', () => {
       expect(result).toBeNull();
     });
 
-    it('should use settings.defaultCodeButtonConfig when yaml argument is undefined', () => {
-      const mutableSettings = new PluginSettings();
-      mutableSettings.defaultCodeButtonConfig = '---\ncaption: Default\n---';
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to override readonly getter
-      (component as unknown as { settings: PluginSettings }).settings = mutableSettings;
+    it('should use settings.defaultCodeButtonConfig when yaml argument is undefined', async () => {
       mockParseYaml.mockReturnValue({ caption: 'Default' });
-      const result = component.parseDefaultCodeButtonConfig();
+      const dataComponent = new PluginSettingsComponent({
+        app: mockApp,
+        dataHandler: createMockDataHandler({ defaultCodeButtonConfig: '---\ncaption: Default\n---' }),
+        pluginEventSource: createMockPluginEventSource()
+      });
+      await dataComponent.loadWithPromises();
+      const result = dataComponent.parseDefaultCodeButtonConfig();
       expect(result).toEqual({ caption: 'Default' });
     });
   });
 
   describe('registerLegacySettingsConverters', () => {
     it('should call registerLegacySettingsConverter with a converter function', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerLegacySettingsConverters();
-      expect(mockRegisterLegacySettingsConverter).toHaveBeenCalledOnce();
+      registeredLegacyConverters.length = 0;
+      castTo<PluginSettingsComponentPrivateApi>(component).registerLegacySettingsConverters();
+      expect(registeredLegacyConverters).toHaveLength(1);
+      expect(typeof registeredLegacyConverters[0]?.converter).toBe('function');
     });
 
     it('should convert invocableScriptsDirectory to invocableScriptsFolder', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerLegacySettingsConverters();
-      const converterFn = mockRegisterLegacySettingsConverter.mock.calls[0]?.[1] as (settings: Record<string, string>) => void;
+      const converterFn = getRegisteredLegacyConverter();
       const legacySettings = { invocableScriptsDirectory: 'my-scripts', invocableScriptsFolder: '' };
       converterFn(legacySettings);
       expect(legacySettings.invocableScriptsFolder).toBe('my-scripts');
     });
 
     it('should not overwrite invocableScriptsFolder when invocableScriptsDirectory is empty', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerLegacySettingsConverters();
-      const converterFn = mockRegisterLegacySettingsConverter.mock.calls[0]?.[1] as (settings: Record<string, string>) => void;
+      const converterFn = getRegisteredLegacyConverter();
       const legacySettings = { invocableScriptsDirectory: '', invocableScriptsFolder: 'existing' };
       converterFn(legacySettings);
       expect(legacySettings.invocableScriptsFolder).toBe('existing');
     });
 
     it('should pass LegacySettings class that has invocableScriptsDirectory defaulting to empty string', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerLegacySettingsConverters();
-      const LegacySettingsClass = mockRegisterLegacySettingsConverter.mock.calls[0]?.[0] as new () => LegacySettingsInstance;
-      const instance = new LegacySettingsClass();
+      const entry = registeredLegacyConverters[0];
+      assertNonNullable(entry);
+      const instance = new entry.legacySettingsClass();
       expect(instance.invocableScriptsDirectory).toBe('');
     });
   });
 
   describe('registerValidators', () => {
     it('should register validators for all settings fields', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
+      registeredValidators.length = 0;
+      castTo<PluginSettingsComponentPrivateApi>(component).registerValidators();
       const EXPECTED_VALIDATOR_COUNT = 4;
-      expect(mockRegisterValidator).toHaveBeenCalledTimes(EXPECTED_VALIDATOR_COUNT);
+      expect(registeredValidators).toHaveLength(EXPECTED_VALIDATOR_COUNT);
     });
 
     it('should register a modulesRoot validator', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-      const validatorNames = mockRegisterValidator.mock.calls.map((call) => call[0] as string);
-      expect(validatorNames).toContain('modulesRoot');
+      expect(getRegisteredValidatorNames()).toContain('modulesRoot');
     });
 
     it('should register an invocableScriptsFolder validator', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-      const validatorNames = mockRegisterValidator.mock.calls.map((call) => call[0] as string);
-      expect(validatorNames).toContain('invocableScriptsFolder');
+      expect(getRegisteredValidatorNames()).toContain('invocableScriptsFolder');
     });
 
     it('should register a startupScriptPath validator', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-      const validatorNames = mockRegisterValidator.mock.calls.map((call) => call[0] as string);
-      expect(validatorNames).toContain('startupScriptPath');
+      expect(getRegisteredValidatorNames()).toContain('startupScriptPath');
     });
 
     it('should register a defaultCodeButtonConfig validator', () => {
-      // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-      (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-      const validatorNames = mockRegisterValidator.mock.calls.map((call) => call[0] as string);
-      expect(validatorNames).toContain('defaultCodeButtonConfig');
+      expect(getRegisteredValidatorNames()).toContain('defaultCodeButtonConfig');
     });
 
     describe('modulesRoot validator', () => {
       it('should return undefined for empty value', async () => {
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'modulesRoot');
-        const validator = validatorCall?.[1] as (value: string) => Promise<string | undefined>;
-        const result = await validator('');
+        const validator = getRegisteredValidator('modulesRoot');
+        const result = await validator('', new PluginSettings());
         expect(result).toBeUndefined();
       });
 
       it('should return error when path does not exist', async () => {
-        vi.mocked(mockApp.vault.exists as ReturnType<typeof vi.fn>).mockResolvedValue(false);
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'modulesRoot');
-        const validator = validatorCall?.[1] as (value: string) => Promise<string | undefined>;
-        const result = await validator('some/path');
+        mockExists.mockResolvedValue(false);
+        const validator = getRegisteredValidator('modulesRoot');
+        const result = await validator('some/path', new PluginSettings());
         expect(result).toBe('Path does not exist');
       });
 
       it('should return error when path is not a folder', async () => {
-        vi.mocked(mockApp.vault.exists as ReturnType<typeof vi.fn>).mockResolvedValue(true);
-        vi.mocked(mockApp.vault.adapter.stat as ReturnType<typeof vi.fn>).mockResolvedValue({ type: 'file' });
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'modulesRoot');
-        const validator = validatorCall?.[1] as (value: string) => Promise<string | undefined>;
-        const result = await validator('some/path');
+        mockExists.mockResolvedValue(true);
+        mockStat.mockResolvedValue({ type: 'file' });
+        const validator = getRegisteredValidator('modulesRoot');
+        const result = await validator('some/path', new PluginSettings());
         expect(result).toBe('Path is not a folder');
       });
 
       it('should return undefined when path is a valid folder', async () => {
-        vi.mocked(mockApp.vault.exists as ReturnType<typeof vi.fn>).mockResolvedValue(true);
-        vi.mocked(mockApp.vault.adapter.stat as ReturnType<typeof vi.fn>).mockResolvedValue({ type: 'folder' });
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'modulesRoot');
-        const validator = validatorCall?.[1] as (value: string) => Promise<string | undefined>;
-        const result = await validator('some/path');
+        mockExists.mockResolvedValue(true);
+        mockStat.mockResolvedValue({ type: 'folder' });
+        const validator = getRegisteredValidator('modulesRoot');
+        const result = await validator('some/path', new PluginSettings());
         expect(result).toBeUndefined();
       });
     });
 
     describe('invocableScriptsFolder validator', () => {
       it('should return undefined for empty value', async () => {
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'invocableScriptsFolder');
-        const validator = validatorCall?.[1] as (value: string, settings: PluginSettings) => Promise<string | undefined>;
+        const validator = getRegisteredValidator('invocableScriptsFolder');
         const result = await validator('', new PluginSettings());
         expect(result).toBeUndefined();
       });
 
       it('should validate joined path with modulesRoot', async () => {
-        vi.mocked(mockApp.vault.exists as ReturnType<typeof vi.fn>).mockResolvedValue(false);
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'invocableScriptsFolder');
-        const validator = validatorCall?.[1] as (value: string, settings: PluginSettings) => Promise<string | undefined>;
+        mockExists.mockResolvedValue(false);
+        const validator = getRegisteredValidator('invocableScriptsFolder');
         const settings = new PluginSettings();
         settings.modulesRoot = 'root';
         const result = await validator('scripts', settings);
         expect(result).toBe('Path does not exist');
+        expect(mockExists).toHaveBeenCalledWith('root/scripts');
       });
     });
 
     describe('startupScriptPath validator', () => {
       it('should return undefined for empty value', async () => {
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'startupScriptPath');
-        const validator = validatorCall?.[1] as (value: string, settings: PluginSettings) => Promise<string | undefined>;
+        const validator = getRegisteredValidator('startupScriptPath');
         const result = await validator('', new PluginSettings());
         expect(result).toBeUndefined();
       });
 
       it('should return error for unsupported extension', async () => {
-        vi.mocked(mockApp.vault.exists as ReturnType<typeof vi.fn>).mockResolvedValue(true);
-        vi.mocked(mockApp.vault.adapter.stat as ReturnType<typeof vi.fn>).mockResolvedValue({ type: 'file' });
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'startupScriptPath');
-        const validator = validatorCall?.[1] as (value: string, settings: PluginSettings) => Promise<string | undefined>;
-        const settings = new PluginSettings();
-        const result = await validator('startup.py', settings);
+        mockExists.mockResolvedValue(true);
+        mockStat.mockResolvedValue({ type: 'file' });
+        const validator = getRegisteredValidator('startupScriptPath');
+        const result = await validator('startup.py', new PluginSettings());
         expect(result).toContain('Only the following extensions are supported');
       });
 
       it('should return undefined for supported extension', async () => {
-        vi.mocked(mockApp.vault.exists as ReturnType<typeof vi.fn>).mockResolvedValue(true);
-        vi.mocked(mockApp.vault.adapter.stat as ReturnType<typeof vi.fn>).mockResolvedValue({ type: 'file' });
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'startupScriptPath');
-        const validator = validatorCall?.[1] as (value: string, settings: PluginSettings) => Promise<string | undefined>;
-        const settings = new PluginSettings();
-        const result = await validator('startup.ts', settings);
+        mockExists.mockResolvedValue(true);
+        mockStat.mockResolvedValue({ type: 'file' });
+        const validator = getRegisteredValidator('startupScriptPath');
+        const result = await validator('startup.ts', new PluginSettings());
         expect(result).toBeUndefined();
       });
 
       it('should return path validation error when path does not exist', async () => {
-        vi.mocked(mockApp.vault.exists as ReturnType<typeof vi.fn>).mockResolvedValue(false);
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'startupScriptPath');
-        const validator = validatorCall?.[1] as (value: string, settings: PluginSettings) => Promise<string | undefined>;
-        const settings = new PluginSettings();
-        const result = await validator('startup.ts', settings);
+        mockExists.mockResolvedValue(false);
+        const validator = getRegisteredValidator('startupScriptPath');
+        const result = await validator('startup.ts', new PluginSettings());
         expect(result).toBe('Path does not exist');
       });
     });
 
     describe('defaultCodeButtonConfig validator', () => {
-      it('should return undefined for valid YAML', () => {
+      it('should return undefined for valid YAML', async () => {
         mockParseYaml.mockReturnValue({ caption: 'Run' });
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'defaultCodeButtonConfig');
-        const validator = validatorCall?.[1] as (value: string) => string | undefined;
-        const result = validator('---\ncaption: Run\n---');
+        const validator = getRegisteredValidator('defaultCodeButtonConfig');
+        const result = await validator('---\ncaption: Run\n---', new PluginSettings());
         expect(result).toBeUndefined();
       });
 
-      it('should return Invalid YAML for invalid format', () => {
-        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected methods
-        (component as unknown as PluginSettingsComponentPrivateApi).registerValidators();
-        const validatorCall = mockRegisterValidator.mock.calls.find((call) => call[0] === 'defaultCodeButtonConfig');
-        const validator = validatorCall?.[1] as (value: string) => string | undefined;
-        const result = validator('not valid yaml format');
+      it('should return Invalid YAML for invalid format', async () => {
+        const validator = getRegisteredValidator('defaultCodeButtonConfig');
+        const result = await validator('not valid yaml format', new PluginSettings());
         expect(result).toBe('Invalid YAML');
       });
     });
   });
+
+  function createMockDataHandler(data: unknown = {}): DataHandler {
+    return strictProxy<DataHandler>({
+      loadData: vi.fn(() => Promise.resolve(data)),
+      saveData: vi.fn(() => noopAsync())
+    });
+  }
+
+  function createMockPluginEventSource(): PluginEventSource {
+    const source: PluginEventSource = strictProxy<PluginEventSource>({
+      offref: noop,
+      on: castTo<PluginEventSource['on']>(vi.fn((name: string, callback: () => void, thisArg?: unknown) => ({
+        asyncEventSource: source,
+        callback,
+        name,
+        thisArg
+      })))
+    });
+    return source;
+  }
+
+  function getRegisteredLegacyConverter(): (record: GenericObject) => void {
+    const entry = registeredLegacyConverters[0];
+    assertNonNullable(entry);
+    return entry.converter;
+  }
+
+  function getRegisteredValidator(propertyName: string): SettingsValidator<PluginSettings> {
+    const entry = registeredValidators.find((v) => v.propertyName === propertyName);
+    assertNonNullable(entry);
+    return entry.validator;
+  }
+
+  function getRegisteredValidatorNames(): string[] {
+    return registeredValidators.map((v) => v.propertyName);
+  }
 });

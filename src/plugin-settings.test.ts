@@ -1,15 +1,10 @@
 import {
   describe,
   expect,
-  it,
-  vi
+  it
 } from 'vitest';
 
 import { PluginSettings } from './plugin-settings.ts';
-
-vi.mock('obsidian-dev-utils/path', () => ({
-  join: (...segments: string[]): string => segments.join('/')
-}));
 
 const DEFAULT_MOBILE_CHECKING_INTERVAL_SECONDS = 30;
 

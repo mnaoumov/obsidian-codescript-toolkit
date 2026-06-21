@@ -27,14 +27,6 @@ vi.mock('obsidian-dev-utils/obsidian/modals/select-item', () => ({
   selectItem: (...args: unknown[]): unknown => mockSelectItem(...args)
 }));
 
-vi.mock('obsidian-dev-utils/path', () => ({
-  basename: (path: string): string => {
-    const parts = path.split('/');
-    return parts[parts.length - 1] ?? path;
-  },
-  join: (...segments: string[]): string => segments.filter(Boolean).join('/')
-}));
-
 vi.mock('./code-script-toolkit-note-settings.ts', () => ({
   getCodeScriptToolkitNoteSettings: vi.fn().mockResolvedValue({ defaultCodeScriptName: '', invocableCodeScriptName: '', isInvocable: false })
 }));

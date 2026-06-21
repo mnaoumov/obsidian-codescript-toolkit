@@ -1,7 +1,11 @@
 import type { App } from 'obsidian';
 
 import { FileSystemAdapter } from 'obsidian';
-import { castTo } from 'obsidian-dev-utils/object-utils';
+import {
+  castTo,
+  getPrototypeOf
+} from 'obsidian-dev-utils/object-utils';
+import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/monkey-around-component';
 import {
   beforeEach,
   describe,
@@ -27,22 +31,6 @@ import {
   RequireHandlerComponentBase,
   ResolvedType
 } from './require-handler.ts';
-
-vi.mock('obsidian-dev-utils/obsidian/components/all-windows-event-component', () => ({
-  AllWindowsEventComponent: class {
-    public load(): void {
-      // Intentional noop for test mock.
-    }
-
-    public registerAllWindowsHandler(): void {
-      // Intentional noop for test mock.
-    }
-
-    public unload(): void {
-      // Intentional noop for test mock.
-    }
-  }
-}));
 
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   getDataAdapterEx: vi.fn().mockReturnValue({ basePath: '/vault' }),
@@ -70,26 +58,6 @@ vi.mock('../special-module-names.ts', () => ({
 vi.mock('../code-script-toolkit-module-impl.ts', () => ({
   CodeScriptToolkitModuleImpl: vi.fn()
 }));
-
-const mockRegisterPatch = vi.fn();
-
-vi.mock('obsidian-dev-utils/obsidian/components/monkey-around-component', () => ({
-  MonkeyAroundComponent: class {
-    public registerPatch = mockRegisterPatch;
-
-    public load(): void {
-      // Intentional noop for test mock.
-    }
-  }
-}));
-
-vi.mock('obsidian-dev-utils/object-utils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('obsidian-dev-utils/object-utils')>();
-  return {
-    ...actual,
-    getPrototypeOf: vi.fn().mockReturnValue({})
-  };
-});
 
 // eslint-disable-next-line obsidianmd/hardcoded-config-path -- test mock value
 const MOCK_CONFIG_DIR = '.obsidian';
@@ -193,8 +161,16 @@ interface ModulePrototypeRequireAccessor {
   modulePrototypeRequire(id: string, module: NodeJS.Module): unknown;
 }
 
+interface ModuleRequireProto {
+  require(id: string): unknown;
+}
+
 interface ModulesRootSetting {
   modulesRoot: string;
+}
+
+interface ModuleWithExports {
+  exports: unknown;
 }
 
 interface OriginalModulePrototypeRequireAccessor {
@@ -203,14 +179,6 @@ interface OriginalModulePrototypeRequireAccessor {
 
 interface OriginalModulePrototypeRequireWrappedAccessor {
   originalModulePrototypeRequireWrapped(id: string, options: Partial<RequireOptions>): unknown;
-}
-
-interface PatchRequireConfig {
-  require(next: unknown): unknown;
-}
-
-interface PatchRequireConfigWithReturn {
-  require(next: unknown): (id: string) => unknown;
 }
 
 interface PluginSettingsModulesRootAccessor {
@@ -400,7 +368,11 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
         configDir: MOCK_CONFIG_DIR
       },
       workspace: {
-        getActiveFile: vi.fn().mockReturnValue(null)
+        getActiveFile: vi.fn().mockReturnValue(null),
+        // The real `AllWindowsEventComponent` (added by the base `onloadAsync`) eager-loads a
+        // `CallbackLayoutReadyComponent` whose `onload` calls `onLayoutReady`.
+        // Never invoke the callback, so the deferred window-iteration path is not reached during load.
+        onLayoutReady: vi.fn()
       }
     }),
     consoleDebugComponent: castTo<RequireHandlerConstructorParams['consoleDebugComponent']>({
@@ -416,6 +388,26 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
     tempPluginRegistry: castTo<RequireHandlerConstructorParams['tempPluginRegistry']>({})
   };
   return params as RequireHandlerConstructorParams;
+}
+
+/**
+ * Installs a `window.module` whose prototype carries a real `require` function. This lets the real
+ * `ModuleRequirePatchComponent.onload` (driven by `RequireHandlerDesktopComponent.onloadAsync`)
+ * monkey-patch `getPrototypeOf(window.module).require` for real, instead of polluting
+ * `Object.prototype`. The original `require` is returned so tests can assert against it.
+ */
+function setWindowModuleWithRequireProto(): ReturnType<typeof vi.fn> {
+  const originalRequireFn = vi.fn();
+  const moduleProto: ModuleRequireProto = { require: originalRequireFn };
+  const mod: ModuleWithExports = Object.assign(Object.create(moduleProto), { exports: {} });
+
+  Object.defineProperty(window, 'module', {
+    configurable: true,
+    value: mod,
+    writable: true
+  });
+
+  return originalRequireFn;
 }
 
 describe('RequireHandlerDesktopComponent', () => {
@@ -788,11 +780,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const superOnload = vi.spyOn(RequireHandlerComponentBase.prototype, 'onload')
         .mockResolvedValue(undefined);
 
-      Object.defineProperty(window, 'module', {
-        configurable: true,
-        value: { exports: {} },
-        writable: true
-      });
+      setWindowModuleWithRequireProto();
 
       await handler.loadWithPromises();
 
@@ -803,21 +791,16 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should call registerPatch with module prototype', async () => {
       const superOnloadAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'onloadAsync')
         .mockResolvedValue(undefined);
-      const addChildSpy = vi.spyOn(handler, 'addChild')
-        .mockImplementation(<T>(component: T): T => component);
+      const registerPatchSpy = vi.spyOn(MonkeyAroundComponent.prototype, 'registerPatch');
 
-      Object.defineProperty(window, 'module', {
-        configurable: true,
-        value: { exports: {} },
-        writable: true
-      });
+      setWindowModuleWithRequireProto();
+      const moduleProto = getPrototypeOf(window.module);
 
-      mockRegisterPatch.mockClear();
+      await handler.loadWithPromises();
 
-      await handler.onloadAsync();
-
-      expect(mockRegisterPatch).toHaveBeenCalledOnce();
-      addChildSpy.mockRestore();
+      expect(registerPatchSpy).toHaveBeenCalledOnce();
+      expect(registerPatchSpy.mock.calls[0]?.[0]).toBe(moduleProto);
+      registerPatchSpy.mockRestore();
       superOnloadAsync.mockRestore();
     });
   });
@@ -1032,50 +1015,25 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should set originalModulePrototypeRequire when patch factory is called', async () => {
       const superOnloadAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'onloadAsync')
         .mockResolvedValue(undefined);
-      const addChildSpy = vi.spyOn(handler, 'addChild')
-        .mockImplementation(<T>(component: T): T => component);
 
-      Object.defineProperty(window, 'module', {
-        configurable: true,
-        value: { exports: {} },
-        writable: true
-      });
+      const originalRequireFn = setWindowModuleWithRequireProto();
 
-      mockRegisterPatch.mockClear();
-
-      await handler.onloadAsync();
-
-      const patchCall = mockRegisterPatch.mock.calls[0];
-      const patchConfig = patchCall?.[1] as PatchRequireConfig;
-      const mockNext = vi.fn();
-      patchConfig.require(mockNext);
+      // The real `ModuleRequirePatchComponent.onload` runs the monkey-around factory immediately.
+      // The original `require` from the module prototype is therefore captured on the handler.
+      await handler.loadWithPromises();
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      expect((handler as unknown as OriginalModulePrototypeRequireAccessor).originalModulePrototypeRequire).toBe(mockNext);
-      addChildSpy.mockRestore();
+      expect((handler as unknown as OriginalModulePrototypeRequireAccessor).originalModulePrototypeRequire).toBe(originalRequireFn);
       superOnloadAsync.mockRestore();
     });
 
     it('should return a patched function that calls modulePrototypeRequire', async () => {
       const superOnloadAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'onloadAsync')
         .mockResolvedValue(undefined);
-      const addChildSpy = vi.spyOn(handler, 'addChild')
-        .mockImplementation(<T>(component: T): T => component);
 
-      Object.defineProperty(window, 'module', {
-        configurable: true,
-        value: { exports: {} },
-        writable: true
-      });
+      setWindowModuleWithRequireProto();
 
-      mockRegisterPatch.mockClear();
-
-      await handler.onloadAsync();
-
-      const patchCall = mockRegisterPatch.mock.calls[0];
-      const patchConfig = patchCall?.[1] as PatchRequireConfigWithReturn;
-      const mockNext = vi.fn();
-      const patchedRequire = patchConfig.require(mockNext);
+      await handler.loadWithPromises();
 
       const modulePrototypeRequireSpy = vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -1083,15 +1041,16 @@ describe('RequireHandlerDesktopComponent', () => {
         'modulePrototypeRequire'
       ).mockReturnValue({ patched: true });
 
+      // After load, the module prototype's `require` is the really-patched function.
+      const patchedProto = castTo<ModuleRequireProto>(getPrototypeOf(window.module));
       // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion
       const mockModule = { exports: {} } as unknown as NodeJS.Module;
-      const result = patchedRequire.call(mockModule, 'some-id');
+      const result = patchedProto.require.call(mockModule, 'some-id');
 
       expect(result).toEqual({ patched: true });
       expect(modulePrototypeRequireSpy).toHaveBeenCalledWith('some-id', mockModule);
 
       modulePrototypeRequireSpy.mockRestore();
-      addChildSpy.mockRestore();
       superOnloadAsync.mockRestore();
     });
   });

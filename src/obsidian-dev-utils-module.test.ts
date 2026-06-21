@@ -23,10 +23,6 @@ vi.mock('obsidian-dev-utils/object-utils', () => ({
   getNestedPropertyValue: (obj: unknown, path: unknown): unknown => mockGetNestedPropertyValue(obj, path)
 }));
 
-vi.mock('obsidian-dev-utils/string', () => ({
-  trimStart: (str: string, prefix: string): string => str.startsWith(prefix) ? str.slice(prefix.length) : str
-}));
-
 vi.mock('../node_modules/obsidian-dev-utils/package.json', () => ({
   default: {
     exports: {

@@ -1,10 +1,14 @@
 import type {
-  App,
+  App as AppOriginal,
   PluginManifest
 } from 'obsidian';
+import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 
-import { noop } from 'obsidian-dev-utils/function';
+import { castTo } from 'obsidian-dev-utils/object-utils';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { App } from 'obsidian-test-mocks/obsidian';
 import {
+  beforeEach,
   describe,
   expect,
   it,
@@ -13,40 +17,16 @@ import {
 
 import { Plugin } from './plugin.ts';
 
-interface MockManifest {
-  name: string;
-}
-
-const mockAddChild = vi.fn((child: unknown) => child);
-
-vi.mock('obsidian-dev-utils/obsidian/plugin/plugin', () => ({
-  PluginBase: class MockPluginBase {
-    public app: unknown;
-    public consoleDebugComponent = {};
-    public manifest: MockManifest;
-
-    public constructor(app: unknown, manifest: PluginManifest) {
-      this.app = app;
-      this.manifest = manifest;
-      this.onloadImpl();
-    }
-
-    public addChild(child: unknown): unknown {
-      return mockAddChild(child);
-    }
-
-    protected onloadImpl(): void {
-      noop();
-    }
-  }
-}));
-
 vi.mock('obsidian-dev-utils/obsidian/active-file-provider', () => ({
   AppActiveFileProvider: vi.fn()
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler-component', () => ({
   CommandHandlerComponent: vi.fn()
+}));
+
+vi.mock('obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler', () => ({
+  OpenSettingsCommandHandler: vi.fn()
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/command-registrar', () => ({
@@ -71,6 +51,10 @@ vi.mock('obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar', () =>
 
 vi.mock('obsidian-dev-utils/obsidian/components/plugin-settings-tab-component', () => ({
   PluginSettingsTabComponent: vi.fn()
+}));
+
+vi.mock('obsidian-dev-utils/obsidian/plugin/plugin-event-source', () => ({
+  PluginEventSourceImpl: vi.fn()
 }));
 
 vi.mock('./code-button-block.ts', () => ({
@@ -133,54 +117,55 @@ vi.mock('./temp-plugin-registry.ts', () => ({
   TempPluginRegistryComponent: vi.fn()
 }));
 
+interface PluginPrivateApi {
+  consoleDebugComponent: ConsoleDebugComponent;
+  onloadImpl(): void;
+}
+
+const manifest: PluginManifest = {
+  author: 'test',
+  description: 'test',
+  id: 'test-plugin',
+  minAppVersion: '0.0.1',
+  name: 'Test Plugin',
+  version: '1.0.0'
+};
+
 describe('Plugin', () => {
   const EXPECTED_ADD_CHILD_COUNT = 12;
 
+  let app: AppOriginal;
+
+  beforeEach(() => {
+    app = App.createConfigured__().asOriginalType__();
+  });
+
+  function createPlugin(): Plugin {
+    const plugin = new Plugin(app, manifest);
+    /*
+     * The console debug component is normally assigned during the universal `onload()` flow.
+     * We assign it directly so `onloadImpl` can be exercised in isolation without the full lifecycle.
+     */
+    castTo<PluginPrivateApi>(plugin).consoleDebugComponent = strictProxy<ConsoleDebugComponent>({});
+    return plugin;
+  }
+
   it('should call addChild for all components', () => {
-    const mockApp: Partial<App> = { vault: {} as App['vault'] };
-    const mockManifest: PluginManifest = {
-      author: 'test',
-      description: 'test',
-      id: 'test-plugin',
-      minAppVersion: '0.0.1',
-      name: 'Test Plugin',
-      version: '1.0.0'
-    };
+    const plugin = createPlugin();
+    const addChildSpy = vi.spyOn(plugin, 'addChild');
 
-    new Plugin(mockApp as App, mockManifest);
+    castTo<PluginPrivateApi>(plugin).onloadImpl();
 
-    expect(mockAddChild).toHaveBeenCalledTimes(EXPECTED_ADD_CHILD_COUNT);
+    expect(addChildSpy).toHaveBeenCalledTimes(EXPECTED_ADD_CHILD_COUNT);
   });
 
   it('should assign app from constructor argument', () => {
-    const mockApp: Partial<App> = { vault: {} as App['vault'] };
-    const mockManifest: PluginManifest = {
-      author: 'test',
-      description: 'test',
-      id: 'test-plugin',
-      minAppVersion: '0.0.1',
-      name: 'Test Plugin',
-      version: '1.0.0'
-    };
-
-    const plugin = new Plugin(mockApp as App, mockManifest);
-
-    expect(plugin.app).toBe(mockApp);
+    const plugin = new Plugin(app, manifest);
+    expect(plugin.app).toBe(app);
   });
 
   it('should assign manifest from constructor argument', () => {
-    const mockApp: Partial<App> = { vault: {} as App['vault'] };
-    const mockManifest: PluginManifest = {
-      author: 'test',
-      description: 'test',
-      id: 'test-plugin',
-      minAppVersion: '0.0.1',
-      name: 'Test Plugin',
-      version: '1.0.0'
-    };
-
-    const plugin = new Plugin(mockApp as App, mockManifest);
-
-    expect(plugin.manifest).toBe(mockManifest);
+    const plugin = new Plugin(app, manifest);
+    expect(plugin.manifest).toBe(manifest);
   });
 });

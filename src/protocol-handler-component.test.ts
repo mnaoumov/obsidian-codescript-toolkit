@@ -1,12 +1,17 @@
-import type { ObsidianProtocolData } from 'obsidian';
+import type {
+  ObsidianProtocolData,
+  ObsidianProtocolHandler
+} from 'obsidian';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
+import type { Mock } from 'vitest';
 
 import {
   createFunction,
   noop
 } from 'obsidian-dev-utils/function';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import { ensureGenericObject } from 'obsidian-dev-utils/type-guards';
 import {
   beforeEach,
@@ -21,36 +26,17 @@ import type { RequireHandlerFactoryComponent } from './require-handlers/require-
 
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 
-const mockConvertAsyncToSync = vi.fn((fn: unknown) => fn);
-const mockToJson = vi.fn((obj: unknown) => JSON.stringify(obj));
-
-vi.mock('obsidian', async (importOriginal) => ({
-  ...await importOriginal<typeof import('obsidian')>(),
-  Component: class MockComponent {
-    public onload(): void {
-      noop();
-    }
-  }
-}));
+// The SUT registers `convertAsyncToSync(this.processQuery.bind(this))` with the protocol registrar.
+// The real `convertAsyncToSync` fires the wrapped async function via `invokeAsyncSafely`
+// (fire-and-forget), so the registered handler cannot be awaited and rejections are swallowed.
+// To make `processQuery` awaitable in tests (so we can assert its async behavior and rejections),
+// We stub ONLY the return value of `convertAsyncToSync` to be an identity passthrough — the
+// Registered handler then IS the bound async `processQuery`. This is the documented G49 exception
+// For making fire-and-forget async awaitable; no dev-utils logic is reimplemented.
+const mockConvertAsyncToSync = vi.fn((fn: unknown): unknown => fn);
 
 vi.mock('obsidian-dev-utils/async', () => ({
-  convertAsyncToSync: (...args: unknown[]): unknown => (mockConvertAsyncToSync as (...a: unknown[]) => unknown)(...args)
-}));
-
-vi.mock('obsidian-dev-utils/object-utils', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- T is required for the mock cast to work at call sites.
-  castTo: <T>(value: unknown): T => value as T,
-  toJson: (...args: unknown[]): unknown => (mockToJson as (...a: unknown[]) => unknown)(...args)
-}));
-
-vi.mock('obsidian-dev-utils/type-guards', () => ({
-  ensureGenericObject: (value: unknown): Record<string, unknown> => value as Record<string, unknown>,
-  ensureNonNullable: <T>(value: T | undefined): T => {
-    if (value === undefined || value === null) {
-      throw new Error('Value is null or undefined');
-    }
-    return value;
-  }
+  convertAsyncToSync: (fn: unknown): unknown => mockConvertAsyncToSync(fn)
 }));
 
 interface MockSettings {
@@ -59,9 +45,9 @@ interface MockSettings {
 
 describe('ProtocolHandlerComponent', () => {
   let component: ProtocolHandlerComponent;
-  let mockRequireStringAsync: ReturnType<typeof vi.fn>;
-  let mockDebug: ReturnType<typeof vi.fn>;
-  let mockRegisterObsidianProtocolHandler: ReturnType<typeof vi.fn>;
+  let mockRequireStringAsync: Mock<RequireHandlerFactoryComponent['requireStringAsync']>;
+  let mockDebug: Mock<(message: string, ...args: unknown[]) => void>;
+  let mockRegisterObsidianProtocolHandler: Mock<(action: string, handler: ObsidianProtocolHandler) => void>;
   let registeredHandler: (query: ObsidianProtocolData) => Promise<void>;
   let mockSettings: MockSettings;
 
@@ -76,19 +62,19 @@ describe('ProtocolHandlerComponent', () => {
     mockConvertAsyncToSync.mockImplementation((fn: unknown) => fn);
 
     component = new ProtocolHandlerComponent({
-      consoleDebugComponent: castTo<ConsoleDebugComponent>({ consoleDebug: mockDebug }),
-      obsidianProtocolHandlerRegistrar: castTo<ObsidianProtocolHandlerRegistrar>({
+      consoleDebugComponent: strictProxy<ConsoleDebugComponent>({ consoleDebug: mockDebug }),
+      obsidianProtocolHandlerRegistrar: strictProxy<ObsidianProtocolHandlerRegistrar>({
         registerObsidianProtocolHandler: mockRegisterObsidianProtocolHandler
       }),
-      pluginSettingsComponent: castTo<PluginSettingsComponent>({
-        settings: mockSettings
+      pluginSettingsComponent: strictProxy<PluginSettingsComponent>({
+        settings: strictProxy<PluginSettingsComponent['settings']>(mockSettings)
       }),
-      RequireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>({
+      RequireHandlerFactoryComponent: strictProxy<RequireHandlerFactoryComponent>({
         requireStringAsync: mockRequireStringAsync
       })
     });
 
-    component.onload();
+    component.load();
     registeredHandler = mockRegisterObsidianProtocolHandler.mock.calls[0]?.[1] as (query: ObsidianProtocolData) => Promise<void>;
   });
 
@@ -98,6 +84,10 @@ describe('ProtocolHandlerComponent', () => {
         'CodeScriptToolkit',
         expect.any(Function) as unknown
       );
+    });
+
+    it('should wrap the handler with the real convertAsyncToSync', () => {
+      expect(mockConvertAsyncToSync).toHaveBeenCalledWith(expect.any(Function) as unknown);
     });
   });
 

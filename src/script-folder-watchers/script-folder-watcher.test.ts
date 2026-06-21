@@ -1,8 +1,10 @@
 import type { App } from 'obsidian';
 import type { Promisable } from 'type-fest';
+import type { Mock } from 'vitest';
 
-import { noopAsync } from 'obsidian-dev-utils/function';
+import { AsyncEvents } from 'obsidian-dev-utils/async-events';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -15,39 +17,6 @@ import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { ScriptManager } from '../script.ts';
 
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
-
-const mockRegisterAsyncEvent = vi.fn();
-const mockSuperOnload = vi.fn();
-const registeredCallbacks: (() => void)[] = [];
-
-vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => ({
-  ComponentEx: class MockComponentEx {
-    public async loadWithPromises(): Promise<void> {
-      await mockSuperOnload();
-      await this.onloadAsync();
-    }
-
-    public onloadAsync(): Promise<void> {
-      return noopAsync();
-    }
-
-    public register(fn: () => void): void {
-      registeredCallbacks.push(fn);
-    }
-  }
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/components/async-events-component', () => ({
-  registerAsyncEvent: (...args: unknown[]): unknown => mockRegisterAsyncEvent(...args)
-}));
-
-interface MockPluginSettingsComponent {
-  on: ReturnType<typeof vi.fn>;
-}
-
-interface MockScriptManager {
-  registerInvocableScripts: ReturnType<typeof vi.fn>;
-}
 
 class TestScriptFolderWatcherComponent extends ScriptFolderWatcherComponentBase {
   public startWatcherMock = vi.fn<(onChange: () => Promise<void>) => Promisable<boolean>>().mockResolvedValue(false);
@@ -64,70 +33,72 @@ class TestScriptFolderWatcherComponent extends ScriptFolderWatcherComponentBase 
 
 describe('ScriptFolderWatcher', () => {
   let watcher: TestScriptFolderWatcherComponent;
-  let mockApp: Partial<App>;
-  let mockPluginSettingsComponent: MockPluginSettingsComponent;
-  let mockScriptManager: MockScriptManager;
+  let app: App;
+  let pluginSettingsEvents: AsyncEvents;
+  let pluginSettingsComponent: PluginSettingsComponent;
+  let scriptManager: ScriptManager;
+  let registerInvocableScriptsMock: Mock<() => Promise<void>>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    registeredCallbacks.length = 0;
+    app = strictProxy<App>({});
 
-    mockApp = {};
+    pluginSettingsEvents = new AsyncEvents();
+    pluginSettingsComponent = strictProxy<PluginSettingsComponent>({
+      // The SUT registers no-arg-bound handlers; delegate to a real AsyncEvents so registration and teardown run for real.
+      on: castTo<PluginSettingsComponent['on']>((...args: Parameters<AsyncEvents['on']>) => pluginSettingsEvents.on(...args))
+    });
 
-    const eventHandlers = new Map<string, ((...args: unknown[]) => unknown)[]>();
-    mockPluginSettingsComponent = {
-      on: vi.fn((event: string, handler: (...args: unknown[]) => unknown) => {
-        const handlers = eventHandlers.get(event) ?? [];
-        handlers.push(handler);
-        eventHandlers.set(event, handlers);
-        return { event, handler };
-      })
-    };
-
-    mockScriptManager = {
-      registerInvocableScripts: vi.fn().mockResolvedValue(undefined)
-    };
+    registerInvocableScriptsMock = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    scriptManager = strictProxy<ScriptManager>({
+      registerInvocableScripts: registerInvocableScriptsMock
+    });
 
     watcher = new TestScriptFolderWatcherComponent({
-      app: castTo<App>(mockApp),
-      pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
-      scriptManager: castTo<ScriptManager>(mockScriptManager)
+      app,
+      pluginSettingsComponent,
+      scriptManager
     });
   });
 
   describe('constructor', () => {
     it('should assign app from params', () => {
-      expect(watcher['app']).toBe(mockApp);
+      expect(watcher['app']).toBe(app);
     });
 
     it('should assign pluginSettingsComponent from params', () => {
-      expect(watcher['pluginSettingsComponent']).toBe(mockPluginSettingsComponent);
+      expect(watcher['pluginSettingsComponent']).toBe(pluginSettingsComponent);
     });
   });
 
   describe('onload', () => {
-    it('should call super.onload', async () => {
+    it('should apply the new settings during load', async () => {
       await watcher.loadWithPromises();
-      expect(mockSuperOnload).toHaveBeenCalledOnce();
+
+      expect(watcher.startWatcherMock).toHaveBeenCalledOnce();
     });
 
-    it('should register async events for loadSettings and saveSettings', async () => {
+    it('should register a listener for the loadSettings event', async () => {
+      const onSpy = vi.spyOn(pluginSettingsEvents, 'on');
       await watcher.loadWithPromises();
+
+      expect(onSpy).toHaveBeenCalledWith('loadSettings', expect.any(Function));
+    });
+
+    it('should register a listener for the saveSettings event', async () => {
+      const onSpy = vi.spyOn(pluginSettingsEvents, 'on');
+      await watcher.loadWithPromises();
+
+      expect(onSpy).toHaveBeenCalledWith('saveSettings', expect.any(Function));
+    });
+
+    it('should unregister the event listeners on unload', async () => {
+      const offrefSpy = vi.spyOn(pluginSettingsEvents, 'offref');
+      await watcher.loadWithPromises();
+
+      watcher.unload();
 
       const EVENT_COUNT = 2;
-      expect(mockRegisterAsyncEvent).toHaveBeenCalledTimes(EVENT_COUNT);
-    });
-
-    it('should register loadSettings event listener', async () => {
-      await watcher.loadWithPromises();
-
-      expect(mockPluginSettingsComponent.on).toHaveBeenCalledWith('loadSettings', expect.any(Function));
-    });
-
-    it('should register saveSettings event listener', async () => {
-      await watcher.loadWithPromises();
-
-      expect(mockPluginSettingsComponent.on).toHaveBeenCalledWith('saveSettings', expect.any(Function));
+      expect(offrefSpy).toHaveBeenCalledTimes(EVENT_COUNT);
     });
   });
 
@@ -163,57 +134,57 @@ describe('ScriptFolderWatcher', () => {
     });
 
     it('should register stopWatcher as cleanup on first call', async () => {
+      const registerSpy = vi.spyOn(watcher, 'register');
       const onChange = vi.fn().mockResolvedValue(undefined);
       await watcher.register2(onChange);
 
-      // Should have registered stopWatcher for initial cleanup + post-start cleanup
+      // Initial cleanup + post-start cleanup both registered on the first call.
       const EXPECTED_REGISTRATIONS = 2;
-      expect(registeredCallbacks).toHaveLength(EXPECTED_REGISTRATIONS);
+      expect(registerSpy).toHaveBeenCalledTimes(EXPECTED_REGISTRATIONS);
     });
 
     it('should not re-register initial cleanup on subsequent calls', async () => {
       const onChange = vi.fn().mockResolvedValue(undefined);
       await watcher.register2(onChange);
-      registeredCallbacks.length = 0;
 
+      const registerSpy = vi.spyOn(watcher, 'register');
       await watcher.register2(onChange);
 
-      // Only the post-start cleanup should be registered
+      // Only the post-start cleanup should be registered on the second call.
       const EXPECTED_POST_START_REGISTRATIONS = 1;
-      expect(registeredCallbacks).toHaveLength(EXPECTED_POST_START_REGISTRATIONS);
+      expect(registerSpy).toHaveBeenCalledTimes(EXPECTED_POST_START_REGISTRATIONS);
+    });
+
+    it('should run the registered stopWatcher cleanups on unload', async () => {
+      await watcher.loadWithPromises();
+
+      watcher.stopWatcherMock.mockClear();
+      watcher.unload();
+
+      // The cleanups registered during register2 invoke stopWatcher when the component unloads.
+      expect(watcher.stopWatcherMock).toHaveBeenCalled();
     });
   });
 
   describe('applyNewSettings', () => {
     it('should call register2 with registerInvocableScripts when loadSettings event fires', async () => {
       await watcher.loadWithPromises();
+      watcher.startWatcherMock.mockClear();
 
-      // Find the loadSettings event handler from the on() mock
-      const onCalls = vi.mocked(mockPluginSettingsComponent.on).mock.calls;
-      const eventName = 'loadSettings';
-      const loadSettingsCall = onCalls.find((call) => call[0] === eventName);
-      const loadSettingsHandler = loadSettingsCall?.[1] as () => Promise<void>;
+      await pluginSettingsEvents.triggerAsync('loadSettings');
 
-      // Execute the handler (applyNewSettings)
-      await loadSettingsHandler();
-
-      // ApplyNewSettings calls register2 which calls startWatcher
       expect(watcher.startWatcherMock).toHaveBeenCalled();
     });
 
     it('should call register2 with registerInvocableScripts when saveSettings event fires', async () => {
-      await watcher.loadWithPromises();
-
-      const onCalls = vi.mocked(mockPluginSettingsComponent.on).mock.calls;
-      const eventName = 'saveSettings';
-      const saveSettingsCall = onCalls.find((call) => call[0] === eventName);
-      const saveSettingsHandler = saveSettingsCall?.[1] as () => Promise<void>;
-
       watcher.startWatcherMock.mockResolvedValue(true);
-      await saveSettingsHandler();
+      await watcher.loadWithPromises();
+      registerInvocableScriptsMock.mockClear();
+
+      await pluginSettingsEvents.triggerAsync('saveSettings');
 
       expect(watcher.startWatcherMock).toHaveBeenCalled();
-      expect(mockScriptManager.registerInvocableScripts).toHaveBeenCalled();
+      expect(registerInvocableScriptsMock).toHaveBeenCalled();
     });
   });
 });

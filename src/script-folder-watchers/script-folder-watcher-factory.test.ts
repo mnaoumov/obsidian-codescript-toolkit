@@ -1,7 +1,7 @@
 import { Platform } from 'obsidian';
-import { noopAsync } from 'obsidian-dev-utils/function';
-import { castTo } from 'obsidian-dev-utils/object-utils';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
+  afterEach,
   beforeEach,
   describe,
   expect,
@@ -21,35 +21,14 @@ class MockWatcher {
     this.params = params;
     MockWatcher.lastInstance = this;
   }
+
+  public load(): void {
+    // The real ComponentEx.addChild loads the added child; the stub satisfies that contract.
+  }
 }
 
 class MockDesktopWatcher extends MockWatcher {}
 class MockMobileWatcher extends MockWatcher {}
-
-const mockAddChild = vi.fn((child: unknown) => child);
-
-vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => ({
-  ComponentEx: class MockComponentEx {
-    public addChild = mockAddChild;
-
-    public async loadWithPromises(): Promise<void> {
-      await this.onloadAsync();
-    }
-
-    public onloadAsync(): Promise<void> {
-      return noopAsync();
-    }
-  }
-}));
-
-vi.mock('obsidian-dev-utils/type-guards', () => ({
-  ensureNonNullable: <T>(value: T | undefined): T => {
-    if (value === undefined || value === null) {
-      throw new Error('Value is null or undefined');
-    }
-    return value;
-  }
-}));
 
 vi.mock('./script-folder-watcher-desktop.ts', () => ({
   ScriptFolderWatcherDesktopComponent: MockDesktopWatcher
@@ -59,69 +38,63 @@ vi.mock('./script-folder-watcher-mobile.ts', () => ({
   ScriptFolderWatcherMobileComponent: MockMobileWatcher
 }));
 
-vi.mock('obsidian', async (importOriginal) => ({
-  ...await importOriginal<typeof import('obsidian')>(),
-  Platform: {
-    isMobile: false
-  }
-}));
-
-interface MutablePlatform {
-  isMobile: boolean;
-}
-
 describe('ScriptFolderWatcherFactory', () => {
   let factory: ScriptFolderWatcherFactoryComponent;
-  let mockParams: ScriptFolderWatcherComponentBaseConstructorParams;
+  let params: ScriptFolderWatcherComponentBaseConstructorParams;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    (Platform as MutablePlatform).isMobile = false;
+    Platform.isMobile = false;
     // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
     document.body.classList.remove('emulate-mobile');
-    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
-    document.body.hasClass = function hasClass(cls: string): boolean {
-      return this.classList.contains(cls);
-    };
     MockWatcher.lastInstance = null;
 
-    mockParams = castTo<ScriptFolderWatcherComponentBaseConstructorParams>({
-      app: {},
-      pluginSettingsComponent: {},
-      scriptManager: {}
-    });
+    params = strictProxy<ScriptFolderWatcherComponentBaseConstructorParams>({});
 
-    factory = new ScriptFolderWatcherFactoryComponent(mockParams);
+    factory = new ScriptFolderWatcherFactoryComponent(params);
+  });
+
+  afterEach(() => {
+    Platform.isMobile = false;
+    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
+    document.body.classList.remove('emulate-mobile');
   });
 
   describe('onload', () => {
     it('should create desktop watcher when not mobile and not emulating', async () => {
+      const addChildSpy = vi.spyOn(factory, 'addChild');
       await factory.loadWithPromises();
-      expect(mockAddChild).toHaveBeenCalledOnce();
+
+      expect(addChildSpy).toHaveBeenCalledOnce();
       expect(MockWatcher.lastInstance).toBeInstanceOf(MockDesktopWatcher);
     });
 
     it('should create mobile watcher when Platform.isMobile is true', async () => {
-      (Platform as MutablePlatform).isMobile = true;
+      Platform.isMobile = true;
+      const addChildSpy = vi.spyOn(factory, 'addChild');
       await factory.loadWithPromises();
-      expect(mockAddChild).toHaveBeenCalledOnce();
+
+      expect(addChildSpy).toHaveBeenCalledOnce();
       expect(MockWatcher.lastInstance).toBeInstanceOf(MockMobileWatcher);
     });
 
     it('should create mobile watcher when emulate-mobile class is present', async () => {
       // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
       document.body.classList.add('emulate-mobile');
+      const addChildSpy = vi.spyOn(factory, 'addChild');
       await factory.loadWithPromises();
-      expect(mockAddChild).toHaveBeenCalledOnce();
+
+      expect(addChildSpy).toHaveBeenCalledOnce();
       expect(MockWatcher.lastInstance).toBeInstanceOf(MockMobileWatcher);
     });
 
     it('should create mobile watcher when both emulate-mobile and isMobile are true', async () => {
       // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
       document.body.classList.add('emulate-mobile');
-      (Platform as MutablePlatform).isMobile = true;
+      Platform.isMobile = true;
+      const addChildSpy = vi.spyOn(factory, 'addChild');
       await factory.loadWithPromises();
-      expect(mockAddChild).toHaveBeenCalledOnce();
+
+      expect(addChildSpy).toHaveBeenCalledOnce();
       expect(MockWatcher.lastInstance).toBeInstanceOf(MockMobileWatcher);
     });
   });
@@ -129,6 +102,7 @@ describe('ScriptFolderWatcherFactory', () => {
   describe('platformScriptFolderWatcher', () => {
     it('should return the created watcher after onload', async () => {
       await factory.loadWithPromises();
+
       expect(factory.platformScriptFolderWatcher).toBe(MockWatcher.lastInstance);
     });
 

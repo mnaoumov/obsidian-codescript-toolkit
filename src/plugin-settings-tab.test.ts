@@ -1,8 +1,10 @@
 import type { Plugin } from 'obsidian';
+import type { AsyncEventRef } from 'obsidian-dev-utils/async-events';
 import type { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
 
-import { noop } from 'obsidian-dev-utils/function';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { App } from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
   describe,
@@ -11,9 +13,27 @@ import {
   vi
 } from 'vitest';
 
-import type { PluginSettings } from './plugin-settings.ts';
-
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
+import { PluginSettings } from './plugin-settings.ts';
+
+interface AppSetting {
+  openTabById: ReturnType<typeof vi.fn>;
+}
+
+interface AppWithSetting {
+  setting: AppSetting;
+}
+
+interface BindCall {
+  options: MockBindOptions | undefined;
+  propertyName: string;
+}
+
+type BindFn = (valueComponent: unknown, propertyName: string, options?: MockBindOptions) => unknown;
+
+interface BindTarget {
+  bind: BindFn;
+}
 
 interface MockBindOptions {
   onChanged(): void;
@@ -28,21 +48,12 @@ interface MockPathSuggestParams {
   getRootPath(): string;
 }
 
-interface MockPluginSettingsComponent {
-  editAndSave: ReturnType<typeof vi.fn>;
-  settings: PluginSettings;
-}
-
 interface MockTextInstance {
   inputEl: HTMLInputElement;
   onChanged: ReturnType<typeof vi.fn>;
   setPlaceholder: ReturnType<typeof vi.fn>;
 }
 
-const mockBind = vi.fn().mockReturnValue({
-  setMin: vi.fn().mockReturnValue({ setMax: vi.fn() }),
-  setPlaceholder: vi.fn()
-});
 const mockSettingExSetName = vi.fn();
 const mockSettingExSetDesc = vi.fn();
 const mockSettingExAddText = vi.fn();
@@ -75,20 +86,33 @@ const mockSettingExInstance = {
     const cb = args[0] as (highlighter: Record<string, unknown>) => void;
     cb({
       inputEl: { addClass: vi.fn() },
-      setLanguage: vi.fn()
+      onChange: vi.fn().mockReturnThis(),
+      setLanguage: vi.fn(),
+      setValue: vi.fn()
     });
     return mockSettingExInstance;
   },
   addNumber: (...args: unknown[]): unknown => {
     mockSettingExAddNumber(...args);
     const cb = args[0] as (text: Record<string, unknown>) => void;
-    cb({ setMax: vi.fn(), setMin: vi.fn().mockReturnValue({ setMax: vi.fn() }) });
+    cb({
+      onChange: vi.fn().mockReturnThis(),
+      setMax: vi.fn(),
+      setMin: vi.fn().mockReturnValue({ setMax: vi.fn() }),
+      setValue: vi.fn()
+    });
     return mockSettingExInstance;
   },
   addText: (...args: unknown[]): unknown => {
     mockSettingExAddText(...args);
     const cb = args[0] as (text: Record<string, unknown>) => void;
-    const textObj = { inputEl: createEl('input'), onChanged: vi.fn(), setPlaceholder: vi.fn().mockReturnThis() };
+    const textObj = {
+      inputEl: createEl('input'),
+      onChange: vi.fn().mockReturnThis(),
+      onChanged: vi.fn(),
+      setPlaceholder: vi.fn().mockReturnThis(),
+      setValue: vi.fn()
+    };
     mockTextInstances.push(textObj);
     cb(textObj);
     return mockSettingExInstance;
@@ -96,7 +120,7 @@ const mockSettingExInstance = {
   addToggle: (...args: unknown[]): unknown => {
     mockSettingExAddToggle(...args);
     const cb = args[0] as (toggle: unknown) => void;
-    cb({});
+    cb({ onChange: vi.fn().mockReturnThis(), setValue: vi.fn() });
     return mockSettingExInstance;
   },
   setDesc: (...args: unknown[]): unknown => {
@@ -130,7 +154,8 @@ vi.mock('obsidian', async (importOriginal) => ({
   stringifyYaml: (obj: unknown): unknown => JSON.stringify(obj)
 }));
 
-vi.mock('obsidian-dev-utils/async', () => ({
+vi.mock('obsidian-dev-utils/async', async (importOriginal) => ({
+  ...await importOriginal<typeof import('obsidian-dev-utils/async')>(),
   convertAsyncToSync: vi.fn((fn: unknown) => fn)
 }));
 
@@ -138,50 +163,11 @@ vi.mock('obsidian-dev-utils/html-element', () => ({
   appendCodeBlock: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/plugin/plugin-settings-tab', () => ({
-  PluginSettingsTabBase: class MockPluginSettingsTabBase {
-    protected readonly app: unknown;
-    protected readonly containerEl: HTMLElement;
-    protected readonly pluginSettingsComponent: MockPluginSettingsComponent;
-
-    public constructor(params: Record<string, unknown>) {
-      const plugin = params['plugin'] as Record<string, unknown>;
-      this.app = plugin['app'] ?? {};
-      this.containerEl = createDiv();
-      this.pluginSettingsComponent = params['pluginSettingsComponent'] as MockPluginSettingsComponent;
-    }
-
-    public bind(...args: unknown[]): ReturnType<typeof vi.fn> {
-      return mockBind(...args) as ReturnType<typeof vi.fn>;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- base class stub
-    public displayLegacy(): void {}
-  }
-}));
-
 vi.mock('obsidian-dev-utils/obsidian/setting-ex', () => ({
   // eslint-disable-next-line prefer-arrow-callback -- must be a constructor function for `new`
   SettingEx: vi.fn().mockImplementation(function mockSettingExConstructor() {
     return mockSettingExInstance;
   })
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/setting-group-ex', () => ({
-  SettingGroupEx: class MockSettingGroupEx {
-    public constructor(_containerEl: HTMLElement) {
-      noop();
-    }
-
-    public addSettingEx(cb: (setting: unknown) => void): this {
-      cb(mockSettingExInstance);
-      return this;
-    }
-
-    public setHeading(_heading: string): this {
-      return this;
-    }
-  }
 }));
 
 vi.mock('./code-button-block.ts', () => ({
@@ -207,34 +193,24 @@ vi.mock('./path-suggest.ts', () => ({
   }
 }));
 
+interface CreateTabParams {
+  readonly editAndSave?: ReturnType<typeof vi.fn>;
+  readonly modulesRoot?: string;
+  readonly openTabById?: ReturnType<typeof vi.fn>;
+}
+
 describe('PluginSettingsTab', () => {
   let tab: PluginSettingsTab;
+  let bindCalls: BindCall[];
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockButtonClickHandlers.length = 0;
     mockTextInstances.length = 0;
     mockPathSuggestInstances.length = 0;
+    bindCalls = [];
 
-    const mockPlugin = {
-      app: {
-        setting: {
-          openTabById: vi.fn().mockReturnValue({
-            searchComponent: { setValue: vi.fn() },
-            updateHotkeyVisibility: vi.fn()
-          })
-        }
-      }
-    };
-
-    tab = new PluginSettingsTab({
-      plugin: castTo<Plugin>(mockPlugin),
-      pluginName: 'CodeScript Toolkit',
-      pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
-        editAndSave: vi.fn(),
-        settings: castTo<PluginSettings>({ modulesRoot: '' })
-      })
-    });
+    tab = createTab();
   });
 
   describe('constructor', () => {
@@ -309,162 +285,89 @@ describe('PluginSettingsTab', () => {
     it('should bind text inputs to settings', () => {
       tab.displayLegacy();
 
-      expect(mockBind).toHaveBeenCalled();
+      expect(bindCalls.length).toBeGreaterThan(0);
     });
 
     it('should bind modulesRoot with onChanged callback that triggers modulesRootChanged', () => {
       tab.displayLegacy();
 
-      // Find the bind call for modulesRoot
-      const modulesRootBindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'modulesRoot'
-      );
+      const modulesRootBindCall = findBindCall('modulesRoot');
       expect(modulesRootBindCall).toBeDefined();
 
-      // The options object should have an onChanged callback
-      const options = modulesRootBindCall?.[2] as MockBindOptions | undefined;
+      const options = modulesRootBindCall?.options;
       expect(options?.onChanged).toBeDefined();
 
-      // Invoke the onChanged callback to trigger modulesRootChanged event
+      // Invoking the onChanged callback triggers the modulesRootChanged event without throwing.
       options?.onChanged();
-      // If it reaches here without throwing, the callback was successfully invoked
-      expect(true).toBe(true);
+      expect(mockTextInstances[0]).toBeDefined();
     });
 
     it('should bind invocableScriptsFolder setting', () => {
       tab.displayLegacy();
 
-      const bindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'invocableScriptsFolder'
-      );
-      expect(bindCall).toBeDefined();
+      expect(findBindCall('invocableScriptsFolder')).toBeDefined();
     });
 
     it('should bind startupScriptPath setting', () => {
       tab.displayLegacy();
 
-      const bindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'startupScriptPath'
-      );
-      expect(bindCall).toBeDefined();
+      expect(findBindCall('startupScriptPath')).toBeDefined();
     });
 
     it('should bind mobileChangesCheckingIntervalInSeconds setting', () => {
       tab.displayLegacy();
 
-      const bindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'mobileChangesCheckingIntervalInSeconds'
-      );
-      expect(bindCall).toBeDefined();
+      expect(findBindCall('mobileChangesCheckingIntervalInSeconds')).toBeDefined();
     });
 
     it('should bind shouldUseSyncFallback setting', () => {
       tab.displayLegacy();
 
-      const bindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'shouldUseSyncFallback'
-      );
-      expect(bindCall).toBeDefined();
+      expect(findBindCall('shouldUseSyncFallback')).toBeDefined();
     });
 
     it('should bind shouldHandleProtocolUrls setting', () => {
       tab.displayLegacy();
 
-      const bindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'shouldHandleProtocolUrls'
-      );
-      expect(bindCall).toBeDefined();
+      expect(findBindCall('shouldHandleProtocolUrls')).toBeDefined();
     });
 
     it('should bind shouldShowTempPluginLoadUnloadNotices setting', () => {
       tab.displayLegacy();
 
-      const bindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'shouldShowTempPluginLoadUnloadNotices'
-      );
-      expect(bindCall).toBeDefined();
+      expect(findBindCall('shouldShowTempPluginLoadUnloadNotices')).toBeDefined();
     });
 
     it('should bind defaultCodeButtonConfig setting', () => {
       tab.displayLegacy();
 
-      const bindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'defaultCodeButtonConfig'
-      );
-      expect(bindCall).toBeDefined();
+      expect(findBindCall('defaultCodeButtonConfig')).toBeDefined();
     });
 
     it('should configure hotkeys button that opens hotkeys tab', () => {
-      const mockOpenTabById = vi.fn().mockReturnValue({
-        searchComponent: { setValue: vi.fn() },
-        updateHotkeyVisibility: vi.fn()
-      });
+      tab.displayLegacy();
 
-      const mockPlugin = {
-        app: {
-          setting: {
-            openTabById: mockOpenTabById
-          }
-        }
-      };
-
-      const tabWithMock = new PluginSettingsTab({
-        plugin: castTo<Plugin>(mockPlugin),
-        pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
-          editAndSave: vi.fn(),
-          settings: castTo<PluginSettings>({ modulesRoot: '' })
-        })
-      });
-
-      tabWithMock.displayLegacy();
-
-      // Find the button callback and invoke it
       const buttonCalls = mockSettingExAddButton.mock.calls;
       expect(buttonCalls.length).toBeGreaterThan(0);
     });
 
     it('should create reset to defaults button with onClick handler', () => {
       const mockEditAndSave = vi.fn().mockResolvedValue(undefined);
-
-      const mockPlugin = {
-        app: {
-          setting: {
-            openTabById: vi.fn().mockReturnValue({
-              searchComponent: { setValue: vi.fn() },
-              updateHotkeyVisibility: vi.fn()
-            })
-          }
-        }
-      };
-
-      const tabWithMock = new PluginSettingsTab({
-        plugin: castTo<Plugin>(mockPlugin),
-        pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
-          editAndSave: mockEditAndSave,
-          settings: castTo<PluginSettings>({ modulesRoot: '' })
-        })
-      });
+      const tabWithMock = createTab({ editAndSave: mockEditAndSave });
 
       tabWithMock.displayLegacy();
 
-      // The last addButton call should be the reset button
       expect(mockSettingExAddButton).toHaveBeenCalled();
     });
 
     it('should invoke modulesRootChanged event which calls onChanged and refresh on dependent settings', () => {
       tab.displayLegacy();
 
-      // Find the bind call for modulesRoot and invoke onChanged
-      const modulesRootBindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'modulesRoot'
-      );
-      const options = modulesRootBindCall?.[2] as MockBindOptions | undefined;
+      const modulesRootBindCall = findBindCall('modulesRoot');
+      const options = modulesRootBindCall?.options;
 
-      // There are 3 addText calls: modulesRoot, invocableScriptsFolder, startupScriptPath
-      // The invocable and startup text objects register modulesRootChanged handlers
-      // Invoking onChanged triggers those handlers
+      // There are 3 addText calls: modulesRoot, invocableScriptsFolder, startupScriptPath.
+      // The invocable and startup text objects register modulesRootChanged handlers.
       const TEXT_INDEX_INVOCABLE = 1;
       const TEXT_INDEX_STARTUP = 2;
       const invocableText = mockTextInstances[TEXT_INDEX_INVOCABLE];
@@ -472,7 +375,6 @@ describe('PluginSettingsTab', () => {
 
       options?.onChanged();
 
-      // The modulesRootChanged handlers call text.onChanged() and suggest.refresh()
       expect(invocableText?.onChanged).toHaveBeenCalled();
       expect(startupText?.onChanged).toHaveBeenCalled();
     });
@@ -480,12 +382,10 @@ describe('PluginSettingsTab', () => {
     it('should call refresh on PathSuggest instances when modulesRootChanged fires', () => {
       tab.displayLegacy();
 
-      const modulesRootBindCall = mockBind.mock.calls.find(
-        (call) => call[1] === 'modulesRoot'
-      );
-      const options = modulesRootBindCall?.[2] as MockBindOptions | undefined;
+      const modulesRootBindCall = findBindCall('modulesRoot');
+      const options = modulesRootBindCall?.options;
 
-      // PathSuggest instances are created for: modulesRoot (index 0), invocable (index 1), startup (index 2)
+      // PathSuggest instances are created for: modulesRoot (index 0), invocable (index 1), startup (index 2).
       const PATH_SUGGEST_INDEX_INVOCABLE = 1;
       const PATH_SUGGEST_INDEX_STARTUP = 2;
 
@@ -503,28 +403,13 @@ describe('PluginSettingsTab', () => {
         updateHotkeyVisibility: mockUpdateHotkeyVisibility
       });
 
-      const mockPlugin = {
-        app: {
-          setting: {
-            openTabById: mockOpenTabById
-          }
-        }
-      };
-
-      const tabWithMock = new PluginSettingsTab({
-        plugin: castTo<Plugin>(mockPlugin),
-        pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
-          editAndSave: vi.fn(),
-          settings: castTo<PluginSettings>({ modulesRoot: '' })
-        })
-      });
+      const tabWithMock = createTab({ openTabById: mockOpenTabById });
 
       mockButtonClickHandlers.length = 0;
 
       tabWithMock.displayLegacy();
 
-      // Second button click handler is for Hotkeys "Configure" (after "Reset" button in Code button blocks)
+      // Second button click handler is for Hotkeys "Configure" (after "Reset" button in Code button blocks).
       const HOTKEYS_BUTTON_INDEX = 1;
       const hotkeysClickHandler = mockButtonClickHandlers[HOTKEYS_BUTTON_INDEX];
       expect(hotkeysClickHandler).toBeDefined();
@@ -543,31 +428,13 @@ describe('PluginSettingsTab', () => {
         expect(settings['defaultCodeButtonConfig']).toBeDefined();
       });
 
-      const mockPlugin = {
-        app: {
-          setting: {
-            openTabById: vi.fn().mockReturnValue({
-              searchComponent: { setValue: vi.fn() },
-              updateHotkeyVisibility: vi.fn()
-            })
-          }
-        }
-      };
-
-      const tabWithMock = new PluginSettingsTab({
-        plugin: castTo<Plugin>(mockPlugin),
-        pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
-          editAndSave: mockEditAndSave,
-          settings: castTo<PluginSettings>({ modulesRoot: '' })
-        })
-      });
+      const tabWithMock = createTab({ editAndSave: mockEditAndSave });
 
       mockButtonClickHandlers.length = 0;
 
       tabWithMock.displayLegacy();
 
-      // First button click handler is for "Reset to plugin default code button config" (in Code button blocks group)
+      // First button click handler is for "Reset to plugin default code button config" (in Code button blocks group).
       const RESET_BUTTON_INDEX = 0;
       const resetClickHandler = mockButtonClickHandlers[RESET_BUTTON_INDEX];
       expect(resetClickHandler).toBeDefined();
@@ -580,72 +447,103 @@ describe('PluginSettingsTab', () => {
     it('should return empty string from modulesRoot PathSuggest getRootPath', () => {
       tab.displayLegacy();
 
-      // First PathSuggest instance is for modulesRoot (getRootPath returns '')
+      // First PathSuggest instance is for modulesRoot (getRootPath returns '').
       const PATH_SUGGEST_INDEX_MODULES_ROOT = 0;
       const rootPath = mockPathSuggestInstances[PATH_SUGGEST_INDEX_MODULES_ROOT]?.getRootPath();
       expect(rootPath).toBe('');
     });
 
     it('should return modulesRoot from startupScriptPath PathSuggest getRootPath', () => {
-      const mockPlugin = {
-        app: {
-          setting: {
-            openTabById: vi.fn().mockReturnValue({
-              searchComponent: { setValue: vi.fn() },
-              updateHotkeyVisibility: vi.fn()
-            })
-          }
-        }
-      };
-
-      const tabWithMock = new PluginSettingsTab({
-        plugin: castTo<Plugin>(mockPlugin),
-        pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
-          editAndSave: vi.fn(),
-          settings: castTo<PluginSettings>({ modulesRoot: 'startup/root' })
-        })
-      });
+      const tabWithMock = createTab({ modulesRoot: 'startup/root' });
 
       mockPathSuggestInstances.length = 0;
 
       tabWithMock.displayLegacy();
 
-      // Third PathSuggest instance is for startupScriptPath
+      // Third PathSuggest instance is for startupScriptPath.
       const PATH_SUGGEST_INDEX_STARTUP = 2;
       const rootPath = mockPathSuggestInstances[PATH_SUGGEST_INDEX_STARTUP]?.getRootPath();
       expect(rootPath).toBe('startup/root');
     });
 
     it('should return modulesRoot from invocableScriptsFolder PathSuggest getRootPath', () => {
-      const mockPlugin = {
-        app: {
-          setting: {
-            openTabById: vi.fn().mockReturnValue({
-              searchComponent: { setValue: vi.fn() },
-              updateHotkeyVisibility: vi.fn()
-            })
-          }
-        }
-      };
-
-      const tabWithMock = new PluginSettingsTab({
-        plugin: castTo<Plugin>(mockPlugin),
-        pluginName: 'CodeScript Toolkit',
-        pluginSettingsComponent: castTo<PluginSettingsComponentBase<PluginSettings>>({
-          editAndSave: vi.fn(),
-          settings: castTo<PluginSettings>({ modulesRoot: 'custom/root' })
-        })
-      });
+      const tabWithMock = createTab({ modulesRoot: 'custom/root' });
 
       mockPathSuggestInstances.length = 0;
 
       tabWithMock.displayLegacy();
 
-      // Second PathSuggest instance is for invocableScriptsFolder
+      // Second PathSuggest instance is for invocableScriptsFolder.
       const PATH_SUGGEST_INDEX_INVOCABLE = 1;
       const rootPath = mockPathSuggestInstances[PATH_SUGGEST_INDEX_INVOCABLE]?.getRootPath();
       expect(rootPath).toBe('custom/root');
     });
   });
+
+  function createTab(params: CreateTabParams = {}): PluginSettingsTab {
+    const openTabById = params.openTabById ?? vi.fn().mockReturnValue({
+      searchComponent: { setValue: vi.fn() },
+      updateHotkeyVisibility: vi.fn()
+    });
+
+    const app = App.createConfigured__().asOriginalType__();
+    castTo<AppWithSetting>(app).setting = { openTabById };
+
+    const plugin = strictProxy<Plugin>({
+      app,
+      manifest: { id: 'test-plugin' }
+    });
+
+    const settings = new PluginSettings();
+    settings.modulesRoot = params.modulesRoot ?? '';
+
+    const createdTab = new PluginSettingsTab({
+      plugin,
+      pluginName: 'CodeScript Toolkit',
+      pluginSettingsComponent: createSettingsComponent(settings, params.editAndSave)
+    });
+
+    // Record bind invocations while delegating to the real base-class `bind`.
+    const originalBind = castTo<BindFn>(createdTab.bind.bind(createdTab));
+    castTo<BindTarget>(createdTab).bind = vi.fn((valueComponent: unknown, propertyName: string, options?: MockBindOptions) => {
+      bindCalls.push({ options, propertyName });
+      return originalBind(valueComponent, propertyName, options);
+    });
+
+    return createdTab;
+  }
+
+  function createSettingsComponent(
+    settings: PluginSettings,
+    editAndSave?: ReturnType<typeof vi.fn>
+  ): PluginSettingsComponentBase<PluginSettings> {
+    const validationMessages: Record<string, string> = {};
+    for (const key of Object.keys(settings)) {
+      validationMessages[key] = '';
+    }
+
+    const source = strictProxy<PluginSettingsComponentBase<PluginSettings>>({
+      defaultSettings: new PluginSettings(),
+      editAndSave: castTo<PluginSettingsComponentBase<PluginSettings>['editAndSave']>(editAndSave ?? vi.fn()),
+      offref: vi.fn(),
+      on: castTo<PluginSettingsComponentBase<PluginSettings>['on']>(vi.fn((name: string, callback: unknown, thisArg?: unknown): AsyncEventRef => ({
+        asyncEventSource: source,
+        callback: castTo<AsyncEventRef['callback']>(callback),
+        name,
+        thisArg
+      }))),
+      setProperty: vi.fn(() => Promise.resolve('')),
+      settings,
+      settingsState: {
+        effectiveValues: settings,
+        inputValues: settings,
+        validationMessages
+      }
+    });
+    return source;
+  }
+
+  function findBindCall(propertyName: string): BindCall | undefined {
+    return bindCalls.find((call) => call.propertyName === propertyName);
+  }
 });

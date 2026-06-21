@@ -1,7 +1,9 @@
+import type { DataAdapterEx } from '@obsidian-typings/obsidian-public-latest';
 import type { App } from 'obsidian';
+import type { Mock } from 'vitest';
 
-import { noopAsync } from 'obsidian-dev-utils/function';
-import { castTo } from 'obsidian-dev-utils/object-utils';
+import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -12,6 +14,7 @@ import {
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { ScriptManager } from '../script.ts';
+import type { ScriptFolderWatcherComponentBaseConstructorParams } from './script-folder-watcher.ts';
 
 import {
   createScriptFolderWatcher,
@@ -19,117 +22,59 @@ import {
 } from './script-folder-watcher-desktop.ts';
 
 const mockWatch = vi.fn();
-const mockSuperOnload = vi.fn();
-const mockRegisterAsyncEvent = vi.fn();
-const registeredCallbacks: (() => void)[] = [];
 
 vi.mock('node:fs', () => ({
   default: { watch: (...args: unknown[]): unknown => mockWatch(...args) },
   watch: (...args: unknown[]): unknown => mockWatch(...args)
 }));
 
-vi.mock('obsidian', async (importOriginal) => ({
-  ...await importOriginal<typeof import('obsidian')>(),
-  Notice: vi.fn()
-}));
-
-vi.mock('obsidian-dev-utils/async', () => ({
-  invokeAsyncSafely: vi.fn((fn: () => unknown) => fn())
-}));
-
-vi.mock('obsidian-dev-utils/path', () => ({
-  join: (...segments: string[]): string => segments.join('/')
-}));
-
-interface MockDataAdapter {
-  basePath: string;
-}
-
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
-  getDataAdapterEx: (): MockDataAdapter => ({
-    basePath: '/vault'
-  })
+  getDataAdapterEx: vi.fn()
 }));
-
-vi.mock('obsidian-dev-utils/obsidian/components/component-ex', () => ({
-  ComponentEx: class MockComponentEx {
-    public async loadWithPromises(): Promise<void> {
-      await mockSuperOnload();
-      await this.onloadAsync();
-    }
-
-    public onloadAsync(): Promise<void> {
-      return noopAsync();
-    }
-
-    public register(fn: () => void): void {
-      registeredCallbacks.push(fn);
-    }
-  }
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/components/async-events-component', () => ({
-  registerAsyncEvent: (...args: unknown[]): unknown => mockRegisterAsyncEvent(...args)
-}));
-
-interface MockApp {
-  vault: MockVault;
-}
-
-interface MockPluginSettingsComponent {
-  on: ReturnType<typeof vi.fn>;
-  settings: MockSettings;
-}
-
-interface MockScriptManager {
-  registerInvocableScripts: ReturnType<typeof vi.fn>;
-}
 
 interface MockSettings {
-  getInvocableScriptsFolder: ReturnType<typeof vi.fn>;
-}
-
-interface MockVault {
-  exists: ReturnType<typeof vi.fn>;
+  getInvocableScriptsFolder: Mock<() => string>;
 }
 
 describe('ScriptFolderWatcherDesktopComponent', () => {
   let watcher: ScriptFolderWatcherDesktopComponent;
-  let mockApp: MockApp;
-  let mockPluginSettingsComponent: MockPluginSettingsComponent;
-  let mockScriptManager: MockScriptManager;
+  let app: App;
+  let pluginSettingsComponent: PluginSettingsComponent;
+  let scriptManager: ScriptManager;
+  let existsMock: Mock<(path: string) => Promise<boolean>>;
+  let settings: MockSettings;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    registeredCallbacks.length = 0;
 
-    mockApp = {
-      vault: {
-        exists: vi.fn().mockResolvedValue(true)
-      }
-    };
+    existsMock = vi.fn<(path: string) => Promise<boolean>>().mockResolvedValue(true);
+    app = strictProxy<App>({
+      vault: strictProxy<App['vault']>({
+        exists: existsMock
+      })
+    });
 
-    mockPluginSettingsComponent = {
-      on: vi.fn(),
-      settings: {
-        getInvocableScriptsFolder: vi.fn().mockReturnValue('scripts')
-      }
+    settings = {
+      getInvocableScriptsFolder: vi.fn<() => string>().mockReturnValue('scripts')
     };
+    pluginSettingsComponent = strictProxy<PluginSettingsComponent>({
+      settings: strictProxy<PluginSettingsComponent['settings']>(settings)
+    });
 
-    mockScriptManager = {
-      registerInvocableScripts: vi.fn().mockResolvedValue(undefined)
-    };
+    scriptManager = strictProxy<ScriptManager>({});
+
+    vi.mocked(getDataAdapterEx).mockReturnValue(strictProxy<DataAdapterEx>({ basePath: '/vault' }));
 
     watcher = new ScriptFolderWatcherDesktopComponent({
-      app: castTo<App>(mockApp),
-      pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
-      scriptManager: castTo<ScriptManager>(mockScriptManager)
+      app,
+      pluginSettingsComponent,
+      scriptManager
     });
   });
 
   describe('startWatcher', () => {
     it('should return false when invocableScriptsFolder is empty', async () => {
-      vi.mocked(mockPluginSettingsComponent.settings.getInvocableScriptsFolder).mockReturnValue('');
+      settings.getInvocableScriptsFolder.mockReturnValue('');
       const onChange = vi.fn().mockResolvedValue(undefined);
 
       const result = await watcher['startWatcher'](onChange);
@@ -138,7 +83,7 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
     });
 
     it('should return false when folder does not exist', async () => {
-      vi.mocked(mockApp.vault.exists).mockResolvedValue(false);
+      existsMock.mockResolvedValue(false);
       const onChange = vi.fn().mockResolvedValue(undefined);
 
       const result = await watcher['startWatcher'](onChange);
@@ -164,7 +109,7 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
     it('should pass correct full path to watch', async () => {
       const mockFSWatcher = { close: vi.fn() };
       mockWatch.mockReturnValue(mockFSWatcher);
-      vi.mocked(mockPluginSettingsComponent.settings.getInvocableScriptsFolder).mockReturnValue('my/scripts/folder');
+      settings.getInvocableScriptsFolder.mockReturnValue('my/scripts/folder');
 
       const onChange = vi.fn().mockResolvedValue(undefined);
       await watcher['startWatcher'](onChange);
@@ -180,32 +125,22 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
       const mockFSWatcher = { close: vi.fn() };
       mockWatch.mockReturnValue(mockFSWatcher);
 
-      // Mock the global sleep function to resolve immediately
-      vi.stubGlobal('sleep', vi.fn().mockResolvedValue(undefined));
-
       const onChange = vi.fn().mockResolvedValue(undefined);
       await watcher['startWatcher'](onChange);
 
-      // Get the watcher callback passed to watch()
       const watcherCallback = mockWatch.mock.calls[0]?.[2] as () => void;
 
-      // InvokeAsyncSafely calls the async fn but doesn't await it.
-      // We need to wait for all microtasks to settle.
       watcherCallback();
       await vi.waitFor(() => {
         expect(onChange).toHaveBeenCalled();
       });
 
-      // The callback should stop the watcher and call onChange
       expect(mockFSWatcher.close).toHaveBeenCalled();
 
-      // The finally block should call sleep and then startWatcher again
       await vi.waitFor(() => {
         const EXPECTED_WATCH_CALLS = 2;
         expect(mockWatch).toHaveBeenCalledTimes(EXPECTED_WATCH_CALLS);
       });
-
-      vi.unstubAllGlobals();
     });
   });
 
@@ -243,11 +178,11 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
 
 describe('createScriptFolderWatcher', () => {
   it('should return a ScriptFolderWatcherDesktopComponent instance', () => {
-    const params = {
-      app: castTo<App>({}),
-      pluginSettingsComponent: castTo<PluginSettingsComponent>({ on: vi.fn(), settings: {} }),
-      scriptManager: castTo<ScriptManager>({})
-    };
+    const params = strictProxy<ScriptFolderWatcherComponentBaseConstructorParams>({
+      app: strictProxy<App>({}),
+      pluginSettingsComponent: strictProxy<PluginSettingsComponent>({}),
+      scriptManager: strictProxy<ScriptManager>({})
+    });
 
     const result = createScriptFolderWatcher(params);
 

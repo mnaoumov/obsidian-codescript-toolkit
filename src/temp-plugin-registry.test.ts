@@ -11,6 +11,7 @@ import {
   Notice
 } from 'obsidian';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -25,7 +26,6 @@ import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 const mockPrintError = vi.fn();
-const mockInvokeAsyncSafely = vi.fn();
 
 interface ObsidianDocumentHead {
   createEl(...args: unknown[]): HTMLElement;
@@ -36,28 +36,12 @@ function getObsidianDocumentHead(): ObsidianDocumentHead {
   return document.head;
 }
 
-vi.mock('obsidian-dev-utils/async', () => ({
-  invokeAsyncSafely: (...args: unknown[]): unknown => (mockInvokeAsyncSafely as (...a: unknown[]) => unknown)(...args)
-}));
-
-vi.mock('obsidian-dev-utils/error', () => ({
+// Only `printError` is stubbed (a thin return-value passthrough so the test can assert which error
+// Was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
+// The real `invokeAsyncSafely`) are preserved via `importOriginal`. No dev-utils logic is reimplemented.
+vi.mock('obsidian-dev-utils/error', async (importOriginal) => ({
+  ...await importOriginal<typeof import('obsidian-dev-utils/error')>(),
   printError: (...args: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...args)
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler-component', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- Need to import Component inside mock factory; use mock path directly since require() doesn't go through Vite's alias resolution.
-  const { Component: ObsidianComponent } = require('obsidian-test-mocks/obsidian') as typeof import('obsidian');
-  return {
-    CommandHandlerComponent: class MockCommandHandlerComponent extends ObsidianComponent {
-      public constructor(_params: unknown) {
-        super();
-      }
-    }
-  };
-});
-
-vi.mock('./command-handlers/unload-temp-plugin-command-handler.ts', () => ({
-  UnloadTempPluginCommandHandler: vi.fn()
 }));
 
 interface MockPlugin {
@@ -65,8 +49,21 @@ interface MockPlugin {
   unload: ReturnType<typeof vi.fn>;
 }
 
-function createMockApp(): App {
-  return {} as App;
+function createActiveFileProvider(): ActiveFileProvider {
+  return strictProxy<ActiveFileProvider>({
+    getActiveFile: vi.fn().mockReturnValue(null)
+  });
+}
+
+function createApp(): App {
+  return strictProxy<App>({});
+}
+
+function createCommandRegistrar(): CommandRegistrar {
+  return strictProxy<CommandRegistrar>({
+    addCommand: vi.fn(),
+    removeCommand: vi.fn()
+  });
 }
 
 function createMockPlugin(): MockPlugin {
@@ -76,15 +73,15 @@ function createMockPlugin(): MockPlugin {
   };
 }
 
-function createRegistry(): TempPluginRegistryComponent {
+function createRegistry(shouldShowTempPluginLoadUnloadNotices = true): TempPluginRegistryComponent {
   return new TempPluginRegistryComponent({
-    activeFileProvider: castTo<ActiveFileProvider>({}),
-    app: castTo<App>(createMockApp()),
-    commandRegistrar: castTo<CommandRegistrar>({}),
-    menuEventRegistrar: castTo<MenuEventRegistrar>({}),
+    activeFileProvider: createActiveFileProvider(),
+    app: createApp(),
+    commandRegistrar: createCommandRegistrar(),
+    menuEventRegistrar: strictProxy<MenuEventRegistrar>({}),
     pluginName: 'test-plugin',
-    pluginSettingsComponent: castTo<PluginSettingsComponent>({
-      settings: { shouldShowTempPluginLoadUnloadNotices: true }
+    pluginSettingsComponent: strictProxy<PluginSettingsComponent>({
+      settings: strictProxy<PluginSettingsComponent['settings']>({ shouldShowTempPluginLoadUnloadNotices })
     })
   });
 }
@@ -104,7 +101,6 @@ describe('TempPluginRegistry', () => {
   let registry: TempPluginRegistryComponent;
 
   beforeEach(() => {
-    mockInvokeAsyncSafely.mockReset();
     mockPrintError.mockReset();
     registry = createRegistry();
   });
@@ -161,20 +157,11 @@ describe('TempPluginRegistry', () => {
       const result = await registry.registerTempPlugin({ tempPluginClass });
 
       expect(result).not.toBeNull();
-      expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
+      expect(mockPlugin.load).toHaveBeenCalledOnce();
     });
 
     it('should not show load notice when shouldShowTempPluginLoadUnloadNotices is false', async () => {
-      const silentRegistry = new TempPluginRegistryComponent({
-        activeFileProvider: castTo<ActiveFileProvider>({}),
-        app: castTo<App>(createMockApp()),
-        commandRegistrar: castTo<CommandRegistrar>({}),
-        menuEventRegistrar: castTo<MenuEventRegistrar>({}),
-        pluginName: 'test-plugin',
-        pluginSettingsComponent: castTo<PluginSettingsComponent>({
-          settings: { shouldShowTempPluginLoadUnloadNotices: false }
-        })
-      });
+      const silentRegistry = createRegistry(false);
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('SilentPlugin', mockPlugin);
       const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
@@ -198,10 +185,7 @@ describe('TempPluginRegistry', () => {
     it('should show hang notice when plugin load takes too long', async () => {
       vi.useFakeTimers();
       const HANG_TIMEOUT = 3000;
-
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        fn().catch(() => undefined);
-      });
+      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
 
       let resolveLoad: (() => void) | undefined;
       const mockPlugin = createMockPlugin();
@@ -216,28 +200,39 @@ describe('TempPluginRegistry', () => {
 
       await vi.advanceTimersByTimeAsync(HANG_TIMEOUT + 1);
 
+      // The background reportHang fires a hang notice because loading is still in flight.
+      expect(noticeSpy).toHaveBeenCalledWith(
+        'Temp Plugin "SlowPlugin" is taking long to load.',
+        0
+      );
+
       resolveLoad?.();
       await registerPromise;
 
+      noticeSpy.mockRestore();
       vi.useRealTimers();
     });
 
     it('should not show hang notice when plugin loads before timeout', async () => {
       vi.useFakeTimers();
       const HANG_TIMEOUT = 3000;
-
-      mockInvokeAsyncSafely.mockImplementation((fn: () => Promise<void>) => {
-        fn().catch(() => undefined);
-      });
+      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('FastPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
+      noticeSpy.mockClear();
 
       // Advance past the timeout — isLoading is already false
       await vi.advanceTimersByTimeAsync(HANG_TIMEOUT + 1);
 
+      expect(noticeSpy).not.toHaveBeenCalledWith(
+        'Temp Plugin "FastPlugin" is taking long to load.',
+        0
+      );
+
+      noticeSpy.mockRestore();
       vi.useRealTimers();
     });
 
@@ -248,15 +243,11 @@ describe('TempPluginRegistry', () => {
       const tempPluginClass2 = createTempPluginClass('TestPlugin', mockPlugin2);
 
       await registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
-
-      // The plugin stored in the map is created by the constructor, so we need to
-      // Verify via the async callback. For the first registration, no unload happens.
-      // For the second, the existing plugin should be unloaded.
       await registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
 
-      // The first registered plugin instance gets unloaded
-      // We verify the unloadTempPlugins path instead since we can't access internals
-      expect(mockInvokeAsyncSafely).toHaveBeenCalledTimes(2);
+      // Re-registering with the same class name unloads the previously registered instance.
+      expect(mockPlugin1.unload).toHaveBeenCalled();
+      expect(registry.getTempPlugin('TestPlugin')).not.toBeNull();
     });
 
     it('should use _AnonymousPlugin when class name is empty', async () => {
@@ -265,49 +256,30 @@ describe('TempPluginRegistry', () => {
 
       await registry.registerTempPlugin({ tempPluginClass });
 
-      expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
+      expect(registry.getTempPlugin('_AnonymousPlugin')).not.toBeNull();
     });
 
     it('should execute the async callback that loads the plugin', async () => {
-      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
-        await fn();
-      }
-      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
-
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
-      await vi.waitFor(() => {
-        expect(mockPlugin.load).toHaveBeenCalled();
-      });
+      expect(mockPlugin.load).toHaveBeenCalled();
     });
 
     it('should show error notice and call printError when plugin load fails', async () => {
       const loadError = new Error('Load failed');
-      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
-        await fn();
-      }
-      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
-
       const mockPlugin = createMockPlugin();
       mockPlugin.load.mockRejectedValue(loadError);
       const tempPluginClass = createTempPluginClass('FailPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
-      await vi.waitFor(() => {
-        expect(mockPrintError).toHaveBeenCalledWith(loadError);
-      });
+      expect(mockPrintError).toHaveBeenCalledWith(loadError);
     });
 
     it('should create a style element when cssText is provided', async () => {
-      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
-        await fn();
-      }
-      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
-
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
@@ -316,22 +288,15 @@ describe('TempPluginRegistry', () => {
 
       await registry.registerTempPlugin({ cssText: CSS_TEXT, tempPluginClass });
 
-      await vi.waitFor(() => {
-        expect(createElSpy).toHaveBeenCalledWith('style', {
-          attr: { id: '__temp-plugin-StyledPlugin' },
-          text: CSS_TEXT
-        });
+      expect(createElSpy).toHaveBeenCalledWith('style', {
+        attr: { id: '__temp-plugin-StyledPlugin' },
+        text: CSS_TEXT
       });
 
       createElSpy.mockRestore();
     });
 
     it('should not create a style element when cssText is not provided', async () => {
-      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
-        await fn();
-      }
-      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
-
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
@@ -339,21 +304,13 @@ describe('TempPluginRegistry', () => {
 
       await registry.registerTempPlugin({ tempPluginClass });
 
-      await vi.waitFor(() => {
-        expect(mockPlugin.load).toHaveBeenCalled();
-      });
-
+      expect(mockPlugin.load).toHaveBeenCalled();
       expect(createElSpy).not.toHaveBeenCalled();
 
       createElSpy.mockRestore();
     });
 
     it('should wrap tempPlugin.unload to clean up resources and delete from map', async () => {
-      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
-        await fn();
-      }
-      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
-
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
@@ -361,17 +318,12 @@ describe('TempPluginRegistry', () => {
 
       await registry.registerTempPlugin({ tempPluginClass });
 
-      await vi.waitFor(() => {
-        expect(mockPlugin.load).toHaveBeenCalled();
-      });
-
-      // After the async callback completes, the tempPlugin.unload has been wrapped.
-      // Call unloadTempPlugins which calls the wrapped unload on each plugin.
+      // After registration the tempPlugin.unload has been wrapped.
+      // UnloadTempPlugins calls the wrapped unload on each plugin.
       registry.unloadTempPlugins();
 
       // After unload, the plugin should be removed from the map.
-      // Calling unregisterTempPlugin should show "not registered" notice.
-      registry.unregisterTempPlugin('WrappedPlugin');
+      expect(registry.getTempPlugin('WrappedPlugin')).toBeNull();
 
       // Verify the original unload was called
       expect(mockPlugin.unload).toHaveBeenCalled();
@@ -380,11 +332,6 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should show error notice when originalUnload throws during unload', async () => {
-      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
-        await fn();
-      }
-      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
-
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       // Create a plugin whose unload throws
@@ -397,10 +344,6 @@ describe('TempPluginRegistry', () => {
 
       await registry.registerTempPlugin({ tempPluginClass });
 
-      await vi.waitFor(() => {
-        expect(mockPlugin.load).toHaveBeenCalled();
-      });
-
       // The wrapped unload catches errors from originalUnload
       registry.unloadTempPlugins();
 
@@ -411,11 +354,6 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should show failure Notice and call printError when wrapped unload throws', async () => {
-      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
-        await fn();
-      }
-      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
-
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const unloadError = new Error('Unload crash');
@@ -426,10 +364,6 @@ describe('TempPluginRegistry', () => {
       const tempPluginClass = createTempPluginClass('CrashPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
-
-      await vi.waitFor(() => {
-        expect(mockPlugin.load).toHaveBeenCalled();
-      });
 
       // Reset printError to check only the unload error
       mockPrintError.mockReset();
@@ -443,11 +377,6 @@ describe('TempPluginRegistry', () => {
     });
 
     it('should remove style element when unloading a plugin that has cssText', async () => {
-      async function invokeImpl(fn: () => Promise<void>): Promise<void> {
-        await fn();
-      }
-      mockInvokeAsyncSafely.mockImplementation(invokeImpl);
-
       const mockStyleEl = castTo<HTMLElement>({ remove: vi.fn() });
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(mockStyleEl);
 
@@ -455,10 +384,6 @@ describe('TempPluginRegistry', () => {
       const tempPluginClass = createTempPluginClass('StyledUnloadPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ cssText: '.test { color: blue; }', tempPluginClass });
-
-      await vi.waitFor(() => {
-        expect(mockPlugin.load).toHaveBeenCalled();
-      });
 
       registry.unloadTempPlugins();
 
@@ -480,9 +405,10 @@ describe('TempPluginRegistry', () => {
 
       registry.unloadTempPlugins();
 
-      // UnloadTempPlugins iterates the map and calls unload on each
-      // Since we can't directly inspect the map, we verify no error is thrown
-      expect(mockInvokeAsyncSafely).toHaveBeenCalledTimes(2);
+      expect(mockPlugin1.unload).toHaveBeenCalled();
+      expect(mockPlugin2.unload).toHaveBeenCalled();
+      expect(registry.getTempPlugin('Plugin1')).toBeNull();
+      expect(registry.getTempPlugin('Plugin2')).toBeNull();
     });
 
     it('should do nothing when no plugins are registered', () => {
@@ -495,12 +421,12 @@ describe('TempPluginRegistry', () => {
   describe('unregisterTempPlugin', () => {
     it('should show notice when plugin is not registered', () => {
       const PLUGIN_NAME = 'NonExistentPlugin';
+      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
 
       registry.unregisterTempPlugin(PLUGIN_NAME);
 
-      // Notice constructor was called (from the obsidian mock)
-      // We just verify it doesn't throw
-      expect(true).toBe(true);
+      expect(noticeSpy).toHaveBeenCalledWith(`Temp Plugin was not registered: ${PLUGIN_NAME}.`, undefined);
+      noticeSpy.mockRestore();
     });
 
     it('should unload the plugin when it is registered', async () => {
@@ -512,9 +438,7 @@ describe('TempPluginRegistry', () => {
 
       registry.unregisterTempPlugin(PLUGIN_NAME);
 
-      // The plugin in the map was created by the constructor in registerTempPlugin,
-      // So unload is called on that instance
-      expect(mockInvokeAsyncSafely).toHaveBeenCalledOnce();
+      expect(mockPlugin.unload).toHaveBeenCalled();
     });
 
     it('should unload the plugin when called with class instead of string', async () => {
