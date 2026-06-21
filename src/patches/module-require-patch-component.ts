@@ -9,8 +9,6 @@ import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/mo
 import type { RequireHandlerDesktopComponent } from '../require-handlers/require-handler-desktop.ts';
 import type { RequireFn } from '../require-handlers/require-handler.ts';
 
-type ModuleProtoRequireFn = NodeJS.Module['require'];
-
 export class ModuleRequirePatchComponent extends MonkeyAroundComponent {
   public originalModulePrototypeRequire?: RequireFn;
 
@@ -20,12 +18,17 @@ export class ModuleRequirePatchComponent extends MonkeyAroundComponent {
 
   public override onload(): void {
     const requireHandlerDesktopComponent = this.requireHandlerDesktopComponent;
-    this.registerPatch(getPrototypeOf(window.module), {
-      require: (originalFn: ModuleProtoRequireFn): ModuleProtoRequireFn => {
+
+    this.registerFunctionPatch({
+      obj: getPrototypeOf(window.module),
+      functionName: 'require',
+      patchHandler: (originalFn) => {
         this.originalModulePrototypeRequire = castTo<RequireFn>(originalFn);
-        return function modulePrototypeRequirePatched(this: NodeJS.Module, id: string | TFile): unknown {
+        return modulePrototypeRequirePatched;
+
+        function modulePrototypeRequirePatched(this: NodeJS.Module, id: string | TFile): unknown {
           return requireHandlerDesktopComponent.modulePrototypeRequire(id, this);
-        };
+        }
       }
     });
   }
