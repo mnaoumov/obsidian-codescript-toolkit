@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 13.1.6
+
+- chore: update libs
+- test: reuse real obsidian-dev-utils and obsidian-test-mocks in unit tests
+- refactor: monkey around
+
 ## 13.1.5
 
 - refactor: new template

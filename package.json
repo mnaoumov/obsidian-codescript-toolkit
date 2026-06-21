@@ -1,6 +1,6 @@
 {
   "name": "fix-require-modules",
-  "version": "13.1.5",
+  "version": "13.1.6",
   "description": "Allows to do a lot of things with JavaScript/TypeScript scripts from inside the Obsidian itself.",
   "keywords": [],
   "homepage": "https://github.com/mnaoumov/obsidian-codescript-toolkit#readme",
