@@ -96,7 +96,14 @@ interface Module {
   exports: object;
 }
 
-interface RequireStringImplOptions {
+interface RequireHandlerComponentBaseWrapRequireParams {
+  beforeRequire?(id: string): void;
+  readonly optionsToAppend?: Partial<RequireOptions>;
+  readonly optionsToPrepend?: Partial<RequireOptions>;
+  readonly require: RequireExFn;
+}
+
+interface RequireStringImplParams {
   readonly code: string;
   readonly evalPrefix: string;
   readonly path: string;
@@ -137,13 +144,6 @@ interface SplitQueryResult {
   readonly query: string;
 }
 
-interface WrapRequireOptions {
-  beforeRequire?(id: string): void;
-  readonly optionsToAppend?: Partial<RequireOptions>;
-  readonly optionsToPrepend?: Partial<RequireOptions>;
-  readonly require: RequireExFn;
-}
-
 const CALLER_LINE_INDEX = 4;
 
 export const ENTRY_POINT = '.';
@@ -182,8 +182,8 @@ export type RequireHandlerComponentBaseConstructorParams = RequireHandlerConstru
 /** @see {@link RequireStringAsyncParams} */
 export type RequireHandlerComponentBaseRequireStringAsyncParams = RequireStringAsyncParams;
 
-/** @see {@link RequireStringImplOptions} */
-export type RequireHandlerComponentBaseRequireStringImplOptions = RequireStringImplOptions;
+/** @see {@link RequireStringImplParams} */
+export type RequireHandlerComponentBaseRequireStringImplParams = RequireStringImplParams;
 
 export interface RequireHandlerConstructorParams {
   readonly app: App;
@@ -499,7 +499,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return this.specialModuleFactories.get(cleanId)?.(options);
   }
 
-  protected requireStringImpl(options: RequireHandlerComponentBaseRequireStringImplOptions): RequireStringImplResult {
+  protected requireStringImpl(options: RequireHandlerComponentBaseRequireStringImplParams): RequireStringImplResult {
     const folder = isUrl(options.path) ? '' : dirname(options.path);
     const filename = isUrl(options.path) ? options.path : basename(options.path);
     const url = convertPathToObsidianUrl(options.path) + options.urlSuffix;
@@ -1232,7 +1232,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return { resolvedId: id, resolvedType: ResolvedType.Url };
   }
 
-  private wrapRequire(options: WrapRequireOptions): RequireExFn {
+  private wrapRequire(options: RequireHandlerComponentBaseWrapRequireParams): RequireExFn {
     function wrapped(id: string, requireOptions?: Partial<RequireOptions>): unknown {
       options.beforeRequire?.(id);
       const newOptions = { ...options.optionsToPrepend, ...requireOptions, ...options.optionsToAppend };
