@@ -15,7 +15,7 @@ export class CodeScriptToolkitNoteSettings {
 }
 
 export async function getCodeScriptToolkitNoteSettings(app: App, path: string): Promise<CodeScriptToolkitNoteSettings> {
-  if (!isMarkdownFile(app, path)) {
+  if (!isMarkdownFile(path)) {
     return new CodeScriptToolkitNoteSettings();
   }
 

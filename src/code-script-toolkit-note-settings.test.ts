@@ -13,12 +13,12 @@ import {
   getCodeScriptToolkitNoteSettingsFromContent
 } from './code-script-toolkit-note-settings.ts';
 
-const mockIsMarkdownFile = vi.fn<(app: App, path: string) => boolean>();
+const mockIsMarkdownFile = vi.fn<(path: string) => boolean>();
 const mockParseFrontmatter = vi.fn();
 const mockGetFrontmatterSafe = vi.fn();
 
 vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
-  isMarkdownFile: (...args: unknown[]): unknown => mockIsMarkdownFile(...args as [App, string])
+  isMarkdownFile: (...args: unknown[]): unknown => mockIsMarkdownFile(...args as [string])
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/frontmatter', () => ({

@@ -33,14 +33,6 @@ export abstract class BabelPluginBase<Data = unknown> {
     noop();
   }
 
-  public post(_state: PluginPass, _file: File): void {
-    noop();
-  }
-
-  public pre(_state: PluginPass, _file: File): void {
-    noop();
-  }
-
   public transform(code: string, filename: string, folder?: string): TransformResult<Data> {
     try {
       const result = babelTransform(code, {
@@ -97,5 +89,13 @@ export abstract class BabelPluginBase<Data = unknown> {
       visitor,
       ...inherits === undefined ? {} : { inherits }
     };
+  }
+
+  private post(_state: PluginPass, _file: File): void {
+    noop();
+  }
+
+  private pre(_state: PluginPass, _file: File): void {
+    noop();
   }
 }

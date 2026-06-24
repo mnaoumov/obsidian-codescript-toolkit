@@ -1,7 +1,4 @@
-import type {
-  ObsidianProtocolData,
-  ObsidianProtocolHandler
-} from 'obsidian';
+import type { ObsidianProtocolData } from 'obsidian';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 import type { Mock } from 'vitest';
@@ -47,7 +44,7 @@ describe('ProtocolHandlerComponent', () => {
   let component: ProtocolHandlerComponent;
   let mockRequireStringAsync: Mock<RequireHandlerFactoryComponent['requireStringAsync']>;
   let mockDebug: Mock<(message: string, ...args: unknown[]) => void>;
-  let mockRegisterObsidianProtocolHandler: Mock<(action: string, handler: ObsidianProtocolHandler) => void>;
+  let mockRegisterObsidianProtocolHandler: Mock<ObsidianProtocolHandlerRegistrar['registerObsidianProtocolHandler']>;
   let registeredHandler: (query: ObsidianProtocolData) => Promise<void>;
   let mockSettings: MockSettings;
 
@@ -75,15 +72,15 @@ describe('ProtocolHandlerComponent', () => {
     });
 
     component.load();
-    registeredHandler = mockRegisterObsidianProtocolHandler.mock.calls[0]?.[1] as (query: ObsidianProtocolData) => Promise<void>;
+    registeredHandler = mockRegisterObsidianProtocolHandler.mock.calls[0]?.[0]?.handler as (query: ObsidianProtocolData) => Promise<void>;
   });
 
   describe('onload', () => {
     it('should register a protocol handler with the correct action name', () => {
-      expect(mockRegisterObsidianProtocolHandler).toHaveBeenCalledWith(
-        'CodeScriptToolkit',
-        expect.any(Function) as unknown
-      );
+      expect(mockRegisterObsidianProtocolHandler).toHaveBeenCalledWith({
+        action: 'CodeScriptToolkit',
+        handler: expect.any(Function) as unknown
+      });
     });
 
     it('should wrap the handler with the real convertAsyncToSync', () => {

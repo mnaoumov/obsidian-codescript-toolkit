@@ -170,9 +170,8 @@ export class CodeButtonBlockComponent extends ComponentEx {
   public override onload(): void {
     registerCodeHighlighting();
     this.register(unregisterCodeHighlighting);
-    this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor(
-      CODE_BUTTON_BLOCK_LANGUAGE,
-      (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
+    this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor({
+      handler: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
         invokeAsyncSafely(() =>
           this.processCodeButtonBlock({
             ctx,
@@ -180,8 +179,9 @@ export class CodeButtonBlockComponent extends ComponentEx {
             source
           })
         );
-      }
-    );
+      },
+      language: CODE_BUTTON_BLOCK_LANGUAGE
+    });
   }
 
   public async processCodeButtonBlock(params: CodeButtonBlockComponentProcessCodeButtonBlockParams): Promise<void> {

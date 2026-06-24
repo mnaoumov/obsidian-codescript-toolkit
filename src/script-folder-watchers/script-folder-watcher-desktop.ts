@@ -12,7 +12,7 @@ import type { ScriptFolderWatcherComponentBaseConstructorParams } from './script
 
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
 
-export type CreateScriptFolderWatcherParams = ScriptFolderWatcherComponentBaseConstructorParams;
+type CreateScriptFolderWatcherParams = ScriptFolderWatcherComponentBaseConstructorParams;
 
 export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComponentBase {
   private watcher: FSWatcher | null = null;

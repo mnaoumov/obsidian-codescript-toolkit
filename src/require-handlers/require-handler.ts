@@ -78,23 +78,23 @@ export enum ResolvedType {
   Url = 'url'
 }
 
-export type PluginRequireFn = (id: string) => unknown;
-export type RequireAsyncFn = typeof requireAsync;
-export type RequireAsyncWrapperFn = typeof requireAsyncWrapper;
 export type RequireFn = typeof require;
-
 interface EmptyModule {
   [EMPTY_MODULE_SYMBOL]: boolean;
 }
-
 interface ExtractCodeScriptResult {
   readonly code: string;
   readonly codeScriptName: string | undefined;
 }
-
 interface Module {
   exports: object;
 }
+
+type PluginRequireFn = (id: string) => unknown;
+
+type RequireAsyncFn = typeof requireAsync;
+
+type RequireAsyncWrapperFn = typeof requireAsyncWrapper;
 
 interface RequireHandlerComponentBaseWrapRequireParams {
   beforeRequire?(id: string): void;
@@ -176,15 +176,6 @@ export interface RequireHandler extends ComponentEx {
   requireVaultScriptAsync(id: string): Promise<unknown>;
 }
 
-/** @see {@link RequireHandlerConstructorParams} */
-export type RequireHandlerComponentBaseConstructorParams = RequireHandlerConstructorParams;
-
-/** @see {@link RequireStringAsyncParams} */
-export type RequireHandlerComponentBaseRequireStringAsyncParams = RequireStringAsyncParams;
-
-/** @see {@link RequireStringImplParams} */
-export type RequireHandlerComponentBaseRequireStringImplParams = RequireStringImplParams;
-
 export interface RequireHandlerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
@@ -199,16 +190,22 @@ export interface RequireStringAsyncParams {
   readonly urlSuffix?: string | undefined;
 }
 
+/** @see {@link RequireHandlerConstructorParams} */
+type RequireHandlerComponentBaseConstructorParams = RequireHandlerConstructorParams;
+
+/** @see {@link RequireStringAsyncParams} */
+type RequireHandlerComponentBaseRequireStringAsyncParams = RequireStringAsyncParams;
+
+/** @see {@link RequireStringImplParams} */
+type RequireHandlerComponentBaseRequireStringImplParams = RequireStringImplParams;
+
 export abstract class RequireHandlerComponentBase extends ComponentEx implements RequireHandler {
   protected readonly app: App;
   protected readonly currentModulesTimestampChain = new Set<string>();
   protected readonly moduleDependencies = new Map<string, Set<string>>();
   protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
-  protected pluginRequire: PluginRequireFn;
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
-  protected readonly tempPluginRegistry: TempPluginRegistryComponent;
-
   protected get requireEx(): RequireExFn {
     if (!this._requireEx) {
       throw new Error('requireEx is not set');
@@ -225,8 +222,12 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   private _vaultAbsolutePath?: string;
 
   private readonly consoleDebugComponent: ConsoleDebugComponent;
+
   private originalRequire?: NodeJS.Require;
+
+  private readonly pluginRequire: PluginRequireFn;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
+  private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: RequireHandlerComponentBaseConstructorParams) {
     super();

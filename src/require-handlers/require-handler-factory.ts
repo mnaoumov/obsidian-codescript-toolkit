@@ -9,7 +9,7 @@ import type {
   RequireStringAsyncParams
 } from './require-handler.ts';
 
-export type RequireHandlerFactoryComponentRequireStringAsyncParams = RequireStringAsyncParams;
+type RequireHandlerFactoryComponentRequireStringAsyncParams = RequireStringAsyncParams;
 
 export class RequireHandlerFactoryComponent extends ComponentEx implements RequireHandler {
   private _platformRequireHandler?: RequireHandler;

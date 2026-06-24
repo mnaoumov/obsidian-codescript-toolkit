@@ -25,8 +25,6 @@ type LoadFn = () => Promise<void>;
 
 const DEFAULT_TEMP_PLUGIN_CLASS_NAME = '_AnonymousPlugin';
 
-export type TempPluginRegistryComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
-
 interface TempPluginRegistryComponentConstructorParams {
   readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
@@ -35,6 +33,8 @@ interface TempPluginRegistryComponentConstructorParams {
   readonly pluginName: string;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
+
+type TempPluginRegistryComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
 
 export class TempPluginRegistryComponent extends ComponentEx {
   private readonly activeFileProvider: ActiveFileProvider;

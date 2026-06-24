@@ -286,7 +286,7 @@ export class ScriptRegistryComponent extends ComponentEx {
       throw new Error(`Script not found: '${relativeScriptPath}'.`);
     }
 
-    if (isMarkdownFile(this.app, vaultScriptPath)) {
+    if (isMarkdownFile(vaultScriptPath)) {
       const settings = await getCodeScriptToolkitNoteSettings(this.app, vaultScriptPath);
       if (!settings.isInvocable) {
         throw new Error(`Script is not invocable: '${relativeScriptPath}'.`);

@@ -2,35 +2,9 @@ import type { TFile } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 /**
- * Require a module.
- *
- * @param id - The ID of the module to require.
- * @param options - The options for the require function.
- * @returns The module.
- */
-export declare function require(id: string | TFile, options?: Partial<RequireOptions>): unknown;
-
-/**
- * Require a module asynchronously.
- *
- * @param id - The ID of the module to require.
- * @param options - The options for the require function.
- * @returns The module.
- */
-export declare function requireAsync(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown>;
-
-/**
- * Wrap a synchronous require function with an asynchronous require function.
- *
- * @param requireFn - The synchronous require function to wrap.
- * @returns The module.
- */
-export declare function requireAsyncWrapper(requireFn: RequireAsyncWrapperArg): Promise<unknown>;
-
-/**
  * A cache invalidation mode.
  */
-// eslint-disable-next-line perfectionist/sort-modules -- We need to keep functions on top.
+
 export enum CacheInvalidationMode {
   /**
    * Always invalidate the cache.
@@ -86,14 +60,6 @@ export interface ParentPathOptions {
 }
 
 /**
- * A wrapper for the require function.
- *
- * @param require - The require function.
- * @returns The resolved module or a promise that resolves to the module.
- */
-export type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
-
-/**
  * An extended require function.
  */
 export type RequireExFn =
@@ -125,3 +91,37 @@ export interface RequireOptions {
    */
   readonly parentPath?: string;
 }
+
+/**
+ * A wrapper for the require function.
+ *
+ * @param require - The require function.
+ * @returns The resolved module or a promise that resolves to the module.
+ */
+type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
+
+/**
+ * Require a module.
+ *
+ * @param id - The ID of the module to require.
+ * @param options - The options for the require function.
+ * @returns The module.
+ */
+export declare function require(id: string | TFile, options?: Partial<RequireOptions>): unknown;
+
+/**
+ * Require a module asynchronously.
+ *
+ * @param id - The ID of the module to require.
+ * @param options - The options for the require function.
+ * @returns The module.
+ */
+export declare function requireAsync(id: string | TFile, options?: Partial<RequireOptions>): Promise<unknown>;
+
+/**
+ * Wrap a synchronous require function with an asynchronous require function.
+ *
+ * @param requireFn - The synchronous require function to wrap.
+ * @returns The module.
+ */
+export declare function requireAsyncWrapper(requireFn: RequireAsyncWrapperArg): Promise<unknown>;

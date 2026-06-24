@@ -295,10 +295,10 @@ describe('CodeButtonBlockComponent', () => {
     it('should register a markdown code block processor for code-button', () => {
       component.load();
 
-      expect(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor).toHaveBeenCalledWith(
-        'code-button',
-        expect.any(Function)
-      );
+      expect(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor).toHaveBeenCalledWith({
+        handler: expect.any(Function) as unknown,
+        language: 'code-button'
+      });
     });
 
     it('should register code highlighting on load', () => {
@@ -349,7 +349,7 @@ describe('CodeButtonBlockComponent', () => {
 
       const registerMock = vi.mocked(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor);
       const registerCall = registerMock.mock.calls[0];
-      const callback = registerCall?.[1] as ((source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => void) | undefined;
+      const callback = registerCall?.[0]?.handler as ((source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => void) | undefined;
       expect(callback).toBeDefined();
 
       const el = createDiv();

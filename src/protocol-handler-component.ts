@@ -46,7 +46,10 @@ export class ProtocolHandlerComponent extends ComponentEx {
   }
 
   public override onload(): void {
-    this.obsidianProtocolHandlerRegistrar.registerObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, convertAsyncToSync(this.processQuery.bind(this)));
+    this.obsidianProtocolHandlerRegistrar.registerObsidianProtocolHandler({
+      action: PROTOCOL_HANDLER_ACTION,
+      handler: convertAsyncToSync(this.processQuery.bind(this))
+    });
   }
 
   private async processQuery(query: ObsidianProtocolData): Promise<void> {

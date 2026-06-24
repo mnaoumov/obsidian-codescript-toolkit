@@ -26,8 +26,6 @@ import type {
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
-export type CodeButtonContextImplComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
-
 interface CodeButtonContextImplComponentConstructorParams {
   readonly app: App;
   readonly config: CodeButtonBlockConfig;
@@ -38,6 +36,8 @@ interface CodeButtonContextImplComponentConstructorParams {
   readonly source: string;
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
+
+type CodeButtonContextImplComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
 
 export class CodeButtonContextImplComponent extends ComponentEx implements CodeButtonContext {
   public readonly app: App;

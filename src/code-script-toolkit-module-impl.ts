@@ -8,7 +8,7 @@ import type { CodeScriptToolkitModule } from './code-script-toolkit-module.ts';
 
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
-export type CodeScriptToolkitModuleImplRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
+type CodeScriptToolkitModuleImplRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
 
 export class CodeScriptToolkitModuleImpl implements CodeScriptToolkitModule {
   public constructor(private readonly tempPluginRegistry: TempPluginRegistryComponent) {
