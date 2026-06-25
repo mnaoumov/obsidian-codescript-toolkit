@@ -1,7 +1,7 @@
 import type { App } from 'obsidian';
 
 import { Notice } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
+import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
 
@@ -79,9 +79,9 @@ export class ScriptFolderWatcherMobileComponent extends ScriptFolderWatcherCompo
     }
 
     this.timeoutId = window.setTimeout(
-      () => {
-        invokeAsyncSafely(() => this.watch(onChange));
-      },
+      convertAsyncToSync(async () => {
+        await this.watch(onChange);
+      }),
       this.pluginSettingsComponent.settings.mobileChangesCheckingIntervalInSeconds * MILLISECONDS_IN_SECOND
     );
   }

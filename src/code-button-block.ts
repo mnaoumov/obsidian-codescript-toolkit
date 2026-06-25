@@ -13,7 +13,7 @@ import {
   parseYaml,
   stringifyYaml
 } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
+import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
 import {
   normalizeOptionalProperties,
@@ -171,14 +171,12 @@ export class CodeButtonBlockComponent extends ComponentEx {
     registerCodeHighlighting();
     this.register(unregisterCodeHighlighting);
     this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor({
-      handler: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
-        invokeAsyncSafely(() =>
-          this.processCodeButtonBlock({
-            ctx,
-            el,
-            source
-          })
-        );
+      handler: async (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> => {
+        await this.processCodeButtonBlock({
+          ctx,
+          el,
+          source
+        })
       },
       language: CODE_BUTTON_BLOCK_LANGUAGE
     });
@@ -206,32 +204,30 @@ export class CodeButtonBlockComponent extends ComponentEx {
         f.createEl('button', {
           text: 'Update config'
         }, (button) => {
-          button.addEventListener('click', () => {
-            invokeAsyncSafely(async () => {
-              const config: Partial<CodeButtonBlockConfig> = removeUndefinedProperties(normalizeOptionalProperties<Partial<CodeButtonBlockConfig>>({
-                caption: markdownInfo.args[0],
-                isRaw: getBooleanArgument(markdownInfo.args, 'raw'),
-                shouldAutoOutput: getBooleanArgument(markdownInfo.args, 'autoOutput'),
-                shouldAutoRun: getBooleanArgument(markdownInfo.args, 'autorun'),
-                shouldShowSystemMessages: getBooleanArgument(markdownInfo.args, 'systemMessages'),
-                shouldWrapConsole: getBooleanArgument(markdownInfo.args, 'console')
-              }));
-              const newCodeBlock = `\`\`\`code-button
+          button.addEventListener('click', convertAsyncToSync(async () => {
+            const config: Partial<CodeButtonBlockConfig> = removeUndefinedProperties(normalizeOptionalProperties<Partial<CodeButtonBlockConfig>>({
+              caption: markdownInfo.args[0],
+              isRaw: getBooleanArgument(markdownInfo.args, 'raw'),
+              shouldAutoOutput: getBooleanArgument(markdownInfo.args, 'autoOutput'),
+              shouldAutoRun: getBooleanArgument(markdownInfo.args, 'autorun'),
+              shouldShowSystemMessages: getBooleanArgument(markdownInfo.args, 'systemMessages'),
+              shouldWrapConsole: getBooleanArgument(markdownInfo.args, 'console')
+            }));
+            const newCodeBlock = `\`\`\`code-button
   ---
   ${stringifyYaml(config)}---
   ${code}
   \`\`\``;
-              await replaceCodeBlock({
-                app: this.app,
-                codeBlockProvider: newCodeBlock,
-                ctx: updateSourcePath(params.ctx, sourceFile),
-                el: params.el,
-                shouldPreserveLinePrefix: true,
-                source: params.source
-              });
+            await replaceCodeBlock({
+              app: this.app,
+              codeBlockProvider: newCodeBlock,
+              ctx: updateSourcePath(params.ctx, sourceFile),
+              el: params.el,
+              shouldPreserveLinePrefix: true,
+              source: params.source
             });
-          });
-        });
+          }))
+        })
       }));
       return;
     }
@@ -276,7 +272,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     }
 
     if (fullConfig.shouldAutoRun) {
-      invokeAsyncSafely(() => thisWrapper.value.handleClick(createHandleClickParams()));
+      await thisWrapper.value.handleClick(createHandleClickParams());
     }
 
     function createHandleClickParams(): CodeButtonBlockComponentHandleClickParams {

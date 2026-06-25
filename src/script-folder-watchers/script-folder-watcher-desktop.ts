@@ -5,7 +5,7 @@ import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/imple
 // eslint-disable-next-line import/no-nodejs-modules, import-x/no-nodejs-modules -- Deliberate, executes only on desktop.
 import { watch } from 'node:fs';
 import { Notice } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
+import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { join } from 'obsidian-dev-utils/path';
 
 import type { ScriptFolderWatcherComponentBaseConstructorParams } from './script-folder-watcher.ts';
@@ -33,18 +33,16 @@ export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComp
     const adapter = getDataAdapterEx(this.app);
 
     const invocableScriptsFolderFullPath = join(adapter.basePath, invocableScriptsFolder);
-    this.watcher = watch(invocableScriptsFolderFullPath, { recursive: true }, (): void => {
-      invokeAsyncSafely(async () => {
-        try {
-          this.stopWatcher();
-          await onChange();
-        } finally {
-          const DELAY_BEFORE_RESTART_IN_MILLISECONDS = 100;
-          await sleep(DELAY_BEFORE_RESTART_IN_MILLISECONDS);
-          await this.startWatcher(onChange);
-        }
-      });
-    });
+    this.watcher = watch(invocableScriptsFolderFullPath, { recursive: true }, convertAsyncToSync(async (): Promise<void> => {
+      try {
+        this.stopWatcher();
+        await onChange();
+      } finally {
+        const DELAY_BEFORE_RESTART_IN_MILLISECONDS = 100;
+        await sleep(DELAY_BEFORE_RESTART_IN_MILLISECONDS);
+        await this.startWatcher(onChange);
+      }
+    }));
 
     return true;
   }

@@ -2,7 +2,6 @@ import type { ObsidianProtocolData } from 'obsidian';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 
-import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { toJson } from 'obsidian-dev-utils/object-utils';
 import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 
@@ -48,7 +47,7 @@ export class ProtocolHandlerComponent extends ComponentEx {
   public override onload(): void {
     this.obsidianProtocolHandlerRegistrar.registerObsidianProtocolHandler({
       action: PROTOCOL_HANDLER_ACTION,
-      handler: convertAsyncToSync(this.processQuery.bind(this))
+      handler: this.processQuery.bind(this)
     });
   }
 
