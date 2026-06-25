@@ -1,8 +1,10 @@
 import type { App } from 'obsidian';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 
 import { noop } from 'obsidian-dev-utils/function';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -113,6 +115,9 @@ describe('ScriptManager', () => {
     scriptManager = new ScriptManager({
       app: castTo<App>(mockApp),
       consoleDebugComponent: castTo<ConsoleDebugComponent>(mockConsoleDebugComponent),
+      pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
+        showNotice: vi.fn()
+      }),
       pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
       scriptRegistry
     });

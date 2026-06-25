@@ -1,6 +1,5 @@
 import type { App } from 'obsidian';
 
-import { Notice } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
@@ -25,7 +24,7 @@ export class ScriptFolderWatcherMobileComponent extends ScriptFolderWatcherCompo
 
     if (!(await this.app.vault.exists(invocableScriptsFolder))) {
       const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
-      new Notice(message);
+      this.pluginNoticeComponent.showNotice(message);
       console.error(message);
       return false;
     }

@@ -1,4 +1,5 @@
 import type { App } from 'obsidian';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Promisable } from 'type-fest';
 import type { Mock } from 'vitest';
 
@@ -35,12 +36,15 @@ describe('ScriptFolderWatcher', () => {
   let watcher: TestScriptFolderWatcherComponent;
   let app: App;
   let pluginSettingsEvents: AsyncEvents;
+  let pluginNoticeComponent: PluginNoticeComponent;
   let pluginSettingsComponent: PluginSettingsComponent;
   let scriptManager: ScriptManager;
   let registerInvocableScriptsMock: Mock<() => Promise<void>>;
 
   beforeEach(() => {
     app = strictProxy<App>({});
+
+    pluginNoticeComponent = strictProxy<PluginNoticeComponent>({});
 
     pluginSettingsEvents = new AsyncEvents();
     pluginSettingsComponent = strictProxy<PluginSettingsComponent>({
@@ -55,6 +59,7 @@ describe('ScriptFolderWatcher', () => {
 
     watcher = new TestScriptFolderWatcherComponent({
       app,
+      pluginNoticeComponent,
       pluginSettingsComponent,
       scriptManager
     });

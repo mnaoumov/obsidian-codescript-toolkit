@@ -4,6 +4,7 @@ import type {
 } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import { Notice } from 'obsidian';
@@ -31,6 +32,7 @@ interface TempPluginRegistryComponentConstructorParams {
   readonly commandRegistrar: CommandRegistrar;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
 
@@ -42,6 +44,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
   private readonly commandRegistrar: CommandRegistrar;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
+  private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly tempPlugins = new Map<string, ObsidianPlugin>();
 
@@ -52,6 +55,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.activeFileProvider = params.activeFileProvider;
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
 
@@ -64,6 +68,11 @@ export class TempPluginRegistryComponent extends ComponentEx {
   public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(
     params: TempPluginRegistryComponentRegisterTempPluginParams<TPlugin>
   ): Promise<null | TPlugin> {
+    const pluginNoticeComponent = this.pluginNoticeComponent;
+    const pluginSettingsComponent = this.pluginSettingsComponent;
+    const tempPlugins = this.tempPlugins;
+    const removeChild = this.removeChild.bind(this);
+
     const tempPluginClassName = getTempPluginClassName(params.tempPluginClass);
     const id = makeTempPluginId(tempPluginClassName);
 
@@ -104,30 +113,29 @@ export class TempPluginRegistryComponent extends ComponentEx {
       try {
         originalUnload();
       } catch (error) {
-        new Notice(`Failed to unload Temp Plugin: ${tempPluginClassName}. See console for details.`);
+        this.pluginNoticeComponent.showNotice(`Failed to unload Temp Plugin: ${tempPluginClassName}. See console for details.`);
         printError(error);
       }
     };
 
     const loadFn = tempPlugin.load.bind(tempPlugin) as LoadFn;
     const PLUGIN_HANG_TIMEOUT = 3000;
-    let hangNotice: Notice | null = null;
+    const hangNotice = ValueWrapper.of<Notice | null>(null);
 
     let isLoading = true;
-    const thisWrapper = ValueWrapper.of(this);
     invokeAsyncSafely(reportHang);
 
     try {
       await loadFn();
       tempPluginLoad();
     } catch (error) {
-      new Notice(`Failed to load Temp Plugin: ${tempPluginClassName}. See console for details.`);
+      this.pluginNoticeComponent.showNotice(`Failed to load Temp Plugin: ${tempPluginClassName}. See console for details.`);
       printError(error);
       tempPluginUnload(false);
       return null;
     } finally {
       isLoading = false;
-      (hangNotice as Notice | null)?.hide();
+      hangNotice.value?.hide();
     }
 
     return tempPlugin;
@@ -135,13 +143,15 @@ export class TempPluginRegistryComponent extends ComponentEx {
     async function reportHang(): Promise<void> {
       await sleep(PLUGIN_HANG_TIMEOUT);
       if (isLoading) {
-        hangNotice = new Notice(`Temp Plugin "${tempPluginClassName}" is taking long to load.`, 0);
+        hangNotice.value = pluginNoticeComponent.showNotice(`Temp Plugin "${tempPluginClassName}" is taking long to load.`, {
+          isPermanent: true
+        });
       }
     }
 
     function tempPluginLoad(): void {
-      if (thisWrapper.value.pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
-        new Notice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
+      if (pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
+        pluginNoticeComponent.showNotice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
       }
       if (params.cssText) {
         // eslint-disable-next-line obsidianmd/no-forbidden-elements, obsidianmd/prefer-active-doc -- Need dynamic `style` element. Need main document.
@@ -153,10 +163,10 @@ export class TempPluginRegistryComponent extends ComponentEx {
     }
 
     function tempPluginUnload(shouldShowUnloadNotice: boolean): void {
-      thisWrapper.value.tempPlugins.delete(id);
-      thisWrapper.value.removeChild(unloadTempPluginCommandHandlerComponent);
-      if (shouldShowUnloadNotice && thisWrapper.value.pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
-        new Notice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
+      tempPlugins.delete(id);
+      removeChild(unloadTempPluginCommandHandlerComponent);
+      if (shouldShowUnloadNotice && pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
+        pluginNoticeComponent.showNotice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       }
       styleEl?.remove();
     }
@@ -175,7 +185,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
     if (tempPlugin) {
       tempPlugin.unload();
     } else {
-      new Notice(`Temp Plugin was not registered: ${tempPluginClassName}.`);
+      this.pluginNoticeComponent.showNotice(`Temp Plugin was not registered: ${tempPluginClassName}.`);
     }
   }
 }

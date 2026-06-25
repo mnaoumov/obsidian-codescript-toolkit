@@ -4,7 +4,6 @@ import type { FSWatcher } from 'node:fs';
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 // eslint-disable-next-line import/no-nodejs-modules, import-x/no-nodejs-modules -- Deliberate, executes only on desktop.
 import { watch } from 'node:fs';
-import { Notice } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { join } from 'obsidian-dev-utils/path';
 
@@ -25,7 +24,7 @@ export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComp
 
     if (!(await this.app.vault.exists(invocableScriptsFolder))) {
       const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
-      new Notice(message);
+      this.pluginNoticeComponent.showNotice(message);
       console.error(message);
       return false;
     }
@@ -33,16 +32,20 @@ export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComp
     const adapter = getDataAdapterEx(this.app);
 
     const invocableScriptsFolderFullPath = join(adapter.basePath, invocableScriptsFolder);
-    this.watcher = watch(invocableScriptsFolderFullPath, { recursive: true }, convertAsyncToSync(async (): Promise<void> => {
-      try {
-        this.stopWatcher();
-        await onChange();
-      } finally {
-        const DELAY_BEFORE_RESTART_IN_MILLISECONDS = 100;
-        await sleep(DELAY_BEFORE_RESTART_IN_MILLISECONDS);
-        await this.startWatcher(onChange);
-      }
-    }));
+    this.watcher = watch(
+      invocableScriptsFolderFullPath,
+      { recursive: true },
+      convertAsyncToSync(async (): Promise<void> => {
+        try {
+          this.stopWatcher();
+          await onChange();
+        } finally {
+          const DELAY_BEFORE_RESTART_IN_MILLISECONDS = 100;
+          await sleep(DELAY_BEFORE_RESTART_IN_MILLISECONDS);
+          await this.startWatcher(onChange);
+        }
+      })
+    );
 
     return true;
   }

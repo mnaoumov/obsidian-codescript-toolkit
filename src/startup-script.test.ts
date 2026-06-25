@@ -1,11 +1,10 @@
 import type { App } from 'obsidian';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 
-import {
-  Component,
-  Notice
-} from 'obsidian';
+import { Component } from 'obsidian';
 import { noop } from 'obsidian-dev-utils/function';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -18,10 +17,6 @@ import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 
 import { StartupScriptComponent } from './startup-script.ts';
-
-// Notice is used in startup-script.ts without an import — make it available globally
-// So the source code can reference it at runtime.
-Reflect.set(window, 'Notice', Notice);
 
 interface MockApp {
   vault: MockVault;
@@ -78,8 +73,11 @@ describe('StartupScriptComponent', () => {
 
     component = new StartupScriptComponent({
       app: castTo<App>(mockApp),
+      pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
+        showNotice: vi.fn()
+      }),
       pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
-      RequireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>(mockRequireHandlerFactoryComponent)
+      requireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>(mockRequireHandlerFactoryComponent)
     });
   });
 

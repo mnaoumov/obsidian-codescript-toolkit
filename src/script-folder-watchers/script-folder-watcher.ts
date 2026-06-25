@@ -1,4 +1,5 @@
 import type { App } from 'obsidian';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Promisable } from 'type-fest';
 
 import { registerAsyncEvent } from 'obsidian-dev-utils/obsidian/components/async-events-component';
@@ -9,12 +10,14 @@ import type { ScriptManager } from '../script.ts';
 
 export interface ScriptFolderWatcherComponentBaseConstructorParams {
   readonly app: App;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly scriptManager: ScriptManager;
 }
 
 export abstract class ScriptFolderWatcherComponentBase extends ComponentEx {
   protected readonly app: App;
+  protected readonly pluginNoticeComponent: PluginNoticeComponent;
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly scriptManager: ScriptManager;
   private wasRegisteredInPlugin = false;
@@ -22,6 +25,7 @@ export abstract class ScriptFolderWatcherComponentBase extends ComponentEx {
   public constructor(params: ScriptFolderWatcherComponentBaseConstructorParams) {
     super();
     this.app = params.app;
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.scriptManager = params.scriptManager;
   }

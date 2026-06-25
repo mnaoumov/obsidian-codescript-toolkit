@@ -4,7 +4,9 @@ import type {
 } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
+import type { Mock } from 'vitest';
 
 import {
   Component,
@@ -26,6 +28,8 @@ import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 const mockPrintError = vi.fn();
+
+let showNoticeMock: Mock<PluginNoticeComponent['showNotice']>;
 
 interface ObsidianDocumentHead {
   createEl(...args: unknown[]): HTMLElement;
@@ -80,6 +84,9 @@ function createRegistry(shouldShowTempPluginLoadUnloadNotices = true): TempPlugi
     commandRegistrar: createCommandRegistrar(),
     menuEventRegistrar: strictProxy<MenuEventRegistrar>({}),
     pluginName: 'test-plugin',
+    pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
+      showNotice: showNoticeMock
+    }),
     pluginSettingsComponent: strictProxy<PluginSettingsComponent>({
       settings: strictProxy<PluginSettingsComponent['settings']>({ shouldShowTempPluginLoadUnloadNotices })
     })
@@ -102,6 +109,7 @@ describe('TempPluginRegistry', () => {
 
   beforeEach(() => {
     mockPrintError.mockReset();
+    showNoticeMock = vi.fn<PluginNoticeComponent['showNotice']>().mockReturnValue(castTo<Notice>({ hide: vi.fn() }));
     registry = createRegistry();
   });
 
@@ -164,12 +172,10 @@ describe('TempPluginRegistry', () => {
       const silentRegistry = createRegistry(false);
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('SilentPlugin', mockPlugin);
-      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
 
       await silentRegistry.registerTempPlugin({ tempPluginClass });
 
-      expect(noticeSpy).not.toHaveBeenCalled();
-      noticeSpy.mockRestore();
+      expect(showNoticeMock).not.toHaveBeenCalled();
     });
 
     it('should return null when plugin load fails', async () => {
@@ -185,7 +191,6 @@ describe('TempPluginRegistry', () => {
     it('should show hang notice when plugin load takes too long', async () => {
       vi.useFakeTimers();
       const HANG_TIMEOUT = 3000;
-      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
 
       let resolveLoad: (() => void) | undefined;
       const mockPlugin = createMockPlugin();
@@ -201,38 +206,35 @@ describe('TempPluginRegistry', () => {
       await vi.advanceTimersByTimeAsync(HANG_TIMEOUT + 1);
 
       // The background reportHang fires a hang notice because loading is still in flight.
-      expect(noticeSpy).toHaveBeenCalledWith(
+      expect(showNoticeMock).toHaveBeenCalledWith(
         'Temp Plugin "SlowPlugin" is taking long to load.',
-        0
+        { isPermanent: true }
       );
 
       resolveLoad?.();
       await registerPromise;
 
-      noticeSpy.mockRestore();
       vi.useRealTimers();
     });
 
     it('should not show hang notice when plugin loads before timeout', async () => {
       vi.useFakeTimers();
       const HANG_TIMEOUT = 3000;
-      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
 
       const mockPlugin = createMockPlugin();
       const tempPluginClass = createTempPluginClass('FastPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
-      noticeSpy.mockClear();
+      showNoticeMock.mockClear();
 
       // Advance past the timeout — isLoading is already false
       await vi.advanceTimersByTimeAsync(HANG_TIMEOUT + 1);
 
-      expect(noticeSpy).not.toHaveBeenCalledWith(
+      expect(showNoticeMock).not.toHaveBeenCalledWith(
         'Temp Plugin "FastPlugin" is taking long to load.',
-        0
+        { isPermanent: true }
       );
 
-      noticeSpy.mockRestore();
       vi.useRealTimers();
     });
 
@@ -421,12 +423,10 @@ describe('TempPluginRegistry', () => {
   describe('unregisterTempPlugin', () => {
     it('should show notice when plugin is not registered', () => {
       const PLUGIN_NAME = 'NonExistentPlugin';
-      const noticeSpy = vi.spyOn(Notice.prototype, 'constructor__');
 
       registry.unregisterTempPlugin(PLUGIN_NAME);
 
-      expect(noticeSpy).toHaveBeenCalledWith(`Temp Plugin was not registered: ${PLUGIN_NAME}.`, undefined);
-      noticeSpy.mockRestore();
+      expect(showNoticeMock).toHaveBeenCalledWith(`Temp Plugin was not registered: ${PLUGIN_NAME}.`);
     });
 
     it('should unload the plugin when it is registered', async () => {

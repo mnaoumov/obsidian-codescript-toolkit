@@ -5,13 +5,11 @@ import type {
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { Promisable } from 'type-fest';
 
-import {
-  App,
-  Notice
-} from 'obsidian';
+import { App } from 'obsidian';
 import { printError } from 'obsidian-dev-utils/error';
 import { noopAsync } from 'obsidian-dev-utils/function';
 import { CommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler';
@@ -37,6 +35,7 @@ interface CommandWrapperCommandHandlerConstructorParams {
   readonly defaultCommandIcon: IconName;
   readonly defaultCommandId: string;
   readonly defaultName: string;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly relativeScriptPath: string;
 }
 
@@ -47,6 +46,7 @@ interface FunctionWrapperCommandHandlerConstructorParams {
   readonly defaultCommandId: string;
   readonly defaultName: string;
   invoke(this: void, app: App): Promisable<void>;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly relativeScriptPath: string;
 }
 
@@ -61,6 +61,7 @@ interface ScriptComponentConstructorParams {
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly relativeScriptPath: string;
   readonly scriptOrCommand: Partial<ScriptOrCommand>;
 }
@@ -76,6 +77,7 @@ interface ScriptRegistryComponentConstructorParams {
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly menuEventRegistrar: MenuEventRegistrar;
   readonly pluginName: string;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 }
@@ -88,6 +90,7 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
   private readonly app: App;
   private readonly command: Partial<Command>;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
+  private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly relativeScriptPath: string;
 
   public constructor(params: CommandWrapperCommandHandlerConstructorParams) {
@@ -100,6 +103,7 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
     this.command = params.command;
     this.relativeScriptPath = params.relativeScriptPath;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
   }
 
   public override buildCommand(): Command {
@@ -124,12 +128,12 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
     if (command.checkCallback) {
       try {
         if (!command.checkCallback(true)) {
-          new Notice(`${this.relativeScriptPath} command check condition not met`);
+          this.pluginNoticeComponent.showNotice(`${this.relativeScriptPath} command check condition not met`);
           return;
         }
       } catch (error) {
         printError(new Error(`Error checking ${this.relativeScriptPath} command check condition`, { cause: error }));
-        new Notice(`Error checking ${this.relativeScriptPath} command check condition. See console for details.`);
+        this.pluginNoticeComponent.showNotice(`Error checking ${this.relativeScriptPath} command check condition. See console for details.`);
         return;
       }
 
@@ -138,7 +142,7 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
         this.consoleDebugComponent.consoleDebug(`${this.relativeScriptPath} command executed successfully`);
       } catch (error) {
         printError(new Error(`Error invoking ${this.relativeScriptPath} command`, { cause: error }));
-        new Notice(`Error invoking ${this.relativeScriptPath} command. See console for details.`);
+        this.pluginNoticeComponent.showNotice(`Error invoking ${this.relativeScriptPath} command. See console for details.`);
       }
     } else if (command.callback) {
       try {
@@ -146,7 +150,7 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
         this.consoleDebugComponent.consoleDebug(`${this.relativeScriptPath} command executed successfully`);
       } catch (error) {
         printError(new Error(`Error invoking ${this.relativeScriptPath} command`, { cause: error }));
-        new Notice(`Error invoking ${this.relativeScriptPath} command. See console for details.`);
+        this.pluginNoticeComponent.showNotice(`Error invoking ${this.relativeScriptPath} command. See console for details.`);
       }
     }
   }
@@ -156,6 +160,7 @@ class FunctionWrapperCommandHandler extends GlobalCommandHandler implements Wrap
   private readonly app: App;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly invoke: (app: App) => Promisable<void>;
+  private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly relativeScriptPath: string;
 
   public constructor(params: FunctionWrapperCommandHandlerConstructorParams) {
@@ -168,6 +173,7 @@ class FunctionWrapperCommandHandler extends GlobalCommandHandler implements Wrap
     this.invoke = params.invoke;
     this.relativeScriptPath = params.relativeScriptPath;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
   }
 
   public async forceInvoke(): Promise<void> {
@@ -180,7 +186,7 @@ class FunctionWrapperCommandHandler extends GlobalCommandHandler implements Wrap
       this.consoleDebugComponent.consoleDebug(`${this.relativeScriptPath} invocable script executed successfully`);
     } catch (error) {
       printError(new Error(`Error invoking ${this.relativeScriptPath}`, { cause: error }));
-      new Notice(`Error invoking ${this.relativeScriptPath}. See console for details.`);
+      this.pluginNoticeComponent.showNotice(`Error invoking ${this.relativeScriptPath}. See console for details.`);
     }
   }
 }
@@ -193,6 +199,7 @@ class WrapperCommandHandlerComponent extends ComponentEx {
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
+  private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly relativeScriptPath: string;
   private readonly scriptOrCommand: Partial<ScriptOrCommand>;
 
@@ -210,6 +217,7 @@ class WrapperCommandHandlerComponent extends ComponentEx {
     this.commandRegistrar = params.commandRegistrar;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
   }
 
   public async forceInvoke(): Promise<void> {
@@ -229,6 +237,7 @@ class WrapperCommandHandlerComponent extends ComponentEx {
         defaultCommandIcon: DEFAULT_COMMAND_ICON,
         defaultCommandId: DEFAULT_COMMAND_ID,
         defaultName: DEFAULT_NAME,
+        pluginNoticeComponent: this.pluginNoticeComponent,
         relativeScriptPath: this.relativeScriptPath
       });
     } else if (typeof this.scriptOrCommand.invoke === 'function') {
@@ -239,6 +248,7 @@ class WrapperCommandHandlerComponent extends ComponentEx {
         defaultCommandId: DEFAULT_COMMAND_ID,
         defaultName: DEFAULT_NAME,
         invoke: this.scriptOrCommand.invoke.bind(this.scriptOrCommand),
+        pluginNoticeComponent: this.pluginNoticeComponent,
         relativeScriptPath: this.relativeScriptPath
       });
     } else {
@@ -264,6 +274,7 @@ export class ScriptRegistryComponent extends ComponentEx {
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly menuEventRegistrar: MenuEventRegistrar;
   private readonly pluginName: string;
+  private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly registeredWrapperCommandHandlerComponents = new Map<string, WrapperCommandHandlerComponent>();
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
@@ -276,6 +287,7 @@ export class ScriptRegistryComponent extends ComponentEx {
     this.activeFileProvider = params.activeFileProvider;
     this.menuEventRegistrar = params.menuEventRegistrar;
     this.pluginName = params.pluginName;
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
   }
@@ -325,6 +337,7 @@ export class ScriptRegistryComponent extends ComponentEx {
       consoleDebugComponent: this.consoleDebugComponent,
       menuEventRegistrar: this.menuEventRegistrar,
       pluginName: this.pluginName,
+      pluginNoticeComponent: this.pluginNoticeComponent,
       relativeScriptPath,
       scriptOrCommand
     });

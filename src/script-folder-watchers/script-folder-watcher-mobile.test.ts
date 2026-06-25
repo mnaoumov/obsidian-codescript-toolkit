@@ -2,6 +2,7 @@ import type {
   App,
   DataAdapter
 } from 'obsidian';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Mock } from 'vitest';
 
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
@@ -28,6 +29,7 @@ interface MockSettings {
 describe('ScriptFolderWatcherMobile', () => {
   let watcher: ScriptFolderWatcherMobileComponent;
   let app: App;
+  let pluginNoticeComponent: PluginNoticeComponent;
   let pluginSettingsComponent: PluginSettingsComponent;
   let scriptManager: ScriptManager;
   let existsMock: Mock<(path: string) => Promise<boolean>>;
@@ -57,6 +59,11 @@ describe('ScriptFolderWatcherMobile', () => {
       getInvocableScriptsFolder: vi.fn<() => string>().mockReturnValue('scripts'),
       mobileChangesCheckingIntervalInSeconds: CHECKING_INTERVAL_IN_SECONDS
     };
+
+    pluginNoticeComponent = strictProxy<PluginNoticeComponent>({
+      showNotice: vi.fn()
+    });
+
     pluginSettingsComponent = strictProxy<PluginSettingsComponent>({
       settings: strictProxy<PluginSettingsComponent['settings']>(settings)
     });
@@ -65,6 +72,7 @@ describe('ScriptFolderWatcherMobile', () => {
 
     watcher = new ScriptFolderWatcherMobileComponent({
       app,
+      pluginNoticeComponent,
       pluginSettingsComponent,
       scriptManager
     });

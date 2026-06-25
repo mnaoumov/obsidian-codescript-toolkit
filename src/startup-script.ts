@@ -1,3 +1,4 @@
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Promisable } from 'type-fest';
 
 import { App } from 'obsidian';
@@ -13,20 +14,23 @@ interface StartupScript extends Script {
 
 interface StartupScriptComponentConstructorParams {
   readonly app: App;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
+  readonly requireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 }
 
 export class StartupScriptComponent extends LayoutReadyComponent {
+  private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
-  private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
+  private readonly requireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 
   private startupScript: null | StartupScript = null;
 
   public constructor(params: StartupScriptComponentConstructorParams) {
     super(params.app);
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
-    this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
+    this.requireHandlerFactoryComponent = params.requireHandlerFactoryComponent;
   }
 
   public async cleanupStartupScript(): Promise<void> {
@@ -49,7 +53,7 @@ export class StartupScriptComponent extends LayoutReadyComponent {
       return;
     }
 
-    this.startupScript = await this.RequireHandlerFactoryComponent.requireVaultScriptAsync(startupScriptPath) as StartupScript;
+    this.startupScript = await this.requireHandlerFactoryComponent.requireVaultScriptAsync(startupScriptPath) as StartupScript;
     await this.startupScript.invoke(this.app);
   }
 
@@ -68,7 +72,7 @@ export class StartupScriptComponent extends LayoutReadyComponent {
     if (!startupScriptPath) {
       if (shouldWarnOnNotConfigured) {
         const message = 'Startup script is not configured';
-        new Notice(message);
+        this.pluginNoticeComponent.showNotice(message);
         console.warn(message);
       }
       return null;
@@ -76,7 +80,7 @@ export class StartupScriptComponent extends LayoutReadyComponent {
 
     if (!await this.app.vault.exists(startupScriptPath)) {
       const message = `Startup script not found: ${startupScriptPath}`;
-      new Notice(message);
+      this.pluginNoticeComponent.showNotice(message);
       console.error(message);
       return null;
     }

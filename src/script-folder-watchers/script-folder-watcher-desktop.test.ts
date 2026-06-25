@@ -1,5 +1,6 @@
 import type { DataAdapterEx } from '@obsidian-typings/obsidian-public-latest';
 import type { App } from 'obsidian';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Mock } from 'vitest';
 
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
@@ -39,6 +40,7 @@ interface MockSettings {
 describe('ScriptFolderWatcherDesktopComponent', () => {
   let watcher: ScriptFolderWatcherDesktopComponent;
   let app: App;
+  let pluginNoticeComponent: PluginNoticeComponent;
   let pluginSettingsComponent: PluginSettingsComponent;
   let scriptManager: ScriptManager;
   let existsMock: Mock<(path: string) => Promise<boolean>>;
@@ -57,6 +59,11 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
     settings = {
       getInvocableScriptsFolder: vi.fn<() => string>().mockReturnValue('scripts')
     };
+
+    pluginNoticeComponent = strictProxy<PluginNoticeComponent>({
+      showNotice: vi.fn()
+    });
+
     pluginSettingsComponent = strictProxy<PluginSettingsComponent>({
       settings: strictProxy<PluginSettingsComponent['settings']>(settings)
     });
@@ -67,6 +74,7 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
 
     watcher = new ScriptFolderWatcherDesktopComponent({
       app,
+      pluginNoticeComponent,
       pluginSettingsComponent,
       scriptManager
     });
@@ -180,6 +188,7 @@ describe('createScriptFolderWatcher', () => {
   it('should return a ScriptFolderWatcherDesktopComponent instance', () => {
     const params = strictProxy<ScriptFolderWatcherComponentBaseConstructorParams>({
       app: strictProxy<App>({}),
+      pluginNoticeComponent: strictProxy<PluginNoticeComponent>({}),
       pluginSettingsComponent: strictProxy<PluginSettingsComponent>({}),
       scriptManager: strictProxy<ScriptManager>({})
     });

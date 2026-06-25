@@ -48,6 +48,7 @@ export class Plugin extends PluginBase {
         commandRegistrar,
         menuEventRegistrar,
         pluginName: this.manifest.name,
+        pluginNoticeComponent: this.pluginNoticeComponent,
         pluginSettingsComponent
       })
     );
@@ -65,8 +66,9 @@ export class Plugin extends PluginBase {
     const startupScriptComponent = this.addChild(
       new StartupScriptComponent({
         app: this.app,
+        pluginNoticeComponent: this.pluginNoticeComponent,
         pluginSettingsComponent,
-        RequireHandlerFactoryComponent: requireHandlerFactory
+        requireHandlerFactoryComponent: requireHandlerFactory
       })
     );
 
@@ -78,6 +80,7 @@ export class Plugin extends PluginBase {
         consoleDebugComponent: this.consoleDebugComponent,
         menuEventRegistrar,
         pluginName: this.manifest.name,
+        pluginNoticeComponent: this.pluginNoticeComponent,
         pluginSettingsComponent,
         RequireHandlerFactoryComponent: requireHandlerFactory
       })
@@ -86,6 +89,7 @@ export class Plugin extends PluginBase {
     const scriptManager = new ScriptManager({
       app: this.app,
       consoleDebugComponent: this.consoleDebugComponent,
+      pluginNoticeComponent: this.pluginNoticeComponent,
       pluginSettingsComponent,
       scriptRegistry
     });
@@ -136,6 +140,7 @@ export class Plugin extends PluginBase {
     this.addChild(
       new ScriptFolderWatcherFactoryComponent({
         app: this.app,
+        pluginNoticeComponent: this.pluginNoticeComponent,
         pluginSettingsComponent,
         scriptManager
       })

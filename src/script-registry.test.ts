@@ -2,6 +2,7 @@ import type { App } from 'obsidian';
 import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
 import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { Mock } from 'vitest';
 
@@ -92,6 +93,9 @@ function createRegistry(overrides?: CreateRegistryOverrides): ScriptRegistryComp
       registerFilesMenuEventHandler: vi.fn()
     }),
     pluginName: 'test-plugin',
+    pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
+      showNotice: vi.fn()
+    }),
     pluginSettingsComponent: createPluginSettingsComponent(),
     RequireHandlerFactoryComponent: strictProxy<RequireHandlerFactoryComponent>(
       overrides?.RequireHandlerFactoryComponent ?? createRequireHandlerFactoryComponent()

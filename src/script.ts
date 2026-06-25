@@ -1,8 +1,8 @@
 import type { App } from 'obsidian';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
+import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Promisable } from 'type-fest';
 
-import { Notice } from 'obsidian';
 import { selectItem } from 'obsidian-dev-utils/obsidian/modals/select-item';
 import {
   basename,
@@ -23,6 +23,7 @@ const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 interface ScriptManagerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly scriptRegistry: ScriptRegistryComponent;
 }
@@ -30,13 +31,15 @@ interface ScriptManagerConstructorParams {
 export class ScriptManager {
   private readonly app: App;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
+  private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly scriptRegistry: ScriptRegistryComponent;
 
   public constructor(params: ScriptManagerConstructorParams) {
     this.app = params.app;
-    this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
+    this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.scriptRegistry = params.scriptRegistry;
   }
 
@@ -51,7 +54,7 @@ export class ScriptManager {
 
     if (!await this.app.vault.adapter.exists(invocableScriptsFolder)) {
       const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
-      new Notice(message);
+      this.pluginNoticeComponent.showNotice(message);
       console.error(message);
       return;
     }
