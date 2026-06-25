@@ -4,7 +4,6 @@ import type { Promisable } from 'type-fest';
 /**
  * A cache invalidation mode.
  */
-
 export enum CacheInvalidationMode {
   /**
    * Always invalidate the cache.
