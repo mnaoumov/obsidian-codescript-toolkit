@@ -23,19 +23,6 @@ import type { RequireHandlerFactoryComponent } from './require-handlers/require-
 
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 
-// The SUT registers `convertAsyncToSync(this.processQuery.bind(this))` with the protocol registrar.
-// The real `convertAsyncToSync` fires the wrapped async function via `invokeAsyncSafely`
-// (fire-and-forget), so the registered handler cannot be awaited and rejections are swallowed.
-// To make `processQuery` awaitable in tests (so we can assert its async behavior and rejections),
-// We stub ONLY the return value of `convertAsyncToSync` to be an identity passthrough — the
-// Registered handler then IS the bound async `processQuery`. This is the documented G49 exception
-// For making fire-and-forget async awaitable; no dev-utils logic is reimplemented.
-const mockConvertAsyncToSync = vi.fn((fn: unknown): unknown => fn);
-
-vi.mock('obsidian-dev-utils/async', () => ({
-  convertAsyncToSync: (fn: unknown): unknown => mockConvertAsyncToSync(fn)
-}));
-
 interface MockSettings {
   shouldHandleProtocolUrls: boolean;
 }
@@ -55,8 +42,6 @@ describe('ProtocolHandlerComponent', () => {
     mockDebug = vi.fn();
     mockRegisterObsidianProtocolHandler = vi.fn();
     mockSettings = { shouldHandleProtocolUrls: true };
-
-    mockConvertAsyncToSync.mockImplementation((fn: unknown) => fn);
 
     component = new ProtocolHandlerComponent({
       consoleDebugComponent: strictProxy<ConsoleDebugComponent>({ consoleDebug: mockDebug }),
@@ -81,10 +66,6 @@ describe('ProtocolHandlerComponent', () => {
         action: 'CodeScriptToolkit',
         handler: expect.any(Function) as unknown
       });
-    });
-
-    it('should wrap the handler with the real convertAsyncToSync', () => {
-      expect(mockConvertAsyncToSync).toHaveBeenCalledWith(expect.any(Function) as unknown);
     });
   });
 
