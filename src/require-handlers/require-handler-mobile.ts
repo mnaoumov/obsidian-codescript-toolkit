@@ -1,14 +1,10 @@
 import { CapacitorAdapter } from 'obsidian';
 import { noopAsync } from 'obsidian-dev-utils/function';
 
-import type { RequireHandlerConstructorParams } from './require-handler.ts';
-
 import {
   RequireHandlerComponentBase,
   splitQuery
 } from './require-handler.ts';
-
-type CreateRequireHandlerParams = RequireHandlerConstructorParams;
 
 export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
   private get capacitorAdapter(): CapacitorAdapter {
@@ -85,8 +81,4 @@ export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
     path = splitQuery(path).cleanStr;
     return await this.capacitorAdapter.fs.readBinary(path);
   }
-}
-
-export function createRequireHandler(params: CreateRequireHandlerParams): RequireHandlerMobileComponent {
-  return new RequireHandlerMobileComponent(params);
 }

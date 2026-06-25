@@ -33,7 +33,17 @@ export class StartupScriptComponent extends LayoutReadyComponent {
     this.requireHandlerFactoryComponent = params.requireHandlerFactoryComponent;
   }
 
-  public async cleanupStartupScript(): Promise<void> {
+  public override async onLayoutReady(): Promise<void> {
+    await this.invokeStartupScript();
+    this.register(() => this.cleanupStartupScript());
+  }
+
+  public async reloadStartupScript(): Promise<void> {
+    await this.cleanupStartupScript();
+    await this.invokeStartupScript();
+  }
+
+  private async cleanupStartupScript(): Promise<void> {
     if (!this.startupScript) {
       return;
     }
@@ -43,7 +53,7 @@ export class StartupScriptComponent extends LayoutReadyComponent {
     this.startupScript = null;
   }
 
-  public async invokeStartupScript(): Promise<void> {
+  private async invokeStartupScript(): Promise<void> {
     if (this.startupScript) {
       throw new Error('Startup script already invoked');
     }
@@ -55,16 +65,6 @@ export class StartupScriptComponent extends LayoutReadyComponent {
 
     this.startupScript = await this.requireHandlerFactoryComponent.requireVaultScriptAsync(startupScriptPath) as StartupScript;
     await this.startupScript.invoke(this.app);
-  }
-
-  public override async onLayoutReady(): Promise<void> {
-    await this.invokeStartupScript();
-    this.register(() => this.cleanupStartupScript());
-  }
-
-  public async reloadStartupScript(): Promise<void> {
-    await this.cleanupStartupScript();
-    await this.invokeStartupScript();
   }
 
   private async validateStartupScript(shouldWarnOnNotConfigured = false): Promise<null | string> {

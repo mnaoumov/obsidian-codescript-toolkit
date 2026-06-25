@@ -21,10 +21,7 @@ import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
-import {
-  INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX,
-  ScriptRegistryComponent
-} from './script-registry.ts';
+import { ScriptRegistryComponent } from './script-registry.ts';
 
 const mockPrintError = vi.fn();
 
@@ -109,12 +106,6 @@ function createRequireHandlerFactoryComponent(): MockRequireHandlerFactoryCompon
   };
 }
 
-describe('INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX', () => {
-  it('should have the expected value', () => {
-    expect(INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX).toBe('invoke-script-file-');
-  });
-});
-
 describe('ScriptRegistry', () => {
   let consoleDebugComponent: ConsoleDebugComponent;
   let consoleDebug: Mock<(message: string, ...args: unknown[]) => void>;
@@ -154,7 +145,7 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH = 'nonexistent.js';
       registry = createRegistryWithFiles();
 
-      await expect(registry.getScriptOrCommand(SCRIPT_PATH)).rejects.toThrow(
+      await expect(registry['getScriptOrCommand'](SCRIPT_PATH)).rejects.toThrow(
         `Script not found: '${SCRIPT_PATH}'.`
       );
     });
@@ -168,7 +159,7 @@ describe('ScriptRegistry', () => {
         isInvocable: false
       });
 
-      await expect(registry.getScriptOrCommand(SCRIPT_PATH)).rejects.toThrow(
+      await expect(registry['getScriptOrCommand'](SCRIPT_PATH)).rejects.toThrow(
         `Script is not invocable: '${SCRIPT_PATH}'.`
       );
     });
@@ -184,7 +175,7 @@ describe('ScriptRegistry', () => {
       });
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
-      await registry.getScriptOrCommand(SCRIPT_PATH);
+      await registry['getScriptOrCommand'](SCRIPT_PATH);
 
       expect(requireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
         `${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}?codeScriptName=${CODE_SCRIPT_NAME}`
@@ -201,7 +192,7 @@ describe('ScriptRegistry', () => {
       });
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
-      await registry.getScriptOrCommand(SCRIPT_PATH);
+      await registry['getScriptOrCommand'](SCRIPT_PATH);
 
       expect(requireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
         `${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`
@@ -213,7 +204,7 @@ describe('ScriptRegistry', () => {
       registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({ invoke: vi.fn() });
 
-      await registry.getScriptOrCommand(SCRIPT_PATH);
+      await registry['getScriptOrCommand'](SCRIPT_PATH);
 
       expect(requireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(
         `${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`

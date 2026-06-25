@@ -103,11 +103,11 @@ describe('ScriptFolderWatcherFactory', () => {
     it('should return the created watcher after onload', async () => {
       await factory.loadWithPromises();
 
-      expect(factory.platformScriptFolderWatcher).toBe(MockWatcher.lastInstance);
+      expect(factory['platformScriptFolderWatcher']).toBe(MockWatcher.lastInstance);
     });
 
     it('should throw if accessed before onload', () => {
-      expect(() => factory.platformScriptFolderWatcher).toThrow();
+      expect(() => factory['platformScriptFolderWatcher']).toThrow();
     });
   });
 });

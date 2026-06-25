@@ -166,7 +166,7 @@ const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertA
   'exports'
 ]);
 const WILDCARD_MODULE_CONDITION_SUFFIX = '/*';
-export const VAULT_ROOT_PREFIX = '//';
+const VAULT_ROOT_PREFIX = '//';
 const DUMMY_FILE_NAME = 'dummy.md';
 
 export interface RequireHandler extends ComponentEx {

@@ -26,7 +26,7 @@ import type { Script } from './script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 
-export const INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX = 'invoke-script-file-';
+const INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX = 'invoke-script-file-';
 
 interface CommandWrapperCommandHandlerConstructorParams {
   readonly app: App;
@@ -292,24 +292,6 @@ export class ScriptRegistryComponent extends ComponentEx {
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
   }
 
-  public async getScriptOrCommand(relativeScriptPath: string): Promise<ScriptOrCommand> {
-    let vaultScriptPath = join(this.pluginSettingsComponent.settings.getInvocableScriptsFolder(), relativeScriptPath);
-    if (!(await this.app.vault.adapter.exists(vaultScriptPath))) {
-      throw new Error(`Script not found: '${relativeScriptPath}'.`);
-    }
-
-    if (isMarkdownFile(vaultScriptPath)) {
-      const settings = await getCodeScriptToolkitNoteSettings(this.app, vaultScriptPath);
-      if (!settings.isInvocable) {
-        throw new Error(`Script is not invocable: '${relativeScriptPath}'.`);
-      }
-      if (settings.invocableCodeScriptName) {
-        vaultScriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
-      }
-    }
-    return await this.RequireHandlerFactoryComponent.requireVaultScriptAsync(vaultScriptPath) as Partial<ScriptOrCommand>;
-  }
-
   public async invokeScriptPath(relativeScriptPath: string): Promise<void> {
     this.consoleDebugComponent.consoleDebug(`Invoking script: ${relativeScriptPath}.`);
 
@@ -351,6 +333,24 @@ export class ScriptRegistryComponent extends ComponentEx {
       this.removeChild(commandHandlerComponent);
     }
     this.registeredWrapperCommandHandlerComponents.clear();
+  }
+
+  private async getScriptOrCommand(relativeScriptPath: string): Promise<ScriptOrCommand> {
+    let vaultScriptPath = join(this.pluginSettingsComponent.settings.getInvocableScriptsFolder(), relativeScriptPath);
+    if (!(await this.app.vault.adapter.exists(vaultScriptPath))) {
+      throw new Error(`Script not found: '${relativeScriptPath}'.`);
+    }
+
+    if (isMarkdownFile(vaultScriptPath)) {
+      const settings = await getCodeScriptToolkitNoteSettings(this.app, vaultScriptPath);
+      if (!settings.isInvocable) {
+        throw new Error(`Script is not invocable: '${relativeScriptPath}'.`);
+      }
+      if (settings.invocableCodeScriptName) {
+        vaultScriptPath += `?codeScriptName=${settings.invocableCodeScriptName}`;
+      }
+    }
+    return await this.RequireHandlerFactoryComponent.requireVaultScriptAsync(vaultScriptPath) as Partial<ScriptOrCommand>;
   }
 }
 

@@ -110,14 +110,14 @@ describe('ScriptFolderWatcher', () => {
   describe('register2', () => {
     it('should call stopWatcher before starting', async () => {
       const onChange = vi.fn().mockResolvedValue(undefined);
-      await watcher.register2(onChange);
+      await watcher['register2'](onChange);
 
       expect(watcher.stopWatcherMock).toHaveBeenCalled();
     });
 
     it('should call startWatcher with onChange', async () => {
       const onChange = vi.fn().mockResolvedValue(undefined);
-      await watcher.register2(onChange);
+      await watcher['register2'](onChange);
 
       expect(watcher.startWatcherMock).toHaveBeenCalledWith(onChange);
     });
@@ -125,7 +125,7 @@ describe('ScriptFolderWatcher', () => {
     it('should call onChange when startWatcher returns true', async () => {
       watcher.startWatcherMock.mockResolvedValue(true);
       const onChange = vi.fn().mockResolvedValue(undefined);
-      await watcher.register2(onChange);
+      await watcher['register2'](onChange);
 
       expect(onChange).toHaveBeenCalledOnce();
     });
@@ -133,7 +133,7 @@ describe('ScriptFolderWatcher', () => {
     it('should not call onChange when startWatcher returns false', async () => {
       watcher.startWatcherMock.mockResolvedValue(false);
       const onChange = vi.fn().mockResolvedValue(undefined);
-      await watcher.register2(onChange);
+      await watcher['register2'](onChange);
 
       expect(onChange).not.toHaveBeenCalled();
     });
@@ -141,7 +141,7 @@ describe('ScriptFolderWatcher', () => {
     it('should register stopWatcher as cleanup on first call', async () => {
       const registerSpy = vi.spyOn(watcher, 'register');
       const onChange = vi.fn().mockResolvedValue(undefined);
-      await watcher.register2(onChange);
+      await watcher['register2'](onChange);
 
       // Initial cleanup + post-start cleanup both registered on the first call.
       const EXPECTED_REGISTRATIONS = 2;
@@ -150,10 +150,10 @@ describe('ScriptFolderWatcher', () => {
 
     it('should not re-register initial cleanup on subsequent calls', async () => {
       const onChange = vi.fn().mockResolvedValue(undefined);
-      await watcher.register2(onChange);
+      await watcher['register2'](onChange);
 
       const registerSpy = vi.spyOn(watcher, 'register');
-      await watcher.register2(onChange);
+      await watcher['register2'](onChange);
 
       // Only the post-start cleanup should be registered on the second call.
       const EXPECTED_POST_START_REGISTRATIONS = 1;

@@ -35,8 +35,7 @@ import {
   RequireHandlerComponentBase,
   ResolvedType,
   SCOPED_MODULE_PREFIX,
-  splitQuery,
-  VAULT_ROOT_PREFIX
+  splitQuery
 } from './require-handler.ts';
 
 const { mockDebuggableEval, mockParseLink, mockRequestUrl } = vi.hoisted(() => ({
@@ -401,10 +400,6 @@ describe('exported constants', () => {
 
   it('should have correct SCOPED_MODULE_PREFIX', () => {
     expect(SCOPED_MODULE_PREFIX).toBe('@');
-  });
-
-  it('should have correct VAULT_ROOT_PREFIX', () => {
-    expect(VAULT_ROOT_PREFIX).toBe('//');
   });
 });
 

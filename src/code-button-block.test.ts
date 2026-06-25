@@ -45,6 +45,11 @@ interface BabelTransformResult {
   readonly transformedCode: string;
 }
 
+interface CodeButtonBlockComponentPrivateApi {
+  handleClick(...args: never[]): Promise<void>;
+  processCodeButtonBlock(...args: never[]): Promise<void>;
+}
+
 vi.mock('obsidian-dev-utils/error', () => ({
   printError: (...args: unknown[]): unknown => mockPrintError(...args)
 }));
@@ -360,7 +365,7 @@ describe('CodeButtonBlockComponent', () => {
       mockGetFile.mockReturnValue({ path: 'test.md' });
       mockGetCodeBlockMarkdownInfo.mockResolvedValue(null);
 
-      const processSpy = vi.spyOn(component, 'processCodeButtonBlock');
+      const processSpy = vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'processCodeButtonBlock');
 
       callback?.('source code', el, ctx);
 
@@ -383,7 +388,7 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      await component.processCodeButtonBlock({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       expect(el.createDiv).toHaveBeenCalledWith({ cls: 'fix-require-modules console-log-container' });
     });
@@ -400,7 +405,7 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      await component.processCodeButtonBlock({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
     });
@@ -416,7 +421,7 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      await component.processCodeButtonBlock({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       expect(el.createEl).toHaveBeenCalledWith(
         'button',
@@ -441,9 +446,9 @@ describe('CodeButtonBlockComponent', () => {
 
       const source = '---\nisRaw: true\n---\nconsole.log("test")';
 
-      const handleClickSpy = vi.spyOn(component, 'handleClick').mockResolvedValue(undefined);
+      const handleClickSpy = vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
 
-      await component.processCodeButtonBlock({ ctx, el, source });
+      await component['processCodeButtonBlock']({ ctx, el, source });
 
       // When isRaw is true, shouldAutoRun is set to true, so handleClick is scheduled via the real
       // Fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
@@ -464,9 +469,9 @@ describe('CodeButtonBlockComponent', () => {
 
       const source = '---\nshouldAutoRun: true\n---\nconsole.log("test")';
 
-      const handleClickSpy = vi.spyOn(component, 'handleClick').mockResolvedValue(undefined);
+      const handleClickSpy = vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
 
-      await component.processCodeButtonBlock({ ctx, el, source });
+      await component['processCodeButtonBlock']({ ctx, el, source });
 
       // Auto-run schedules handleClick via the real invokeAsyncSafely (fire-and-forget).
       // Drain the tracked operation before asserting.
@@ -491,7 +496,7 @@ describe('CodeButtonBlockComponent', () => {
       // Genuinely malformed YAML so the REAL parseYaml throws (unclosed flow sequence).
       const source = '---\nfoo: [unclosed\n---\ncode';
 
-      await component.processCodeButtonBlock({ ctx, el, source });
+      await component['processCodeButtonBlock']({ ctx, el, source });
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
@@ -511,7 +516,7 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      await component.processCodeButtonBlock({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       // Legacy config is detected and system message shown
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
@@ -529,7 +534,7 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      await component.processCodeButtonBlock({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
     });
@@ -547,7 +552,7 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      await component.processCodeButtonBlock({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       // The writeSystemMessage was called with a DocumentFragment containing a button
       const fragmentArg = mockConsoleWrapperWriteSystemMessage.mock.calls[0]?.[0] as DocumentFragment | undefined;
@@ -583,9 +588,9 @@ describe('CodeButtonBlockComponent', () => {
       const mockScriptWrapper = vi.fn();
       vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
 
-      const handleClickSpy = vi.spyOn(component, 'handleClick').mockResolvedValue(undefined);
+      const handleClickSpy = vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
 
-      await component.processCodeButtonBlock({ ctx, el, source });
+      await component['processCodeButtonBlock']({ ctx, el, source });
 
       // Auto-run schedules handleClick (which uses the updated sourcePath) via the real
       // Fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
@@ -604,7 +609,7 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      await component.processCodeButtonBlock({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       // The component uses updateSourcePath which sets ctx.sourcePath = sourceFile.path
       expect(mockGetFile).toHaveBeenCalledWith(mockApp, 'original/path.md');
@@ -635,7 +640,7 @@ describe('CodeButtonBlockComponent', () => {
 
       const codeButtonContext = createCodeButtonContext();
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'console.log("test")',
         codeButtonContext,
@@ -651,7 +656,7 @@ describe('CodeButtonBlockComponent', () => {
 
       const codeButtonContext = createCodeButtonContext();
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'console.log("test")',
         codeButtonContext,
@@ -672,7 +677,7 @@ describe('CodeButtonBlockComponent', () => {
         }
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'console.log("test")',
         codeButtonContext,
@@ -695,7 +700,7 @@ describe('CodeButtonBlockComponent', () => {
 
       const codeButtonContext = createCodeButtonContext();
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'console.log("test")',
         codeButtonContext,
@@ -712,7 +717,7 @@ describe('CodeButtonBlockComponent', () => {
 
       const codeButtonContext = createCodeButtonContext();
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'console.log("test")',
         codeButtonContext,
@@ -738,7 +743,7 @@ describe('CodeButtonBlockComponent', () => {
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,
@@ -763,7 +768,7 @@ describe('CodeButtonBlockComponent', () => {
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,
@@ -788,7 +793,7 @@ describe('CodeButtonBlockComponent', () => {
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,
@@ -812,7 +817,7 @@ describe('CodeButtonBlockComponent', () => {
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,
@@ -837,7 +842,7 @@ describe('CodeButtonBlockComponent', () => {
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,
@@ -859,7 +864,7 @@ describe('CodeButtonBlockComponent', () => {
         }
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,
@@ -880,7 +885,7 @@ describe('CodeButtonBlockComponent', () => {
         }
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'console.log("test")',
         codeButtonContext,
@@ -900,7 +905,7 @@ describe('CodeButtonBlockComponent', () => {
         }
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,
@@ -924,7 +929,7 @@ describe('CodeButtonBlockComponent', () => {
       };
       const ctx = partialCtx as MarkdownPostProcessorContext;
 
-      await component.processCodeButtonBlock({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       // The button has an onclick handler that calls handleClick
       const createElCall = vi.mocked(el.createEl).mock.calls[0];
@@ -958,7 +963,7 @@ describe('CodeButtonBlockComponent', () => {
         markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] })
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,
@@ -985,7 +990,7 @@ describe('CodeButtonBlockComponent', () => {
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
-      await component.handleClick({
+      await component['handleClick']({
         buttonIndex: 1,
         code: 'code',
         codeButtonContext,

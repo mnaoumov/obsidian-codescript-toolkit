@@ -102,7 +102,22 @@ export class CodeButtonBlockComponent extends ComponentEx {
     this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
-  public async handleClick(params: CodeButtonBlockComponentHandleClickParams): Promise<void> {
+  public override onload(): void {
+    registerCodeHighlighting();
+    this.register(unregisterCodeHighlighting);
+    this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor({
+      handler: async (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> => {
+        await this.processCodeButtonBlock({
+          ctx,
+          el,
+          source
+        });
+      },
+      language: CODE_BUTTON_BLOCK_LANGUAGE
+    });
+  }
+
+  private async handleClick(params: CodeButtonBlockComponentHandleClickParams): Promise<void> {
     params.codeButtonContext.container.empty();
     const wrappedConsole = new ConsoleWrapper({ resultEl: params.codeButtonContext.container });
     if (params.codeButtonContext.config.shouldShowSystemMessages) {
@@ -167,22 +182,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     }
   }
 
-  public override onload(): void {
-    registerCodeHighlighting();
-    this.register(unregisterCodeHighlighting);
-    this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor({
-      handler: async (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> => {
-        await this.processCodeButtonBlock({
-          ctx,
-          el,
-          source
-        });
-      },
-      language: CODE_BUTTON_BLOCK_LANGUAGE
-    });
-  }
-
-  public async processCodeButtonBlock(params: CodeButtonBlockComponentProcessCodeButtonBlockParams): Promise<void> {
+  private async processCodeButtonBlock(params: CodeButtonBlockComponentProcessCodeButtonBlockParams): Promise<void> {
     const sourceFile = getFile(this.app, params.ctx.sourcePath);
     lastButtonIndex++;
     const resultEl = params.el.createDiv({ cls: 'fix-require-modules console-log-container' });

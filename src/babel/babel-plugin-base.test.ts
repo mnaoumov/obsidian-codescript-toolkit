@@ -44,12 +44,12 @@ describe('BabelPluginBase', () => {
   describe('default methods', () => {
     it('should return an empty visitor from getVisitor', () => {
       const plugin = new MinimalBabelPlugin();
-      expect(plugin.getVisitor()).toEqual({});
+      expect(plugin['getVisitor']()).toEqual({});
     });
 
     it('should return undefined from getInherits', () => {
       const plugin = new MinimalBabelPlugin();
-      expect(plugin.getInherits()).toBeUndefined();
+      expect(plugin['getInherits']()).toBeUndefined();
     });
 
     it('should include inherits in the plugin object when getInherits returns a value', () => {
@@ -62,7 +62,7 @@ describe('BabelPluginBase', () => {
     it('should not throw from manipulateOptions', () => {
       const plugin = new MinimalBabelPlugin();
       expect(() => {
-        plugin.manipulateOptions({}, {});
+        plugin['manipulateOptions']({}, {});
       }).not.toThrow();
     });
 

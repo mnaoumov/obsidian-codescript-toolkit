@@ -15,12 +15,8 @@ import {
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { ScriptManager } from '../script.ts';
-import type { ScriptFolderWatcherComponentBaseConstructorParams } from './script-folder-watcher.ts';
 
-import {
-  createScriptFolderWatcher,
-  ScriptFolderWatcherDesktopComponent
-} from './script-folder-watcher-desktop.ts';
+import { ScriptFolderWatcherDesktopComponent } from './script-folder-watcher-desktop.ts';
 
 const mockWatch = vi.fn();
 
@@ -181,20 +177,5 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
 
       expect(mockFSWatcher.close).toHaveBeenCalledOnce();
     });
-  });
-});
-
-describe('createScriptFolderWatcher', () => {
-  it('should return a ScriptFolderWatcherDesktopComponent instance', () => {
-    const params = strictProxy<ScriptFolderWatcherComponentBaseConstructorParams>({
-      app: strictProxy<App>({}),
-      pluginNoticeComponent: strictProxy<PluginNoticeComponent>({}),
-      pluginSettingsComponent: strictProxy<PluginSettingsComponent>({}),
-      scriptManager: strictProxy<ScriptManager>({})
-    });
-
-    const result = createScriptFolderWatcher(params);
-
-    expect(result).toBeInstanceOf(ScriptFolderWatcherDesktopComponent);
   });
 });

@@ -9,10 +9,7 @@ import {
 
 import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
-import {
-  createRequireHandler,
-  RequireHandlerMobileComponent
-} from './require-handler-mobile.ts';
+import { RequireHandlerMobileComponent } from './require-handler-mobile.ts';
 
 const { MockCapacitorAdapterClass, mockCapacitorFs } = vi.hoisted(() => {
   const fs = {
@@ -383,13 +380,5 @@ describe('RequireHandlerMobileComponent', () => {
       await accessor.readFileBinaryAsync('test.wasm?v=2');
       expect(mockCapacitorFs.readBinary).toHaveBeenCalledWith('test.wasm');
     });
-  });
-});
-
-describe('createRequireHandler', () => {
-  it('should return a RequireHandlerMobileComponent instance', () => {
-    const params = createMockParams();
-    const result = createRequireHandler(params);
-    expect(result).toBeInstanceOf(RequireHandlerMobileComponent);
   });
 });

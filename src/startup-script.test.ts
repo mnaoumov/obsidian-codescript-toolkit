@@ -89,7 +89,7 @@ describe('StartupScriptComponent', () => {
 
   describe('cleanupStartupScript', () => {
     it('should return immediately when no startup script is loaded', async () => {
-      await component.cleanupStartupScript();
+      await component['cleanupStartupScript']();
       expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
     });
 
@@ -104,8 +104,8 @@ describe('StartupScriptComponent', () => {
         invoke: mockInvoke
       });
 
-      await component.invokeStartupScript();
-      await component.cleanupStartupScript();
+      await component['invokeStartupScript']();
+      await component['cleanupStartupScript']();
 
       expect(mockCleanup).toHaveBeenCalledWith(mockApp);
     });
@@ -119,12 +119,12 @@ describe('StartupScriptComponent', () => {
         invoke: mockInvoke
       });
 
-      await component.invokeStartupScript();
-      await component.cleanupStartupScript();
+      await component['invokeStartupScript']();
+      await component['cleanupStartupScript']();
 
       // After cleanup, invoking again should not throw "already invoked"
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue('');
-      await component.invokeStartupScript();
+      await component['invokeStartupScript']();
       expect(mockInvoke).toHaveBeenCalledTimes(1);
     });
 
@@ -137,8 +137,8 @@ describe('StartupScriptComponent', () => {
         invoke: mockInvoke
       });
 
-      await component.invokeStartupScript();
-      await expect(component.cleanupStartupScript()).resolves.toBeUndefined();
+      await component['invokeStartupScript']();
+      await expect(component['cleanupStartupScript']()).resolves.toBeUndefined();
     });
   });
 
@@ -152,15 +152,15 @@ describe('StartupScriptComponent', () => {
         invoke: mockInvoke
       });
 
-      await component.invokeStartupScript();
+      await component['invokeStartupScript']();
 
-      await expect(component.invokeStartupScript()).rejects.toThrow('Startup script already invoked');
+      await expect(component['invokeStartupScript']()).rejects.toThrow('Startup script already invoked');
     });
 
     it('should return early when startup script path is not configured', async () => {
       mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue('');
 
-      await component.invokeStartupScript();
+      await component['invokeStartupScript']();
 
       expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
     });
@@ -175,7 +175,7 @@ describe('StartupScriptComponent', () => {
       });
 
       try {
-        await component.invokeStartupScript();
+        await component['invokeStartupScript']();
 
         expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
         expect(consoleErrorSpy).toHaveBeenCalledWith(`Startup script not found: ${SCRIPT_PATH}`);
@@ -194,7 +194,7 @@ describe('StartupScriptComponent', () => {
         invoke: mockInvoke
       });
 
-      await component.invokeStartupScript();
+      await component['invokeStartupScript']();
 
       expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).toHaveBeenCalledWith(SCRIPT_PATH);
       expect(mockInvoke).toHaveBeenCalledWith(mockApp);
@@ -269,7 +269,7 @@ describe('StartupScriptComponent', () => {
         invoke: mockInvoke
       });
 
-      await component.invokeStartupScript();
+      await component['invokeStartupScript']();
 
       const mockInvoke2 = vi.fn().mockResolvedValue(undefined);
       mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({

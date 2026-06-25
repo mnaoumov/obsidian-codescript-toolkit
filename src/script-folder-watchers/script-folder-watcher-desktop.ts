@@ -7,11 +7,7 @@ import { watch } from 'node:fs';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { join } from 'obsidian-dev-utils/path';
 
-import type { ScriptFolderWatcherComponentBaseConstructorParams } from './script-folder-watcher.ts';
-
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
-
-type CreateScriptFolderWatcherParams = ScriptFolderWatcherComponentBaseConstructorParams;
 
 export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComponentBase {
   private watcher: FSWatcher | null = null;
@@ -56,8 +52,4 @@ export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComp
       this.watcher = null;
     }
   }
-}
-
-export function createScriptFolderWatcher(params: CreateScriptFolderWatcherParams): ScriptFolderWatcherComponentBase {
-  return new ScriptFolderWatcherDesktopComponent(params);
 }

@@ -8,11 +8,11 @@ import type {
 } from './script-folder-watcher.ts';
 
 export class ScriptFolderWatcherFactoryComponent extends ComponentEx {
-  public get platformScriptFolderWatcher(): ScriptFolderWatcherComponentBase {
+  private _platformScriptFolderWatcher?: ScriptFolderWatcherComponentBase;
+
+  private get platformScriptFolderWatcher(): ScriptFolderWatcherComponentBase {
     return ensureNonNullable(this._platformScriptFolderWatcher);
   }
-
-  private _platformScriptFolderWatcher?: ScriptFolderWatcherComponentBase;
 
   public constructor(private readonly params: ScriptFolderWatcherComponentBaseConstructorParams) {
     super();
@@ -28,6 +28,6 @@ export class ScriptFolderWatcherFactoryComponent extends ComponentEx {
       this._platformScriptFolderWatcher = new (await import('./script-folder-watcher-desktop.ts')).ScriptFolderWatcherDesktopComponent(this.params);
     }
 
-    this.addChild(this._platformScriptFolderWatcher);
+    this.addChild(this.platformScriptFolderWatcher);
   }
 }

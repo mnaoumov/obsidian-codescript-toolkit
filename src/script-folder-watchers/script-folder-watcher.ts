@@ -36,7 +36,15 @@ export abstract class ScriptFolderWatcherComponentBase extends ComponentEx {
     await this.applyNewSettings();
   }
 
-  public async register2(onChange: () => Promise<void>): Promise<void> {
+  protected abstract startWatcher(onChange: () => Promise<void>): Promisable<boolean>;
+
+  protected abstract stopWatcher(): void;
+
+  private async applyNewSettings(): Promise<void> {
+    await this.register2(() => this.scriptManager.registerInvocableScripts());
+  }
+
+  private async register2(onChange: () => Promise<void>): Promise<void> {
     if (!this.wasRegisteredInPlugin) {
       this.register(this.stopWatcher.bind(this));
       this.wasRegisteredInPlugin = true;
@@ -48,12 +56,5 @@ export abstract class ScriptFolderWatcherComponentBase extends ComponentEx {
     }
 
     this.register(this.stopWatcher.bind(this));
-  }
-
-  protected abstract startWatcher(onChange: () => Promise<void>): Promisable<boolean>;
-
-  protected abstract stopWatcher(): void;
-  private async applyNewSettings(): Promise<void> {
-    await this.register2(() => this.scriptManager.registerInvocableScripts());
   }
 }

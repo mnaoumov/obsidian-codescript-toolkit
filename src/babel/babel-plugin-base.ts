@@ -20,19 +20,6 @@ export abstract class BabelPluginBase<Data = unknown> {
     noop();
   }
 
-  public getInherits(): PluginObject['inherits'] {
-    return undefined;
-  }
-
-  public getVisitor(): Visitor<PluginPass> {
-    noop();
-    return {};
-  }
-
-  public manipulateOptions(_opts: unknown, _parserOpts: unknown): void {
-    noop();
-  }
-
   public transform(code: string, filename: string, folder?: string): TransformResult<Data> {
     try {
       const result = babelTransform(code, {
@@ -65,6 +52,15 @@ export abstract class BabelPluginBase<Data = unknown> {
     }
   }
 
+  protected getInherits(): PluginObject['inherits'] {
+    return undefined;
+  }
+
+  protected getVisitor(): Visitor<PluginPass> {
+    noop();
+    return {};
+  }
+
   private getPluginObj(): PluginObject {
     const thisWrapper = ValueWrapper.of(this);
     const visitor = this.getVisitor();
@@ -89,6 +85,10 @@ export abstract class BabelPluginBase<Data = unknown> {
       visitor,
       ...inherits === undefined ? {} : { inherits }
     };
+  }
+
+  private manipulateOptions(_opts: unknown, _parserOpts: unknown): void {
+    noop();
   }
 
   private post(_state: PluginPass, _file: File): void {
