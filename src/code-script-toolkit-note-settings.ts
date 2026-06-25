@@ -8,7 +8,7 @@ interface CodeScriptToolkitNoteSettingsFrontmatter {
   codeScriptToolkit?: CodeScriptToolkitNoteSettings;
 }
 
-export class CodeScriptToolkitNoteSettings {
+class CodeScriptToolkitNoteSettings {
   public defaultCodeScriptName = '';
   public invocableCodeScriptName = '';
   public isInvocable = false;

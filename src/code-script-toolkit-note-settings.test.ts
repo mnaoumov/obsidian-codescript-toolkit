@@ -8,10 +8,20 @@ import {
 } from 'vitest';
 
 import {
-  CodeScriptToolkitNoteSettings,
   getCodeScriptToolkitNoteSettings,
   getCodeScriptToolkitNoteSettingsFromContent
 } from './code-script-toolkit-note-settings.ts';
+
+type NoteSettings = Awaited<ReturnType<typeof getCodeScriptToolkitNoteSettings>>;
+
+function createSettings(overrides?: Partial<NoteSettings>): NoteSettings {
+  return {
+    defaultCodeScriptName: '',
+    invocableCodeScriptName: '',
+    isInvocable: false,
+    ...overrides
+  };
+}
 
 const mockIsMarkdownFile = vi.fn<(path: string) => boolean>();
 const mockParseFrontmatter = vi.fn();
@@ -49,8 +59,12 @@ function createMockApp(options?: CreateMockAppOptions): App {
 }
 
 describe('CodeScriptToolkitNoteSettings', () => {
-  it('should have correct default values', () => {
-    const settings = new CodeScriptToolkitNoteSettings();
+  it('should have correct default values', async () => {
+    const app = createMockApp();
+    mockIsMarkdownFile.mockReturnValue(false);
+
+    const settings = await getCodeScriptToolkitNoteSettings(app, 'test.txt');
+
     expect(settings.defaultCodeScriptName).toBe('');
     expect(settings.invocableCodeScriptName).toBe('');
     expect(settings.isInvocable).toBe(false);
@@ -64,15 +78,14 @@ describe('getCodeScriptToolkitNoteSettings', () => {
 
     const result = await getCodeScriptToolkitNoteSettings(app, 'test.txt');
 
-    expect(result).toEqual(new CodeScriptToolkitNoteSettings());
+    expect(result).toEqual(createSettings());
   });
 
   it('should return frontmatter settings when file exists in vault', async () => {
     const mockFile = { path: 'test.md' };
     const app = createMockApp({ fileByPath: mockFile });
     mockIsMarkdownFile.mockReturnValue(true);
-    const expectedSettings = new CodeScriptToolkitNoteSettings();
-    expectedSettings.isInvocable = true;
+    const expectedSettings = createSettings({ isInvocable: true });
     mockGetFrontmatterSafe.mockResolvedValue({ codeScriptToolkit: expectedSettings });
 
     const result = await getCodeScriptToolkitNoteSettings(app, 'test.md');
@@ -88,14 +101,13 @@ describe('getCodeScriptToolkitNoteSettings', () => {
 
     const result = await getCodeScriptToolkitNoteSettings(app, 'test.md');
 
-    expect(result).toEqual(new CodeScriptToolkitNoteSettings());
+    expect(result).toEqual(createSettings());
   });
 
   it('should parse content when file is not in vault', async () => {
     const app = createMockApp({ readContent: '---\ncodeScriptToolkit:\n  isInvocable: true\n---' });
     mockIsMarkdownFile.mockReturnValue(true);
-    const expectedSettings = new CodeScriptToolkitNoteSettings();
-    expectedSettings.isInvocable = true;
+    const expectedSettings = createSettings({ isInvocable: true });
     mockParseFrontmatter.mockReturnValue({ codeScriptToolkit: expectedSettings });
 
     const result = await getCodeScriptToolkitNoteSettings(app, 'test.md');
@@ -110,14 +122,13 @@ describe('getCodeScriptToolkitNoteSettings', () => {
 
     const result = await getCodeScriptToolkitNoteSettings(app, 'test.md');
 
-    expect(result).toEqual(new CodeScriptToolkitNoteSettings());
+    expect(result).toEqual(createSettings());
   });
 });
 
 describe('getCodeScriptToolkitNoteSettingsFromContent', () => {
   it('should return settings from frontmatter when codeScriptToolkit is present', () => {
-    const expectedSettings = new CodeScriptToolkitNoteSettings();
-    expectedSettings.defaultCodeScriptName = 'myScript';
+    const expectedSettings = createSettings({ defaultCodeScriptName: 'myScript' });
     mockParseFrontmatter.mockReturnValue({ codeScriptToolkit: expectedSettings });
 
     const result = getCodeScriptToolkitNoteSettingsFromContent('---\ncodeScriptToolkit:\n  defaultCodeScriptName: myScript\n---');
@@ -130,6 +141,6 @@ describe('getCodeScriptToolkitNoteSettingsFromContent', () => {
 
     const result = getCodeScriptToolkitNoteSettingsFromContent('---\ntitle: test\n---');
 
-    expect(result).toEqual(new CodeScriptToolkitNoteSettings());
+    expect(result).toEqual(createSettings());
   });
 });
