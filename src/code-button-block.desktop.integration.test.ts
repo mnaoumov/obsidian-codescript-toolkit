@@ -2,8 +2,6 @@ import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
 import {
-  afterAll,
-  afterEach,
   beforeAll,
   describe,
   expect,
@@ -51,26 +49,6 @@ beforeAll(() => {
       window.__importResult = typeof Notice;
       \`\`\`
     `
-  });
-});
-
-afterEach(async () => {
-  // Detach markdown leaves between tests so a prior test's still-in-flight async code-button execution cannot interfere with the next test's rendering.
-  await evalInObsidian({
-    fn({ app }) {
-      app.workspace.detachLeavesOfType('markdown');
-    },
-    vaultPath: getTempVault().path
-  });
-});
-
-afterAll(async () => {
-  // Close any open leaves to avoid interfering with subsequent test files
-  await evalInObsidian({
-    fn({ app }) {
-      app.workspace.detachLeavesOfType('markdown');
-    },
-    vaultPath: getTempVault().path
   });
 });
 
