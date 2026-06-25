@@ -13,6 +13,7 @@ import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin
 import { CodeButtonBlockComponent } from './code-button-block.ts';
 import { CodeScriptBlockComponent } from './code-script-block.ts';
 import { ClearCacheCommandHandler } from './command-handlers/clear-cache-command-handler.ts';
+import { InsertSampleCodeButtonCommandHandler } from './command-handlers/insert-sample-code-button-command-handler.ts';
 import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-script-choose-command-handler.ts';
 import { ReloadStartupScriptCommandHandler } from './command-handlers/reload-startup-script-command-handler.ts';
 import { UnloadTempPluginsCommandHandler } from './command-handlers/unload-temp-plugins-command-handler.ts';
@@ -114,6 +115,7 @@ export class Plugin extends PluginBase {
         activeFileProvider,
         commandHandlers: [
           new ClearCacheCommandHandler(requireHandlerFactory),
+          new InsertSampleCodeButtonCommandHandler(),
           new InvokeScriptChooseCommandHandler(scriptManager),
           new OpenSettingsCommandHandler({
             app: this.app,
