@@ -5,7 +5,7 @@
 | **[`require()`][require]**           | ✅      | ✅     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-You can access [helper functions](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/src/code-script-toolkit-module.ts) of this plugin.
+You can access [helper functions](../src/code-script-toolkit-module.ts) of this plugin.
 
 ```js
 const cst = require('codescript-toolkit');
