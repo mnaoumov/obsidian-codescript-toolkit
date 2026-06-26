@@ -61,7 +61,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     this.parentEl = params.parentEl;
     this.source = params.source;
 
-    this.sourceFile = getFile(this.app, params.markdownPostProcessorContext.sourcePath);
+    this.sourceFile = getFile({ app: this.app, pathOrFile: params.markdownPostProcessorContext.sourcePath });
     this.container = params.config.isRaw ? this.parentEl : params.resultEl;
     const wrappedConsole = new ConsoleWrapper({ resultEl: this.container });
     this.console = wrappedConsole.getConsoleInstance(this.config.shouldWrapConsole);

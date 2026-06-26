@@ -29,7 +29,7 @@ interface BindCall {
   propertyName: string;
 }
 
-type BindFn = (valueComponent: unknown, propertyName: string, options?: MockBindOptions) => unknown;
+type BindFn = (params: MockBindParams) => unknown;
 
 interface BindTarget {
   bind: BindFn;
@@ -37,6 +37,12 @@ interface BindTarget {
 
 interface MockBindOptions {
   onChanged(): void;
+}
+
+interface MockBindParams {
+  onChanged?(): void;
+  readonly propertyName: string;
+  readonly valueComponent: unknown;
 }
 
 interface MockPathSuggestInstance {
@@ -505,9 +511,10 @@ describe('PluginSettingsTab', () => {
 
     // Record bind invocations while delegating to the real base-class `bind`.
     const originalBind = castTo<BindFn>(createdTab.bind.bind(createdTab));
-    castTo<BindTarget>(createdTab).bind = vi.fn((valueComponent: unknown, propertyName: string, options?: MockBindOptions) => {
-      bindCalls.push({ options, propertyName });
-      return originalBind(valueComponent, propertyName, options);
+    castTo<BindTarget>(createdTab).bind = vi.fn((bindParams: MockBindParams) => {
+      const options = bindParams.onChanged ? { onChanged: bindParams.onChanged } : undefined;
+      bindCalls.push({ options, propertyName: bindParams.propertyName });
+      return originalBind(bindParams);
     });
 
     return createdTab;

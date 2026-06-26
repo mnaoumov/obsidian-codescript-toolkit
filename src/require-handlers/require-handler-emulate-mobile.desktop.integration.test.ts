@@ -96,7 +96,7 @@ beforeAll(async () => {
     vaultPath: vault.path
   }) // Expected: app reload kills the eval response.
     .catch(noop);
-  await sleep(MOBILE_RELOAD_DELAY_MS);
+  await sleep({ milliseconds: MOBILE_RELOAD_DELAY_MS });
 });
 
 afterAll(async () => {
@@ -108,7 +108,7 @@ afterAll(async () => {
     vaultPath: getTempVault().path
   }) // Expected: app reload kills the eval response.
     .catch(noop);
-  await sleep(MOBILE_RELOAD_DELAY_MS);
+  await sleep({ milliseconds: MOBILE_RELOAD_DELAY_MS });
 });
 
 function vaultPath(): string {

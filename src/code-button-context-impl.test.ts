@@ -154,11 +154,11 @@ describe('CodeButtonContextImplComponent', () => {
     });
 
     it('should call getFile with the app and sourcePath', () => {
-      createContext({ sourcePath: 'my/note.md' });
-      expect(mockGetFile).toHaveBeenCalledWith(
-        expect.anything(),
-        'my/note.md'
-      );
+      const context = createContext({ sourcePath: 'my/note.md' });
+      expect(mockGetFile).toHaveBeenCalledWith({
+        app: context.app,
+        pathOrFile: 'my/note.md'
+      });
     });
 
     it('should assign sourceFile from getFile result', () => {

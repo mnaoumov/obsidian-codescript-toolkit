@@ -24,7 +24,7 @@ export function registerObsidianDevUtilsModule(specialModuleFactories: Map<strin
       continue;
     }
 
-    const relativeExportPath = trimStart(exportPath, EXPORT_PATH_PREFIX);
+    const relativeExportPath = trimStart({ prefix: EXPORT_PATH_PREFIX, str: exportPath });
 
     const pathParts = relativeExportPath.split(EXPORT_PATH_SEPARATOR);
     if (pathParts.some((pathPart) => FORBIDDEN_EXPORT_PATHS.includes(pathPart))) {

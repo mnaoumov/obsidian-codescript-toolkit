@@ -47,10 +47,12 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             f.appendText('Leave blank to use the root of the vault.');
           }))
           .addText((text) => {
-            this.bind(text, 'modulesRoot', {
+            this.bind({
               onChanged: () => {
                 events.trigger('modulesRootChanged');
-              }
+              },
+              propertyName: 'modulesRoot',
+              valueComponent: text
             })
               // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
               .setPlaceholder('path/to/script/modules/root');
@@ -77,7 +79,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             f.appendText('Leave blank if you don\'t use invocable scripts.');
           }))
           .addText((text) => {
-            this.bind(text, 'invocableScriptsFolder')
+            this.bind({ propertyName: 'invocableScriptsFolder', valueComponent: text })
               // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
               .setPlaceholder('path/to/invocable/scripts/folder');
 
@@ -108,7 +110,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             f.appendText('Leave blank if you don\'t use startup script.');
           }))
           .addText((text) => {
-            this.bind(text, 'startupScriptPath')
+            this.bind({ propertyName: 'startupScriptPath', valueComponent: text })
               .setPlaceholder('path/to/startup.ts');
             const suggest = new PathSuggest({
               app: this.app,
@@ -141,7 +143,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             f.appendText('.');
           }))
           .addToggle((toggle) => {
-            this.bind(toggle, 'shouldUseSyncFallback');
+            this.bind({ propertyName: 'shouldUseSyncFallback', valueComponent: toggle });
           });
       });
 
@@ -164,7 +166,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             f.appendText(' to disable checking for changes.');
           }))
           .addNumber((text) => {
-            this.bind(text, 'mobileChangesCheckingIntervalInSeconds')
+            this.bind({ propertyName: 'mobileChangesCheckingIntervalInSeconds', valueComponent: text })
               .setMin(0)
               .setMax(MAX_CHECKING_INTERVAL_IN_SECONDS);
           });
@@ -183,7 +185,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
           .addCodeHighlighter((codeHighlighter) => {
             codeHighlighter.setLanguage('yaml');
             codeHighlighter.inputEl.addClass('default-code-button-config-control');
-            this.bind(codeHighlighter, 'defaultCodeButtonConfig');
+            this.bind({ propertyName: 'defaultCodeButtonConfig', valueComponent: codeHighlighter });
           });
       })
       .addSettingEx((setting) => {
@@ -230,7 +232,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             f.appendText('⚠️ WARNING: This allows arbitrary code execution, which could pose a security risk. Use with caution.');
           }))
           .addToggle((toggle) => {
-            this.bind(toggle, 'shouldHandleProtocolUrls');
+            this.bind({ propertyName: 'shouldHandleProtocolUrls', valueComponent: toggle });
           });
       })
       .addSettingEx((setting) => {
@@ -238,7 +240,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
           .setName('Should show temp plugin load/unload notices')
           .setDesc('Whether to show notices when the temp plugins are loaded/unloaded.')
           .addToggle((toggle) => {
-            this.bind(toggle, 'shouldShowTempPluginLoadUnloadNotices');
+            this.bind({ propertyName: 'shouldShowTempPluginLoadUnloadNotices', valueComponent: toggle });
           });
       });
   }

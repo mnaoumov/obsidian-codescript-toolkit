@@ -183,7 +183,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
   }
 
   private async processCodeButtonBlock(params: CodeButtonBlockComponentProcessCodeButtonBlockParams): Promise<void> {
-    const sourceFile = getFile(this.app, params.ctx.sourcePath);
+    const sourceFile = getFile({ app: this.app, pathOrFile: params.ctx.sourcePath });
     lastButtonIndex++;
     const resultEl = params.el.createDiv({ cls: 'fix-require-modules console-log-container' });
 
@@ -311,7 +311,7 @@ ${config}---
   /* v8 ignore start -- regex always matches zero-length string at position 0 so match() never returns null. */
   const linePrefix = line.match(PREFIX_LINE_REG_EXP)?.[0] ?? '';
   /* v8 ignore stop */
-  newCodeBlock = indent(newCodeBlock, linePrefix);
+  newCodeBlock = indent({ prefix: linePrefix, text: newCodeBlock });
   newCodeBlock = newCodeBlock.slice(0, cursor.ch) === line.slice(0, cursor.ch)
     ? newCodeBlock.slice(cursor.ch)
     : `\n${newCodeBlock}`;

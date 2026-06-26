@@ -612,7 +612,7 @@ describe('CodeButtonBlockComponent', () => {
       await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
 
       // The component uses updateSourcePath which sets ctx.sourcePath = sourceFile.path
-      expect(mockGetFile).toHaveBeenCalledWith(mockApp, 'original/path.md');
+      expect(mockGetFile).toHaveBeenCalledWith({ app: mockApp, pathOrFile: 'original/path.md' });
     });
   });
 

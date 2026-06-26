@@ -417,7 +417,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     let parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
 
     if (parentPath) {
-      parentPath = trimStart(parentPath, 'requireString/');
+      parentPath = trimStart({ prefix: 'requireString/', str: parentPath });
     }
 
     if (parentPath?.includes('<anonymous>') || parentPath?.startsWith('plugin:')) {
@@ -620,7 +620,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
 
     if (condition.endsWith(WILDCARD_MODULE_CONDITION_SUFFIX)) {
-      const parentCondition = trimEnd(condition, WILDCARD_MODULE_CONDITION_SUFFIX);
+      const parentCondition = trimEnd({ str: condition, suffix: WILDCARD_MODULE_CONDITION_SUFFIX });
       const separatorIndex = relativeModuleName.lastIndexOf(RELATIVE_MODULE_PATH_SEPARATOR);
       /* v8 ignore start -- separatorIndex is always >= 0 when a wildcard condition matches because the condition contains a separator. */
       const parentRelativeModuleName = separatorIndex === -1 ? relativeModuleName : relativeModuleName.slice(0, separatorIndex);
@@ -739,7 +739,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
         path = join(path, MODULE_NAME_SEPARATOR);
       }
 
-      const resolvedPath = replaceAll(path, MODULE_NAME_SEPARATOR, relativeModuleName);
+      const resolvedPath = replaceAll({ replacer: relativeModuleName, searchValue: MODULE_NAME_SEPARATOR, str: path });
       return [resolvedPath];
     }
 
@@ -1181,18 +1181,18 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   private resolvePathPrefix(id: string): null | ResolveResult {
     if (id.startsWith(VAULT_ROOT_PREFIX)) {
-      return { resolvedId: join(this.vaultAbsolutePath, trimStart(id, VAULT_ROOT_PREFIX)), resolvedType: ResolvedType.Path };
+      return { resolvedId: join(this.vaultAbsolutePath, trimStart({ prefix: VAULT_ROOT_PREFIX, str: id })), resolvedType: ResolvedType.Path };
     }
 
     const SYSTEM_ROOT_PATH_PREFIX = '~/';
     if (id.startsWith(SYSTEM_ROOT_PATH_PREFIX)) {
-      return { resolvedId: `/${trimStart(id, SYSTEM_ROOT_PATH_PREFIX)}`, resolvedType: ResolvedType.Path };
+      return { resolvedId: `/${trimStart({ prefix: SYSTEM_ROOT_PATH_PREFIX, str: id })}`, resolvedType: ResolvedType.Path };
     }
 
     const MODULES_ROOT_PATH_PREFIX = '/';
     if (id.startsWith(MODULES_ROOT_PATH_PREFIX)) {
       return {
-        resolvedId: join(this.vaultAbsolutePath, this.pluginSettingsComponent.settings.modulesRoot, trimStart(id, MODULES_ROOT_PATH_PREFIX)),
+        resolvedId: join(this.vaultAbsolutePath, this.pluginSettingsComponent.settings.modulesRoot, trimStart({ prefix: MODULES_ROOT_PATH_PREFIX, str: id })),
         resolvedType: ResolvedType.Path
       };
     }
