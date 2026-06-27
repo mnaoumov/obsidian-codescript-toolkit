@@ -52,13 +52,13 @@ export abstract class BabelPluginBase<Data = unknown> {
     }
   }
 
-  protected getInherits(): PluginObject['inherits'] {
-    return undefined;
-  }
-
   protected getVisitor(): Visitor<PluginPass> {
     noop();
     return {};
+  }
+
+  private getInherits(): PluginObject['inherits'] {
+    return undefined;
   }
 
   private getPluginObj(): PluginObject {

@@ -4,6 +4,7 @@ import type {
 } from '@babel/core';
 
 import { transform } from '@babel/standalone';
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   describe,
@@ -24,14 +25,8 @@ vi.mock('@babel/standalone', async (importOriginal) => {
 
 const TEST_FILENAME = 'test.ts';
 
-class InheritingBabelPlugin extends BabelPluginBase<Record<string, never>> {
-  public constructor() {
-    super({});
-  }
-
-  public override getInherits(): PluginObject['inherits'] {
-    return (): PluginObject => ({ visitor: {} });
-  }
+interface GetInheritsExposed {
+  getInherits(): PluginObject['inherits'];
 }
 
 class MinimalBabelPlugin extends BabelPluginBase<Record<string, never>> {
@@ -53,7 +48,8 @@ describe('BabelPluginBase', () => {
     });
 
     it('should include inherits in the plugin object when getInherits returns a value', () => {
-      const plugin = new InheritingBabelPlugin();
+      const plugin = new MinimalBabelPlugin();
+      vi.spyOn(castTo<GetInheritsExposed>(plugin), 'getInherits').mockReturnValue((): PluginObject => ({ visitor: {} }));
       const result = plugin.transform('const x: number = 1;', TEST_FILENAME);
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('const x = 1');
