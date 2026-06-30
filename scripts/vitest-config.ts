@@ -64,6 +64,7 @@ export const config = defineConfig({
           hookTimeout: BIG_TIMEOUT_IN_MILLISECONDS * HOOK_TIMEOUT_MULTIPLIER,
           include: ['src/**/*.desktop.integration.test.ts'],
           name: 'integration-tests:desktop',
+          setupFiles: ['obsidian-integration-testing/vitest-setup'],
           testTimeout: BIG_TIMEOUT_IN_MILLISECONDS
         }
       },
@@ -75,6 +76,7 @@ export const config = defineConfig({
           hookTimeout: PERFORMANCE_TIMEOUT_IN_MILLISECONDS,
           include: ['src/**/*.desktop-performance.integration.test.ts'],
           name: 'integration-tests:desktop-performance',
+          setupFiles: ['obsidian-integration-testing/vitest-setup'],
           testTimeout: PERFORMANCE_TIMEOUT_IN_MILLISECONDS
         }
       },
@@ -93,6 +95,7 @@ export const config = defineConfig({
           hookTimeout: ANDROID_TIMEOUT_IN_MILLISECONDS * HOOK_TIMEOUT_MULTIPLIER,
           include: ['src/**/*.android.integration.test.ts'],
           name: 'integration-tests:android',
+          setupFiles: ['obsidian-integration-testing/vitest-setup'],
           testTimeout: ANDROID_TIMEOUT_IN_MILLISECONDS
         }
       }
