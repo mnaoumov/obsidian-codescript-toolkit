@@ -4,6 +4,7 @@ import type {
 } from 'obsidian';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
+import type { EditorLockComponent } from 'obsidian-dev-utils/obsidian/editor-lock';
 
 import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
@@ -120,6 +121,7 @@ vi.mock('./temp-plugin-registry.ts', () => ({
 
 interface PluginPrivateApi {
   consoleDebugComponent: ConsoleDebugComponent;
+  editorLockComponent: EditorLockComponent;
   onloadImpl(): void;
   pluginNoticeComponent: PluginNoticeComponent;
 }
@@ -145,11 +147,12 @@ describe('Plugin', () => {
   function createPlugin(): Plugin {
     const plugin = new Plugin(app, manifest);
     /*
-     * The console debug and plugin notice components are normally assigned during the universal `onload()` flow.
+     * The console debug, plugin notice, and editor lock components are normally assigned during the universal `onload()` flow.
      * We assign them directly so `onloadImpl` can be exercised in isolation without the full lifecycle.
      */
     castTo<PluginPrivateApi>(plugin).consoleDebugComponent = strictProxy<ConsoleDebugComponent>({});
     castTo<PluginPrivateApi>(plugin).pluginNoticeComponent = strictProxy<PluginNoticeComponent>({});
+    castTo<PluginPrivateApi>(plugin).editorLockComponent = strictProxy<EditorLockComponent>({});
     return plugin;
   }
 

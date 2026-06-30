@@ -5,7 +5,7 @@ import {
   stringifyYaml
 } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
-import { appendCodeBlock } from 'obsidian-dev-utils/html-element';
+import { appendCodeBlock } from 'obsidian-dev-utils/obsidian/html-element';
 import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
 import { SettingGroupEx } from 'obsidian-dev-utils/obsidian/setting-group-ex';
 import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';

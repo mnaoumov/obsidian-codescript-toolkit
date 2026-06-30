@@ -3,7 +3,9 @@ import type {
   MarkdownPostProcessorContext
 } from 'obsidian';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
+import type { EditorLockComponent } from 'obsidian-dev-utils/obsidian/editor-lock';
 
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
@@ -28,6 +30,7 @@ const mockGetConsoleInstance = vi.fn();
 const mockGetTempPlugin = vi.fn();
 const mockRegisterTempPlugin = vi.fn();
 const mockMarkdownRendererRender = vi.fn();
+const mockEditorLockComponent = castTo<EditorLockComponent>({});
 
 vi.mock('obsidian', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian')>(),
@@ -105,6 +108,7 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImplC
   return new CodeButtonContextImplComponent({
     app: mockApp,
     config,
+    editorLockComponent: mockEditorLockComponent,
     markdownInfo: params.markdownInfo ?? null,
     markdownPostProcessorContext: ctx,
     parentEl,
@@ -223,6 +227,7 @@ describe('CodeButtonContextImplComponent', () => {
         expect.objectContaining({
           app: context.app,
           ctx: context.markdownPostProcessorContext,
+          editorLockComponent: mockEditorLockComponent,
           el: context.parentEl,
           source: context.source
         })
@@ -289,6 +294,7 @@ describe('CodeButtonContextImplComponent', () => {
         expect.objectContaining({
           app: context.app,
           ctx: context.markdownPostProcessorContext,
+          editorLockComponent: mockEditorLockComponent,
           el: context.parentEl,
           source: context.source
         })

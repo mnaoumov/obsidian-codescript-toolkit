@@ -5,6 +5,7 @@ import type {
   TFile
 } from 'obsidian';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
+import type { EditorLockComponent } from 'obsidian-dev-utils/obsidian/editor-lock';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 
 import { waitForAllAsyncOperations } from 'obsidian-dev-utils/async';
@@ -39,6 +40,7 @@ const mockReplaceCodeBlock = vi.fn();
 const mockPrintError = vi.fn();
 const mockGetDataAdapterEx = vi.fn();
 const mockGetOsAndObsidianUnsafePathCharsRegExp = vi.fn();
+const mockEditorLockComponent = castTo<EditorLockComponent>({});
 
 interface BabelTransformResult {
   readonly error: Error | undefined;
@@ -289,6 +291,7 @@ describe('CodeButtonBlockComponent', () => {
 
     component = new CodeButtonBlockComponent({
       app: mockApp,
+      editorLockComponent: mockEditorLockComponent,
       markdownCodeBlockProcessorRegistrar: mockMarkdownCodeBlockProcessorRegistrar,
       pluginSettingsComponent: mockPluginSettingsComponent,
       RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent,
@@ -569,7 +572,11 @@ describe('CodeButtonBlockComponent', () => {
       // Drain the tracked operation before asserting the observable effect.
       await waitForAllAsyncOperations();
 
-      expect(mockReplaceCodeBlock).toHaveBeenCalled();
+      expect(mockReplaceCodeBlock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          editorLockComponent: mockEditorLockComponent
+        })
+      );
     });
 
     it('should pass updated sourcePath from sourceFile to CodeButtonContextImplComponent', async () => {

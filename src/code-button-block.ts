@@ -4,6 +4,7 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
+import type { EditorLockComponent } from 'obsidian-dev-utils/obsidian/editor-lock';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import type { Promisable } from 'type-fest';
 
@@ -74,6 +75,7 @@ let lastButtonIndex = 0;
 
 interface CodeButtonBlockComponentConstructorParams {
   readonly app: App;
+  readonly editorLockComponent: EditorLockComponent | null;
   readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
@@ -88,6 +90,7 @@ interface CodeButtonBlockComponentProcessCodeButtonBlockParams {
 
 export class CodeButtonBlockComponent extends ComponentEx {
   private readonly app: App;
+  private readonly editorLockComponent: EditorLockComponent | null;
   private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
@@ -96,6 +99,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
     super();
     this.app = params.app;
+    this.editorLockComponent = params.editorLockComponent;
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
@@ -224,6 +228,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
                 app: this.app,
                 codeBlockProvider: newCodeBlock,
                 ctx: updateSourcePath(params.ctx, sourceFile),
+                editorLockComponent: this.editorLockComponent,
                 el: params.el,
                 shouldPreserveLinePrefix: true,
                 source: params.source
@@ -285,6 +290,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
         codeButtonContext: new CodeButtonContextImplComponent({
           app: thisWrapper.value.app,
           config: fullConfig,
+          editorLockComponent: thisWrapper.value.editorLockComponent,
           markdownInfo,
           markdownPostProcessorContext: updateSourcePath(params.ctx, sourceFile),
           parentEl: params.el,
