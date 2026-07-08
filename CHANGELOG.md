@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 13.1.8
+
+- test: use dev-utils sleep for emulate-mobile wait now that it works in node
+- test: fix emulate-mobile integration wait to run in node environment
+- chore: workaround to bypass validation
+- test: wire integration-testing vitest-setup into integration projects
+- chore: update libs
+- chore: sort tsconfig types
+
 ## 13.1.7
 
 - refactor: new template
