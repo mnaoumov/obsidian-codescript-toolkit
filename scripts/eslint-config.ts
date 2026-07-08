@@ -22,6 +22,15 @@ export const configs: Linter.Config[] = defineEslintConfigs({
         rules: {
           'obsidianmd/no-nodejs-modules': 'off'
         }
+      },
+      {
+        // Integration test harness code runs in the Node vitest environment and is never shipped to mobile,
+        // So Node built-ins are intentional here.
+        files: ['src/**/*.integration.test.ts'],
+        rules: {
+          'import-x/no-nodejs-modules': 'off',
+          'obsidianmd/no-nodejs-modules': 'off'
+        }
       }
     ]);
   }
