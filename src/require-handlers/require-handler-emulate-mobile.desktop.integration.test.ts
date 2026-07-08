@@ -1,7 +1,7 @@
 import type { TFile } from 'obsidian';
 
 import dedent from 'dedent';
-import { setTimeout as sleep } from 'node:timers/promises';
+import { sleep } from 'obsidian-dev-utils/async';
 import { noop } from 'obsidian-dev-utils/function';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
@@ -96,7 +96,7 @@ beforeAll(async () => {
     vaultPath: vault.path
   }) // Expected: app reload kills the eval response.
     .catch(noop);
-  await sleep(MOBILE_RELOAD_DELAY_MS);
+  await sleep({ milliseconds: MOBILE_RELOAD_DELAY_MS });
 });
 
 afterAll(async () => {
@@ -108,7 +108,7 @@ afterAll(async () => {
     vaultPath: getTempVault().path
   }) // Expected: app reload kills the eval response.
     .catch(noop);
-  await sleep(MOBILE_RELOAD_DELAY_MS);
+  await sleep({ milliseconds: MOBILE_RELOAD_DELAY_MS });
 });
 
 function vaultPath(): string {
