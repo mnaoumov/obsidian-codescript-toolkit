@@ -153,8 +153,6 @@ describe('ConsoleWrapper', () => {
     });
 
     it('should delegate to original console and appendToResultEl on wrapped log', () => {
-      // eslint-disable-next-line no-console, obsidianmd/rule-custom-message -- testing console wrapper behavior
-      const originalLog = console.log;
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {
         // Intentional noop for test mock.
       });
@@ -169,8 +167,6 @@ describe('ConsoleWrapper', () => {
         );
       } finally {
         logSpy.mockRestore();
-        // eslint-disable-next-line no-console, obsidianmd/rule-custom-message -- restoring original console.log
-        console.log = originalLog;
       }
     });
 

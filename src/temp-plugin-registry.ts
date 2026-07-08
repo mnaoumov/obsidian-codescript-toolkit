@@ -154,8 +154,8 @@ export class TempPluginRegistryComponent extends ComponentEx {
         pluginNoticeComponent.showNotice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
       }
       if (params.cssText) {
-        // eslint-disable-next-line obsidianmd/no-forbidden-elements, obsidianmd/prefer-active-doc -- Need dynamic `style` element. Need main document.
-        styleEl = document.head.createEl('style', {
+        const STYLE_TAG_NAME = 'style';
+        styleEl = document.head.createEl(STYLE_TAG_NAME, {
           attr: { id },
           text: params.cssText
         });

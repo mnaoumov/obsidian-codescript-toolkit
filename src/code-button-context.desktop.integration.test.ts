@@ -14,6 +14,10 @@ const POLL_INTERVAL_MS = 100;
 const MODULES_ROOT = '_int-test-ctx';
 const PLUGIN_ID = 'fix-require-modules';
 
+interface ObservedContent {
+  content: null | string;
+}
+
 beforeAll(() => {
   const vault = getTempVault();
 
@@ -135,7 +139,7 @@ describe('CodeButtonContext integration', () => {
   it('should render markdown inside the container', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs }) {
+      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/render-markdown', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -143,7 +147,11 @@ describe('CodeButtonContext integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(() => getBoldEl() !== null);
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => getBoldEl() !== null,
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const boldEl = getBoldEl();
         return { hasBold: boldEl !== null, text: boldEl?.textContent ?? '' };
@@ -151,16 +159,6 @@ describe('CodeButtonContext integration', () => {
         function getBoldEl(): HTMLElement | null {
           const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
           return view?.containerEl.querySelector('strong') ?? null;
-        }
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
         }
       },
       vaultPath: vaultPath()
@@ -173,7 +171,7 @@ describe('CodeButtonContext integration', () => {
   it('should insert markdown after the code button block', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs }) {
+      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/insert-after', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -181,7 +179,13 @@ describe('CodeButtonContext integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(async () => (await readContent())?.includes('Inserted after.') ?? false);
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          async predicate(): Promise<boolean> {
+            return (await readContent())?.includes('Inserted after.') ?? false;
+          },
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const content = await readContent();
         if (content === null) {
@@ -196,16 +200,6 @@ describe('CodeButtonContext integration', () => {
           }
           return await app.vault.read(file as import('obsidian').TFile);
         }
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
-        }
       },
       vaultPath: vaultPath()
     });
@@ -216,7 +210,7 @@ describe('CodeButtonContext integration', () => {
   it('should insert markdown before the code button block', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs }) {
+      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/insert-before', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -224,7 +218,13 @@ describe('CodeButtonContext integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(async () => (await readContent())?.includes('Inserted before.') ?? false);
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          async predicate(): Promise<boolean> {
+            return (await readContent())?.includes('Inserted before.') ?? false;
+          },
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const content = await readContent();
         if (content === null) {
@@ -239,16 +239,6 @@ describe('CodeButtonContext integration', () => {
           }
           return await app.vault.read(file as import('obsidian').TFile);
         }
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
-        }
       },
       vaultPath: vaultPath()
     });
@@ -259,7 +249,7 @@ describe('CodeButtonContext integration', () => {
   it('should remove the code button block from the note', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs }) {
+      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/remove-block', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -267,9 +257,13 @@ describe('CodeButtonContext integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(async () => {
-          const current = await readContent();
-          return current !== null && !current.includes('code-button');
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          async predicate(): Promise<boolean> {
+            const current = await readContent();
+            return current !== null && !current.includes('code-button');
+          },
+          timeoutInMilliseconds: timeoutMs
         });
 
         const content = await readContent();
@@ -285,16 +279,6 @@ describe('CodeButtonContext integration', () => {
           }
           return await app.vault.read(file as import('obsidian').TFile);
         }
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
-        }
       },
       vaultPath: vaultPath()
     });
@@ -307,7 +291,7 @@ describe('CodeButtonContext integration', () => {
   it('should replace the code button block with new markdown', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs }) {
+      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/replace-block', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -316,11 +300,24 @@ describe('CodeButtonContext integration', () => {
         });
 
         // Capture the content at the instant the replacement is observed: a preview re-render can re-run the now-stale block and briefly restore the original, so re-reading after the poll would race that revert.
-        const content = await pollForContent();
-        if (content === null) {
+        const observed: ObservedContent = { content: null };
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          async predicate(): Promise<boolean> {
+            const current = await readContent();
+            if (current !== null && current.includes('Replacement text.') && !current.includes('code-button')) {
+              observed.content = current;
+              return true;
+            }
+            return false;
+          },
+          timeoutInMilliseconds: timeoutMs
+        });
+
+        if (observed.content === null) {
           return { content: '', error: 'Replacement not observed' };
         }
-        return { content };
+        return { content: observed.content };
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-ctx-notes/replace-block.md');
@@ -328,18 +325,6 @@ describe('CodeButtonContext integration', () => {
             return null;
           }
           return await app.vault.read(file as import('obsidian').TFile);
-        }
-
-        async function pollForContent(): Promise<null | string> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const current = await readContent();
-            if (current !== null && current.includes('Replacement text.') && !current.includes('code-button')) {
-              return current;
-            }
-            await sleep(intervalMs);
-          }
-          return null;
         }
       },
       vaultPath: vaultPath()
@@ -354,7 +339,7 @@ describe('CodeButtonContext integration', () => {
   it('should auto-output the last expression when shouldAutoOutput is true', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs }) {
+      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/auto-output', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -362,7 +347,11 @@ describe('CodeButtonContext integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(() => getOutput().includes('43'));
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => getOutput().includes('43'),
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
         if (!view) {
@@ -375,16 +364,6 @@ describe('CodeButtonContext integration', () => {
           const activeView = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
           const resultEl = activeView?.containerEl.querySelector('.fix-require-modules.console-log-container');
           return resultEl?.textContent ?? '';
-        }
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
         }
       },
       vaultPath: vaultPath()
@@ -396,7 +375,7 @@ describe('CodeButtonContext integration', () => {
   it('should wrap console output when shouldWrapConsole is true', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs }) {
+      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/wrap-console', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -404,7 +383,11 @@ describe('CodeButtonContext integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(() => getOutput().includes('wrapped-output'));
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => getOutput().includes('wrapped-output'),
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
         if (!view) {
@@ -418,16 +401,6 @@ describe('CodeButtonContext integration', () => {
           const resultEl = activeView?.containerEl.querySelector('.fix-require-modules.console-log-container');
           return resultEl?.textContent ?? '';
         }
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
-        }
       },
       vaultPath: vaultPath()
     });
@@ -438,7 +411,7 @@ describe('CodeButtonContext integration', () => {
   it('should remove code button block after successful execution with removeAfterExecution.when: onSuccess', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs }) {
+      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
         Reflect.deleteProperty(window, '__removeAfterSuccess');
 
         await app.workspace.openLinkText('_int-test-ctx-notes/remove-after-success', '', false);
@@ -448,10 +421,14 @@ describe('CodeButtonContext integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(async () => {
-          const executed = Reflect.get(window, '__removeAfterSuccess') === true;
-          const current = await readContent();
-          return executed && current !== null && !current.includes('code-button');
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          async predicate(): Promise<boolean> {
+            const executed = Reflect.get(window, '__removeAfterSuccess') === true;
+            const current = await readContent();
+            return executed && current !== null && !current.includes('code-button');
+          },
+          timeoutInMilliseconds: timeoutMs
         });
 
         const content = await readContent();
@@ -467,16 +444,6 @@ describe('CodeButtonContext integration', () => {
             return null;
           }
           return await app.vault.read(file as import('obsidian').TFile);
-        }
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
         }
       },
       vaultPath: vaultPath()

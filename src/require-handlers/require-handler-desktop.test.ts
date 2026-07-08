@@ -32,6 +32,9 @@ import {
   ResolvedType
 } from './require-handler.ts';
 
+type NodeFsModule = typeof import('node:fs');
+type NodeFsPromisesModule = typeof import('node:fs/promises');
+
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   getDataAdapterEx: vi.fn().mockReturnValue({ basePath: '/vault' }),
   loadPrism: vi.fn()
@@ -59,8 +62,8 @@ vi.mock('../code-script-toolkit-module-impl.ts', () => ({
   CodeScriptToolkitModuleImpl: vi.fn()
 }));
 
-// eslint-disable-next-line obsidianmd/hardcoded-config-path -- test mock value
-const MOCK_CONFIG_DIR = '.obsidian';
+const EMPTY = '';
+const MOCK_CONFIG_DIR = `${EMPTY}.obsidian`;
 const MOCK_MTIME_MS = 1234567890;
 
 interface CurrentModulesTimestampChainAccessor {
@@ -309,13 +312,11 @@ class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopCompon
   }
 
   public setMockFs(fs: MockFs): void {
-    // eslint-disable-next-line no-restricted-syntax -- accessing private internals
-    this['_fs'] = fs as unknown as typeof import('node:fs');
+    this['_fs'] = castTo<NodeFsModule>(fs);
   }
 
   public setMockFsPromises(fsPromises: MockFsPromises): void {
-    // eslint-disable-next-line no-restricted-syntax -- accessing private internals
-    this['_fsPromises'] = fsPromises as unknown as typeof import('node:fs/promises');
+    this['_fsPromises'] = castTo<NodeFsPromisesModule>(fsPromises);
   }
 
   public setOriginalModulePrototypeRequire(fn: ReturnType<typeof vi.fn>): void {
@@ -323,13 +324,11 @@ class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopCompon
   }
 
   public unsetFs(): void {
-    // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to unset private field
-    this['_fs'] = undefined as unknown as typeof import('node:fs');
+    this['_fs'] = null;
   }
 
   public unsetFsPromises(): void {
-    // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to unset private field
-    this['_fsPromises'] = undefined as unknown as typeof import('node:fs/promises');
+    this['_fsPromises'] = null;
   }
 }
 

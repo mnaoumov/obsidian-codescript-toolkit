@@ -1,8 +1,8 @@
-// eslint-disable-next-line import/no-nodejs-modules, import-x/no-nodejs-modules -- Deliberate, executes only on desktop.
+// eslint-disable-next-line import-x/no-nodejs-modules -- Deliberate, executes only on desktop.
 import type { FSWatcher } from 'node:fs';
 
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
-// eslint-disable-next-line import/no-nodejs-modules, import-x/no-nodejs-modules -- Deliberate, executes only on desktop.
+// eslint-disable-next-line import-x/no-nodejs-modules -- Deliberate, executes only on desktop.
 import { watch } from 'node:fs';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { join } from 'obsidian-dev-utils/path';

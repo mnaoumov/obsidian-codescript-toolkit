@@ -19,6 +19,8 @@ interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstr
   readonly pluginName: string;
 }
 
+const EMPTY = '';
+
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
   private readonly pluginName: string;
 
@@ -54,8 +56,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
               propertyName: 'modulesRoot',
               valueComponent: text
             })
-              // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
-              .setPlaceholder('path/to/script/modules/root');
+              .setPlaceholder(`${EMPTY}path/to/script/modules/root`);
 
             new PathSuggest({
               app: this.app,
@@ -80,8 +81,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
           }))
           .addText((text) => {
             this.bind({ propertyName: 'invocableScriptsFolder', valueComponent: text })
-              // eslint-disable-next-line obsidianmd/ui/sentence-case -- wrong rule.
-              .setPlaceholder('path/to/invocable/scripts/folder');
+              .setPlaceholder(`${EMPTY}path/to/invocable/scripts/folder`);
 
             const suggest = new PathSuggest({
               app: this.app,

@@ -5,8 +5,8 @@ import type {
   TFile
 } from 'obsidian';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
-import type { EditorLockComponent } from 'obsidian-dev-utils/obsidian/editor-lock';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
+import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
 import { waitForAllAsyncOperations } from 'obsidian-dev-utils/async';
 import { castTo } from 'obsidian-dev-utils/object-utils';
@@ -40,7 +40,7 @@ const mockReplaceCodeBlock = vi.fn();
 const mockPrintError = vi.fn();
 const mockGetDataAdapterEx = vi.fn();
 const mockGetOsAndObsidianUnsafePathCharsRegExp = vi.fn();
-const mockEditorLockComponent = castTo<EditorLockComponent>({});
+const mockResourceLockComponent = castTo<ResourceLockComponent>({});
 
 interface BabelTransformResult {
   readonly error: Error | undefined;
@@ -291,10 +291,10 @@ describe('CodeButtonBlockComponent', () => {
 
     component = new CodeButtonBlockComponent({
       app: mockApp,
-      editorLockComponent: mockEditorLockComponent,
       markdownCodeBlockProcessorRegistrar: mockMarkdownCodeBlockProcessorRegistrar,
       pluginSettingsComponent: mockPluginSettingsComponent,
       RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent,
+      resourceLockComponent: mockResourceLockComponent,
       tempPluginRegistry: mockTempPluginRegistry
     });
   });
@@ -574,7 +574,7 @@ describe('CodeButtonBlockComponent', () => {
 
       expect(mockReplaceCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
-          editorLockComponent: mockEditorLockComponent
+          resourceLockComponent: mockResourceLockComponent
         })
       );
     });

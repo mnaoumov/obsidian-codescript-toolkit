@@ -44,7 +44,7 @@ describe('ScriptFolderWatcherFactory', () => {
 
   beforeEach(() => {
     Platform.isMobile = false;
-    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
+
     document.body.classList.remove('emulate-mobile');
     MockWatcher.lastInstance = null;
 
@@ -55,7 +55,7 @@ describe('ScriptFolderWatcherFactory', () => {
 
   afterEach(() => {
     Platform.isMobile = false;
-    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
+
     document.body.classList.remove('emulate-mobile');
   });
 
@@ -78,7 +78,6 @@ describe('ScriptFolderWatcherFactory', () => {
     });
 
     it('should create mobile watcher when emulate-mobile class is present', async () => {
-      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
       document.body.classList.add('emulate-mobile');
       const addChildSpy = vi.spyOn(factory, 'addChild');
       await factory.loadWithPromises();
@@ -88,7 +87,6 @@ describe('ScriptFolderWatcherFactory', () => {
     });
 
     it('should create mobile watcher when both emulate-mobile and isMobile are true', async () => {
-      // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document for body class check in tests.
       document.body.classList.add('emulate-mobile');
       Platform.isMobile = true;
       const addChildSpy = vi.spyOn(factory, 'addChild');

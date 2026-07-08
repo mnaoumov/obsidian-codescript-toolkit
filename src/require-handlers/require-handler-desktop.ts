@@ -36,9 +36,12 @@ import {
   splitQuery
 } from './require-handler.ts';
 
+type NodeFsModule = typeof import('node:fs');
+type NodeFsPromisesModule = typeof import('node:fs/promises');
+
 export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase {
-  private _fs?: typeof import('node:fs');
-  private _fsPromises?: typeof import('node:fs/promises');
+  private _fs: NodeFsModule | null = null;
+  private _fsPromises: NodeFsPromisesModule | null = null;
   private originalModulePrototypeRequire?: RequireFn;
 
   private get fileSystemAdapter(): FileSystemAdapter {

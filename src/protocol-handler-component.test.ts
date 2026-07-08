@@ -3,6 +3,7 @@ import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/componen
 import type { ObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
 import type { Mock } from 'vitest';
 
+import { App } from 'obsidian';
 import {
   createFunction,
   noop
@@ -197,8 +198,7 @@ describe('ProtocolHandlerComponent', () => {
       }
 
       expect(mockRequireAsync).toHaveBeenCalledWith('//Scripts/Test.js');
-      // eslint-disable-next-line no-restricted-globals, @typescript-eslint/no-deprecated -- the generated code references the global `app`, so the assertion must too.
-      expect(mockModule.invoke).toHaveBeenCalledWith(app);
+      expect(mockModule.invoke).toHaveBeenCalledWith(expect.any(App));
     });
 
     it('should call requireStringAsync with code when code is provided', async () => {

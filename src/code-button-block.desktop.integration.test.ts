@@ -60,7 +60,7 @@ describe('CodeButtonBlock integration', () => {
   it('should render a code button in markdown', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs }) {
+      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
         await app.workspace.openLinkText('_int-test-buttons/basic', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -68,7 +68,11 @@ describe('CodeButtonBlock integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(() => getButtonCount() > 0);
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => getButtonCount() > 0,
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
         if (!view) {
@@ -81,16 +85,6 @@ describe('CodeButtonBlock integration', () => {
           const activeView = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
           return activeView?.containerEl.querySelectorAll('.fix-require-modules').length ?? 0;
         }
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
-        }
       },
       vaultPath: vaultPath()
     });
@@ -101,7 +95,7 @@ describe('CodeButtonBlock integration', () => {
   it('should auto-run code button with shouldAutoRun: true', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs }) {
+      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
         Reflect.deleteProperty(window, '__autoRunResult');
 
         await app.workspace.openLinkText('_int-test-buttons/auto-run', '', false);
@@ -111,20 +105,14 @@ describe('CodeButtonBlock integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(() => Reflect.get(window, '__autoRunResult') !== undefined);
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => Reflect.get(window, '__autoRunResult') !== undefined,
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const autoRunResult = Reflect.get(window, '__autoRunResult') as string | undefined;
         return { autoRunResult };
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
-        }
       },
       vaultPath: vaultPath()
     });
@@ -135,7 +123,7 @@ describe('CodeButtonBlock integration', () => {
   it('should execute isRaw code button without visible button', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs }) {
+      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
         Reflect.deleteProperty(window, '__rawResult');
 
         await app.workspace.openLinkText('_int-test-buttons/raw', '', false);
@@ -145,7 +133,11 @@ describe('CodeButtonBlock integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(() => Reflect.get(window, '__rawResult') !== undefined);
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => Reflect.get(window, '__rawResult') !== undefined,
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const rawResult = Reflect.get(window, '__rawResult') as string | undefined;
 
@@ -154,16 +146,6 @@ describe('CodeButtonBlock integration', () => {
         const buttons = view?.containerEl.querySelectorAll('button.fix-require-modules-run-button') ?? [];
 
         return { buttonCount: buttons.length, rawResult };
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
-        }
       },
       vaultPath: vaultPath()
     });
@@ -175,7 +157,7 @@ describe('CodeButtonBlock integration', () => {
   it('should transform import statements in code buttons', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs }) {
+      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
         Reflect.deleteProperty(window, '__importResult');
 
         await app.workspace.openLinkText('_int-test-buttons/with-import', '', false);
@@ -185,20 +167,14 @@ describe('CodeButtonBlock integration', () => {
           type: 'markdown'
         });
 
-        await waitUntil(() => Reflect.get(window, '__importResult') !== undefined);
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => Reflect.get(window, '__importResult') !== undefined,
+          timeoutInMilliseconds: timeoutMs
+        });
 
         const importResult = Reflect.get(window, '__importResult') as string | undefined;
         return { importResult };
-
-        async function waitUntil(check: () => boolean | Promise<boolean>): Promise<void> {
-          const maxAttempts = Math.ceil(timeoutMs / intervalMs);
-          for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (await check()) {
-              return;
-            }
-            await sleep(intervalMs);
-          }
-        }
       },
       vaultPath: vaultPath()
     });

@@ -5,7 +5,7 @@ import type {
   TFile
 } from 'obsidian';
 import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
-import type { EditorLockComponent } from 'obsidian-dev-utils/obsidian/editor-lock';
+import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
 import { MarkdownRenderer } from 'obsidian';
 import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
@@ -30,10 +30,10 @@ import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 interface CodeButtonContextImplComponentConstructorParams {
   readonly app: App;
   readonly config: CodeButtonBlockConfig;
-  readonly editorLockComponent: EditorLockComponent | null;
   readonly markdownInfo: CodeBlockMarkdownInformation | null;
   readonly markdownPostProcessorContext: MarkdownPostProcessorContext;
   readonly parentEl: HTMLElement;
+  readonly resourceLockComponent: null | ResourceLockComponent;
   readonly resultEl: HTMLElement;
   readonly source: string;
   readonly tempPluginRegistry: TempPluginRegistryComponent;
@@ -52,14 +52,14 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
   public readonly source: string;
   public readonly sourceFile: TFile;
 
-  private readonly editorLockComponent: EditorLockComponent | null;
+  private readonly resourceLockComponent: null | ResourceLockComponent;
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: CodeButtonContextImplComponentConstructorParams) {
     super();
     this.app = params.app;
     this.config = params.config;
-    this.editorLockComponent = params.editorLockComponent;
+    this.resourceLockComponent = params.resourceLockComponent;
     this.markdownInfo = params.markdownInfo;
     this.markdownPostProcessorContext = params.markdownPostProcessorContext;
     this.parentEl = params.parentEl;
@@ -80,9 +80,9 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     await insertAfterCodeBlock({
       app: this.app,
       ctx: this.markdownPostProcessorContext,
-      editorLockComponent: this.editorLockComponent,
       el: this.parentEl,
       lineOffset: lineOffset ?? 0,
+      resourceLockComponent: this.resourceLockComponent,
       shouldPreserveLinePrefix: shouldPreserveLinePrefix ?? true,
       source: this.source,
       text: markdown
@@ -93,9 +93,9 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     await insertBeforeCodeBlock({
       app: this.app,
       ctx: this.markdownPostProcessorContext,
-      editorLockComponent: this.editorLockComponent,
       el: this.parentEl,
       lineOffset: lineOffset ?? 0,
+      resourceLockComponent: this.resourceLockComponent,
       shouldPreserveLinePrefix: shouldPreserveLinePrefix ?? true,
       source: this.source,
       text: markdown
@@ -112,8 +112,8 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     await removeCodeBlock({
       app: this.app,
       ctx: this.markdownPostProcessorContext,
-      editorLockComponent: this.editorLockComponent,
       el: this.parentEl,
+      resourceLockComponent: this.resourceLockComponent,
       shouldKeepGap: shouldKeepGap ?? false,
       source: this.source
     });
@@ -128,8 +128,8 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
       app: this.app,
       codeBlockProvider: markdown,
       ctx: this.markdownPostProcessorContext,
-      editorLockComponent: this.editorLockComponent,
       el: this.parentEl,
+      resourceLockComponent: this.resourceLockComponent,
       shouldKeepGapWhenEmpty: shouldKeepGapWhenEmpty ?? false,
       shouldPreserveLinePrefix: shouldPreserveLinePrefix ?? true,
       source: this.source

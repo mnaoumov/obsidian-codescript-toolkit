@@ -29,7 +29,6 @@ export class RequireHandlerFactoryComponent extends ComponentEx implements Requi
   public override async onloadAsync(): Promise<void> {
     await super.onloadAsync();
 
-    // eslint-disable-next-line obsidianmd/prefer-active-doc -- We need main document.
     if (document.body.hasClass('emulate-mobile')) {
       // eslint-disable-next-line no-restricted-syntax -- We need dynamic import.
       this._platformRequireHandler = new (await import('./require-handler-emulate-mobile.ts')).RequireHandlerEmulateMobileComponent(this.params);

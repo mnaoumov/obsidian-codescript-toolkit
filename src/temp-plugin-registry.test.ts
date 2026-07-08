@@ -36,7 +36,6 @@ interface ObsidianDocumentHead {
 }
 
 function getObsidianDocumentHead(): ObsidianDocumentHead {
-  // eslint-disable-next-line obsidianmd/prefer-active-doc -- mock requires double assertion to access Obsidian-augmented DOM method; helper function used only in tests where activeDocument is not available
   return document.head;
 }
 

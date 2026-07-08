@@ -4,8 +4,8 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
-import type { EditorLockComponent } from 'obsidian-dev-utils/obsidian/editor-lock';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
+import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 import type { Promisable } from 'type-fest';
 
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
@@ -75,10 +75,10 @@ let lastButtonIndex = 0;
 
 interface CodeButtonBlockComponentConstructorParams {
   readonly app: App;
-  readonly editorLockComponent: EditorLockComponent | null;
   readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
+  readonly resourceLockComponent: null | ResourceLockComponent;
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
@@ -90,16 +90,16 @@ interface CodeButtonBlockComponentProcessCodeButtonBlockParams {
 
 export class CodeButtonBlockComponent extends ComponentEx {
   private readonly app: App;
-  private readonly editorLockComponent: EditorLockComponent | null;
   private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
+  private readonly resourceLockComponent: null | ResourceLockComponent;
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
     super();
     this.app = params.app;
-    this.editorLockComponent = params.editorLockComponent;
+    this.resourceLockComponent = params.resourceLockComponent;
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
@@ -228,8 +228,8 @@ export class CodeButtonBlockComponent extends ComponentEx {
                 app: this.app,
                 codeBlockProvider: newCodeBlock,
                 ctx: updateSourcePath(params.ctx, sourceFile),
-                editorLockComponent: this.editorLockComponent,
                 el: params.el,
+                resourceLockComponent: this.resourceLockComponent,
                 shouldPreserveLinePrefix: true,
                 source: params.source
               });
@@ -290,10 +290,10 @@ export class CodeButtonBlockComponent extends ComponentEx {
         codeButtonContext: new CodeButtonContextImplComponent({
           app: thisWrapper.value.app,
           config: fullConfig,
-          editorLockComponent: thisWrapper.value.editorLockComponent,
           markdownInfo,
           markdownPostProcessorContext: updateSourcePath(params.ctx, sourceFile),
           parentEl: params.el,
+          resourceLockComponent: thisWrapper.value.resourceLockComponent,
           resultEl,
           source: params.source,
           tempPluginRegistry: thisWrapper.value.tempPluginRegistry

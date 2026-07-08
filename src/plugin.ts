@@ -151,10 +151,10 @@ export class Plugin extends PluginBase {
     this.addChild(
       new CodeButtonBlockComponent({
         app: this.app,
-        editorLockComponent: this.editorLockComponent,
         markdownCodeBlockProcessorRegistrar,
         pluginSettingsComponent,
         RequireHandlerFactoryComponent: requireHandlerFactory,
+        resourceLockComponent: this.resourceLockComponent,
         tempPluginRegistry
       })
     );
