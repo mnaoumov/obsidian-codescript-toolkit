@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 13.1.9
+
+- chore: overexposed
+- chore: update libs
+- chore: update obsidian-dev-utils to 85.0.0
+- refactor: pass params objects to functions and methods with multiple args
+
 ## 13.1.8
 
 - test: use dev-utils sleep for emulate-mobile wait now that it works in node
