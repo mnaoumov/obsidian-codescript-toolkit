@@ -1,4 +1,8 @@
-import type { RequireHandlerConstructorParams } from './require-handler.ts';
+import type {
+  RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
+  RequireHandlerComponentBaseRequireNonCachedParams,
+  RequireHandlerConstructorParams
+} from './require-handler.ts';
 
 import { RequireHandlerDesktopComponent } from './require-handler-desktop.ts';
 import { RequireHandlerMobileComponent } from './require-handler-mobile.ts';
@@ -48,15 +52,17 @@ export class RequireHandlerEmulateMobileComponent extends RequireHandlerComponen
     return this.mobileRequireHandler.requireElectronModule(id);
   }
 
-  protected override async requireNodeBinaryAsync(id: string): Promise<unknown> {
-    return this.mobileRequireHandler.requireNodeBinaryAsync(id);
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  protected override async requireNodeBinaryAsync(params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams): Promise<unknown> {
+    return this.mobileRequireHandler.requireNodeBinaryAsync(params);
   }
 
   protected override requireNodeBuiltInModule(id: string): unknown {
     return this.mobileRequireHandler.requireNodeBuiltInModule(id);
   }
 
-  protected override requireNonCached(id: string): unknown {
-    return this.mobileRequireHandler.requireNonCached(id);
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  protected override requireNonCached(params: RequireHandlerComponentBaseRequireNonCachedParams): unknown {
+    return this.mobileRequireHandler.requireNonCached(params);
   }
 }

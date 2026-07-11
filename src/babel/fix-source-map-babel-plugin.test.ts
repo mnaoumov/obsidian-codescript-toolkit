@@ -24,7 +24,7 @@ describe('FixSourceMapBabelPlugin', () => {
   it('should modify inline source map sources to the specified URL', () => {
     const codeWithSourceMap = generateCodeWithSourceMap('const x = 1;');
     const plugin = new FixSourceMapBabelPlugin(SOURCE_URL);
-    const result = plugin.transform(codeWithSourceMap, TEST_FILENAME);
+    const result = plugin.transform({ code: codeWithSourceMap, filename: TEST_FILENAME });
     expect(result.error).toBeUndefined();
     expect(result.transformedCode).toContain('//# sourceMappingURL=data:');
 
@@ -40,14 +40,14 @@ describe('FixSourceMapBabelPlugin', () => {
   it('should transform code without errors when input has a source map', () => {
     const codeWithSourceMap = generateCodeWithSourceMap('function hello() { return 42; }');
     const plugin = new FixSourceMapBabelPlugin('custom://path');
-    const result = plugin.transform(codeWithSourceMap, TEST_FILENAME);
+    const result = plugin.transform({ code: codeWithSourceMap, filename: TEST_FILENAME });
     expect(result.error).toBeUndefined();
     expect(result.transformedCode).toContain('function hello');
   });
 
   it('should return an error when input has no source map', () => {
     const plugin = new FixSourceMapBabelPlugin(SOURCE_URL);
-    const result = plugin.transform('const x = 1;', TEST_FILENAME);
+    const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
     expect(result.error).toBeDefined();
   });
 });
@@ -60,6 +60,6 @@ class IdentityBabelPlugin extends BabelPluginBase<Record<string, never>> {
 
 function generateCodeWithSourceMap(code: string): string {
   const identity = new IdentityBabelPlugin();
-  const result = identity.transform(code, TEST_FILENAME);
+  const result = identity.transform({ code, filename: TEST_FILENAME });
   return result.transformedCode;
 }

@@ -19,6 +19,12 @@ import {
 const URL_MODULE_DEFAULT_IMPORT = 'url';
 const CREATE_REQUIRE_IMPORT = 'createRequire';
 
+interface GenerateUniqueIdentifierParams {
+  readonly path: NodePath<Program>;
+  readonly preferredName: string;
+  readonly reservedIdentifiers: Set<string>;
+}
+
 export function transformImportMetaBabelPlugin(): PluginObject {
   return {
     name: 'transform-import-meta',
@@ -41,8 +47,8 @@ export function transformImportMetaBabelPlugin(): PluginObject {
     });
 
     if (urlMetas.length !== 0 || resolveMetas.length !== 0) {
-      const urlId = generateUniqueIdentifier(path, URL_MODULE_DEFAULT_IMPORT, reservedIdentifiers);
-      const createRequireId = generateUniqueIdentifier(path, CREATE_REQUIRE_IMPORT, reservedIdentifiers);
+      const urlId = generateUniqueIdentifier({ path, preferredName: URL_MODULE_DEFAULT_IMPORT, reservedIdentifiers });
+      const createRequireId = generateUniqueIdentifier({ path, preferredName: CREATE_REQUIRE_IMPORT, reservedIdentifiers });
 
       path.node.body.unshift(template.statement.ast(`import ${urlId} from 'url';`));
       if (resolveMetas.length !== 0) {
@@ -105,7 +111,8 @@ function collectBindings(path: NodePath, reservedIdentifiers: Set<string>): void
   }
 }
 
-function generateUniqueIdentifier(path: NodePath<Program>, preferredName: string, reservedIdentifiers: Set<string>): string {
+function generateUniqueIdentifier(params: GenerateUniqueIdentifierParams): string {
+  const { path, preferredName, reservedIdentifiers } = params;
   let name = preferredName;
   while (reservedIdentifiers.has(name)) {
     name = path.scope.generateUidIdentifier(preferredName).name;

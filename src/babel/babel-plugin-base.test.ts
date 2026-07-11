@@ -50,7 +50,7 @@ describe('BabelPluginBase', () => {
     it('should include inherits in the plugin object when getInherits returns a value', () => {
       const plugin = new MinimalBabelPlugin();
       vi.spyOn(castTo<GetInheritsExposed>(plugin), 'getInherits').mockReturnValue((): PluginObject => ({ visitor: {} }));
-      const result = plugin.transform('const x: number = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x: number = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('const x = 1');
     });
@@ -71,21 +71,21 @@ describe('BabelPluginBase', () => {
   describe('transform', () => {
     it('should return transformedCode for valid TypeScript code', () => {
       const plugin = new MinimalBabelPlugin();
-      const result = plugin.transform('const x: number = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x: number = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('const x = 1');
     });
 
     it('should return an error for syntactically invalid code', () => {
       const plugin = new MinimalBabelPlugin();
-      const result = plugin.transform('const = ;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const = ;', filename: TEST_FILENAME });
       expect(result.error).toBeDefined();
       expect(result.transformedCode).toBe('');
     });
 
     it('should include data in the result', () => {
       const plugin = new MinimalBabelPlugin();
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.data).toEqual({});
     });
 
@@ -99,7 +99,7 @@ describe('BabelPluginBase', () => {
       });
 
       const plugin = new MinimalBabelPlugin();
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeDefined();
       expect(result.error?.message).toBe('Unknown error.');
       expect(result.transformedCode).toBe('');
@@ -108,7 +108,7 @@ describe('BabelPluginBase', () => {
     it('should strip TypeScript type annotations', () => {
       const plugin = new MinimalBabelPlugin();
       const input = 'function greet(name: string): void { console.log(name); }';
-      const result = plugin.transform(input, TEST_FILENAME);
+      const result = plugin.transform({ code: input, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).not.toContain(': string');
       expect(result.transformedCode).not.toContain(': void');

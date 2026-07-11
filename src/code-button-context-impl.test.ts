@@ -185,7 +185,7 @@ describe('CodeButtonContextImplComponent', () => {
   describe('insertAfterCodeButtonBlock', () => {
     it('should call insertAfterCodeBlock with default lineOffset and shouldPreserveLinePrefix', async () => {
       const context = createContext();
-      await context.insertAfterCodeButtonBlock('# Hello');
+      await context.insertAfterCodeButtonBlock({ markdown: '# Hello' });
 
       expect(mockInsertAfterCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -199,7 +199,7 @@ describe('CodeButtonContextImplComponent', () => {
     it('should call insertAfterCodeBlock with custom lineOffset', async () => {
       const CUSTOM_LINE_OFFSET = 5;
       const context = createContext();
-      await context.insertAfterCodeButtonBlock('text', CUSTOM_LINE_OFFSET);
+      await context.insertAfterCodeButtonBlock({ lineOffset: CUSTOM_LINE_OFFSET, markdown: 'text' });
 
       expect(mockInsertAfterCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -210,7 +210,7 @@ describe('CodeButtonContextImplComponent', () => {
 
     it('should call insertAfterCodeBlock with shouldPreserveLinePrefix false', async () => {
       const context = createContext();
-      await context.insertAfterCodeButtonBlock('text', 0, false);
+      await context.insertAfterCodeButtonBlock({ lineOffset: 0, markdown: 'text', shouldPreserveLinePrefix: false });
 
       expect(mockInsertAfterCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -221,7 +221,7 @@ describe('CodeButtonContextImplComponent', () => {
 
     it('should pass app, ctx, el, and source to insertAfterCodeBlock', async () => {
       const context = createContext();
-      await context.insertAfterCodeButtonBlock('md');
+      await context.insertAfterCodeButtonBlock({ markdown: 'md' });
 
       expect(mockInsertAfterCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -238,7 +238,7 @@ describe('CodeButtonContextImplComponent', () => {
   describe('insertBeforeCodeButtonBlock', () => {
     it('should call insertBeforeCodeBlock with default parameters', async () => {
       const context = createContext();
-      await context.insertBeforeCodeButtonBlock('before text');
+      await context.insertBeforeCodeButtonBlock({ markdown: 'before text' });
 
       expect(mockInsertBeforeCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -252,7 +252,7 @@ describe('CodeButtonContextImplComponent', () => {
     it('should call insertBeforeCodeBlock with custom lineOffset and shouldPreserveLinePrefix', async () => {
       const CUSTOM_LINE_OFFSET = 3;
       const context = createContext();
-      await context.insertBeforeCodeButtonBlock('text', CUSTOM_LINE_OFFSET, false);
+      await context.insertBeforeCodeButtonBlock({ lineOffset: CUSTOM_LINE_OFFSET, markdown: 'text', shouldPreserveLinePrefix: false });
 
       expect(mockInsertBeforeCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -305,7 +305,7 @@ describe('CodeButtonContextImplComponent', () => {
   describe('replaceCodeButtonBlock', () => {
     it('should call replaceCodeBlock with default parameters', async () => {
       const context = createContext();
-      await context.replaceCodeButtonBlock('new content');
+      await context.replaceCodeButtonBlock({ markdown: 'new content' });
 
       expect(mockReplaceCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -318,7 +318,7 @@ describe('CodeButtonContextImplComponent', () => {
 
     it('should call replaceCodeBlock with custom shouldPreserveLinePrefix and shouldKeepGapWhenEmpty', async () => {
       const context = createContext();
-      await context.replaceCodeButtonBlock('content', false, true);
+      await context.replaceCodeButtonBlock({ markdown: 'content', shouldKeepGapWhenEmpty: true, shouldPreserveLinePrefix: false });
 
       expect(mockReplaceCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({

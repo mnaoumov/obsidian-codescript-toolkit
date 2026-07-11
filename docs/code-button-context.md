@@ -79,10 +79,10 @@ Within code block you have access to the following functions that modify the con
 
 ````markdown
 ```code-button
-await codeButtonContext.insertAfterCodeButtonBlock('**foo**');
-await codeButtonContext.insertBeforeCodeButtonBlock('**bar**');
+await codeButtonContext.insertAfterCodeButtonBlock({ markdown: '**foo**' });
+await codeButtonContext.insertBeforeCodeButtonBlock({ markdown: '**bar**' });
 await codeButtonContext.removeCodeButtonBlock();
-await codeButtonContext.replaceCodeButtonBlock(**baz**);
+await codeButtonContext.replaceCodeButtonBlock({ markdown: '**baz**' });
 ```
 ````
 

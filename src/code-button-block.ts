@@ -88,6 +88,13 @@ interface CodeButtonBlockComponentProcessCodeButtonBlockParams {
   readonly source: string;
 }
 
+interface MakeWrapperScriptParams {
+  readonly shouldAutoOutput: boolean;
+  readonly source: string;
+  readonly sourceFileName: string;
+  readonly sourceFolder: string;
+}
+
 export class CodeButtonBlockComponent extends ComponentEx {
   private readonly app: App;
   private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
@@ -132,12 +139,12 @@ export class CodeButtonBlockComponent extends ComponentEx {
 
     let isSuccess = false;
     try {
-      const script = makeWrapperScript(
-        params.code,
-        `${basename(params.codeButtonContext.sourceFile.path)}.code-button.${String(params.buttonIndex)}.${params.escapedCaption}.ts`,
-        dirname(params.codeButtonContext.sourceFile.path),
-        params.codeButtonContext.config.shouldAutoOutput
-      );
+      const script = makeWrapperScript({
+        shouldAutoOutput: params.codeButtonContext.config.shouldAutoOutput,
+        source: params.code,
+        sourceFileName: `${basename(params.codeButtonContext.sourceFile.path)}.code-button.${String(params.buttonIndex)}.${params.escapedCaption}.ts`,
+        sourceFolder: dirname(params.codeButtonContext.sourceFile.path)
+      });
       const codeButtonBlockScriptWrapper = await this.RequireHandlerFactoryComponent.requireStringAsync({
         code: script,
         path: `${adapter.getFullPath(params.codeButtonContext.sourceFile.path).replaceAll('\\', '/')}.code-button.${String(params.buttonIndex)}.${params.escapedCaption}.ts`
@@ -345,12 +352,22 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
   return undefined;
 }
 
-function makeWrapperScript(source: string, sourceFileName: string, sourceFolder: string, shouldAutoOutput: boolean): string {
+function makeWrapperScript(params: MakeWrapperScriptParams): string {
+  const {
+    shouldAutoOutput,
+    source,
+    sourceFileName,
+    sourceFolder
+  } = params;
   const result = new SequentialBabelPlugin([
     new ConvertToCommonJsBabelPlugin(),
     new WrapForCodeBlockBabelPlugin(shouldAutoOutput),
     new ReplaceDynamicImportBabelPlugin()
-  ]).transform(source, sourceFileName, sourceFolder);
+  ]).transform({
+    code: source,
+    filename: sourceFileName,
+    folder: sourceFolder
+  });
 
   if (result.error) {
     throw result.error;

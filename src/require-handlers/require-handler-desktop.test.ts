@@ -3,7 +3,8 @@ import type { App } from 'obsidian';
 import { FileSystemAdapter } from 'obsidian';
 import {
   castTo,
-  getPrototypeOf
+  getPrototypeOf,
+  normalizeOptionalProperties
 } from 'obsidian-dev-utils/object-utils';
 import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/monkey-around-component';
 import {
@@ -16,7 +17,14 @@ import {
 
 import type { RequireOptions } from '../types.ts';
 import type {
+  RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams,
+  RequireHandlerDesktopComponentRequireModuleParams,
+  RequireHandlerDesktopComponentRequireStringParams
+} from './require-handler-desktop.ts';
+import type {
   RequireFn,
+  RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
+  RequireHandlerComponentBaseResolveParams,
   RequireHandlerConstructorParams
 } from './require-handler.ts';
 
@@ -119,7 +127,7 @@ interface GetTimestampAccessor {
 }
 
 interface GetUrlDependencyErrorMessageAccessor {
-  getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode?: CacheInvalidationMode): string;
+  getUrlDependencyErrorMessage(params: RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams): string;
 }
 
 interface InitModuleAndAddToCacheAccessor {
@@ -221,7 +229,7 @@ interface RequireMdAccessor {
 }
 
 interface RequireModuleAccessor {
-  requireModule(moduleName: string, parentFolder: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): unknown;
+  requireModule(params: RequireHandlerDesktopComponentRequireModuleParams): unknown;
 }
 
 interface RequirePathAccessor {
@@ -237,7 +245,7 @@ interface RequireSpecialModuleAccessor {
 }
 
 interface RequireStringAccessor {
-  requireString(code: string, path: string): unknown;
+  requireString(params: RequireHandlerDesktopComponentRequireStringParams): unknown;
 }
 
 interface RequireStringImplAccessor {
@@ -254,7 +262,7 @@ interface RequireWasmAccessor {
 }
 
 interface ResolveAccessor {
-  resolve(id: string, parentPath?: string): ResolveResult;
+  resolve(params: RequireHandlerComponentBaseResolveParams): ResolveResult;
 }
 
 interface ResolveResult {
@@ -292,7 +300,7 @@ class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopCompon
   }
 
   public async exposeRequireNodeBinaryAsync(path: string, options: Partial<RequireOptions>, arrayBuffer?: ArrayBuffer): Promise<unknown> {
-    return this.requireNodeBinaryAsync(path, options, arrayBuffer);
+    return this.requireNodeBinaryAsync(normalizeOptionalProperties<RequireHandlerComponentBaseRequireNodeBinaryAsyncParams>({ arrayBuffer, options, path }));
   }
 
   public exposeRequireNodeBuiltInModule(id: string, options: Partial<RequireOptions>): unknown {
@@ -300,7 +308,7 @@ class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopCompon
   }
 
   public exposeRequireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown {
-    return this.requireNonCached(id, type, options);
+    return this.requireNonCached({ id, options, type });
   }
 
   public getModulesCache(): NodeJS.Dict<NodeJS.Module> {
@@ -877,14 +885,14 @@ describe('RequireHandlerDesktopComponent', () => {
       });
 
       expect(result).toEqual({ moduleResult: true });
-      expect(requireModuleSpy).toHaveBeenCalledWith(
-        'my-module',
-        '/parent/folder',
-        {
+      expect(requireModuleSpy).toHaveBeenCalledWith({
+        moduleName: 'my-module',
+        options: {
           cacheInvalidationMode: CacheInvalidationMode.WhenPossible,
           moduleType: ModuleType.JsTs
-        }
-      );
+        },
+        parentFolder: '/parent/folder'
+      });
       requireModuleSpy.mockRestore();
     });
   });
@@ -1496,7 +1504,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const result =
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as GetUrlDependencyErrorMessageAccessor)
-          .getUrlDependencyErrorMessage('/my/module.ts', 'https://example.com/dep.js', CacheInvalidationMode.Always);
+          .getUrlDependencyErrorMessage({ cacheInvalidationMode: CacheInvalidationMode.Always, path: '/my/module.ts', resolvedId: 'https://example.com/dep.js' });
 
       expect(result).toContain('/my/module.ts');
       expect(result).toContain('https://example.com/dep.js');
@@ -1506,7 +1514,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const result =
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as GetUrlDependencyErrorMessageAccessor)
-          .getUrlDependencyErrorMessage('/my/module.ts', 'https://example.com/dep.js', CacheInvalidationMode.Always);
+          .getUrlDependencyErrorMessage({ cacheInvalidationMode: CacheInvalidationMode.Always, path: '/my/module.ts', resolvedId: 'https://example.com/dep.js' });
 
       expect(result).toContain(`cacheInvalidationMode=${CacheInvalidationMode.Always}`);
     });
@@ -1514,7 +1522,7 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should default to WhenPossible when cacheInvalidationMode is not provided', () => {
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as GetUrlDependencyErrorMessageAccessor)
-        .getUrlDependencyErrorMessage('/my/module.ts', 'https://example.com/dep.js');
+        .getUrlDependencyErrorMessage({ path: '/my/module.ts', resolvedId: 'https://example.com/dep.js' });
 
       expect(result).toContain(`cacheInvalidationMode=${CacheInvalidationMode.WhenPossible}`);
     });
@@ -1522,7 +1530,7 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should suggest using CacheInvalidationMode.Never', () => {
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as GetUrlDependencyErrorMessageAccessor)
-        .getUrlDependencyErrorMessage('/my/module.ts', 'https://example.com/dep.js');
+        .getUrlDependencyErrorMessage({ path: '/my/module.ts', resolvedId: 'https://example.com/dep.js' });
 
       expect(result).toContain(`cacheInvalidationMode=${CacheInvalidationMode.Never}`);
     });
@@ -1613,7 +1621,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequireModuleAccessor)
-          .requireModule('nonexistent-module', '/project');
+          .requireModule({ moduleName: 'nonexistent-module', options: {}, parentFolder: '/project' });
       }).toThrow('Could not resolve module: \'nonexistent-module\'.');
     });
 
@@ -1621,7 +1629,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequireModuleAccessor)
-          .requireModule('@scope', '/project');
+          .requireModule({ moduleName: '@scope', options: {}, parentFolder: '/project' });
       }).toThrow('Invalid scoped module name: \'@scope\'.');
     });
 
@@ -1636,7 +1644,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequireModuleAccessor)
-          .requireModule('missing-module', '/project');
+          .requireModule({ moduleName: 'missing-module', options: {}, parentFolder: '/project' });
       }).toThrow('Could not resolve module: \'missing-module\'.');
     });
 
@@ -1654,7 +1662,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequireModuleAccessor)
-          .requireModule('my-module', '/project');
+          .requireModule({ moduleName: 'my-module', options: {}, parentFolder: '/project' });
       }).toThrow('Could not resolve module: \'my-module\'.');
     });
 
@@ -1677,7 +1685,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequireModuleAccessor)
-          .requireModule('my-module', '/project');
+          .requireModule({ moduleName: 'my-module', options: {}, parentFolder: '/project' });
       }).toThrow('Could not resolve module: \'my-module\'.');
     });
 
@@ -1704,7 +1712,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as RequireModuleAccessor)
-        .requireModule('#internal', '/project');
+        .requireModule({ moduleName: '#internal', options: {}, parentFolder: '/project' });
 
       expect(result).toEqual({ private: true });
       requirePathSpy.mockRestore();
@@ -1735,7 +1743,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as RequireModuleAccessor)
-        .requireModule('@scope/my-pkg/sub', '/project');
+        .requireModule({ moduleName: '@scope/my-pkg/sub', options: {}, parentFolder: '/project' });
 
       expect(result).toEqual({ scoped: true });
       requirePathSpy.mockRestore();
@@ -1769,7 +1777,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as RequireModuleAccessor)
-        .requireModule('my-module', '/project');
+        .requireModule({ moduleName: 'my-module', options: {}, parentFolder: '/project' });
 
       expect(result).toEqual({ resolved: true });
       requirePathSpy.mockRestore();
@@ -1901,7 +1909,7 @@ describe('RequireHandlerDesktopComponent', () => {
       (handler as unknown as GetDependenciesTimestampAccessor)
         .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', { cacheInvalidationMode: CacheInvalidationMode.WhenPossible });
 
-      expect(resolveSpy).toHaveBeenCalledWith('some-module', '/path/to/file.js');
+      expect(resolveSpy).toHaveBeenCalledWith({ id: 'some-module', parentPath: '/path/to/file.js' });
       resolveSpy.mockRestore();
       getRootFoldersSpy.mockRestore();
     });
@@ -2127,7 +2135,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const result = (handler as unknown as RequireJsTsAccessor).requireJsTs('/path/to/file.ts');
 
       expect(result).toEqual({ hello: true });
-      expect(requireStringSpy).toHaveBeenCalledWith('module.exports = { hello: true };', '/path/to/file.ts');
+      expect(requireStringSpy).toHaveBeenCalledWith({ code: 'module.exports = { hello: true };', path: '/path/to/file.ts' });
       requireStringSpy.mockRestore();
     });
 
@@ -2162,10 +2170,10 @@ describe('RequireHandlerDesktopComponent', () => {
       const result = (handler as unknown as RequireMdAccessor).requireMd('/path/to/file.md');
 
       expect(result).toEqual({ md: true });
-      expect(requireStringSpy).toHaveBeenCalledWith(
-        'console.log("hi");',
-        '/path/to/file.md.code-script.(default).ts'
-      );
+      expect(requireStringSpy).toHaveBeenCalledWith({
+        code: 'console.log("hi");',
+        path: '/path/to/file.md.code-script.(default).ts'
+      });
       requireStringSpy.mockRestore();
     });
   });
@@ -2183,7 +2191,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequireStringAccessor)
-          .requireString('bad code', '/path/to/file.ts');
+          .requireString({ code: 'bad code', path: '/path/to/file.ts' });
       }).toThrow('Failed to load module: /path/to/file.ts');
 
       requireStringImplSpy.mockRestore();
@@ -2204,7 +2212,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       (handler as unknown as RequireStringAccessor)
-        .requireString('const x = 1;', '/path/to/file.ts');
+        .requireString({ code: 'const x = 1;', path: '/path/to/file.ts' });
 
       expect(requireStringImplSpy).toHaveBeenCalledWith({
         code: 'const x = 1;',

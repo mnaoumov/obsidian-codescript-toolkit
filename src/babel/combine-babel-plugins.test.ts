@@ -82,7 +82,7 @@ describe('SequentialBabelPlugin', () => {
       new RenameFooBabelPlugin(),
       new WrapInCallBabelPlugin()
     ]);
-    const result = plugin.transform('foo();', TEST_FILENAME);
+    const result = plugin.transform({ code: 'foo();', filename: TEST_FILENAME });
     expect(result.error).toBeUndefined();
     expect(result.transformedCode).toContain('bar');
     expect(result.transformedCode).toContain('wrapper');
@@ -95,7 +95,7 @@ describe('SequentialBabelPlugin', () => {
       new ErrorBabelPlugin(),
       new RenameFooBabelPlugin()
     ]);
-    const result = plugin.transform('foo();', TEST_FILENAME);
+    const result = plugin.transform({ code: 'foo();', filename: TEST_FILENAME });
     expect(result.error).toBeDefined();
     expect(result.error?.message).toContain('Intentional error');
     expect(result.transformedCode).toBe('');
@@ -106,7 +106,7 @@ describe('SequentialBabelPlugin', () => {
       new RenameFooBabelPlugin(),
       new ErrorBabelPlugin()
     ]);
-    const result = plugin.transform('foo();', TEST_FILENAME);
+    const result = plugin.transform({ code: 'foo();', filename: TEST_FILENAME });
     expect(result.error).toBeDefined();
     expect(result.error?.message).toContain('Intentional error');
     expect(result.transformedCode).toBe('');
@@ -116,7 +116,7 @@ describe('SequentialBabelPlugin', () => {
     const plugin = new SequentialBabelPlugin([
       new RenameFooBabelPlugin()
     ]);
-    const result = plugin.transform('foo();', TEST_FILENAME);
+    const result = plugin.transform({ code: 'foo();', filename: TEST_FILENAME });
     expect(result.error).toBeUndefined();
     expect(result.transformedCode).toContain('bar');
     expect(result.data.renamed).toBe(true);

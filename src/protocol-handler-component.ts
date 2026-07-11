@@ -12,6 +12,12 @@ const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
 type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
 
+interface InvokeModuleFnParams {
+  readonly args: unknown[];
+  readonly functionName: string;
+  readonly moduleSpecifier: string;
+}
+
 interface ProtocolHandlerComponentConstructorParams {
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
@@ -77,7 +83,7 @@ export class ProtocolHandlerComponent extends ComponentEx {
         module: parsedQuery.module
       });
 
-      parsedQuery.code = `(${String(invokeModuleFn)})('${parsedQuery.module}', '${parsedQuery.functionName}', [${parsedQuery.args}])`;
+      parsedQuery.code = `(${String(invokeModuleFn)})({ args: [${parsedQuery.args}], functionName: '${parsedQuery.functionName}', moduleSpecifier: '${parsedQuery.module}' })`;
     } else {
       parsedQuery.code ??= '';
 
@@ -94,7 +100,8 @@ export class ProtocolHandlerComponent extends ComponentEx {
 }
 
 /* v8 ignore start -- serialized via toString() and evaluated in another runtime context via requireStringAsync. */
-async function invokeModuleFn(moduleSpecifier: string, functionName: string, args: unknown[]): Promise<void> {
+async function invokeModuleFn(params: InvokeModuleFnParams): Promise<void> {
+  const { args, functionName, moduleSpecifier } = params;
   const windowWithRequireAsync = window as Partial<WindowWithRequireAsync>;
   const requireAsync = windowWithRequireAsync.requireAsync;
   if (typeof requireAsync !== 'function') {

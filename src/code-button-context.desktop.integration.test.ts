@@ -40,7 +40,7 @@ beforeAll(() => {
       shouldAutoRun: true
       shouldShowSystemMessages: false
       ---
-      await codeButtonContext.insertAfterCodeButtonBlock("Inserted after.");
+      await codeButtonContext.insertAfterCodeButtonBlock({ markdown: "Inserted after." });
       \`\`\`
 
       Some text after.
@@ -53,7 +53,7 @@ beforeAll(() => {
       shouldAutoRun: true
       shouldShowSystemMessages: false
       ---
-      await codeButtonContext.insertBeforeCodeButtonBlock("Inserted before.");
+      await codeButtonContext.insertBeforeCodeButtonBlock({ markdown: "Inserted before." });
       \`\`\`
 
       Some text after.
@@ -104,7 +104,7 @@ beforeAll(() => {
       shouldAutoRun: true
       shouldShowSystemMessages: false
       ---
-      await codeButtonContext.replaceCodeButtonBlock("Replacement text.");
+      await codeButtonContext.replaceCodeButtonBlock({ markdown: "Replacement text." });
       \`\`\`
 
       After block.

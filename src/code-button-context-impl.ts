@@ -20,6 +20,9 @@ import {
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type {
   CodeButtonContext,
+  CodeButtonContextInsertAfterCodeButtonBlockParams,
+  CodeButtonContextInsertBeforeCodeButtonBlockParams,
+  CodeButtonContextReplaceCodeButtonBlockParams,
   RegisterTempPluginParams,
   TempPluginClass
 } from './code-button-context.ts';
@@ -76,7 +79,9 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     return this.tempPluginRegistry.getTempPlugin(tempPluginClass);
   }
 
-  public async insertAfterCodeButtonBlock(markdown: string, lineOffset?: number, shouldPreserveLinePrefix?: boolean): Promise<void> {
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
+  public async insertAfterCodeButtonBlock(params: CodeButtonContextInsertAfterCodeButtonBlockParams): Promise<void> {
+    const { lineOffset, markdown, shouldPreserveLinePrefix } = params;
     await insertAfterCodeBlock({
       app: this.app,
       ctx: this.markdownPostProcessorContext,
@@ -89,7 +94,9 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     });
   }
 
-  public async insertBeforeCodeButtonBlock(markdown: string, lineOffset?: number, shouldPreserveLinePrefix?: boolean): Promise<void> {
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
+  public async insertBeforeCodeButtonBlock(params: CodeButtonContextInsertBeforeCodeButtonBlockParams): Promise<void> {
+    const { lineOffset, markdown, shouldPreserveLinePrefix } = params;
     await insertBeforeCodeBlock({
       app: this.app,
       ctx: this.markdownPostProcessorContext,
@@ -123,7 +130,9 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     await MarkdownRenderer.render(this.app, markdown, this.container, this.sourceFile.path, this);
   }
 
-  public async replaceCodeButtonBlock(markdown: string, shouldPreserveLinePrefix?: boolean, shouldKeepGapWhenEmpty?: boolean): Promise<void> {
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
+  public async replaceCodeButtonBlock(params: CodeButtonContextReplaceCodeButtonBlockParams): Promise<void> {
+    const { markdown, shouldKeepGapWhenEmpty, shouldPreserveLinePrefix } = params;
     await replaceCodeBlock({
       app: this.app,
       codeBlockProvider: markdown,

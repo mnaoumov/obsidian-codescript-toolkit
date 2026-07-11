@@ -10,6 +10,7 @@ import {
 import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
 import { RequireHandlerMobileComponent } from './require-handler-mobile.ts';
+import { ResolvedType } from './require-handler.ts';
 
 const { MockCapacitorAdapterClass, mockCapacitorFs } = vi.hoisted(() => {
   const fs = {
@@ -170,7 +171,7 @@ describe('RequireHandlerMobileComponent', () => {
   describe('requireNodeBinaryAsync', () => {
     it('should throw an error indicating node binary modules are unavailable on mobile', async () => {
       handler = createHandler();
-      await expect(handler.requireNodeBinaryAsync('native.node')).rejects.toThrow(
+      await expect(handler.requireNodeBinaryAsync({ options: {}, path: 'native.node' })).rejects.toThrow(
         'Cannot require module: native.node. Node binary modules are not available on mobile.'
       );
     });
@@ -208,7 +209,7 @@ describe('RequireHandlerMobileComponent', () => {
   describe('requireNonCached', () => {
     it('should throw an error indicating synchronous require is unavailable on mobile', () => {
       handler = createHandler();
-      expect(() => handler.requireNonCached('some-module')).toThrow(
+      expect(() => handler.requireNonCached({ id: 'some-module', options: {}, type: ResolvedType.Module })).toThrow(
         'Cannot require synchronously on mobile: \'some-module\'.'
       );
     });

@@ -21,6 +21,12 @@ interface PluginSettingsComponentConstructorParams {
   readonly pluginEventSource: PluginEventSource;
 }
 
+interface ValidatePathParams {
+  readonly app: App;
+  readonly path: string;
+  readonly type: 'file' | 'folder';
+}
+
 class LegacySettings {
   public invocableScriptsDirectory = '';
 }
@@ -69,7 +75,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
         return;
       }
 
-      return await validatePath(this.app, value, 'folder');
+      return await validatePath({ app: this.app, path: value, type: 'folder' });
     });
 
     this.registerValidator('invocableScriptsFolder', async (value, settings): Promise<MaybeReturn<string>> => {
@@ -78,7 +84,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
       }
 
       const path = join(settings.modulesRoot, value);
-      return await validatePath(this.app, path, 'folder');
+      return await validatePath({ app: this.app, path, type: 'folder' });
     });
 
     this.registerValidator('startupScriptPath', async (value, settings): Promise<MaybeReturn<string>> => {
@@ -87,7 +93,7 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
       }
 
       const path = join(settings.modulesRoot, value);
-      const ans = await validatePath(this.app, path, 'file');
+      const ans = await validatePath({ app: this.app, path, type: 'file' });
       if (ans) {
         return ans;
       }
@@ -106,7 +112,8 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
   }
 }
 
-async function validatePath(app: App, path: string, type: 'file' | 'folder'): Promise<MaybeReturn<string>> {
+async function validatePath(params: ValidatePathParams): Promise<MaybeReturn<string>> {
+  const { app, path, type } = params;
   if (!await app.vault.exists(path)) {
     return 'Path does not exist';
   }

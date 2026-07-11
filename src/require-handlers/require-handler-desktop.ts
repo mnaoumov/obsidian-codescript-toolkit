@@ -14,7 +14,11 @@ import {
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { RequireOptions } from '../types.ts';
-import type { RequireFn } from './require-handler.ts';
+import type {
+  RequireFn,
+  RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
+  RequireHandlerComponentBaseRequireNonCachedParams
+} from './require-handler.ts';
 
 import { ModuleRequirePatchComponent } from '../patches/module-require-patch-component.ts';
 import {
@@ -36,7 +40,24 @@ import {
   splitQuery
 } from './require-handler.ts';
 
+export interface RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams {
+  readonly cacheInvalidationMode?: CacheInvalidationMode;
+  readonly path: string;
+  readonly resolvedId: string;
+}
+export interface RequireHandlerDesktopComponentRequireModuleParams {
+  readonly moduleName: string;
+  readonly options: Partial<RequireOptions>;
+  readonly parentFolder: string;
+}
+
+export interface RequireHandlerDesktopComponentRequireStringParams {
+  readonly code: string;
+  readonly path: string;
+}
+
 type NodeFsModule = typeof import('node:fs');
+
 type NodeFsPromisesModule = typeof import('node:fs/promises');
 
 export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase {
@@ -160,7 +181,13 @@ ${this.getRequireAsyncAdvice(path)}`);
     return this.originalModulePrototypeRequireWrapped(id, options);
   }
 
-  protected override async requireNodeBinaryAsync(path: string, options: Partial<RequireOptions>, arrayBuffer?: ArrayBuffer): Promise<unknown> {
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  protected override async requireNodeBinaryAsync(params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams): Promise<unknown> {
+    const {
+      arrayBuffer,
+      options,
+      path
+    } = params;
     await noopAsync();
     if (arrayBuffer) {
       const tempDir = join(this.app.vault.configDir, 'temp');
@@ -183,11 +210,13 @@ ${this.getRequireAsyncAdvice(path)}`);
     return this.originalModulePrototypeRequireWrapped(id, options);
   }
 
-  protected override requireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown {
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  protected override requireNonCached(params: RequireHandlerComponentBaseRequireNonCachedParams): unknown {
+    const { id, options, type } = params;
     switch (type) {
       case ResolvedType.Module: {
         const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
-        return this.requireModule(moduleName, parentFolder, options);
+        return this.requireModule({ moduleName, options, parentFolder });
       }
       case ResolvedType.Path:
         return this.requirePath(id, options);
@@ -238,7 +267,7 @@ ${this.getRequireAsyncAdvice(path)}`);
     updateTimestamp(this.getTimestamp(path));
     const dependencies = this.moduleDependencies.get(path) ?? [];
     for (const dependency of dependencies) {
-      const { resolvedId, resolvedType } = this.resolve(dependency, path);
+      const { resolvedId, resolvedType } = this.resolve({ id: dependency, parentPath: path });
       switch (resolvedType) {
         case ResolvedType.Module:
           for (const rootFolder of this.getRootFolders(path)) {
@@ -264,7 +293,13 @@ ${this.getRequireAsyncAdvice(path)}`);
         case ResolvedType.SpecialModule:
           break;
         case ResolvedType.Url: {
-          const errorMessage = this.getUrlDependencyErrorMessage(path, resolvedId, options.cacheInvalidationMode);
+          const errorMessage = this.getUrlDependencyErrorMessage(
+            normalizeOptionalProperties<RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams>({
+              cacheInvalidationMode: options.cacheInvalidationMode,
+              path,
+              resolvedId
+            })
+          );
           switch (options.cacheInvalidationMode) {
             case CacheInvalidationMode.Always:
               throw new Error(errorMessage);
@@ -328,7 +363,12 @@ ${this.getRequireAsyncAdvice(path)}`);
     return this.fs.statSync(path).mtimeMs;
   }
 
-  private getUrlDependencyErrorMessage(path: string, resolvedId: string, cacheInvalidationMode?: CacheInvalidationMode): string {
+  private getUrlDependencyErrorMessage(params: RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams): string {
+    const {
+      cacheInvalidationMode,
+      path,
+      resolvedId
+    } = params;
     return `Module ${path} depends on URL ${resolvedId}.
 URL dependencies validation is not supported when cacheInvalidationMode=${cacheInvalidationMode ?? CacheInvalidationMode.WhenPossible}.
 Consider using cacheInvalidationMode=${CacheInvalidationMode.Never}.
@@ -360,16 +400,21 @@ ${this.getRequireAsyncAdvice(path)}`;
   private requireJsTs(path: string): unknown {
     path = splitQuery(path).cleanStr;
     const code = this.readFile(path);
-    return this.requireString(code, path);
+    return this.requireString({ code, path });
   }
 
   private requireMd(path: string): unknown {
     const md = this.readFile(path);
-    const { code, codeScriptName } = extractCodeScript(md, path);
-    return this.requireString(code, `${path}.code-script.${codeScriptName ?? '(default)'}.ts`);
+    const { code, codeScriptName } = extractCodeScript({ md, path });
+    return this.requireString({ code, path: `${path}.code-script.${codeScriptName ?? '(default)'}.ts` });
   }
 
-  private requireModule(moduleName: string, parentFolder: string, options: Partial<RequireOptions>): unknown {
+  private requireModule(params: RequireHandlerDesktopComponentRequireModuleParams): unknown {
+    const {
+      moduleName,
+      options,
+      parentFolder
+    } = params;
     let separatorIndex = moduleName.indexOf(RELATIVE_MODULE_PATH_SEPARATOR);
 
     if (moduleName.startsWith(SCOPED_MODULE_PREFIX)) {
@@ -457,7 +502,8 @@ ${this.getRequireAsyncAdvice(path)}`;
     }
   }
 
-  private requireString(code: string, path: string): unknown {
+  private requireString(params: RequireHandlerDesktopComponentRequireStringParams): unknown {
+    const { code, path } = params;
     try {
       return this.initModuleAndAddToCache(path, () => {
         const result = this.requireStringImpl({

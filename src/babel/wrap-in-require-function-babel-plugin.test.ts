@@ -15,7 +15,7 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
         contextKeys: ['app', 'require'],
         isAsync: false
       });
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('scriptWrapper');
     });
@@ -25,7 +25,7 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
         contextKeys: ['app', 'require'],
         isAsync: false
       });
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('app');
       expect(result.transformedCode).toContain('require');
@@ -36,7 +36,7 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
         contextKeys: ['app'],
         isAsync: false
       });
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).not.toContain('requireAsyncWrapper');
     });
@@ -46,7 +46,7 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
         contextKeys: [],
         isAsync: false
       });
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('scriptWrapper');
     });
@@ -58,7 +58,7 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
         contextKeys: ['app', 'require'],
         isAsync: true
       });
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('requireAsyncWrapper');
     });
@@ -68,7 +68,7 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
         contextKeys: ['app'],
         isAsync: true
       });
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('return');
       expect(result.transformedCode).toContain('requireAsyncWrapper');
@@ -79,7 +79,7 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
         contextKeys: ['app'],
         isAsync: true
       });
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('requireFn');
     });
@@ -89,7 +89,7 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
         contextKeys: ['app'],
         isAsync: true
       });
-      const result = plugin.transform('const x = 1;', TEST_FILENAME);
+      const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('scriptWrapper');
     });

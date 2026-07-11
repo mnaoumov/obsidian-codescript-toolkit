@@ -25,6 +25,12 @@ interface PathSuggestConstructorParams {
   readonly type: PathEntryType;
 }
 
+interface PathSuggestFillPathEntriesParams {
+  readonly app: App;
+  readonly path: string;
+  readonly type: PathEntryType;
+}
+
 export class PathSuggest extends AbstractInputSuggest<PathEntry> {
   private readonly getRootPath: () => string;
   private pathEntries: null | PathEntry[] = null;
@@ -67,7 +73,8 @@ export class PathSuggest extends AbstractInputSuggest<PathEntry> {
     }, 0);
   }
 
-  private async fillPathEntries(app: App, path: string, type: PathEntryType): Promise<void> {
+  private async fillPathEntries(params: PathSuggestFillPathEntriesParams): Promise<void> {
+    const { app, path, type } = params;
     this.pathEntries ??= [];
 
     if (basename(path) === 'node_modules') {
@@ -98,18 +105,18 @@ export class PathSuggest extends AbstractInputSuggest<PathEntry> {
 
     const listedFiles = await app.vault.adapter.list(path);
     for (const file of listedFiles.files) {
-      await this.fillPathEntries(app, file, 'file');
+      await this.fillPathEntries({ app, path: file, type: 'file' });
     }
 
     for (const folder of listedFiles.folders) {
-      await this.fillPathEntries(app, folder, 'folder');
+      await this.fillPathEntries({ app, path: folder, type: 'folder' });
     }
   }
 
   private async getPathEntries(app: App): Promise<PathEntry[]> {
     if (!this.pathEntries) {
       this.pathEntries = [];
-      await this.fillPathEntries(app, this.getRootPath(), 'folder');
+      await this.fillPathEntries({ app, path: this.getRootPath(), type: 'folder' });
     }
 
     this.refreshTimeoutId = window.setTimeout(this.refresh.bind(this), CACHE_DURATION_IN_MILLISECONDS);

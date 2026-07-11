@@ -1,6 +1,9 @@
 import { transform as babelTransform } from '@babel/standalone';
 
-import type { TransformResult } from './babel-plugin-base.ts';
+import type {
+  BabelPluginBaseTransformParams,
+  TransformResult
+} from './babel-plugin-base.ts';
 
 import { BabelPluginBase } from './babel-plugin-base.ts';
 import { transformImportMetaBabelPlugin } from './transform-import-meta-babel-plugin.ts';
@@ -14,7 +17,9 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
     super({ hasTopLevelAwait: false });
   }
 
-  public override transform(code: string, filename: string, folder?: string): TransformResult<TransformCodeToCommonJsData> {
+  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base transform and must share its params type.
+  public override transform(params: BabelPluginBaseTransformParams): TransformResult<TransformCodeToCommonJsData> {
+    const { code, filename, folder } = params;
     try {
       const result = babelTransform(code, {
         ast: true,

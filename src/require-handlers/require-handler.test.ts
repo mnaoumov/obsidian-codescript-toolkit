@@ -16,7 +16,11 @@ import {
 } from 'vitest';
 
 import type { RequireOptions } from '../types.ts';
-import type { RequireHandlerConstructorParams } from './require-handler.ts';
+import type {
+  RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
+  RequireHandlerComponentBaseRequireNonCachedParams,
+  RequireHandlerConstructorParams
+} from './require-handler.ts';
 
 import {
   CacheInvalidationMode,
@@ -257,7 +261,7 @@ describe('extractCodeScript', () => {
   ].join('\n');
 
   it('should extract the first code-script block from markdown', () => {
-    const result = extractCodeScript(SIMPLE_MD_WITH_CODE_SCRIPT, 'test.md');
+    const result = extractCodeScript({ md: SIMPLE_MD_WITH_CODE_SCRIPT, path: 'test.md' });
     expect(result.code).toBe('console.log(\'hello\');');
     expect(result.codeScriptName).toBeUndefined();
   });
@@ -271,12 +275,12 @@ describe('extractCodeScript', () => {
       '```'
     ].join('\n');
 
-    expect(() => extractCodeScript(md, 'test.md')).toThrow('No code-script code block found in \'test.md\'.');
+    expect(() => extractCodeScript({ md, path: 'test.md' })).toThrow('No code-script code block found in \'test.md\'.');
   });
 
   it('should throw when markdown has no code blocks at all', () => {
     const md = '# Just a heading\n\nSome text.';
-    expect(() => extractCodeScript(md, 'empty.md')).toThrow('No code-script code block found in \'empty.md\'.');
+    expect(() => extractCodeScript({ md, path: 'empty.md' })).toThrow('No code-script code block found in \'empty.md\'.');
   });
 
   it('should extract the first code-script block when multiple exist', () => {
@@ -290,7 +294,7 @@ describe('extractCodeScript', () => {
       '```'
     ].join('\n');
 
-    const result = extractCodeScript(md, 'test.md');
+    const result = extractCodeScript({ md, path: 'test.md' });
     expect(result.code).toBe('first();');
   });
 
@@ -302,7 +306,7 @@ describe('extractCodeScript', () => {
       '```'
     ].join('\n');
 
-    const result = extractCodeScript(md, 'test.md?codeScriptName=myScript');
+    const result = extractCodeScript({ md, path: 'test.md?codeScriptName=myScript' });
     expect(result.code).toBe('// codeScriptName: myScript\nconsole.log(\'named\');');
     expect(result.codeScriptName).toBe('myScript');
   });
@@ -314,7 +318,7 @@ describe('extractCodeScript', () => {
       '```'
     ].join('\n');
 
-    expect(() => extractCodeScript(md, 'test.md?codeScriptName=missing')).toThrow(
+    expect(() => extractCodeScript({ md, path: 'test.md?codeScriptName=missing' })).toThrow(
       'Code script with name missing not found in \'test.md?codeScriptName=missing\'.'
     );
   });
@@ -326,7 +330,7 @@ describe('extractCodeScript', () => {
       '```'
     ].join('\n');
 
-    expect(() => extractCodeScript(md, 'test.md?invalidParam=value')).toThrow('Invalid query: \'?invalidParam=value\'.');
+    expect(() => extractCodeScript({ md, path: 'test.md?invalidParam=value' })).toThrow('Invalid query: \'?invalidParam=value\'.');
   });
 
   it('should use defaultCodeScriptName from frontmatter when no query', () => {
@@ -346,7 +350,7 @@ describe('extractCodeScript', () => {
       '```'
     ].join('\n');
 
-    const result = extractCodeScript(md, 'test.md');
+    const result = extractCodeScript({ md, path: 'test.md' });
     expect(result.code).toBe('// codeScriptName: myDefault\nconsole.log(\'default\');');
     expect(result.codeScriptName).toBe('myDefault');
   });
@@ -3441,7 +3445,7 @@ describe('RequireHandlerComponentBase', () => {
         '```'
       ].join('\n');
 
-      const result = extractCodeScript(md, 'test.md');
+      const result = extractCodeScript({ md, path: 'test.md' });
       // The first block should be returned
       expect(result.code).toBe('first();');
     });
@@ -3519,7 +3523,7 @@ class TestRequireHandlerComponent extends RequireHandlerComponentBase {
   }
 
   public exposeResolve(id: string, parentPath?: string): ResolveResult {
-    return this.resolve(id, parentPath);
+    return this.resolve({ id, parentPath });
   }
 
   public exposeVaultAbsolutePath(): string {
@@ -3558,7 +3562,12 @@ class TestRequireHandlerComponent extends RequireHandlerComponentBase {
     return this.mockRequireElectronModule(id, options) as unknown;
   }
 
-  protected override async requireNodeBinaryAsync(path: string, options: Partial<RequireOptions>, arrayBuffer?: ArrayBuffer): Promise<unknown> {
+  protected override async requireNodeBinaryAsync(params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams): Promise<unknown> {
+    const {
+      arrayBuffer,
+      options,
+      path
+    } = params;
     return this.mockRequireNodeBinaryAsync(path, options, arrayBuffer) as Promise<unknown>;
   }
 
@@ -3566,7 +3575,8 @@ class TestRequireHandlerComponent extends RequireHandlerComponentBase {
     return this.mockRequireNodeBuiltInModule(id, options) as unknown;
   }
 
-  protected override requireNonCached(id: string, type: ResolvedType, options: Partial<RequireOptions>): unknown {
+  protected override requireNonCached(params: RequireHandlerComponentBaseRequireNonCachedParams): unknown {
+    const { id, options, type } = params;
     return this.mockRequireNonCached(id, type, options) as unknown;
   }
 }

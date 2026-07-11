@@ -7,7 +7,12 @@ import {
   vi
 } from 'vitest';
 
-import type { RequireHandlerConstructorParams } from './require-handler.ts';
+import type {
+  RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
+  RequireHandlerComponentBaseRequireNonCachedParams,
+  RequireHandlerConstructorParams,
+  ResolvedType
+} from './require-handler.ts';
 
 import { RequireHandlerEmulateMobileComponent } from './require-handler-emulate-mobile.ts';
 
@@ -85,7 +90,7 @@ interface RequireElectronModuleAccessor {
 }
 
 interface RequireNodeBinaryAsyncAccessor {
-  requireNodeBinaryAsync(id: string): Promise<unknown>;
+  requireNodeBinaryAsync(params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams): Promise<unknown>;
 }
 
 interface RequireNodeBuiltInModuleAccessor {
@@ -93,7 +98,7 @@ interface RequireNodeBuiltInModuleAccessor {
 }
 
 interface RequireNonCachedAccessor {
-  requireNonCached(id: string): unknown;
+  requireNonCached(params: RequireHandlerComponentBaseRequireNonCachedParams): unknown;
 }
 
 function asCanRequireNonCached(obj: RequireHandlerEmulateMobileComponent): CanRequireNonCachedAccessor {
@@ -250,9 +255,9 @@ describe('RequireHandlerEmulateMobileComponent', () => {
     it('should delegate to mobile handler', async () => {
       const mockModule = { node: true };
       mockMobileRequireNodeBinaryAsync.mockResolvedValue(mockModule);
-      const result = await asRequireNodeBinaryAsync(handler).requireNodeBinaryAsync('native.node');
+      const result = await asRequireNodeBinaryAsync(handler).requireNodeBinaryAsync({ options: {}, path: 'native.node' });
       expect(result).toBe(mockModule);
-      expect(mockMobileRequireNodeBinaryAsync).toHaveBeenCalledWith('native.node');
+      expect(mockMobileRequireNodeBinaryAsync).toHaveBeenCalledWith({ options: {}, path: 'native.node' });
     });
   });
 
@@ -270,9 +275,9 @@ describe('RequireHandlerEmulateMobileComponent', () => {
     it('should delegate to mobile handler', () => {
       const mockModule = { fresh: true };
       mockMobileRequireNonCached.mockReturnValue(mockModule);
-      const result = asRequireNonCached(handler).requireNonCached('some-module');
+      const result = asRequireNonCached(handler).requireNonCached({ id: 'some-module', options: {}, type: castTo<ResolvedType>('module') });
       expect(result).toBe(mockModule);
-      expect(mockMobileRequireNonCached).toHaveBeenCalledWith('some-module');
+      expect(mockMobileRequireNonCached).toHaveBeenCalledWith({ id: 'some-module', options: {}, type: 'module' });
     });
   });
 });

@@ -20,6 +20,12 @@ export interface Script {
 
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];
 
+interface GetAllScriptPathsParams {
+  readonly app: App;
+  readonly folder: string;
+  readonly scriptsFolder: string;
+}
+
 interface ScriptManagerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
@@ -59,7 +65,7 @@ export class ScriptManager {
       return;
     }
 
-    const scriptPaths = await getAllScriptPaths(this.app, this.pluginSettingsComponent.settings.getInvocableScriptsFolder(), '');
+    const scriptPaths = await getAllScriptPaths({ app: this.app, folder: '', scriptsFolder: this.pluginSettingsComponent.settings.getInvocableScriptsFolder() });
 
     for (const scriptPath of scriptPaths) {
       await this.scriptRegistry.registerScript(scriptPath);
@@ -73,7 +79,7 @@ export class ScriptManager {
     if (!invocableScriptsFolder) {
       scriptPaths = ['Error: No Invocable scripts folder specified in the settings'];
     } else if (await this.app.vault.adapter.exists(invocableScriptsFolder)) {
-      scriptPaths = await getAllScriptPaths(this.app, invocableScriptsFolder, '');
+      scriptPaths = await getAllScriptPaths({ app: this.app, folder: '', scriptsFolder: invocableScriptsFolder });
     } else {
       scriptPaths = [`Error: Invocable scripts folder not found: ${invocableScriptsFolder}`];
     }
@@ -96,7 +102,8 @@ export class ScriptManager {
   }
 }
 
-async function getAllScriptPaths(app: App, scriptsFolder: string, folder: string): Promise<string[]> {
+async function getAllScriptPaths(params: GetAllScriptPathsParams): Promise<string[]> {
+  const { app, folder, scriptsFolder } = params;
   const adapter = app.vault.adapter;
   const files: string[] = [];
   const listedFiles = await adapter.list(join(scriptsFolder, folder));
@@ -108,7 +115,7 @@ async function getAllScriptPaths(app: App, scriptsFolder: string, folder: string
     }
   }
   for (const folderName of getSortedBaseNames(listedFiles.folders)) {
-    const subFiles = await getAllScriptPaths(app, scriptsFolder, join(folder, folderName));
+    const subFiles = await getAllScriptPaths({ app, folder: join(folder, folderName), scriptsFolder });
     files.push(...subFiles);
   }
 

@@ -9,6 +9,12 @@ import { transform as babelTransform } from '@babel/standalone';
 import { noop } from 'obsidian-dev-utils/function';
 import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
+export interface BabelPluginBaseTransformParams {
+  readonly code: string;
+  readonly filename: string;
+  readonly folder?: string;
+}
+
 export interface TransformResult<Data> {
   readonly data: Data;
   readonly error?: Error;
@@ -20,7 +26,8 @@ export abstract class BabelPluginBase<Data = unknown> {
     noop();
   }
 
-  public transform(code: string, filename: string, folder?: string): TransformResult<Data> {
+  public transform(params: BabelPluginBaseTransformParams): TransformResult<Data> {
+    const { code, filename, folder } = params;
     try {
       const result = babelTransform(code, {
         filename,
