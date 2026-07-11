@@ -27,6 +27,7 @@ import {
   ModuleType
 } from '../types.ts';
 import {
+  checkShouldTranspile,
   ENTRY_POINT,
   EXTENSIONS,
   extractCodeScript,
@@ -194,6 +195,58 @@ describe('splitQuery', () => {
     const result = splitQuery('');
     expect(result.cleanStr).toBe('');
     expect(result.query).toBe('');
+  });
+});
+
+describe('checkShouldTranspile', () => {
+  it('should honor an explicit shouldTranspile of false regardless of content', () => {
+    expect(checkShouldTranspile({ code: 'import x from "y";', path: 'file.ts', shouldTranspile: false })).toBe(false);
+  });
+
+  it('should honor an explicit shouldTranspile of true regardless of content', () => {
+    expect(checkShouldTranspile({ code: 'module.exports = {};', path: 'file.cjs', shouldTranspile: true })).toBe(true);
+  });
+
+  it('should auto-skip transpilation for a plain CommonJS .cjs file', () => {
+    expect(checkShouldTranspile({ code: 'module.exports = { a: 1 };', path: 'vendor/eruda.cjs' })).toBe(false);
+  });
+
+  it('should transpile a .cjs file containing an ESM export statement', () => {
+    expect(checkShouldTranspile({ code: 'export const c = 1;', path: 'file.cjs' })).toBe(true);
+  });
+
+  it('should transpile a .cjs file containing a dynamic import', () => {
+    expect(checkShouldTranspile({ code: 'const m = import("b");', path: 'file.cjs' })).toBe(true);
+  });
+
+  it('should transpile a .cjs file containing import.meta', () => {
+    expect(checkShouldTranspile({ code: 'const u = import.meta.url;', path: 'file.cjs' })).toBe(true);
+  });
+
+  it('should not be fooled by the substring "exports" or "import_" identifiers in a .cjs file', () => {
+    expect(checkShouldTranspile({ code: 'module.exports = {}; var import_foo = 1;', path: 'file.cjs' })).toBe(false);
+  });
+
+  it('should transpile a bare .js file, deferring the CommonJS decision to the async resolver', () => {
+    expect(checkShouldTranspile({ code: 'module.exports = { a: 1 };', path: 'vendor/lib.js' })).toBe(true);
+  });
+
+  it('should always transpile TypeScript extensions', () => {
+    expect(checkShouldTranspile({ code: 'const a = 1;', path: 'file.ts' })).toBe(true);
+    expect(checkShouldTranspile({ code: 'const a = 1;', path: 'file.cts' })).toBe(true);
+    expect(checkShouldTranspile({ code: 'const a = 1;', path: 'file.mts' })).toBe(true);
+  });
+
+  it('should always transpile .mjs (ESM) files', () => {
+    expect(checkShouldTranspile({ code: 'module.exports = {};', path: 'file.mjs' })).toBe(true);
+  });
+
+  it('should transpile when the extension is unknown (e.g. a URL with no extension)', () => {
+    expect(checkShouldTranspile({ code: 'module.exports = {};', path: 'https://cdn.example.com/lib' })).toBe(true);
+  });
+
+  it('should strip a query before checking the extension', () => {
+    expect(checkShouldTranspile({ code: 'module.exports = {};', path: 'vendor/eruda.cjs?v=1' })).toBe(false);
   });
 });
 
@@ -1051,6 +1104,210 @@ describe('RequireHandlerComponentBase', () => {
       });
       expect(result).toBeDefined();
     });
+
+    it('should wrap raw without Babel when shouldTranspile is false', async () => {
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { raw: true };
+      });
+
+      const result = await handler.requireStringAsync({
+        code: 'module.exports = { raw: true };',
+        path: '/test/raw-module.cjs',
+        shouldTranspile: false
+      });
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('function scriptWrapper');
+      expect(evaluatedCode).toContain('module.exports = { raw: true };');
+      expect(evaluatedCode).not.toContain('use strict');
+      expect(result).toEqual(expect.objectContaining({ raw: true }));
+    });
+
+    it('should transpile through Babel when shouldTranspile is true', async () => {
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = {};
+      });
+
+      await handler.requireStringAsync({
+        code: 'export const a = 1;',
+        path: '/test/esm-module.js',
+        shouldTranspile: true
+      });
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('use strict');
+    });
+
+    it('should auto-skip transpilation for a plain CommonJS module without an explicit flag', async () => {
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { auto: true };
+      });
+
+      const result = await handler.requireStringAsync({
+        code: 'module.exports = { auto: true };',
+        path: '/test/auto.cjs'
+      });
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('function scriptWrapper');
+      expect(evaluatedCode).toContain('module.exports = { auto: true };');
+      expect(result).toEqual(expect.objectContaining({ auto: true }));
+    });
+  });
+
+  describe('shouldTranspile auto-detection via package.json', () => {
+    beforeEach(async () => {
+      await handler.loadWithPromises();
+    });
+
+    it('should transpile a plain .js file when the nearest package.json has type module', async () => {
+      handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js' || path === '/vault/package.json');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockImplementation((path: string) => {
+        if (path === '/vault/package.json') {
+          return '{"type":"module"}';
+        }
+        return 'module.exports = { fromModulePkg: true };';
+      });
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = {};
+      });
+
+      await handler.requireAsync('//lib.js');
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('use strict');
+    });
+
+    it('should skip transpilation for a plain .js file when the nearest package.json has type commonjs', async () => {
+      await expectJsPackageJsonSkipsTranspilation('{"type":"commonjs"}');
+    });
+
+    it('should skip transpilation for a plain .js file when the nearest package.json has no type property', async () => {
+      await expectJsPackageJsonSkipsTranspilation('{"name":"my-pkg"}');
+    });
+
+    it('should skip transpilation for a plain .js file when the nearest package.json has an empty type', async () => {
+      await expectJsPackageJsonSkipsTranspilation('{"type":""}');
+    });
+
+    it('should skip transpilation for a Windows drive-letter .js path in a commonjs package', async () => {
+      handler.mockExistsFile.mockImplementation((path: string) => path === 'C:/proj/probe.js' || path === 'C:/proj/package.json');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockImplementation((path: string) => {
+        if (path === 'C:/proj/package.json') {
+          return '{"type":"commonjs"}';
+        }
+        return 'module.exports = { win: true };';
+      });
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { win: true };
+      });
+
+      const result = await handler.requireAsync('C:/proj/probe.js');
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('function scriptWrapper');
+      expect(evaluatedCode).not.toContain('use strict');
+      expect(result).toEqual(expect.objectContaining({ win: true }));
+    });
+
+    it('should honor an explicit shouldTranspile option forcing transpilation of a .cjs file', async () => {
+      handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/mod.cjs');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockResolvedValue('module.exports = { forced: true };');
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = {};
+      });
+
+      await handler.requireAsync('//mod.cjs', { shouldTranspile: true });
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('use strict');
+    });
+
+    it('should transpile a .js file in a commonjs package when its content has ESM syntax', async () => {
+      handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js' || path === '/vault/package.json');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockImplementation((path: string) => {
+        if (path === '/vault/package.json') {
+          return '{"type":"commonjs"}';
+        }
+        return 'import { a } from "./a.js";\nexport const b = a;';
+      });
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = {};
+      });
+
+      await handler.requireAsync('//lib.js');
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('use strict');
+    });
+
+    it('should transpile a plain .js file when no package.json is found', async () => {
+      handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockResolvedValue('module.exports = { noPkg: true };');
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = {};
+      });
+
+      await handler.requireAsync('//lib.js');
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('use strict');
+    });
+
+    it('should transpile a plain .js file when the nearest package.json is malformed', async () => {
+      handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js' || path === '/vault/package.json');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockImplementation((path: string) => {
+        if (path === '/vault/package.json') {
+          return 'not valid json {';
+        }
+        return 'module.exports = { broken: true };';
+      });
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = {};
+      });
+
+      await handler.requireAsync('//lib.js');
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('use strict');
+    });
+
+    async function expectJsPackageJsonSkipsTranspilation(packageJsonContent: string): Promise<void> {
+      handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js' || path === '/vault/package.json');
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockImplementation((path: string) => {
+        if (path === '/vault/package.json') {
+          return packageJsonContent;
+        }
+        return 'module.exports = { fromCjsPkg: true };';
+      });
+      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+        const mod = ctx['module'] as MockModuleWithExports;
+        mod.exports = { fromCjsPkg: true };
+      });
+
+      const result = await handler.requireAsync('//lib.js');
+
+      const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
+      expect(evaluatedCode).toContain('function scriptWrapper');
+      expect(evaluatedCode).not.toContain('use strict');
+      expect(result).toEqual(expect.objectContaining({ fromCjsPkg: true }));
+    }
   });
 
   describe('getCachedModule', () => {

@@ -41,6 +41,7 @@ Most of the examples below will be shown using [`require()`][require], but you c
 - [`ASAR` Archives](./asar.md)
 - [Markdown files](./markdown.md)
 - [Override module type](./override-module-type.md)
+- [Skip transpilation](./skip-transpilation.md)
 - [URLs](./urls.md)
 - [File URLs](./file-urls.md)
 - [Resource URLs](./resource-urls.md)
