@@ -79,6 +79,11 @@ export enum ResolvedType {
 }
 
 export type RequireFn = typeof require;
+interface CheckShouldTranspileParams {
+  readonly code: string;
+  readonly path: string;
+  readonly shouldTranspile?: boolean | undefined;
+}
 interface EmptyModule {
   [EMPTY_MODULE_SYMBOL]: boolean;
 }
@@ -128,6 +133,7 @@ interface RequireHandlerComponentBaseRequireJsonAsyncParams {
 interface RequireHandlerComponentBaseRequireJsTsAsyncParams {
   readonly code?: string;
   readonly path: string;
+  readonly shouldTranspile?: boolean | undefined;
 }
 
 interface RequireHandlerComponentBaseRequireMdAsyncParams {
@@ -168,6 +174,7 @@ interface RequireStringImplParams {
   readonly code: string;
   readonly evalPrefix: string;
   readonly path: string;
+  readonly shouldTranspile?: boolean | undefined;
   readonly shouldWrapInAsyncFunction: boolean;
   readonly urlSuffix: string;
 }
@@ -229,6 +236,10 @@ const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertA
 const WILDCARD_MODULE_CONDITION_SUFFIX = '/*';
 const VAULT_ROOT_PREFIX = '//';
 const DUMMY_FILE_NAME = 'dummy.md';
+const COMMON_JS_EXTENSION = '.cjs';
+const JS_EXTENSION = '.js';
+const ESM_PACKAGE_TYPE = 'module';
+const ESM_SYNTAX_REG_EXP = /(?:^|[^.\w$])(?:import|export)\b/;
 
 export interface RequireHandler extends ComponentEx {
   clearCache(): void;
@@ -260,6 +271,7 @@ export interface RequireHandlerConstructorParams {
 export interface RequireStringAsyncParams {
   readonly code: string;
   readonly path: string;
+  readonly shouldTranspile?: boolean | undefined;
   readonly urlSuffix?: string | undefined;
 }
 
@@ -271,6 +283,9 @@ type RequireHandlerComponentBaseRequireStringAsyncParams = RequireStringAsyncPar
 
 /** @see {@link RequireStringImplParams} */
 type RequireHandlerComponentBaseRequireStringImplParams = RequireStringImplParams;
+
+/** @see {@link CheckShouldTranspileParams} */
+type RequireHandlerComponentBaseResolveShouldTranspileAsyncParams = CheckShouldTranspileParams;
 
 export abstract class RequireHandlerComponentBase extends ComponentEx implements RequireHandler {
   protected readonly app: App;
@@ -454,6 +469,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
           code: params.code,
           evalPrefix: 'requireStringAsync',
           path: params.path,
+          shouldTranspile: params.shouldTranspile,
           shouldWrapInAsyncFunction: true,
           urlSuffix
         });
@@ -578,28 +594,37 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const filename = isUrl(options.path) ? options.path : basename(options.path);
     const url = convertPathToObsidianUrl(options.path) + options.urlSuffix;
 
-    const transformResult = new SequentialBabelPlugin([
-      new ConvertToCommonJsBabelPlugin(),
-      new WrapInRequireFunctionBabelPlugin({ contextKeys: SCRIPT_WRAPPER_CONTEXT_KEYS, isAsync: options.shouldWrapInAsyncFunction }),
-      new ReplaceDynamicImportBabelPlugin(),
-      new FixSourceMapBabelPlugin(url)
-    ]).transform({
-      code: options.code,
-      filename,
-      folder
-    });
+    const shouldTranspile = checkShouldTranspile({ code: options.code, path: options.path, shouldTranspile: options.shouldTranspile });
 
-    if (transformResult.error) {
-      throw new Error(`Failed to transform code from: '${options.path}'.`, { cause: transformResult.error });
+    let wrappedCode: string;
+    if (shouldTranspile) {
+      const transformResult = new SequentialBabelPlugin([
+        new ConvertToCommonJsBabelPlugin(),
+        new WrapInRequireFunctionBabelPlugin({ contextKeys: SCRIPT_WRAPPER_CONTEXT_KEYS, isAsync: options.shouldWrapInAsyncFunction }),
+        new ReplaceDynamicImportBabelPlugin(),
+        new FixSourceMapBabelPlugin(url)
+      ]).transform({
+        code: options.code,
+        filename,
+        folder
+      });
+
+      if (transformResult.error) {
+        throw new Error(`Failed to transform code from: '${options.path}'.`, { cause: transformResult.error });
+      }
+
+      /* v8 ignore start -- SequentialBabelPlugin.getCombinedData reads plugin.data which is never mutated by ConvertToCommonJsBabelPlugin.transform, so hasTopLevelAwait is always false. */
+      if (transformResult.data.hasTopLevelAwait) {
+        this.handleCodeWithTopLevelAwait(options.path);
+      }
+      /* v8 ignore stop */
+
+      wrappedCode = transformResult.transformedCode;
+    } else {
+      wrappedCode = wrapModuleCodeWithoutTranspilation(options.code);
     }
 
-    /* v8 ignore start -- SequentialBabelPlugin.getCombinedData reads plugin.data which is never mutated by ConvertToCommonJsBabelPlugin.transform, so hasTopLevelAwait is always false. */
-    if (transformResult.data.hasTopLevelAwait) {
-      this.handleCodeWithTopLevelAwait(options.path);
-    }
-    /* v8 ignore stop */
-
-    const scriptWrapper = debuggableEval(transformResult.transformedCode, `${options.evalPrefix}/${options.path}${options.urlSuffix}`) as ScriptWrapper;
+    const scriptWrapper = debuggableEval(wrappedCode, `${options.evalPrefix}/${options.path}${options.urlSuffix}`) as ScriptWrapper;
     const module = { exports: {} };
 
     const ctx: ScriptWrapperContext = {
@@ -715,6 +740,22 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
 
     return [];
+  }
+
+  private async checkHasCommonJsPackageEvidenceAsync(cleanPath: string): Promise<boolean> {
+    const rootFolder = await this.getRootFolderAsync(dirname(cleanPath));
+    if (rootFolder === null) {
+      return false;
+    }
+
+    // Transpilation detection is best-effort: a malformed or unexpected package.json must not break loading a sibling module, so any read/parse failure is treated as "no CommonJS evidence" and the module is transpiled (the safe default).
+    // A package.json whose `type` is absent, empty, or anything other than `"module"` is CommonJS per Node semantics.
+    try {
+      const packageJson = await this.readPackageJsonAsync(this.getPackageJsonPath(rootFolder));
+      return packageJson.type !== ESM_PACKAGE_TYPE;
+    } catch {
+      return false;
+    }
   }
 
   private createEmptyModule(id: string): EmptyModule {
@@ -1095,7 +1136,8 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   private async requireJsTsAsync(params: RequireHandlerComponentBaseRequireJsTsAsyncParams): Promise<unknown> {
     const { path } = params;
     const code = params.code ?? await this.readFileAsync(splitQuery(path).cleanStr);
-    return this.requireStringAsync({ code, path });
+    const shouldTranspile = await this.resolveShouldTranspileAsync({ code, path, shouldTranspile: params.shouldTranspile });
+    return this.requireStringAsync({ code, path, shouldTranspile });
   }
 
   private async requireMdAsync(params: RequireHandlerComponentBaseRequireMdAsyncParams): Promise<unknown> {
@@ -1210,7 +1252,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       case ModuleType.Json:
         return this.requireJsonAsync({ path });
       case ModuleType.JsTs:
-        return this.requireJsTsAsync({ path });
+        return this.requireJsTsAsync({ path, shouldTranspile: options.shouldTranspile });
       case ModuleType.Markdown:
         return this.requireMdAsync({ path });
       case ModuleType.Node:
@@ -1230,7 +1272,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       case ModuleType.Json:
         return this.requireJsonAsync({ jsonStr: response.text, path: url });
       case ModuleType.JsTs:
-        return this.requireJsTsAsync({ code: response.text, path: url });
+        return this.requireJsTsAsync({ code: response.text, path: url, shouldTranspile: options.shouldTranspile });
       case ModuleType.Markdown:
         return this.requireMdAsync({ md: response.text, path: url });
       case ModuleType.Node:
@@ -1306,6 +1348,25 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return { resolvedId: `${parentFolder}${MODULE_NAME_SEPARATOR}${id}`, resolvedType: ResolvedType.Module };
   }
 
+  private async resolveShouldTranspileAsync(params: RequireHandlerComponentBaseResolveShouldTranspileAsyncParams): Promise<boolean> {
+    if (params.shouldTranspile !== undefined) {
+      return params.shouldTranspile;
+    }
+
+    const cleanPath = splitQuery(params.path).cleanStr;
+    // A bare `.js` runs raw only with positive CommonJS evidence: a nearest package.json that does not declare `"type": "module"`.
+    // This rules out ESM-only features (e.g. top-level await) that the content regex cannot detect.
+    // Without such evidence (no package.json, `"type": "module"`, a bad package.json, or a URL) the file is transpiled — the safe default.
+    // `.cjs`/`.mjs`/`.ts` are unambiguous by extension and handled by checkShouldTranspile.
+    // A Windows drive-letter path (e.g. `C:/...`) is a filesystem path, not a URL, but `isUrl` reads the drive as a URL scheme, so treat it as a filesystem path explicitly (mirroring resolve()).
+    const isFileSystemPath = WINDOWS_DRIVE_LETTER_PATH_REG_EXP.test(cleanPath) || !isUrl(cleanPath);
+    if (isFileSystemPath && extname(cleanPath) === JS_EXTENSION && await this.checkHasCommonJsPackageEvidenceAsync(cleanPath)) {
+      return ESM_SYNTAX_REG_EXP.test(params.code);
+    }
+
+    return checkShouldTranspile({ code: params.code, path: params.path });
+  }
+
   private resolveUrl(id: string): null | ResolveResult {
     if (!isUrl(id)) {
       return null;
@@ -1336,6 +1397,21 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       normalizeOptionalProperties<ParentPathOptions>({ parentPath: options.optionsToPrepend?.parentPath })
     ) as RequireExFn;
   }
+}
+
+export function checkShouldTranspile(params: CheckShouldTranspileParams): boolean {
+  if (params.shouldTranspile !== undefined) {
+    return params.shouldTranspile;
+  }
+
+  // Without a package.json, only `.cjs` is unambiguously CommonJS: top-level await is illegal in it, so a valid `.cjs` never needs the transpiled async wrapper.
+  // Skip transpilation for `.cjs` unless it uses ESM-only or dynamic-import syntax.
+  // Everything else defaults to transpiling; the async resolver refines a bare `.js` via the nearest package.json before this is reached.
+  if (extname(splitQuery(params.path).cleanStr) === COMMON_JS_EXTENSION) {
+    return ESM_SYNTAX_REG_EXP.test(params.code);
+  }
+
+  return true;
 }
 
 export function extractCodeScript(params: ExtractCodeScriptParams): ExtractCodeScriptResult {
@@ -1458,4 +1534,11 @@ Consider passing moduleType explicitly:
 const module = await requireAsync(url, { moduleType: 'jsTs' });`);
       return ModuleType.JsTs;
   }
+}
+
+function wrapModuleCodeWithoutTranspilation(code: string): string {
+  // Node-style module wrapper built with plain string concatenation instead of a Babel pass.
+  // The opening brace stays on the same line as the original code so line numbers stay aligned for debugging.
+  // The wrapper is synchronous: a module run without transpilation is treated as already-runnable CommonJS, so no `requireAsyncWrapper` is needed.
+  return `(function scriptWrapper({ ${SCRIPT_WRAPPER_CONTEXT_KEYS.join(', ')} }) { ${code}\n})`;
 }

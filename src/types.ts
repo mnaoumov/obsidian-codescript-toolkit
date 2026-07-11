@@ -89,6 +89,19 @@ export interface RequireOptions {
    * A parent path of the module to require.
    */
   readonly parentPath?: string;
+
+  /**
+   * Whether to transpile the module through Babel before executing it.
+   *
+   * Leave unset to auto-detect: a module with a `.js` or `.cjs` extension that contains no ESM
+   * `import`/`export` syntax is executed as-is, skipping the (potentially multi-second) Babel
+   * pipeline; everything else is transpiled. Set to `false` to force a module to run as-is without
+   * transpilation (useful for large prebuilt CommonJS bundles such as Eruda or Monaco), or `true`
+   * to always transpile.
+   *
+   * @default `undefined`
+   */
+  readonly shouldTranspile?: boolean;
 }
 
 /**

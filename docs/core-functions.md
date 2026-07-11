@@ -78,6 +78,8 @@ await requireAsyncWrapper(async (require) => {
 
 The plugin is using [Smart caching](./smart-caching.md) feature, but if you have a code that is executed many times, you can try to speed it up via disabling cache invalidation. See the previous link to understand if it fits your needs.
 
+For large prebuilt `CommonJS` bundles, you can also [skip transpilation](./skip-transpilation.md) to avoid the `Babel` overhead entirely.
+
 ```js
 require('/someScript.js', { cacheInvalidationMode: 'never' });
 await requireAsync('/someScript.js', { cacheInvalidationMode: 'never' });

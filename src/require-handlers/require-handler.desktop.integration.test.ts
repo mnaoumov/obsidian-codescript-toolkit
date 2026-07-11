@@ -137,7 +137,12 @@ beforeAll(() => {
     [`${SCRIPTS_DIR}/npm-test/node_modules/fake-pkg/index.js`]: 'exports.name = "fake-pkg";',
     [`${SCRIPTS_DIR}/npm-test/node_modules/fake-pkg/package.json`]: JSON.stringify({ main: 'index.js', name: 'fake-pkg', version: '1.0.0' }),
     [`${SCRIPTS_DIR}/npm-test/package.json`]: JSON.stringify({ dependencies: { 'fake-pkg': '1.0.0' }, name: 'npm-test' }),
+    [`${SCRIPTS_DIR}/pkg-cjs/package.json`]: JSON.stringify({ name: 'pkg-cjs', type: 'commonjs' }),
+    [`${SCRIPTS_DIR}/pkg-cjs/probe.js`]: 'exports.isStrict = (function () { return this === undefined; })();',
+    [`${SCRIPTS_DIR}/pkg-esm/package.json`]: JSON.stringify({ name: 'pkg-esm', type: 'module' }),
+    [`${SCRIPTS_DIR}/pkg-esm/probe.js`]: 'export const value = \'esm-js-ok\';',
     [`${SCRIPTS_DIR}/relative-parent.cjs`]: 'const child = require(\'./nested/child.cjs\'); exports.childValue = child.child;',
+    [`${SCRIPTS_DIR}/strict-probe.cjs`]: 'exports.isStrict = (function () { return this === undefined; })();',
     [`${SCRIPTS_DIR}/top-level-await.mjs`]: 'const x = await Promise.resolve(99); export { x };'
   });
 });
@@ -1180,6 +1185,62 @@ describe('RequireHandler integration', () => {
       // The error should be a native loading error (invalid binary), not "unsupported module type"
       expect(result.errorMessage).not.toContain('unsupported');
       expect(result.errorMessage).toContain('not a valid Win32 application');
+    });
+  });
+
+  describe('transpilation opt-out', () => {
+    // A plain function's `this` is `undefined` under Babel's injected "use strict" directive but the
+    // global object when the module runs raw. It is a runtime signal for which path actually executed.
+    it('should run a .cjs module raw (no Babel) by default', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`//${dir}/strict-probe.cjs`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('isStrict', false);
+    });
+
+    it('should transpile a .cjs module through Babel when shouldTranspile is true', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`//${dir}/strict-probe.cjs`, { cacheInvalidationMode: 'always', shouldTranspile: true })) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('isStrict', true);
+    });
+
+    it('should run a .js module raw when its nearest package.json is CommonJS', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`//${dir}/pkg-cjs/probe.js`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('isStrict', false);
+    });
+
+    it('should transpile a .js module when its nearest package.json is an ESM module', async () => {
+      const result = await evalInObsidian({
+        args: { dir: SCRIPTS_DIR },
+        async fn({ dir }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          return (await requireAsync(`//${dir}/pkg-esm/probe.js`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'esm-js-ok');
     });
   });
 });
