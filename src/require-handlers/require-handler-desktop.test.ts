@@ -17,14 +17,8 @@ import {
 
 import type { RequireOptions } from '../types.ts';
 import type {
-  RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams,
-  RequireHandlerDesktopComponentRequireModuleParams,
-  RequireHandlerDesktopComponentRequireStringParams
-} from './require-handler-desktop.ts';
-import type {
   RequireFn,
   RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
-  RequireHandlerComponentBaseResolveParams,
   RequireHandlerConstructorParams
 } from './require-handler.ts';
 
@@ -127,7 +121,13 @@ interface GetTimestampAccessor {
 }
 
 interface GetUrlDependencyErrorMessageAccessor {
-  getUrlDependencyErrorMessage(params: RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams): string;
+  getUrlDependencyErrorMessage(params: GetUrlDependencyErrorMessageParams): string;
+}
+
+interface GetUrlDependencyErrorMessageParams {
+  readonly cacheInvalidationMode?: CacheInvalidationMode;
+  readonly path: string;
+  readonly resolvedId: string;
 }
 
 interface InitModuleAndAddToCacheAccessor {
@@ -229,7 +229,13 @@ interface RequireMdAccessor {
 }
 
 interface RequireModuleAccessor {
-  requireModule(params: RequireHandlerDesktopComponentRequireModuleParams): unknown;
+  requireModule(params: RequireModuleParams): unknown;
+}
+
+interface RequireModuleParams {
+  readonly moduleName: string;
+  readonly options: Partial<RequireOptions>;
+  readonly parentFolder: string;
 }
 
 interface RequirePathAccessor {
@@ -245,7 +251,7 @@ interface RequireSpecialModuleAccessor {
 }
 
 interface RequireStringAccessor {
-  requireString(params: RequireHandlerDesktopComponentRequireStringParams): unknown;
+  requireString(params: RequireStringParams): unknown;
 }
 
 interface RequireStringImplAccessor {
@@ -257,12 +263,22 @@ interface RequireStringImplResult {
   readonly promisable: unknown;
 }
 
+interface RequireStringParams {
+  readonly code: string;
+  readonly path: string;
+}
+
 interface RequireWasmAccessor {
   requireWasm(path: string): unknown;
 }
 
 interface ResolveAccessor {
-  resolve(params: RequireHandlerComponentBaseResolveParams): ResolveResult;
+  resolve(params: ResolveParams): ResolveResult;
+}
+
+interface ResolveParams {
+  readonly id: string;
+  readonly parentPath: string | undefined;
 }
 
 interface ResolveResult {

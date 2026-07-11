@@ -40,25 +40,25 @@ import {
   splitQuery
 } from './require-handler.ts';
 
-export interface RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams {
+type NodeFsModule = typeof import('node:fs');
+type NodeFsPromisesModule = typeof import('node:fs/promises');
+
+interface RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams {
   readonly cacheInvalidationMode?: CacheInvalidationMode;
   readonly path: string;
   readonly resolvedId: string;
 }
-export interface RequireHandlerDesktopComponentRequireModuleParams {
+
+interface RequireHandlerDesktopComponentRequireModuleParams {
   readonly moduleName: string;
   readonly options: Partial<RequireOptions>;
   readonly parentFolder: string;
 }
 
-export interface RequireHandlerDesktopComponentRequireStringParams {
+interface RequireHandlerDesktopComponentRequireStringParams {
   readonly code: string;
   readonly path: string;
 }
-
-type NodeFsModule = typeof import('node:fs');
-
-type NodeFsPromisesModule = typeof import('node:fs/promises');
 
 export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase {
   private _fs: NodeFsModule | null = null;

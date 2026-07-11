@@ -79,10 +79,6 @@ export enum ResolvedType {
 }
 
 export type RequireFn = typeof require;
-export interface RequireHandlerComponentBaseResolveParams {
-  readonly id: string;
-  readonly parentPath: string | undefined;
-}
 interface EmptyModule {
   [EMPTY_MODULE_SYMBOL]: boolean;
 }
@@ -102,7 +98,6 @@ interface GetModuleTypeFromContentTypeParams {
   readonly contentType: string | undefined;
   readonly url: string;
 }
-
 interface Module {
   exports: object;
 }
@@ -150,6 +145,11 @@ interface RequireHandlerComponentBaseRequireNonCachedAsyncParams {
   readonly id: string;
   readonly options: Partial<RequireOptions>;
   readonly type: ResolvedType;
+}
+
+interface RequireHandlerComponentBaseResolveParams {
+  readonly id: string;
+  readonly parentPath: string | undefined;
 }
 
 interface RequireHandlerComponentBaseResolveRelativeOrModuleParams {
