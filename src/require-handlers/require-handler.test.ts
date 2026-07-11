@@ -65,7 +65,7 @@ vi.mock('debuggable-eval', () => ({
   debuggableEval: mockDebuggableEval
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/link', () => ({
+vi.mock('obsidian-dev-utils/obsidian/parse-link', () => ({
   parseLink: mockParseLink
 }));
 

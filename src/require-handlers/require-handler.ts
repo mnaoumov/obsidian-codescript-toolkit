@@ -18,7 +18,7 @@ import {
 } from 'obsidian-dev-utils/object-utils';
 import { AllWindowsEventComponent } from 'obsidian-dev-utils/obsidian/components/all-windows-event-component';
 import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
-import { parseLink } from 'obsidian-dev-utils/obsidian/link';
+import { parseLink } from 'obsidian-dev-utils/obsidian/parse-link';
 import {
   basename,
   dirname,
