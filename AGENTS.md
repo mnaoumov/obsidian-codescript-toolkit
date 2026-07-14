@@ -1,6 +1,4 @@
-# Current Task
-
-None.
+# CLAUDE.md
 
 ## What's done
 
@@ -54,7 +52,3 @@ All features are now fully covered across code, docs, demo vault, and integratio
 - ~~Integration test gaps (WASM, ASAR, node binaries)~~ — **Done**
 - ~~Demo vault gap (`requireAsyncWrapper()`)~~ — **Done**
 - ~~Docs gap (plugin integrations)~~ — **Done** (added demo vault link to `docs/usage.md`; dedicated guide pages intentionally out of scope)
-
-## Known Issues
-
-None.
