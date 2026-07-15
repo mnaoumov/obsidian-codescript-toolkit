@@ -139,7 +139,7 @@ describe('CodeButtonContext integration', () => {
   it('should render markdown inside the container', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/render-markdown', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -171,7 +171,7 @@ describe('CodeButtonContext integration', () => {
   it('should insert markdown after the code button block', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/insert-after', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -210,7 +210,7 @@ describe('CodeButtonContext integration', () => {
   it('should insert markdown before the code button block', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/insert-before', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -249,7 +249,7 @@ describe('CodeButtonContext integration', () => {
   it('should remove the code button block from the note', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/remove-block', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -291,7 +291,7 @@ describe('CodeButtonContext integration', () => {
   it('should replace the code button block with new markdown', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/replace-block', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -339,7 +339,7 @@ describe('CodeButtonContext integration', () => {
   it('should auto-output the last expression when shouldAutoOutput is true', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/auto-output', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -375,7 +375,7 @@ describe('CodeButtonContext integration', () => {
   it('should wrap console output when shouldWrapConsole is true', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-ctx-notes/wrap-console', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -411,7 +411,7 @@ describe('CodeButtonContext integration', () => {
   it('should remove code button block after successful execution with removeAfterExecution.when: onSuccess', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__removeAfterSuccess');
 
         await app.workspace.openLinkText('_int-test-ctx-notes/remove-after-success', '', false);

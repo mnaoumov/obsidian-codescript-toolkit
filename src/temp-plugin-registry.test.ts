@@ -2,10 +2,8 @@ import type {
   App,
   PluginManifest
 } from 'obsidian';
-import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { Mock } from 'vitest';
 
 import {
@@ -52,20 +50,13 @@ interface MockPlugin {
   unload: ReturnType<typeof vi.fn>;
 }
 
-function createActiveFileProvider(): ActiveFileProvider {
-  return strictProxy<ActiveFileProvider>({
-    getActiveFile: vi.fn().mockReturnValue(null)
-  });
-}
-
 function createApp(): App {
   return strictProxy<App>({});
 }
 
-function createCommandRegistrar(): CommandRegistrar {
-  return strictProxy<CommandRegistrar>({
-    addCommand: vi.fn(),
-    removeCommand: vi.fn()
+function createCommandHandlerComponent(): CommandHandlerComponent {
+  return strictProxy<CommandHandlerComponent>({
+    registerCommandHandlers: vi.fn(() => ({ [Symbol.dispose]: vi.fn() }))
   });
 }
 
@@ -78,11 +69,8 @@ function createMockPlugin(): MockPlugin {
 
 function createRegistry(shouldShowTempPluginLoadUnloadNotices = true): TempPluginRegistryComponent {
   return new TempPluginRegistryComponent({
-    activeFileProvider: createActiveFileProvider(),
     app: createApp(),
-    commandRegistrar: createCommandRegistrar(),
-    menuEventRegistrar: strictProxy<MenuEventRegistrar>({}),
-    pluginName: 'test-plugin',
+    commandHandlerComponent: createCommandHandlerComponent(),
     pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
       showNotice: showNoticeMock
     }),
@@ -165,6 +153,31 @@ describe('TempPluginRegistry', () => {
 
       expect(result).not.toBeNull();
       expect(mockPlugin.load).toHaveBeenCalledOnce();
+    });
+
+    it('should register the unload command on register and dispose it on unload', async () => {
+      const disposeMock = vi.fn();
+      const registerCommandHandlersMock = vi.fn(() => ({ [Symbol.dispose]: disposeMock }));
+      const localRegistry = new TempPluginRegistryComponent({
+        app: createApp(),
+        commandHandlerComponent: strictProxy<CommandHandlerComponent>({
+          registerCommandHandlers: registerCommandHandlersMock
+        }),
+        pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
+          showNotice: showNoticeMock
+        }),
+        pluginSettingsComponent: strictProxy<PluginSettingsComponent>({
+          settings: strictProxy<PluginSettingsComponent['settings']>({ shouldShowTempPluginLoadUnloadNotices: true })
+        })
+      });
+      const mockPlugin = createMockPlugin();
+      const tempPluginClass = createTempPluginClass('DisposePlugin', mockPlugin);
+
+      await localRegistry.registerTempPlugin({ tempPluginClass });
+      expect(registerCommandHandlersMock).toHaveBeenCalledOnce();
+
+      localRegistry.unloadTempPlugins();
+      expect(disposeMock).toHaveBeenCalledOnce();
     });
 
     it('should not show load notice when shouldShowTempPluginLoadUnloadNotices is false', async () => {

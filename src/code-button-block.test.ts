@@ -697,7 +697,6 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should throw when makeWrapperScript babel transform fails', async () => {
       // Import and override the SequentialBabelPlugin mock to return an error
-      // eslint-disable-next-line no-restricted-syntax -- dynamic import needed to override mock at runtime
       const babelModule = await import('./babel/combine-babel-plugins.ts');
       vi.spyOn(babelModule.SequentialBabelPlugin.prototype, 'transform').mockReturnValueOnce({
         data: {},

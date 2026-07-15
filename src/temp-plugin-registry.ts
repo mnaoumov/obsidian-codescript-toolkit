@@ -2,15 +2,12 @@ import type {
   App,
   Plugin as ObsidianPlugin
 } from 'obsidian';
-import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 
 import { Notice } from 'obsidian';
 import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
 import { printError } from 'obsidian-dev-utils/error';
-import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
@@ -27,11 +24,8 @@ type LoadFn = () => Promise<void>;
 const DEFAULT_TEMP_PLUGIN_CLASS_NAME = '_AnonymousPlugin';
 
 interface TempPluginRegistryComponentConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
+  readonly commandHandlerComponent: CommandHandlerComponent;
   readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
 }
@@ -39,11 +33,8 @@ interface TempPluginRegistryComponentConstructorParams {
 type TempPluginRegistryComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
 
 export class TempPluginRegistryComponent extends ComponentEx {
-  private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
-  private readonly commandRegistrar: CommandRegistrar;
-  private readonly menuEventRegistrar: MenuEventRegistrar;
-  private readonly pluginName: string;
+  private readonly commandHandlerComponent: CommandHandlerComponent;
   private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly tempPlugins = new Map<string, ObsidianPlugin>();
@@ -51,10 +42,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
   public constructor(params: TempPluginRegistryComponentConstructorParams) {
     super();
     this.app = params.app;
-    this.pluginName = params.pluginName;
-    this.commandRegistrar = params.commandRegistrar;
-    this.menuEventRegistrar = params.menuEventRegistrar;
-    this.activeFileProvider = params.activeFileProvider;
+    this.commandHandlerComponent = params.commandHandlerComponent;
     this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
   }
@@ -71,7 +59,6 @@ export class TempPluginRegistryComponent extends ComponentEx {
     const pluginNoticeComponent = this.pluginNoticeComponent;
     const pluginSettingsComponent = this.pluginSettingsComponent;
     const tempPlugins = this.tempPlugins;
-    const removeChild = this.removeChild.bind(this);
 
     const tempPluginClassName = getTempPluginClassName(params.tempPluginClass);
     const id = makeTempPluginId(tempPluginClassName);
@@ -97,15 +84,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
       tempPlugin,
       tempPluginClassName
     });
-    const unloadTempPluginCommandHandlerComponent = this.addChild(
-      new CommandHandlerComponent({
-        activeFileProvider: this.activeFileProvider,
-        commandHandlers: [unloadTempPluginCommandHandler],
-        commandRegistrar: this.commandRegistrar,
-        menuEventRegistrar: this.menuEventRegistrar,
-        pluginName: this.pluginName
-      })
-    );
+    const unloadTempPluginCommandHandlerDisposable = this.commandHandlerComponent.registerCommandHandlers([unloadTempPluginCommandHandler]);
 
     const originalUnload = tempPlugin.unload.bind(tempPlugin);
     tempPlugin.unload = (): void => {
@@ -164,7 +143,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
 
     function tempPluginUnload(shouldShowUnloadNotice: boolean): void {
       tempPlugins.delete(id);
-      removeChild(unloadTempPluginCommandHandlerComponent);
+      unloadTempPluginCommandHandlerDisposable[Symbol.dispose]();
       if (shouldShowUnloadNotice && pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
         pluginNoticeComponent.showNotice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       }

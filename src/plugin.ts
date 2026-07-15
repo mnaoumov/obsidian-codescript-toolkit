@@ -1,8 +1,4 @@
-import { AppActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
-import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import { OpenSettingsCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler';
-import { PluginCommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
-import { MenuEventRegistrarComponent } from 'obsidian-dev-utils/obsidian/components/menu-event-registrar-component';
 import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
 import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { PluginMarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
@@ -30,9 +26,6 @@ import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 export class Plugin extends PluginBase {
   protected override onloadImpl(): void {
     const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);
-    const activeFileProvider = new AppActiveFileProvider(this.app);
-    const commandRegistrar = new PluginCommandRegistrar(this);
-    const menuEventRegistrar = this.addChild(new MenuEventRegistrarComponent(this.app));
 
     const pluginSettingsComponent = this.addChild(
       new PluginSettingsComponent({
@@ -44,11 +37,8 @@ export class Plugin extends PluginBase {
 
     const tempPluginRegistry = this.addChild(
       new TempPluginRegistryComponent({
-        activeFileProvider,
         app: this.app,
-        commandRegistrar,
-        menuEventRegistrar,
-        pluginName: this.manifest.name,
+        commandHandlerComponent: this.commandHandlerComponent,
         pluginNoticeComponent: this.pluginNoticeComponent,
         pluginSettingsComponent
       })
@@ -75,12 +65,9 @@ export class Plugin extends PluginBase {
 
     const scriptRegistry = this.addChild(
       new ScriptRegistryComponent({
-        activeFileProvider,
         app: this.app,
-        commandRegistrar,
+        commandHandlerComponent: this.commandHandlerComponent,
         consoleDebugComponent: this.consoleDebugComponent,
-        menuEventRegistrar,
-        pluginName: this.manifest.name,
         pluginNoticeComponent: this.pluginNoticeComponent,
         pluginSettingsComponent,
         RequireHandlerFactoryComponent: requireHandlerFactory
@@ -110,25 +97,17 @@ export class Plugin extends PluginBase {
       })
     );
 
-    this.addChild(
-      new CommandHandlerComponent({
-        activeFileProvider,
-        commandHandlers: [
-          new ClearCacheCommandHandler(requireHandlerFactory),
-          new InsertSampleCodeButtonCommandHandler(),
-          new InvokeScriptChooseCommandHandler(scriptManager),
-          new OpenSettingsCommandHandler({
-            app: this.app,
-            settingTab: pluginSettingsTab
-          }),
-          new ReloadStartupScriptCommandHandler(startupScriptComponent),
-          new UnloadTempPluginsCommandHandler(tempPluginRegistry)
-        ],
-        commandRegistrar,
-        menuEventRegistrar,
-        pluginName: this.manifest.name
-      })
-    );
+    this.commandHandlerComponent.registerCommandHandlers([
+      new ClearCacheCommandHandler(requireHandlerFactory),
+      new InsertSampleCodeButtonCommandHandler(),
+      new InvokeScriptChooseCommandHandler(scriptManager),
+      new OpenSettingsCommandHandler({
+        app: this.app,
+        settingTab: pluginSettingsTab
+      }),
+      new ReloadStartupScriptCommandHandler(startupScriptComponent),
+      new UnloadTempPluginsCommandHandler(tempPluginRegistry)
+    ]);
 
     this.addChild(
       new ProtocolHandlerComponent({

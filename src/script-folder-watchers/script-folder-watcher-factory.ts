@@ -20,10 +20,8 @@ export class ScriptFolderWatcherFactoryComponent extends ComponentEx {
 
   public override async onloadAsync(): Promise<void> {
     if (document.body.hasClass('emulate-mobile') || Platform.isMobile) {
-      // eslint-disable-next-line no-restricted-syntax -- We need dynamic import.
       this._platformScriptFolderWatcher = new (await import('./script-folder-watcher-mobile.ts')).ScriptFolderWatcherMobileComponent(this.params);
     } else {
-      // eslint-disable-next-line no-restricted-syntax -- We need dynamic import.
       this._platformScriptFolderWatcher = new (await import('./script-folder-watcher-desktop.ts')).ScriptFolderWatcherDesktopComponent(this.params);
     }
 

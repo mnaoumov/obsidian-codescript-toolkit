@@ -163,7 +163,7 @@ describe('ScriptRegistry integration', () => {
     // Open a markdown file to ensure an active editor exists
     await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, invocablesFolder: INVOCABLES_FOLDER, modulesRoot: MODULES_ROOT, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, invocablesFolder, modulesRoot, obsidianModule, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, invocablesFolder, lib: { waitUntil }, modulesRoot, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText(`${modulesRoot}/${invocablesFolder}/scratch`, '', false);
 
         await waitUntil({
@@ -177,7 +177,7 @@ describe('ScriptRegistry integration', () => {
 
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, pluginId: PLUGIN_ID, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, pluginId, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, pluginId, timeoutMs }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-callback'));
 
@@ -216,7 +216,7 @@ describe('ScriptRegistry integration', () => {
     // The previous test already opened a markdown file — editor should still be active
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, pluginId: PLUGIN_ID, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, pluginId, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, pluginId, timeoutMs }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-check-callback'));
 

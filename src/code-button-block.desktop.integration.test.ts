@@ -60,7 +60,7 @@ describe('CodeButtonBlock integration', () => {
   it('should render a code button in markdown', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-buttons/basic', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -95,7 +95,7 @@ describe('CodeButtonBlock integration', () => {
   it('should auto-run code button with shouldAutoRun: true', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__autoRunResult');
 
         await app.workspace.openLinkText('_int-test-buttons/auto-run', '', false);
@@ -123,7 +123,7 @@ describe('CodeButtonBlock integration', () => {
   it('should execute isRaw code button without visible button', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, obsidianModule, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         Reflect.deleteProperty(window, '__rawResult');
 
         await app.workspace.openLinkText('_int-test-buttons/raw', '', false);
@@ -157,7 +157,7 @@ describe('CodeButtonBlock integration', () => {
   it('should transform import statements in code buttons', async () => {
     const result = await evalInObsidian({
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      async fn({ app, intervalMs, timeoutMs, waitUntil }) {
+      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__importResult');
 
         await app.workspace.openLinkText('_int-test-buttons/with-import', '', false);
