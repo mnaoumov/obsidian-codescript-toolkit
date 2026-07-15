@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 ## What's done
 
