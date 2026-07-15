@@ -50,6 +50,7 @@ import type {
   RequireExFn,
   RequireOptions
 } from '../types.ts';
+import type { CheckShouldTranspileParams } from './check-should-transpile.ts';
 
 import { SequentialBabelPlugin } from '../babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from '../babel/convert-to-common-js-babel-plugin.ts';
@@ -70,6 +71,11 @@ import {
   CacheInvalidationMode,
   ModuleType
 } from '../types.ts';
+import {
+  checkShouldTranspile,
+  ESM_SYNTAX_REG_EXP
+} from './check-should-transpile.ts';
+import { splitQuery } from './split-query.ts';
 
 export enum ResolvedType {
   Module = 'module',
@@ -79,11 +85,6 @@ export enum ResolvedType {
 }
 
 export type RequireFn = typeof require;
-interface CheckShouldTranspileParams {
-  readonly code: string;
-  readonly path: string;
-  readonly shouldTranspile?: boolean | undefined;
-}
 interface EmptyModule {
   [EMPTY_MODULE_SYMBOL]: boolean;
 }
@@ -207,11 +208,6 @@ interface ScriptWrapperContext {
   requireAsyncWrapper: RequireAsyncWrapperFn;
 }
 
-interface SplitQueryResult {
-  readonly cleanStr: string;
-  readonly query: string;
-}
-
 const CALLER_LINE_INDEX = 4;
 
 export const ENTRY_POINT = '.';
@@ -236,10 +232,8 @@ const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertA
 const WILDCARD_MODULE_CONDITION_SUFFIX = '/*';
 const VAULT_ROOT_PREFIX = '//';
 const DUMMY_FILE_NAME = 'dummy.md';
-const COMMON_JS_EXTENSION = '.cjs';
 const JS_EXTENSION = '.js';
 const ESM_PACKAGE_TYPE = 'module';
-const ESM_SYNTAX_REG_EXP = /(?:^|[^.\w$])(?:import|export)\b/;
 
 export interface RequireHandler extends ComponentEx {
   clearCache(): void;
@@ -1399,21 +1393,6 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 }
 
-export function checkShouldTranspile(params: CheckShouldTranspileParams): boolean {
-  if (params.shouldTranspile !== undefined) {
-    return params.shouldTranspile;
-  }
-
-  // Without a package.json, only `.cjs` is unambiguously CommonJS: top-level await is illegal in it, so a valid `.cjs` never needs the transpiled async wrapper.
-  // Skip transpilation for `.cjs` unless it uses ESM-only or dynamic-import syntax.
-  // Everything else defaults to transpiling; the async resolver refines a bare `.js` via the nearest package.json before this is reached.
-  if (extname(splitQuery(params.path).cleanStr) === COMMON_JS_EXTENSION) {
-    return ESM_SYNTAX_REG_EXP.test(params.code);
-  }
-
-  return true;
-}
-
 export function extractCodeScript(params: ExtractCodeScriptParams): ExtractCodeScriptResult {
   const { md, path } = params;
   const processor = remark().use(remarkParse);
@@ -1474,14 +1453,6 @@ export function getModuleTypeFromPath(path: string): ModuleType {
     default:
       throw new Error(`Unsupported file extension: '${ext}'.`);
   }
-}
-
-export function splitQuery(str: string): SplitQueryResult {
-  const queryIndex = str.indexOf('?');
-  return {
-    cleanStr: queryIndex === -1 ? str : str.slice(0, queryIndex),
-    query: queryIndex === -1 ? '' : str.slice(queryIndex)
-  };
 }
 
 function convertPathToObsidianUrl(path: string): string {

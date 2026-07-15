@@ -6,10 +6,8 @@ import type {
   RequireHandlerComponentBaseRequireNonCachedParams
 } from './require-handler.ts';
 
-import {
-  RequireHandlerComponentBase,
-  splitQuery
-} from './require-handler.ts';
+import { RequireHandlerComponentBase } from './require-handler.ts';
+import { splitQuery } from './split-query.ts';
 
 export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
   private get capacitorAdapter(): CapacitorAdapter {
