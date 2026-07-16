@@ -11,7 +11,9 @@ import { RequireHandlerComponentBase } from './require-handler.ts';
 type RequireHandlerEmulateMobileComponentConstructorParams = RequireHandlerConstructorParams;
 
 export class RequireHandlerEmulateMobileComponent extends RequireHandlerComponentBase {
+  protected override readonly canRequireSync: boolean = false;
   private readonly desktopRequireHandler: RequireHandlerDesktopComponent;
+
   private readonly mobileRequireHandler: RequireHandlerMobileComponent;
 
   public constructor(params: RequireHandlerEmulateMobileComponentConstructorParams) {

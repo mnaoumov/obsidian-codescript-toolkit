@@ -32,7 +32,7 @@ import {
   trimEnd,
   trimStart
 } from 'obsidian-dev-utils/string';
-import { typeAsserter } from 'obsidian-dev-utils/type';
+import { TypeAsserter } from 'obsidian-dev-utils/type';
 import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import { isUrl } from 'obsidian-dev-utils/url';
 import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
@@ -220,7 +220,7 @@ export const PRIVATE_MODULE_PREFIX = '#';
 export const RELATIVE_MODULE_PATH_SEPARATOR = '/';
 export const SCOPED_MODULE_PREFIX = '@';
 const WINDOWS_DRIVE_LETTER_PATH_REG_EXP = /^[a-zA-Z]:\//;
-const SCRIPT_WRAPPER_CONTEXT_KEYS = typeAsserter<ScriptWrapperContext>().assertAllKeys([
+const SCRIPT_WRAPPER_CONTEXT_KEYS = new TypeAsserter<ScriptWrapperContext>().assertAllKeys([
   '__dirname',
   '__filename',
   'require',
@@ -283,10 +283,12 @@ type RequireHandlerComponentBaseResolveShouldTranspileAsyncParams = CheckShouldT
 
 export abstract class RequireHandlerComponentBase extends ComponentEx implements RequireHandler {
   protected readonly app: App;
+  protected readonly canRequireSync: boolean = true;
   protected readonly currentModulesTimestampChain = new Set<string>();
   protected readonly moduleDependencies = new Map<string, Set<string>>();
   protected modulesCache: NodeJS.Dict<NodeJS.Module> = {};
   protected readonly moduleTimestamps = new Map<string, number>();
+
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
   protected get requireEx(): RequireExFn {
     if (!this._requireEx) {
@@ -588,7 +590,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const filename = isUrl(options.path) ? options.path : basename(options.path);
     const url = convertPathToObsidianUrl(options.path) + options.urlSuffix;
 
-    const shouldTranspile = checkShouldTranspile({ code: options.code, path: options.path, shouldTranspile: options.shouldTranspile });
+    const shouldTranspile = checkShouldTranspile({ canRequireSync: this.canRequireSync, code: options.code, path: options.path, shouldTranspile: options.shouldTranspile });
 
     let wrappedCode: string;
     if (shouldTranspile) {
@@ -1358,7 +1360,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       return ESM_SYNTAX_REG_EXP.test(params.code);
     }
 
-    return checkShouldTranspile({ code: params.code, path: params.path });
+    return checkShouldTranspile({ canRequireSync: this.canRequireSync, code: params.code, path: params.path });
   }
 
   private resolveUrl(id: string): null | ResolveResult {

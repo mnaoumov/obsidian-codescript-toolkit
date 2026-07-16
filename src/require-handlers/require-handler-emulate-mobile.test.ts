@@ -61,6 +61,10 @@ interface CanRequireNonCachedAccessor {
   canRequireNonCached(): boolean;
 }
 
+interface CanRequireSyncAccessor {
+  readonly canRequireSync: boolean;
+}
+
 interface ExistsFileAsyncAccessor {
   existsFileAsync(path: string): Promise<boolean>;
 }
@@ -104,6 +108,10 @@ interface RequireNonCachedAccessor {
 function asCanRequireNonCached(obj: RequireHandlerEmulateMobileComponent): CanRequireNonCachedAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
   return obj as unknown as CanRequireNonCachedAccessor;
+}
+
+function asCanRequireSync(obj: RequireHandlerEmulateMobileComponent): CanRequireSyncAccessor {
+  return castTo<CanRequireSyncAccessor>(obj);
 }
 
 function asExistsFileAsync(obj: RequireHandlerEmulateMobileComponent): ExistsFileAsyncAccessor {
@@ -180,6 +188,12 @@ describe('RequireHandlerEmulateMobileComponent', () => {
       const result = asCanRequireNonCached(handler).canRequireNonCached();
       expect(result).toBe(false);
       expect(mockMobileCanRequireNonCached).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('canRequireSync', () => {
+    it('should return false', () => {
+      expect(asCanRequireSync(handler).canRequireSync).toBe(false);
     });
   });
 

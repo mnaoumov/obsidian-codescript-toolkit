@@ -75,7 +75,7 @@ function createRegistry(overrides?: CreateRegistryOverrides): ScriptRegistryComp
   return new ScriptRegistryComponent({
     app: overrides?.app ?? createApp(),
     commandHandlerComponent: strictProxy<CommandHandlerComponent>({
-      registerCommandHandlers: vi.fn(() => ({ [Symbol.dispose]: vi.fn() }))
+      registerCommandHandlers: vi.fn(() => ({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() }))
     }),
     consoleDebugComponent: overrides?.consoleDebugComponent ?? createConsoleDebugComponent(),
     pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
