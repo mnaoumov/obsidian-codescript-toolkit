@@ -6,12 +6,12 @@ import type {
   RequireHandlerComponentBaseRequireNonCachedParams
 } from './require-handler.ts';
 
-import {
-  RequireHandlerComponentBase,
-  splitQuery
-} from './require-handler.ts';
+import { RequireHandlerComponentBase } from './require-handler.ts';
+import { splitQuery } from './split-query.ts';
 
 export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
+  protected override readonly canRequireSync: boolean = false;
+
   private get capacitorAdapter(): CapacitorAdapter {
     const adapter = this.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {

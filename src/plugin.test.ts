@@ -2,6 +2,7 @@ import type {
   App as AppOriginal,
   PluginManifest
 } from 'obsidian';
+import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
@@ -19,20 +20,8 @@ import {
 
 import { Plugin } from './plugin.ts';
 
-vi.mock('obsidian-dev-utils/obsidian/active-file-provider', () => ({
-  AppActiveFileProvider: vi.fn()
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/command-handlers/command-handler-component', () => ({
-  CommandHandlerComponent: vi.fn()
-}));
-
 vi.mock('obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler', () => ({
   OpenSettingsCommandHandler: vi.fn()
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/command-registrar', () => ({
-  PluginCommandRegistrar: vi.fn()
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/data-handler', () => ({
@@ -41,10 +30,6 @@ vi.mock('obsidian-dev-utils/obsidian/data-handler', () => ({
 
 vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar', () => ({
   PluginMarkdownCodeBlockProcessorRegistrar: vi.fn()
-}));
-
-vi.mock('obsidian-dev-utils/obsidian/components/menu-event-registrar-component', () => ({
-  MenuEventRegistrarComponent: vi.fn()
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar', () => ({
@@ -120,6 +105,7 @@ vi.mock('./temp-plugin-registry.ts', () => ({
 }));
 
 interface PluginPrivateApi {
+  _commandHandlerComponent: CommandHandlerComponent;
   consoleDebugComponent: ConsoleDebugComponent;
   onloadImpl(): void;
   pluginNoticeComponent: PluginNoticeComponent;
@@ -136,7 +122,8 @@ const manifest: PluginManifest = {
 };
 
 describe('Plugin', () => {
-  const EXPECTED_ADD_CHILD_COUNT = 12;
+  const EXPECTED_ADD_CHILD_COUNT = 10;
+  const EXPECTED_COMMAND_HANDLER_COUNT = 6;
 
   let app: AppOriginal;
 
@@ -153,6 +140,13 @@ describe('Plugin', () => {
     castTo<PluginPrivateApi>(plugin).consoleDebugComponent = strictProxy<ConsoleDebugComponent>({});
     castTo<PluginPrivateApi>(plugin).pluginNoticeComponent = strictProxy<PluginNoticeComponent>({});
     castTo<PluginPrivateApi>(plugin).resourceLockComponent = strictProxy<ResourceLockComponent>({});
+    /*
+     * The command handler component is normally wired by the base `onload()` before `onloadImpl` runs.
+     * Seed it so `onloadImpl` can register its commands on the shared component in isolation.
+     */
+    castTo<PluginPrivateApi>(plugin)._commandHandlerComponent = strictProxy<CommandHandlerComponent>({
+      registerCommandHandlers: vi.fn()
+    });
     return plugin;
   }
 
@@ -163,6 +157,16 @@ describe('Plugin', () => {
     castTo<PluginPrivateApi>(plugin).onloadImpl();
 
     expect(addChildSpy).toHaveBeenCalledTimes(EXPECTED_ADD_CHILD_COUNT);
+  });
+
+  it('should register the command handlers on the shared command handler component', () => {
+    const plugin = createPlugin();
+
+    castTo<PluginPrivateApi>(plugin).onloadImpl();
+
+    const { registerCommandHandlers } = castTo<PluginPrivateApi>(plugin)._commandHandlerComponent;
+    expect(registerCommandHandlers).toHaveBeenCalledOnce();
+    expect(vi.mocked(registerCommandHandlers).mock.calls[0]?.[0]).toHaveLength(EXPECTED_COMMAND_HANDLER_COUNT);
   });
 
   it('should assign app from constructor argument', () => {

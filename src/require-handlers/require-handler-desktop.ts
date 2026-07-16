@@ -36,9 +36,9 @@ import {
   RELATIVE_MODULE_PATH_SEPARATOR,
   RequireHandlerComponentBase,
   ResolvedType,
-  SCOPED_MODULE_PREFIX,
-  splitQuery
+  SCOPED_MODULE_PREFIX
 } from './require-handler.ts';
+import { splitQuery } from './split-query.ts';
 
 type NodeFsModule = typeof import('node:fs');
 type NodeFsPromisesModule = typeof import('node:fs/promises');

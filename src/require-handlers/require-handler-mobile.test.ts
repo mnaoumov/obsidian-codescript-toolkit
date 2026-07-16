@@ -62,6 +62,10 @@ vi.mock('../code-script-toolkit-module-impl.ts', () => ({
   CodeScriptToolkitModuleImpl: vi.fn()
 }));
 
+interface CanRequireSyncAccessor {
+  readonly canRequireSync: boolean;
+}
+
 interface ExistsFileAsyncAccessor {
   existsFileAsync(path: string): Promise<boolean>;
 }
@@ -80,6 +84,10 @@ interface ReadFileAsyncAccessor {
 
 interface ReadFileBinaryAsyncAccessor {
   readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
+}
+
+function asCanRequireSync(obj: RequireHandlerMobileComponent): CanRequireSyncAccessor {
+  return castTo<CanRequireSyncAccessor>(obj);
 }
 
 function asExistsFileAsync(obj: RequireHandlerMobileComponent): ExistsFileAsyncAccessor {
@@ -147,6 +155,13 @@ describe('RequireHandlerMobileComponent', () => {
     it('should return false', () => {
       handler = createHandler();
       expect(handler.canRequireNonCached()).toBe(false);
+    });
+  });
+
+  describe('canRequireSync', () => {
+    it('should return false', () => {
+      handler = createHandler();
+      expect(asCanRequireSync(handler).canRequireSync).toBe(false);
     });
   });
 

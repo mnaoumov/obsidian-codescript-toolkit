@@ -26,8 +26,8 @@ import {
   CacheInvalidationMode,
   ModuleType
 } from '../types.ts';
+import { checkShouldTranspile } from './check-should-transpile.ts';
 import {
-  checkShouldTranspile,
   ENTRY_POINT,
   EXTENSIONS,
   extractCodeScript,
@@ -39,9 +39,9 @@ import {
   RELATIVE_MODULE_PATH_SEPARATOR,
   RequireHandlerComponentBase,
   ResolvedType,
-  SCOPED_MODULE_PREFIX,
-  splitQuery
+  SCOPED_MODULE_PREFIX
 } from './require-handler.ts';
+import { splitQuery } from './split-query.ts';
 
 const { mockDebuggableEval, mockParseLink, mockRequestUrl } = vi.hoisted(() => ({
   mockDebuggableEval: vi.fn(),
@@ -247,6 +247,23 @@ describe('checkShouldTranspile', () => {
 
   it('should strip a query before checking the extension', () => {
     expect(checkShouldTranspile({ code: 'module.exports = {};', path: 'vendor/eruda.cjs?v=1' })).toBe(false);
+  });
+
+  it('should transpile a .cjs file that calls require() when synchronous require is unavailable (mobile)', () => {
+    expect(checkShouldTranspile({ canRequireSync: false, code: 'const child = require("./child.cjs"); exports.value = child.value;', path: 'relative-parent.cjs' })).toBe(true);
+  });
+
+  it('should still skip a require()-calling .cjs file when synchronous require is available (desktop)', () => {
+    expect(checkShouldTranspile({ canRequireSync: true, code: 'const child = require("./child.cjs");', path: 'relative-parent.cjs' })).toBe(false);
+    expect(checkShouldTranspile({ code: 'const child = require("./child.cjs");', path: 'relative-parent.cjs' })).toBe(false);
+  });
+
+  it('should skip a .cjs file with no require() call even when synchronous require is unavailable (mobile)', () => {
+    expect(checkShouldTranspile({ canRequireSync: false, code: 'module.exports = { a: 1 };', path: 'vendor/eruda.cjs' })).toBe(false);
+  });
+
+  it('should not treat a dotted `.require(` member call as a bare require() when synchronous require is unavailable', () => {
+    expect(checkShouldTranspile({ canRequireSync: false, code: 'module.exports = obj.require(x);', path: 'file.cjs' })).toBe(false);
   });
 });
 

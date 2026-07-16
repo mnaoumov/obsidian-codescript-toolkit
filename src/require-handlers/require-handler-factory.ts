@@ -30,13 +30,10 @@ export class RequireHandlerFactoryComponent extends ComponentEx implements Requi
     await super.onloadAsync();
 
     if (document.body.hasClass('emulate-mobile')) {
-      // eslint-disable-next-line no-restricted-syntax -- We need dynamic import.
       this._platformRequireHandler = new (await import('./require-handler-emulate-mobile.ts')).RequireHandlerEmulateMobileComponent(this.params);
     } else if (Platform.isMobile) {
-      // eslint-disable-next-line no-restricted-syntax -- We need dynamic import.
       this._platformRequireHandler = new (await import('./require-handler-mobile.ts')).RequireHandlerMobileComponent(this.params);
     } else {
-      // eslint-disable-next-line no-restricted-syntax -- We need dynamic import.
       this._platformRequireHandler = new (await import('./require-handler-desktop.ts')).RequireHandlerDesktopComponent(this.params);
     }
 

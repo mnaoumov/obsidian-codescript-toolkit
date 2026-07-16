@@ -2,18 +2,15 @@ import type {
   Command,
   IconName
 } from 'obsidian';
-import type { ActiveFileProvider } from 'obsidian-dev-utils/obsidian/active-file-provider';
-import type { CommandRegistrar } from 'obsidian-dev-utils/obsidian/command-registrar';
+import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
 import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
-import type { MenuEventRegistrar } from 'obsidian-dev-utils/obsidian/menu-event-registrar';
 import type { Promisable } from 'type-fest';
 
 import { App } from 'obsidian';
 import { printError } from 'obsidian-dev-utils/error';
 import { noopAsync } from 'obsidian-dev-utils/function';
 import { CommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler';
-import { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
 import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
@@ -55,12 +52,9 @@ interface InvokeCommand extends Command {
 }
 
 interface ScriptComponentConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
+  readonly commandHandlerComponent: CommandHandlerComponent;
   readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
   readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly relativeScriptPath: string;
   readonly scriptOrCommand: Partial<ScriptOrCommand>;
@@ -71,12 +65,9 @@ interface ScriptOrCommand extends Partial<Script> {
 }
 
 interface ScriptRegistryComponentConstructorParams {
-  readonly activeFileProvider: ActiveFileProvider;
   readonly app: App;
-  readonly commandRegistrar: CommandRegistrar;
+  readonly commandHandlerComponent: CommandHandlerComponent;
   readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly menuEventRegistrar: MenuEventRegistrar;
-  readonly pluginName: string;
   readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
@@ -193,12 +184,9 @@ class FunctionWrapperCommandHandler extends GlobalCommandHandler implements Wrap
 
 class WrapperCommandHandlerComponent extends ComponentEx {
   private _wrapperCommandHandler?: WrapperCommandHandler;
-  private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
-  private readonly commandRegistrar: CommandRegistrar;
+  private readonly commandHandlerComponent: CommandHandlerComponent;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
-  private readonly menuEventRegistrar: MenuEventRegistrar;
-  private readonly pluginName: string;
   private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly relativeScriptPath: string;
   private readonly scriptOrCommand: Partial<ScriptOrCommand>;
@@ -213,10 +201,7 @@ class WrapperCommandHandlerComponent extends ComponentEx {
     this.relativeScriptPath = params.relativeScriptPath;
     this.app = params.app;
     this.consoleDebugComponent = params.consoleDebugComponent;
-    this.activeFileProvider = params.activeFileProvider;
-    this.commandRegistrar = params.commandRegistrar;
-    this.menuEventRegistrar = params.menuEventRegistrar;
-    this.pluginName = params.pluginName;
+    this.commandHandlerComponent = params.commandHandlerComponent;
     this.pluginNoticeComponent = params.pluginNoticeComponent;
   }
 
@@ -255,25 +240,17 @@ class WrapperCommandHandlerComponent extends ComponentEx {
       throw new Error(`${this.relativeScriptPath} does not export invoke() function`);
     }
 
-    const commandHandlerComponent = new CommandHandlerComponent({
-      activeFileProvider: this.activeFileProvider,
-      commandHandlers: [this.wrapperCommandHandler],
-      commandRegistrar: this.commandRegistrar,
-      menuEventRegistrar: this.menuEventRegistrar,
-      pluginName: this.pluginName
+    const disposable = this.commandHandlerComponent.registerCommandHandlers([this.wrapperCommandHandler]);
+    this.register(() => {
+      disposable[Symbol.dispose]();
     });
-
-    this.addChild(commandHandlerComponent);
   }
 }
 
 export class ScriptRegistryComponent extends ComponentEx {
-  private readonly activeFileProvider: ActiveFileProvider;
   private readonly app: App;
-  private readonly commandRegistrar: CommandRegistrar;
+  private readonly commandHandlerComponent: CommandHandlerComponent;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
-  private readonly menuEventRegistrar: MenuEventRegistrar;
-  private readonly pluginName: string;
   private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly registeredWrapperCommandHandlerComponents = new Map<string, WrapperCommandHandlerComponent>();
@@ -282,11 +259,8 @@ export class ScriptRegistryComponent extends ComponentEx {
   public constructor(params: ScriptRegistryComponentConstructorParams) {
     super();
     this.app = params.app;
-    this.commandRegistrar = params.commandRegistrar;
+    this.commandHandlerComponent = params.commandHandlerComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
-    this.activeFileProvider = params.activeFileProvider;
-    this.menuEventRegistrar = params.menuEventRegistrar;
-    this.pluginName = params.pluginName;
     this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
@@ -313,12 +287,9 @@ export class ScriptRegistryComponent extends ComponentEx {
     }
 
     const wrapperCommandHandlerComponent = new WrapperCommandHandlerComponent({
-      activeFileProvider: this.activeFileProvider,
       app: this.app,
-      commandRegistrar: this.commandRegistrar,
+      commandHandlerComponent: this.commandHandlerComponent,
       consoleDebugComponent: this.consoleDebugComponent,
-      menuEventRegistrar: this.menuEventRegistrar,
-      pluginName: this.pluginName,
       pluginNoticeComponent: this.pluginNoticeComponent,
       relativeScriptPath,
       scriptOrCommand
