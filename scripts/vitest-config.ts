@@ -1,6 +1,11 @@
 import { defineConfig } from 'vitest/config';
 
 const SHARED_EXCLUDE = ['node_modules', 'dist'];
+const NO_WEBSTORAGE_EXEC_ARGV = process.allowedNodeEnvironmentFlags.has(
+    '--webstorage'
+  )
+  ? ['--no-webstorage']
+  : [];
 const BIG_TIMEOUT_IN_MILLISECONDS = 30_000;
 const ANDROID_TIMEOUT_IN_MILLISECONDS = 60_000;
 const PERFORMANCE_TIMEOUT_IN_MILLISECONDS = 600_000;
@@ -31,7 +36,7 @@ export const config = defineConfig({
         test: {
           environment: 'jsdom',
           exclude: [...SHARED_EXCLUDE, 'src/**/*.integration.test.ts'],
-          execArgv: ['--no-webstorage'],
+          execArgv: NO_WEBSTORAGE_EXEC_ARGV,
           include: ['src/**/*.test.ts'],
           name: 'unit-tests',
           server: {
