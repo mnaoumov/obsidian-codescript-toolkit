@@ -7,6 +7,10 @@ export const configs: Linter.Config[] = defineEslintConfigs({
   customConfigs() {
     return defineConfig([
       {
+        // The demo vault ships illustrative scripts that intentionally break lint rules; it is linted for markdown + spelling only.
+        ignores: ['demo-vault/**']
+      },
+      {
         rules: {
           'obsidianmd/ui/sentence-case': [
             'error',
@@ -20,6 +24,14 @@ export const configs: Linter.Config[] = defineEslintConfigs({
         // Desktop-only implementation: Node built-ins are intentional here because this module is loaded only on desktop.
         files: ['src/**/*-desktop.ts'],
         rules: {
+          'obsidianmd/no-nodejs-modules': 'off'
+        }
+      },
+      {
+        // Integration tests run in a Node environment and legitimately read files / paths.
+        files: ['src/**/*.integration.test.ts'],
+        rules: {
+          'import-x/no-nodejs-modules': 'off',
           'obsidianmd/no-nodejs-modules': 'off'
         }
       }

@@ -1,0 +1,8 @@
+{
+  "name": "codescript-toolkit-demo-vault",
+  "version": "1.0.0",
+  "description": "A demo vault for the CodeScript Toolkit plugin",
+  "dependencies": {
+    "uuid": "^13.0.0"
+  }
+}

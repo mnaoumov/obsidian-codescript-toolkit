@@ -1,0 +1,16 @@
+# Churny / runtime-generated Obsidian state.
+.obsidian/workspace.json
+.obsidian/hotkeys.json
+
+# No plugin ships committed config or built files. CodeScript Toolkit is
+# release-injected and configured at runtime by the Demo Vault Helper (so NO
+# data.json is committed); only the hand-written Demo Vault Helper bootstrap
+# plugin itself is committed.
+.obsidian/plugins/*
+!.obsidian/plugins/demo-vault-helper/
+!.obsidian/plugins/demo-vault-helper/**
+
+# Re-include the vendored demo dependency the repo-root global `node_modules`
+# rule would otherwise drop (the "NPM modules" note does `require('uuid')`).
+!_assets/CodeScriptToolkit/node_modules/
+!_assets/CodeScriptToolkit/node_modules/**
