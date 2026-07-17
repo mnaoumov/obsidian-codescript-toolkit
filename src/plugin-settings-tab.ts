@@ -8,6 +8,7 @@ import { convertAsyncToSync } from 'obsidian-dev-utils/async';
 import { appendCodeBlock } from 'obsidian-dev-utils/obsidian/html-element';
 import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
 import { SettingGroupEx } from 'obsidian-dev-utils/obsidian/setting-group-ex';
+import { EMPTY } from 'obsidian-dev-utils/string';
 import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 import type { PluginSettings } from './plugin-settings.ts';
@@ -18,8 +19,6 @@ import { PathSuggest } from './path-suggest.ts';
 interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstructorParams<PluginSettings> {
   readonly pluginName: string;
 }
-
-const EMPTY = '';
 
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
   private readonly pluginName: string;
@@ -56,6 +55,8 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
               propertyName: 'modulesRoot',
               valueComponent: text
             })
+              // Deliberate sentinel: the `${EMPTY}` prefix keeps the lowercase placeholder out of the
+              // `obsidianmd/ui/sentence-case` lint's static analysis, so it must not be removed.
               .setPlaceholder(`${EMPTY}path/to/script/modules/root`);
 
             new PathSuggest({
@@ -81,6 +82,8 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
           }))
           .addText((text) => {
             this.bind({ propertyName: 'invocableScriptsFolder', valueComponent: text })
+              // Deliberate sentinel: the `${EMPTY}` prefix keeps the lowercase placeholder out of the
+              // `obsidianmd/ui/sentence-case` lint's static analysis, so it must not be removed.
               .setPlaceholder(`${EMPTY}path/to/invocable/scripts/folder`);
 
             const suggest = new PathSuggest({
