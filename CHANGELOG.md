@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.2.0
+
+- feat: re #55
+
 ## 13.1.9
 
 - chore: overexposed
