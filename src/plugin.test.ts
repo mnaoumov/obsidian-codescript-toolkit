@@ -123,7 +123,7 @@ const manifest: PluginManifest = {
 
 describe('Plugin', () => {
   const EXPECTED_ADD_CHILD_COUNT = 10;
-  const EXPECTED_COMMAND_HANDLER_COUNT = 6;
+  const EXPECTED_COMMAND_HANDLER_COUNT = 7;
 
   let app: AppOriginal;
 
