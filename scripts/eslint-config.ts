@@ -26,14 +26,6 @@ export const configs: Linter.Config[] = defineEslintConfigs({
         rules: {
           'obsidianmd/no-nodejs-modules': 'off'
         }
-      },
-      {
-        // Integration tests run in a Node environment and legitimately read files / paths.
-        files: ['src/**/*.integration.test.ts'],
-        rules: {
-          'import-x/no-nodejs-modules': 'off',
-          'obsidianmd/no-nodejs-modules': 'off'
-        }
       }
     ]);
   }
