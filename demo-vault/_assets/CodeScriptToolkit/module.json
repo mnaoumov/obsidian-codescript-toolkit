@@ -1,0 +1,15 @@
+{
+  "bool": true,
+  "string": "foo",
+  "num": 42,
+  "arr": [1, 2, 3],
+  "null": null,
+  "obj": {
+    "bool2": true,
+    "string2": "foo",
+    "num2": 42,
+    "arr2": [1, 2, 3],
+    "null2": null,
+    "obj2": {}
+  }
+}

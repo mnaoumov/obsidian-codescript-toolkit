@@ -7,6 +7,10 @@ export const configs: Linter.Config[] = defineEslintConfigs({
   customConfigs() {
     return defineConfig([
       {
+        // The demo vault ships illustrative scripts that intentionally break lint rules; it is linted for markdown + spelling only.
+        ignores: ['demo-vault/**']
+      },
+      {
         rules: {
           'obsidianmd/ui/sentence-case': [
             'error',
