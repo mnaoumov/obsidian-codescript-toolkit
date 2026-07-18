@@ -104,8 +104,9 @@ export class Plugin extends PluginBase {
       new InvokeScriptChooseCommandHandler(scriptManager),
       new OpenDemoVaultCommandHandler({
         app: this.app,
-        manifest: this.manifest,
-        pluginNoticeComponent: this.pluginNoticeComponent
+        pluginId: this.manifest.id,
+        pluginNoticeComponent: this.pluginNoticeComponent,
+        pluginVersion: this.manifest.version
       }),
       new OpenSettingsCommandHandler({
         app: this.app,
