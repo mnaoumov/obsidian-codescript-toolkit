@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.3.1
+
+- chore: update libs
+- chore: ignore demo-vault plugins
+
 ## 13.3.0
 
 - docs: point the plugin-integrations link at the in-repo demo vault
