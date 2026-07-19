@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.3.0
+
+- docs: point the plugin-integrations link at the in-repo demo vault
+- feat: demo vault
+
 ## 13.2.0
 
 - feat: re #55
