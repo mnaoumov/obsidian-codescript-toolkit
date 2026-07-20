@@ -19,7 +19,7 @@ See [[ModulesModule]]
 
 ```code-button
 ---
-caption: Run Dataview from CodeScript Toolkit
+caption: Run Modules from CodeScript Toolkit
 ---
 const module = await self.require.import('_assets/Modules/ModulesModule.md');
 module.runFromCodeScriptToolkit();

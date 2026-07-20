@@ -19,7 +19,7 @@ Invoke `Templater: Open insert template modal` → `RunCodeScriptToolkitFromTemp
 
 ```code-button
 ---
-caption: Run Dataview from CodeScript Toolkit
+caption: Run Templater from CodeScript Toolkit
 ---
 const message = 'Run Templater from CodeScript Toolkit. See parsed template in the console';
 new Notice(message);

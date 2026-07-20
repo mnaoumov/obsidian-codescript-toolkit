@@ -19,7 +19,7 @@ Invoke `QuickAdd: Run QuickAdd` → `RunCodeScriptToolkitFromQuickAdd` command.
 
 ```code-button
 ---
-caption: Run Dataview from CodeScript Toolkit
+caption: Run QuickAdd from CodeScript Toolkit
 ---
 app.plugins.plugins.quickadd.api.executeChoice('QuickAddModule')
 ```
