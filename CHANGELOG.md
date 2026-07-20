@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.3.5
+
+- chore(demo-vault): drop committed Invocables placeholder
+- chore(demo-vault): add Invocables folder for consistency
+
 ## 13.3.4
 
 - docs: fix links
