@@ -10,7 +10,7 @@ This is an [Obsidian](https://obsidian.md/) vault demonstrating features of the 
 
 ## Features
 
-1. [[01 Integrate with other plugins]]
+1. [[01-00 Start|01 Integrate with other plugins]]
 2. [[02 Built-in modules]]
 3. [`obsidian/app` module](<./03 obsidian-app.md>)
 4. [`obsidian/specialModuleNames` module](<./04 obsidian-specialModuleNames.md>)
