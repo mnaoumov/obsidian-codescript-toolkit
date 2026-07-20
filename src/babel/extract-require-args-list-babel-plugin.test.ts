@@ -34,11 +34,11 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
 
     it('should extract require arguments with cacheInvalidationMode option', () => {
       const plugin = new ExtractRequireArgsListBabelPlugin();
-      const code = '(req) => { req("module-a", { "cacheInvalidationMode": "Always" }); }';
+      const code = '(req) => { req("module-a", { "cacheInvalidationMode": "always" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.data.requireArgsList).toHaveLength(1);
-      expect(result.data.requireArgsList[0]?.options.cacheInvalidationMode).toBe('Always');
+      expect(result.data.requireArgsList[0]?.options.cacheInvalidationMode).toBe('always');
     });
   });
 
@@ -198,12 +198,43 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
       warnSpy.mockRestore();
     });
 
-    it('should return null for identifier (non-string) property key in options', () => {
+    it('should extract require arguments with identifier (unquoted) option key', () => {
+      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const code = '(req) => { req("module-a", { parentPath: "/some/path" }); }';
+      const result = plugin.transform({ code, filename: TEST_FILENAME });
+      expect(result.error).toBeUndefined();
+      expect(result.data.requireArgsList).toHaveLength(1);
+      expect(result.data.requireArgsList[0]?.options.parentPath).toBe('/some/path');
+    });
+
+    it('should extract require arguments with identifier cacheInvalidationMode key', () => {
+      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const code = '(req) => { req("module-a", { cacheInvalidationMode: "never" }); }';
+      const result = plugin.transform({ code, filename: TEST_FILENAME });
+      expect(result.error).toBeUndefined();
+      expect(result.data.requireArgsList).toHaveLength(1);
+      expect(result.data.requireArgsList[0]?.options.cacheInvalidationMode).toBe('never');
+    });
+
+    it('should return null for computed property key in options', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
       const plugin = new ExtractRequireArgsListBabelPlugin();
-      const code = '(req) => { req("module-a", { parentPath: "/some/path" }); }';
+      const code = '(req) => { req("module-a", { [dynamicKey]: "value" }); }';
+      const result = plugin.transform({ code, filename: TEST_FILENAME });
+      expect(result.error).toBeUndefined();
+      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+
+    it('should return null for numeric (non-identifier, non-string) property key in options', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+        // Intentional noop for test spy.
+      });
+      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const code = '(req) => { req("module-a", { 5: "value" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.data.requireArgsList).toHaveLength(0);

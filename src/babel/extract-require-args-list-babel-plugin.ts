@@ -105,16 +105,27 @@ function extractRequireArgs(callExpression: CallExpression): null | RequireArgs 
 
       const value = property.value.value;
 
-      if (!isStringLiteral(property.key)) {
+      if (property.computed) {
         return null;
       }
 
-      const key = property.key.value;
+      let key: string;
+      // Object keys can be written unquoted (`{ cacheInvalidationMode: 'never' }`, an Identifier) or
+      // quoted (`{ 'cacheInvalidationMode': 'never' }`, a StringLiteral); support both.
+      if (isIdentifier(property.key)) {
+        key = property.key.name;
+      } else if (isStringLiteral(property.key)) {
+        key = property.key.value;
+      } else {
+        return null;
+      }
 
       if (key === nameof<RequireOptions>('parentPath')) {
         options.parentPath = value;
       } else if (key === nameof<RequireOptions>('cacheInvalidationMode')) {
-        if (!(value in CacheInvalidationMode)) {
+        // Validate against the enum's VALUES ('always'/'never'/'whenPossible'), which is what
+        // callers pass, not its PascalCase keys.
+        if (!Object.values(CacheInvalidationMode).includes(value as CacheInvalidationMode)) {
           return null;
         }
 
