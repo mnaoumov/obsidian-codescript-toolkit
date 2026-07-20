@@ -157,7 +157,9 @@ describe('demo vault execution', () => {
       && !EXPECTED_NON_OK.some((expected) =>
         expected.note === noteName
         && expected.status === buttonResult.status
-        && buttonResult.caption.includes(expected.captionIncludes)));
+        && buttonResult.caption.includes(expected.captionIncludes)
+      )
+    );
     expect(broken, `"${noteName}" (renderOk=${String(result.renderOk)}, buttons=${String(result.buttonCount)}):\n${JSON.stringify(broken, null, 2)}`).toEqual([]);
   });
 });
