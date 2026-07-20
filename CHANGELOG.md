@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 13.3.3
+
+- chore: satisfy lint on require-args extraction and demo-vault test
+- docs: organize demo vault
+- chore: format
+- fix: extract requireAsyncWrapper require options with identifier keys and enum-value modes
+- fix(demo-vault): correct copy-pasted button captions in integration notes
+- fix(demo-vault): repair broken code-button examples and configure community plugins
+- test: add demo-vault code-button execution integration suite
+- docs: number demo vault example notes
+- docs: demo vault
+
 ## 13.3.2
 
 - chore: update libs
