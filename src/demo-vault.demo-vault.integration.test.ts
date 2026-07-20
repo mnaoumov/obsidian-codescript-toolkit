@@ -51,7 +51,11 @@ interface NoteExecutionResult {
   readonly results: ButtonResult[];
 }
 
-const report: ({ note: string } & NoteExecutionResult)[] = [];
+interface NoteReport extends NoteExecutionResult {
+  readonly note: string;
+}
+
+const report: NoteReport[] = [];
 
 function listSelfContainedNotes(): string[] {
   // DEMO_NOTES="a.md,Sub/b.md" runs exactly those notes (subfolder paths allowed) for fast iteration.
@@ -116,7 +120,7 @@ describe('demo vault execution', () => {
           const results: ButtonResult[] = [];
 
           for (const button of buttons) {
-            const caption = button.textContent ?? '';
+            const caption = button.textContent;
             const block = button.closest<HTMLElement>('.block-language-code-button') ?? button.parentElement;
             button.click();
 
@@ -128,12 +132,18 @@ describe('demo vault execution', () => {
                   // A button may open a modal (alert/confirm/prompt) and await it; dismiss it so the
                   // Awaited call resolves and the ✅/❌ banner appears for classification.
                   dismissModals();
-                  return /Executed (successfully|with error)/.test(block?.textContent ?? '');
+                  return /Executed (?:successfully|with error)/.test(block?.textContent ?? '');
                 },
                 timeoutInMilliseconds: buttonTimeoutMs
               });
               const text = block?.textContent ?? '';
-              status = text.includes('Executed with error') ? 'error' : text.includes('Executed successfully') ? 'ok' : 'unknown';
+              if (text.includes('Executed with error')) {
+                status = 'error';
+              } else if (text.includes('Executed successfully')) {
+                status = 'ok';
+              } else {
+                status = 'unknown';
+              }
             } catch {
               status = 'timeout';
             }

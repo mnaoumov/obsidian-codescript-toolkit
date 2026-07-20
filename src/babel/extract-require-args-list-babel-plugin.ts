@@ -111,7 +111,7 @@ function extractRequireArgs(callExpression: CallExpression): null | RequireArgs 
 
       let key: string;
       // Object keys can be written unquoted (`{ cacheInvalidationMode: 'never' }`, an Identifier) or
-      // quoted (`{ 'cacheInvalidationMode': 'never' }`, a StringLiteral); support both.
+      // Quoted (`{ 'cacheInvalidationMode': 'never' }`, a StringLiteral); support both forms.
       if (isIdentifier(property.key)) {
         key = property.key.name;
       } else if (isStringLiteral(property.key)) {
@@ -124,8 +124,8 @@ function extractRequireArgs(callExpression: CallExpression): null | RequireArgs 
         options.parentPath = value;
       } else if (key === nameof<RequireOptions>('cacheInvalidationMode')) {
         // Validate against the enum's VALUES ('always'/'never'/'whenPossible'), which is what
-        // callers pass, not its PascalCase keys.
-        if (!Object.values(CacheInvalidationMode).includes(value as CacheInvalidationMode)) {
+        // Callers pass, not its PascalCase keys.
+        if (!Object.values(CacheInvalidationMode).includes(value)) {
           return null;
         }
 
