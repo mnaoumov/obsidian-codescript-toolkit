@@ -8,7 +8,7 @@ import {
 
 export const invokeCommand: Partial<Command> = {
   editorCheckCallback(checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo): boolean {
-    if (!ctx.file?.basename !== 'Invocable scripts') {
+    if (ctx.file?.basename !== '35 Invocable scripts') {
       return false;
     }
 

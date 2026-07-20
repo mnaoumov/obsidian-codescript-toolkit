@@ -9,7 +9,7 @@ export const invokeCommand: Partial<Command> = {
     if (!file) {
       return false;
     }
-    if (file.basename !== 'Invocable scripts') {
+    if (file.basename !== '35 Invocable scripts') {
       return false;
     }
 
