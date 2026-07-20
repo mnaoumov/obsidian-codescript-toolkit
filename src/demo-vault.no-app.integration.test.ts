@@ -17,7 +17,7 @@ registerDemoVaultCoverageSuite({
     sourcePath: 'src/code-button-context.ts'
   }],
   nonTrivialGuard: {
-    expectDemoNote: 'Code buttons.md',
+    expectDemoNote: '38 Code buttons.md',
     expectMember: 'registerTempPlugin',
     interfaceName: 'CodeButtonContext',
     sourcePath: 'src/code-button-context.ts'

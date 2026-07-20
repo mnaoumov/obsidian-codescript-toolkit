@@ -72,6 +72,19 @@ export const config = defineConfig({
         test: {
           environment: 'node',
           fileParallelism: false,
+          // Project-specific: seeds the whole demo-vault before Obsidian opens (indexed in one scan).
+          globalSetup: ['./scripts/demo-vault-global-setup.ts'],
+          hookTimeout: BIG_TIMEOUT_IN_MILLISECONDS * HOOK_TIMEOUT_MULTIPLIER,
+          include: ['src/**/*.demo-vault.integration.test.ts'],
+          name: 'integration-tests:demo-vault',
+          setupFiles: ['obsidian-integration-testing/vitest-setup'],
+          testTimeout: BIG_TIMEOUT_IN_MILLISECONDS
+        }
+      },
+      {
+        test: {
+          environment: 'node',
+          fileParallelism: false,
           globalSetup: ['obsidian-integration-testing/vitest-global-setup'],
           hookTimeout: PERFORMANCE_TIMEOUT_IN_MILLISECONDS,
           include: ['src/**/*.desktop-performance.integration.test.ts'],
