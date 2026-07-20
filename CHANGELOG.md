@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.3.4
+
+- docs: fix links
+
 ## 13.3.3
 
 - chore: satisfy lint on require-args extraction and demo-vault test
