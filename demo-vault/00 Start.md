@@ -12,10 +12,10 @@ This is an [Obsidian](https://obsidian.md/) vault demonstrating features of the 
 
 1. [[01-00 Start|01 Integrate with other plugins]]
 2. [[02 Built-in modules]]
-3. [`obsidian/app` module](<./03 obsidian-app.md>)
-4. [`obsidian/specialModuleNames` module](<./04 obsidian-specialModuleNames.md>)
-5. [`obsidian-dev-utils` module](<./05 obsidian-dev-utils.md>)
-6. [`codescript-toolkit` module](<./06 codescript-toolkit.md>)
+3. [03 `obsidian/app` module](<./03 obsidian-app.md>)
+4. [04 `obsidian/specialModuleNames` module](<./04 obsidian-specialModuleNames.md>)
+5. [05 `obsidian-dev-utils` module](<./05 obsidian-dev-utils.md>)
+6. [06 `codescript-toolkit` module](<./06 codescript-toolkit.md>)
 7. [[07 Additional desktop modules]]
 8. [[08 Relative path]]
 9. [[09 Root-relative path]]
