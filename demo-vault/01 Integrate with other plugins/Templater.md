@@ -8,7 +8,7 @@
 ---
 caption: Install and enable Templater
 ---
-await require('/demoSetup.ts').installAndEnable(app, 'templater-obsidian');
+await require('/demoSetup.ts').installConfigureEnable(app, 'templater-obsidian');
 ```
 
 ## Run `CodeScript Toolkit` from `Templater`

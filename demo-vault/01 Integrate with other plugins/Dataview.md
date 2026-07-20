@@ -8,7 +8,7 @@
 ---
 caption: Install and enable Dataview
 ---
-await require('/demoSetup.ts').installAndEnable(app, 'dataview');
+await require('/demoSetup.ts').installConfigureEnable(app, 'dataview', { enableDataviewJs: true });
 ```
 
 ## Run `CodeScript Toolkit` from `Dataview`

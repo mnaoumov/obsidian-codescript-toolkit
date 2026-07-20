@@ -2,11 +2,11 @@
 
 ```code-button
 ---
-caption: Require file URL path (requires changing code to match your vault's real system path)
+caption: Require file URL path
 ---
-const correctVaultPathPrefix = 'file:///' + app.vault.adapter.basePath.replaceAll('\\', '/');
-console.warn(`Correct vault path prefix should be: ${correctVaultPathPrefix}`);
+// The `file:///` URL is machine-specific, so build it from the current vault's real system path.
+const vaultPathPrefix = 'file:///' + app.vault.adapter.basePath.replaceAll('\\', '/');
 
-const { fileUrl } = require('file:///C:/path/to/vault/obsidian-codescript-toolkit-demo-vault/_assets/CodeScriptToolkit/fileUrl.js');
+const { fileUrl } = require(`${vaultPathPrefix}/_assets/CodeScriptToolkit/fileUrl.js`);
 fileUrl();
 ```

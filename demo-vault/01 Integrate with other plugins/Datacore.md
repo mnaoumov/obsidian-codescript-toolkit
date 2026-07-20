@@ -8,7 +8,7 @@
 ---
 caption: Install and enable Datacore
 ---
-await require('/demoSetup.ts').installAndEnable(app, 'datacore');
+await require('/demoSetup.ts').installConfigureEnable(app, 'datacore');
 ```
 
 ## Run `CodeScript Toolkit` from `Datacore`

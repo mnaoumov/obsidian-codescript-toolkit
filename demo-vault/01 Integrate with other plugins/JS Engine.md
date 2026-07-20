@@ -8,7 +8,7 @@
 ---
 caption: Install and enable JS Engine
 ---
-await require('/demoSetup.ts').installAndEnable(app, 'js-engine');
+await require('/demoSetup.ts').installConfigureEnable(app, 'js-engine');
 ```
 
 ## Run `CodeScript Toolkit` from `JS Engine`

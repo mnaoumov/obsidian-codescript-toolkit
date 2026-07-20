@@ -4,6 +4,6 @@
 ---
 caption: Require URL
 ---
-const { url } = await requireAsync('https://raw.githubusercontent.com/mnaoumov/obsidian-codescript-toolkit-demo-vault/refs/heads/master/_assets/CodeScriptToolkit/url.js');
+const { url } = await requireAsync('https://raw.githubusercontent.com/mnaoumov/obsidian-codescript-toolkit-demo-vault/refs/heads/main/_assets/CodeScriptToolkit/url.js');
 url();
 ```

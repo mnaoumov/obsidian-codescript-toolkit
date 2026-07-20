@@ -2,16 +2,16 @@
 
 CodeScript Toolkit runs imported JS/TS through Babel by default. Large prebuilt CommonJS bundles don't need that — you can skip it with `shouldTranspile: false` (or just rely on auto-detection for plain `.cjs` files). The buttons below load the same bundle and print how long it took.
 
-> [!NOTE] Setup
+> [!TIP] Bigger difference
 >
-> Drop a prebuilt CommonJS bundle at `vendor/eruda.cjs` in the vault root (e.g. the UMD build from [Eruda](https://github.com/liriliri/eruda)). The larger the bundle, the bigger the difference.
+> These buttons load the small bundled `module.cjs`, so the timings are close. To see a dramatic difference, point the requires below at a large prebuilt CommonJS bundle (e.g. the UMD build from [Eruda](https://github.com/liriliri/eruda)) — the larger the bundle, the more transpilation costs.
 
 ```code-button
 ---
 caption: Load WITH transpilation (Babel)
 ---
 const start = performance.now();
-await requireAsync('/vendor/eruda.cjs', { cacheInvalidationMode: 'always', shouldTranspile: true });
+await requireAsync('/module.cjs', { cacheInvalidationMode: 'always', shouldTranspile: true });
 console.log(`With transpilation:    ${Math.round(performance.now() - start)} ms`);
 ```
 
@@ -20,7 +20,7 @@ console.log(`With transpilation:    ${Math.round(performance.now() - start)} ms`
 caption: Load WITHOUT transpilation (raw)
 ---
 const start = performance.now();
-await requireAsync('/vendor/eruda.cjs', { cacheInvalidationMode: 'always', shouldTranspile: false });
+await requireAsync('/module.cjs', { cacheInvalidationMode: 'always', shouldTranspile: false });
 console.log(`Without transpilation: ${Math.round(performance.now() - start)} ms`);
 ```
 
@@ -30,6 +30,6 @@ caption: Load with default auto-detection
 ---
 // A plain `.cjs` bundle is detected as CommonJS and runs raw automatically — no option needed.
 const start = performance.now();
-await requireAsync('/vendor/eruda.cjs', { cacheInvalidationMode: 'always' });
+await requireAsync('/module.cjs', { cacheInvalidationMode: 'always' });
 console.log(`Auto-detected:         ${Math.round(performance.now() - start)} ms`);
 ```

@@ -8,7 +8,7 @@
 ---
 caption: Install and enable CustomJS
 ---
-await require('/demoSetup.ts').installAndEnable(app, 'customjs');
+await require('/demoSetup.ts').installConfigureEnable(app, 'customjs', { jsFolder: '_assets/CustomJS' });
 ```
 
 ## Run `CodeScript Toolkit` from `CustomJS`

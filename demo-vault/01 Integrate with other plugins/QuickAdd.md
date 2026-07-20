@@ -8,7 +8,7 @@
 ---
 caption: Install and enable QuickAdd
 ---
-await require('/demoSetup.ts').installAndEnable(app, 'quickadd');
+await require('/demoSetup.ts').installConfigureEnable(app, 'quickadd');
 ```
 
 ## Run `CodeScript Toolkit` from `QuickAdd`

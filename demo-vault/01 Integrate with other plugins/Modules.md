@@ -8,7 +8,7 @@
 ---
 caption: Install and enable Modules
 ---
-await require('/demoSetup.ts').installAndEnable(app, 'modules');
+await require('/demoSetup.ts').installConfigureEnable(app, 'modules');
 ```
 
 ## Run `CodeScript Toolkit` from `Modules`

@@ -2,11 +2,11 @@
 
 ```code-button
 ---
-caption: Require resource URLs (requires changing resource prefix to match your vault's current prefix)
+caption: Require resource URLs
 ---
-const correctVaultPathPrefix = app.vault.getResourcePath(app.vault.getRoot()).split('/?')[0];
-console.warn(`Correct vault path prefix should be: ${correctVaultPathPrefix}`);
+// The `app://` resource prefix (host hash + system path) is session-specific, so read the current one.
+const resourcePrefix = app.vault.getResourcePath(app.vault.getRoot()).split('/?')[0];
 
-const { resourceUrl } = require('app://8fa431797ac41f5914dffee8999b77071151/C:/path/to/vault/obsidian-codescript-toolkit-demo-vault/_assets/CodeScriptToolkit/resourceUrl.js');
+const { resourceUrl } = require(`${resourcePrefix}/_assets/CodeScriptToolkit/resourceUrl.js`);
 resourceUrl();
 ```

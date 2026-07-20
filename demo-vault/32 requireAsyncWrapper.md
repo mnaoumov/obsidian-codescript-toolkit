@@ -5,9 +5,9 @@
 caption: requireAsyncWrapper
 ---
 await requireAsyncWrapper((require) => {
-  const { answer } = require('/module.wasm');
-  const message = `requireAsyncWrapper: ${answer()}`;
-  new (require('obsidian').Notice)(message);
-  console.log(message);
+  // Requiring from a URL is not available for synchronous `require()` normally;
+  // `requireAsyncWrapper` pre-loads it so the synchronous-style `require()` below works.
+  const { url } = require('https://raw.githubusercontent.com/mnaoumov/obsidian-codescript-toolkit-demo-vault/refs/heads/main/_assets/CodeScriptToolkit/url.js');
+  url();
 });
 ```

@@ -4,7 +4,7 @@
 ---
 caption: 'Require obsidian-dev-utils module'
 ---
-const { alert } = require('obsidian-dev-utils/obsidian/Modals/Alert');
+const { alert } = require('obsidian-dev-utils/obsidian/modals/alert');
 
 await alert({
   app,
