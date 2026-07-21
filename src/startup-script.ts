@@ -10,6 +10,7 @@ import type { Script } from './script.ts';
 
 interface StartupScript extends Script {
   cleanup?(app: App): Promisable<void>;
+  shouldExecuteOnLoad?(app: App): Promisable<boolean>;
 }
 
 interface StartupScriptComponentConstructorParams {
@@ -24,6 +25,7 @@ export class StartupScriptComponent extends LayoutReadyComponent {
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly requireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 
+  private shouldExecuteOnLoad = false;
   private startupScript: null | StartupScript = null;
 
   public constructor(params: StartupScriptComponentConstructorParams) {
@@ -34,13 +36,37 @@ export class StartupScriptComponent extends LayoutReadyComponent {
   }
 
   public override async onLayoutReady(): Promise<void> {
-    await this.invokeStartupScript();
+    if (this.shouldExecuteOnLoad) {
+      return;
+    }
+
+    await this.executeStartupScript();
+  }
+
+  public override async onloadAsync(): Promise<void> {
+    await super.onloadAsync();
+
+    // Register cleanup once, tied to the component lifecycle, regardless of when the script executes.
     this.register(() => this.cleanupStartupScript());
+
+    try {
+      await this.loadStartupScript();
+      this.shouldExecuteOnLoad = (await this.startupScript?.shouldExecuteOnLoad?.(this.app)) ?? false;
+      if (this.shouldExecuteOnLoad) {
+        await this.executeStartupScript();
+      }
+    } catch (error) {
+      // A broken startup script must not abort the whole plugin load, so report instead of rethrowing.
+      const message = 'Error executing startup script on load';
+      this.pluginNoticeComponent.showNotice(message);
+      console.error(message, error);
+    }
   }
 
   public async reloadStartupScript(): Promise<void> {
     await this.cleanupStartupScript();
-    await this.invokeStartupScript();
+    await this.loadStartupScript();
+    await this.executeStartupScript();
   }
 
   private async cleanupStartupScript(): Promise<void> {
@@ -53,18 +79,22 @@ export class StartupScriptComponent extends LayoutReadyComponent {
     this.startupScript = null;
   }
 
-  private async invokeStartupScript(): Promise<void> {
-    if (this.startupScript) {
-      throw new Error('Startup script already invoked');
+  private async executeStartupScript(): Promise<void> {
+    if (!this.startupScript) {
+      return;
     }
 
+    await this.startupScript.invoke(this.app);
+  }
+
+  private async loadStartupScript(): Promise<void> {
     const startupScriptPath = await this.validateStartupScript();
     if (!startupScriptPath) {
+      this.startupScript = null;
       return;
     }
 
     this.startupScript = await this.requireHandlerFactoryComponent.requireVaultScriptAsync(startupScriptPath) as StartupScript;
-    await this.startupScript.invoke(this.app);
   }
 
   private async validateStartupScript(shouldWarnOnNotConfigured = false): Promise<null | string> {

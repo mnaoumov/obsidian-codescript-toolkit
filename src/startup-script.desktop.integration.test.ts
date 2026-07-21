@@ -25,6 +25,7 @@ beforeAll(async () => {
       startupScriptPath: STARTUP_SCRIPT
     }),
     [`${MODULES_ROOT}/${STARTUP_SCRIPT}`]: [
+      'exports.shouldExecuteOnLoad = (app) => { window.__startupShouldExecuteOnLoadApp = typeof app; return true; };',
       'exports.invoke = (app) => { window.__startupInvoked = true; window.__startupApp = typeof app; };',
       'exports.cleanup = () => { window.__startupCleaned = true; };'
     ].join('\n')
@@ -61,6 +62,21 @@ describe('StartupScript integration', () => {
 
     expect(result.invoked).toBe(true);
     expect(result.appType).toBe('object');
+  });
+
+  it('should read shouldExecuteOnLoad and run invoke when it returns true', async () => {
+    const result = await evalInObsidian({
+      fn() {
+        return {
+          invoked: Reflect.get(window, '__startupInvoked') as boolean | undefined,
+          shouldExecuteOnLoadAppType: Reflect.get(window, '__startupShouldExecuteOnLoadApp') as string | undefined
+        };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.shouldExecuteOnLoadAppType).toBe('object');
+    expect(result.invoked).toBe(true);
   });
 
   it('should run cleanup on reload', async () => {
