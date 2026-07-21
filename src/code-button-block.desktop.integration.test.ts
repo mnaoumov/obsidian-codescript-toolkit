@@ -30,6 +30,24 @@ beforeAll(() => {
       window.__codeButtonResult = 42;
       \`\`\`
     `,
+    // Regression fixture for GitHub issue #56: a code-button block near an empty code block followed by trailing unclosed text used to freeze Obsidian (catastrophic regex backtracking in ODU's getCodeBlockMarkdownInfo, fixed in obsidian-dev-utils 87.0.3). Faithful reproduction, with console.log swapped for an auto-run flag the test can assert on.
+    '_int-test-buttons/issue-56.md': dedent`
+      \`\`\`code-button
+      ---
+      shouldAutoRun: true
+      shouldShowSystemMessages: false
+      ---
+      window.__issue56Result = "issue-56-ran";
+      \`\`\`
+
+      \`\`\`
+
+      \`\`\`
+
+      some text
+      some text
+      some text
+    `,
     '_int-test-buttons/raw.md': dedent`
       \`\`\`code-button
       ---
@@ -118,6 +136,35 @@ describe('CodeButtonBlock integration', () => {
     });
 
     expect(result.autoRunResult).toBe('auto-ran');
+  });
+
+  // Regression test for GitHub issue #56: rendering this note used to hang the main thread (catastrophic regex backtracking in ODU's getCodeBlockMarkdownInfo). Pre-fix the poll below would time out; post-fix the render completes and sets the flag.
+  it('should render issue-56 note without freezing', async () => {
+    const result = await evalInObsidian({
+      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+        Reflect.deleteProperty(window, '__issue56Result');
+
+        await app.workspace.openLinkText('_int-test-buttons/issue-56', '', false);
+        const leaf = app.workspace.getLeaf(false);
+        await leaf.setViewState({
+          state: { file: '_int-test-buttons/issue-56.md', mode: 'preview' },
+          type: 'markdown'
+        });
+
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => Reflect.get(window, '__issue56Result') !== undefined,
+          timeoutInMilliseconds: timeoutMs
+        });
+
+        const issue56Result = Reflect.get(window, '__issue56Result') as string | undefined;
+        return { issue56Result };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.issue56Result).toBe('issue-56-ran');
   });
 
   it('should execute isRaw code button without visible button', async () => {
