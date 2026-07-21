@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.4.0
+
+- feat: re #54
+
 ## 13.3.6
 
 - chore: update libs
