@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import process from 'node:process';
 import { getRootFolder } from 'obsidian-dev-utils/script-utils/root';
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
+import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   afterAll,
   describe,

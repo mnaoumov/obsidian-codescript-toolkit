@@ -4,7 +4,7 @@ import dedent from 'dedent';
 import { sleep } from 'obsidian-dev-utils/async';
 import { noop } from 'obsidian-dev-utils/function';
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup';
+import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   afterAll,
   beforeAll,

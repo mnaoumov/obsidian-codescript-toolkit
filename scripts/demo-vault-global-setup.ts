@@ -1,6 +1,6 @@
 import type { PopulateFilesParams } from 'obsidian-integration-testing';
 
-import { createSetup } from 'obsidian-integration-testing/vitest-global-setup';
+import { createSetup } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 
 import { readDemoVaultTree } from './helpers/read-demo-vault-tree.ts';
 
