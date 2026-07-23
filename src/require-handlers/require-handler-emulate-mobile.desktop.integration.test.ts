@@ -17,6 +17,13 @@ type RequireAsyncFn = (id: string | TFile, options?: Record<string, unknown>) =>
 
 const SCRIPTS_DIR = '_int-test-emulate-mobile';
 
+const PLUGIN_ID = 'fix-require-modules';
+
+// EmulateMobile reloads the app. Wait for the reload to settle before re-attaching — an
+// EvalInObsidian that attaches mid-reload can poison the shared CDP connection (T116).
+const RELOAD_SETTLE_IN_MILLISECONDS = 30000;
+const RELOAD_HOOK_TIMEOUT_IN_MILLISECONDS = 120000;
+
 function createMinimalWasm(): Uint8Array {
   return new Uint8Array([
     // Magic + version
@@ -68,6 +75,33 @@ function createMinimalWasm(): Uint8Array {
   ]);
 }
 
+async function emulateMobileAndWaitForRequireAsync(targetVaultPath: string, shouldEmulateMobile: boolean): Promise<void> {
+  // EmulateMobile reloads the app, so the eval never returns — fire and forget.
+  evalInObsidian({
+    args: { shouldEmulate: shouldEmulateMobile },
+    fn({ app, shouldEmulate }) {
+      app.emulateMobile(shouldEmulate);
+    },
+    vaultPath: targetVaultPath
+  }) // Expected: app reload kills the eval response.
+    .catch(noop);
+
+  // Wait for the reload to settle, then re-enable the plugin. The reload restores the
+  // Persisted enabled state, which a prior test file leaves "disabled" (disablePlugin
+  // Persists; the following enablePlugin is in-memory only), so the plugin comes back up
+  // Disabled and window.requireAsync is never re-registered until we re-enable it here.
+  await sleep({ milliseconds: RELOAD_SETTLE_IN_MILLISECONDS });
+  await evalInObsidian({
+    args: { pluginId: PLUGIN_ID },
+    async fn({ app, pluginId }) {
+      if (!app.plugins.enabledPlugins.has(pluginId)) {
+        await app.plugins.enablePlugin(pluginId);
+      }
+    },
+    vaultPath: targetVaultPath
+  });
+}
+
 beforeAll(async () => {
   const vault = getTempVault();
 
@@ -86,30 +120,12 @@ beforeAll(async () => {
     [`${SCRIPTS_DIR}/relative-parent.cjs`]: 'const child = require(\'./nested/child.cjs\'); exports.childValue = child.child;'
   });
 
-  // EmulateMobile reloads the app, so the eval call won't return — fire and forget,
-  // Then wait for the CLI to come back.
-  const MOBILE_RELOAD_DELAY_MS = 10000;
-  evalInObsidian({
-    fn({ app }) {
-      app.emulateMobile(true);
-    },
-    vaultPath: vault.path
-  }) // Expected: app reload kills the eval response.
-    .catch(noop);
-  await sleep({ milliseconds: MOBILE_RELOAD_DELAY_MS });
-});
+  await emulateMobileAndWaitForRequireAsync(vault.path, true);
+}, RELOAD_HOOK_TIMEOUT_IN_MILLISECONDS);
 
 afterAll(async () => {
-  const MOBILE_RELOAD_DELAY_MS = 10000;
-  evalInObsidian({
-    fn({ app }) {
-      app.emulateMobile(false);
-    },
-    vaultPath: getTempVault().path
-  }) // Expected: app reload kills the eval response.
-    .catch(noop);
-  await sleep({ milliseconds: MOBILE_RELOAD_DELAY_MS });
-});
+  await emulateMobileAndWaitForRequireAsync(getTempVault().path, false);
+}, RELOAD_HOOK_TIMEOUT_IN_MILLISECONDS);
 
 function vaultPath(): string {
   return getTempVault().path;
