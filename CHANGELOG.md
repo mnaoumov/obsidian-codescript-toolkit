@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 13.4.1
+
+- test(require-handler): fix emulate-mobile suite failing in the desktop aggregate
+- chore: update libs
+- chore: update libs
+- test: code-button freeze
+
 ## 13.4.0
 
 - feat: re #54
