@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.4.2
+
+- chore: update libs
+
 ## 13.4.1
 
 - test(require-handler): fix emulate-mobile suite failing in the desktop aggregate
