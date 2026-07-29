@@ -45,7 +45,7 @@ See [docs](./docs/usage.md).
 A demo vault with usage examples ships with every release. You can access it via any of the following:
 
 1. Running the **CodeScript Toolkit: Open demo vault** command.
-2. Downloading `fix-require-modules.demo-vault.zip` from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases).
+2. Downloading `fix-require-modules-demo-vault-<version>.zip` (`<version>` is the release version) from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases).
 3. Browsing its source in [`demo-vault/`](./demo-vault/README.md) in this repository.
 
 ## Installation
