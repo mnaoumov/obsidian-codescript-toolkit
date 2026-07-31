@@ -211,7 +211,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
               setting.addButton((button) =>
                 button
                   .setButtonText('Reset to plugin default code button config')
-                  .setWarning()
+                  .setDestructive()
                   .onClick(convertAsyncToSync(async () => {
                     await this.pluginSettingsComponent.editAndSave((settings) => {
                       const yaml = stringifyYaml(DEFAULT_CODE_BUTTON_BLOCK_CONFIG);

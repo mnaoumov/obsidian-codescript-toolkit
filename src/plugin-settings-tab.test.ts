@@ -86,8 +86,8 @@ const mockSettingExInstance = {
         return this;
       }),
       setButtonText: vi.fn().mockReturnThis(),
-      setTooltip: vi.fn().mockReturnThis(),
-      setWarning: vi.fn().mockReturnThis()
+      setDestructive: vi.fn().mockReturnThis(),
+      setTooltip: vi.fn().mockReturnThis()
     };
     cb(button);
     return mockSettingExInstance;

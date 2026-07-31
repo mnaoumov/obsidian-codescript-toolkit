@@ -59,7 +59,9 @@ describe('ProtocolHandler integration', () => {
       async fn({ app, executionDelay }) {
         Reflect.deleteProperty(window, '__protoInvoked');
 
-        const handler = (app.workspace as typeof app.workspace & WorkspaceWithProtocolHandler).protocolHandler.handlers.get('CodeScriptToolkit');
+        const workspaceUnknown: unknown = app.workspace;
+        const workspaceWithProtocolHandler = workspaceUnknown as WorkspaceWithProtocolHandler;
+        const handler = workspaceWithProtocolHandler.protocolHandler.handlers.get('CodeScriptToolkit');
         if (!handler) {
           return { error: 'Protocol handler not registered', invoked: false };
         }
@@ -88,7 +90,9 @@ describe('ProtocolHandler integration', () => {
       async fn({ app, executionDelay }) {
         Reflect.deleteProperty(window, '__protoCodeResult');
 
-        const handler = (app.workspace as typeof app.workspace & WorkspaceWithProtocolHandler).protocolHandler.handlers.get('CodeScriptToolkit');
+        const workspaceUnknown: unknown = app.workspace;
+        const workspaceWithProtocolHandler = workspaceUnknown as WorkspaceWithProtocolHandler;
+        const handler = workspaceWithProtocolHandler.protocolHandler.handlers.get('CodeScriptToolkit');
         if (!handler) {
           return { error: 'Protocol handler not registered', executed: false };
         }
