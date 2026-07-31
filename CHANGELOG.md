@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 13.5.0
+
+- fix: unblock the release gate
+- refactor(settings): move the settings tab onto the declarative settings API
+- chore: update libs and clear the npm audit
+- docs: fix the demo vault download instructions
+
 ## 13.4.2
 
 - chore: update libs
