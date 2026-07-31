@@ -1,8 +1,13 @@
-import type { Plugin } from 'obsidian';
+import type {
+  Plugin,
+  SettingDefinition,
+  SettingGroup
+} from 'obsidian';
 import type { AsyncEventRef } from 'obsidian-dev-utils/async-events';
 import type { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
 
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { SettingEx } from 'obsidian-dev-utils/obsidian/setting-ex';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import { App } from 'obsidian-test-mocks/obsidian';
 import {
@@ -170,6 +175,9 @@ vi.mock('obsidian-dev-utils/html-element', () => ({
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/setting-ex', () => ({
+  // The declarative rows are handed a plain `Setting` that dev-utils re-prototypes into a `SettingEx`;
+  // The mock instance already is one, so adoption is the identity.
+  adoptSettingEx: (setting: unknown): unknown => setting,
   // eslint-disable-next-line prefer-arrow-callback -- must be a constructor function for `new`
   SettingEx: vi.fn().mockImplementation(function mockSettingExConstructor() {
     return mockSettingExInstance;
@@ -205,6 +213,49 @@ interface CreateTabParams {
   readonly openTabById?: ReturnType<typeof vi.fn>;
 }
 
+/**
+ * Flattens the declared items into the rows they contain, unwrapping the groups.
+ *
+ * @param tab - The settings tab.
+ * @returns The declared rows.
+ */
+function collectRows(tab: PluginSettingsTab): SettingDefinition[] {
+  const rows: SettingDefinition[] = [];
+  for (const item of tab.getSettingDefinitions()) {
+    if ('items' in item) {
+      rows.push(...castTo<SettingDefinition[]>(item.items ?? []));
+    } else {
+      rows.push(castTo<SettingDefinition>(item));
+    }
+  }
+
+  return rows;
+}
+
+/**
+ * Reads the names of the declared rows.
+ *
+ * @param tab - The settings tab.
+ * @returns The names.
+ */
+function getSettingNames(tab: PluginSettingsTab): string[] {
+  return collectRows(tab).map((row) => 'name' in row ? row.name : '');
+}
+
+/**
+ * Invokes every declared row's `render` callback the way Obsidian does when the tab is opened, so the
+ * bindings are still exercised now that the rows are declarative.
+ *
+ * @param tab - The settings tab.
+ */
+function renderRows(tab: PluginSettingsTab): void {
+  for (const row of collectRows(tab)) {
+    if ('render' in row) {
+      row.render(new SettingEx(tab.containerEl), castTo<SettingGroup>(null));
+    }
+  }
+}
+
 describe('PluginSettingsTab', () => {
   let tab: PluginSettingsTab;
   let bindCalls: BindCall[];
@@ -227,75 +278,78 @@ describe('PluginSettingsTab', () => {
 
   describe('display', () => {
     it('should create settings for all configuration options', () => {
-      tab.displayLegacy();
-
       const EXPECTED_SETTING_COUNT = 10;
-      const totalSettingCalls = mockSettingExSetName.mock.calls.length + mockSettingExAddButton.mock.calls.length;
-      expect(totalSettingCalls).toBeGreaterThanOrEqual(EXPECTED_SETTING_COUNT);
+      expect(collectRows(tab).length).toBeGreaterThanOrEqual(EXPECTED_SETTING_COUNT);
+    });
+
+    it('should group the rows under the expected headings', () => {
+      const headings = tab.getSettingDefinitions().map((item) => 'heading' in item ? item.heading : '');
+
+      expect(headings).toStrictEqual(['Paths', 'Desktop', 'Mobile', 'Code button blocks', 'Other']);
     });
 
     it('should create Script modules root setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Script modules root');
+      expect(getSettingNames(tab)).toContain('Script modules root');
     });
 
     it('should create Invocable scripts folder setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Invocable scripts folder');
+      expect(getSettingNames(tab)).toContain('Invocable scripts folder');
     });
 
     it('should create Startup script path setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Startup script path');
+      expect(getSettingNames(tab)).toContain('Startup script path');
     });
 
     it('should create Hotkeys setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Hotkeys');
+      expect(getSettingNames(tab)).toContain('Hotkeys');
     });
 
     it('should create Mobile changes checking interval setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Mobile: Changes checking interval');
+      expect(getSettingNames(tab)).toContain('Mobile: Changes checking interval');
     });
 
     it('should create Desktop synchronous fallback setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Desktop: Synchronous fallback');
+      expect(getSettingNames(tab)).toContain('Desktop: Synchronous fallback');
     });
 
     it('should create Handle protocol URLs setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Handle protocol URLs');
+      expect(getSettingNames(tab)).toContain('Handle protocol URLs');
     });
 
     it('should create Should show temp plugin load/unload notices setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Should show temp plugin load/unload notices');
+      expect(getSettingNames(tab)).toContain('Should show temp plugin load/unload notices');
     });
 
     it('should create Default code button config setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
-      expect(mockSettingExSetName).toHaveBeenCalledWith('Default code button config');
+      expect(getSettingNames(tab)).toContain('Default code button config');
     });
 
     it('should bind text inputs to settings', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       expect(bindCalls.length).toBeGreaterThan(0);
     });
 
     it('should bind modulesRoot with onChanged callback that triggers modulesRootChanged', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       const modulesRootBindCall = findBindCall('modulesRoot');
       expect(modulesRootBindCall).toBeDefined();
@@ -309,49 +363,49 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should bind invocableScriptsFolder setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       expect(findBindCall('invocableScriptsFolder')).toBeDefined();
     });
 
     it('should bind startupScriptPath setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       expect(findBindCall('startupScriptPath')).toBeDefined();
     });
 
     it('should bind mobileChangesCheckingIntervalInSeconds setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       expect(findBindCall('mobileChangesCheckingIntervalInSeconds')).toBeDefined();
     });
 
     it('should bind shouldUseSyncFallback setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       expect(findBindCall('shouldUseSyncFallback')).toBeDefined();
     });
 
     it('should bind shouldHandleProtocolUrls setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       expect(findBindCall('shouldHandleProtocolUrls')).toBeDefined();
     });
 
     it('should bind shouldShowTempPluginLoadUnloadNotices setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       expect(findBindCall('shouldShowTempPluginLoadUnloadNotices')).toBeDefined();
     });
 
     it('should bind defaultCodeButtonConfig setting', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       expect(findBindCall('defaultCodeButtonConfig')).toBeDefined();
     });
 
     it('should configure hotkeys button that opens hotkeys tab', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       const buttonCalls = mockSettingExAddButton.mock.calls;
       expect(buttonCalls.length).toBeGreaterThan(0);
@@ -361,13 +415,13 @@ describe('PluginSettingsTab', () => {
       const mockEditAndSave = vi.fn().mockResolvedValue(undefined);
       const tabWithMock = createTab({ editAndSave: mockEditAndSave });
 
-      tabWithMock.displayLegacy();
+      renderRows(tabWithMock);
 
       expect(mockSettingExAddButton).toHaveBeenCalled();
     });
 
     it('should invoke modulesRootChanged event which calls onChanged and refresh on dependent settings', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       const modulesRootBindCall = findBindCall('modulesRoot');
       const options = modulesRootBindCall?.options;
@@ -386,7 +440,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should call refresh on PathSuggest instances when modulesRootChanged fires', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       const modulesRootBindCall = findBindCall('modulesRoot');
       const options = modulesRootBindCall?.options;
@@ -413,7 +467,7 @@ describe('PluginSettingsTab', () => {
 
       mockButtonClickHandlers.length = 0;
 
-      tabWithMock.displayLegacy();
+      renderRows(tabWithMock);
 
       // Second button click handler is for Hotkeys "Configure" (after "Reset" button in Code button blocks).
       const HOTKEYS_BUTTON_INDEX = 1;
@@ -438,7 +492,7 @@ describe('PluginSettingsTab', () => {
 
       mockButtonClickHandlers.length = 0;
 
-      tabWithMock.displayLegacy();
+      renderRows(tabWithMock);
 
       // First button click handler is for "Reset to plugin default code button config" (in Code button blocks group).
       const RESET_BUTTON_INDEX = 0;
@@ -451,7 +505,7 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should return empty string from modulesRoot PathSuggest getRootPath', () => {
-      tab.displayLegacy();
+      renderRows(tab);
 
       // First PathSuggest instance is for modulesRoot (getRootPath returns '').
       const PATH_SUGGEST_INDEX_MODULES_ROOT = 0;
@@ -464,7 +518,7 @@ describe('PluginSettingsTab', () => {
 
       mockPathSuggestInstances.length = 0;
 
-      tabWithMock.displayLegacy();
+      renderRows(tabWithMock);
 
       // Third PathSuggest instance is for startupScriptPath.
       const PATH_SUGGEST_INDEX_STARTUP = 2;
@@ -477,7 +531,7 @@ describe('PluginSettingsTab', () => {
 
       mockPathSuggestInstances.length = 0;
 
-      tabWithMock.displayLegacy();
+      renderRows(tabWithMock);
 
       // Second PathSuggest instance is for invocableScriptsFolder.
       const PATH_SUGGEST_INDEX_INVOCABLE = 1;
@@ -508,6 +562,9 @@ describe('PluginSettingsTab', () => {
       pluginName: 'CodeScript Toolkit',
       pluginSettingsComponent: createSettingsComponent(settings, params.editAndSave)
     });
+
+    // The reset button asks Obsidian to re-render the tab; there is no rendered tab in a unit test.
+    createdTab.refresh = vi.fn();
 
     // Record bind invocations while delegating to the real base-class `bind`.
     const originalBind = castTo<BindFn>(createdTab.bind.bind(createdTab));
