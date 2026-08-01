@@ -1,19 +1,26 @@
-import { loadPrism } from '@obsidian-typings/obsidian-public-latest/implementations';
-import { throwExpression } from 'obsidian-dev-utils/error';
+import type { SyntaxHighlightingComponent } from 'obsidian-dev-utils/obsidian/components/syntax-highlighting-component';
+
 import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 
 export const CODE_SCRIPT_BLOCK_LANGUAGE = 'code-script';
 
-export class CodeScriptBlockComponent extends ComponentEx {
-  public override async onloadAsync(): Promise<void> {
-    window.CodeMirror.defineMode(CODE_SCRIPT_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'text/typescript'));
-    const prism = await loadPrism();
-    prism.languages[CODE_SCRIPT_BLOCK_LANGUAGE] = prism.languages['typescript'] ?? throwExpression(new Error('Prism typescript language not found.'));
+interface CodeScriptBlockComponentConstructorParams {
+  readonly syntaxHighlightingComponent: SyntaxHighlightingComponent;
+}
 
-    this.register(() => {
-      window.CodeMirror.defineMode(CODE_SCRIPT_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'null'));
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- Need to delete language.
-      delete prism.languages[CODE_SCRIPT_BLOCK_LANGUAGE];
+export class CodeScriptBlockComponent extends ComponentEx {
+  private readonly syntaxHighlightingComponent: SyntaxHighlightingComponent;
+
+  public constructor(params: CodeScriptBlockComponentConstructorParams) {
+    super();
+    this.syntaxHighlightingComponent = params.syntaxHighlightingComponent;
+  }
+
+  public override async onloadAsync(): Promise<void> {
+    await this.syntaxHighlightingComponent.registerCodeBlockLanguageAsync({
+      editorMode: 'text/typescript',
+      language: CODE_SCRIPT_BLOCK_LANGUAGE,
+      prismGrammar: 'typescript'
     });
   }
 }

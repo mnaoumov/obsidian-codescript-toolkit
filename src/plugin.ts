@@ -1,6 +1,7 @@
 import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
 import { OpenSettingsCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler';
 import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
+import { SyntaxHighlightingComponent } from 'obsidian-dev-utils/obsidian/components/syntax-highlighting-component';
 import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { PluginMarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import { PluginObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
@@ -27,6 +28,7 @@ import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 export class Plugin extends PluginBase {
   protected override onloadImpl(): void {
     const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);
+    const syntaxHighlightingComponent = this.addChild(new SyntaxHighlightingComponent());
 
     const pluginSettingsComponent = this.addChild(
       new PluginSettingsComponent({
@@ -83,7 +85,7 @@ export class Plugin extends PluginBase {
       scriptRegistry
     });
 
-    this.addChild(new CodeScriptBlockComponent());
+    this.addChild(new CodeScriptBlockComponent({ syntaxHighlightingComponent }));
 
     const pluginSettingsTab = new PluginSettingsTab({
       plugin: this,
@@ -141,6 +143,7 @@ export class Plugin extends PluginBase {
         pluginSettingsComponent,
         RequireHandlerFactoryComponent: requireHandlerFactory,
         resourceLockComponent: this.resourceLockComponent,
+        syntaxHighlightingComponent,
         tempPluginRegistry
       })
     );

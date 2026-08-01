@@ -1,4 +1,11 @@
 import type {
+  Cm5EditorConfiguration,
+  Cm5Mode,
+  Cm5ModeFactory,
+  CodeMirrorModule,
+  PrismModule
+} from '@obsidian-typings/obsidian-public-latest';
+import type {
   App,
   Editor,
   MarkdownPostProcessorContext,
@@ -10,6 +17,7 @@ import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource
 
 import { waitForAllAsyncOperations } from 'obsidian-dev-utils/async';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { SyntaxHighlightingComponent } from 'obsidian-dev-utils/obsidian/components/syntax-highlighting-component';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
@@ -69,8 +77,13 @@ vi.mock('obsidian-dev-utils/obsidian/validation', () => ({
   getOsAndObsidianUnsafePathCharsRegExp: (...args: unknown[]): unknown => mockGetOsAndObsidianUnsafePathCharsRegExp(...args)
 }));
 
+const { loadPrismMock } = vi.hoisted(() => ({
+  loadPrismMock: vi.fn()
+}));
+
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
-  getDataAdapterEx: (...args: unknown[]): unknown => mockGetDataAdapterEx(...args)
+  getDataAdapterEx: (...args: unknown[]): unknown => mockGetDataAdapterEx(...args),
+  loadPrism: loadPrismMock
 }));
 
 vi.mock('./babel/combine-babel-plugins.ts', () => ({
@@ -193,13 +206,10 @@ interface ButtonCreateElOptions {
   onclick?(): Promise<void>;
 }
 
-interface CodeMirrorApi {
-  defineMode: ReturnType<typeof vi.fn>;
-  getMode: ReturnType<typeof vi.fn>;
-}
-
-interface WindowWithCodeMirror {
-  CodeMirror: CodeMirrorApi;
+interface SyntaxHighlightingMocks {
+  getMode: ReturnType<typeof createGetModeMock>;
+  modes: CodeMirrorModule['modes'];
+  prism: PrismModule;
 }
 
 describe('insertSampleCodeButton', () => {
@@ -254,19 +264,15 @@ describe('CodeButtonBlockComponent', () => {
   let mockPluginSettingsComponent: PluginSettingsComponent;
   let mockRequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   let mockTempPluginRegistry: TempPluginRegistryComponent;
-  let mockDefineMode: ReturnType<typeof vi.fn>;
-  let mockGetMode: ReturnType<typeof vi.fn>;
+  let mocks: SyntaxHighlightingMocks;
+  let syntaxHighlightingComponent: SyntaxHighlightingComponent;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockDefineMode = vi.fn();
-    mockGetMode = vi.fn().mockReturnValue({});
-
-    castTo<WindowWithCodeMirror>(window).CodeMirror = {
-      defineMode: mockDefineMode,
-      getMode: mockGetMode
-    };
+    mocks = createSyntaxHighlightingMocks();
+    syntaxHighlightingComponent = new SyntaxHighlightingComponent();
+    syntaxHighlightingComponent.load();
 
     const partialApp: Partial<App> = { vault: {} as App['vault'] };
     mockApp = partialApp as App;
@@ -295,13 +301,14 @@ describe('CodeButtonBlockComponent', () => {
       pluginSettingsComponent: mockPluginSettingsComponent,
       RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent,
       resourceLockComponent: mockResourceLockComponent,
+      syntaxHighlightingComponent,
       tempPluginRegistry: mockTempPluginRegistry
     });
   });
 
-  describe('onload', () => {
-    it('should register a markdown code block processor for code-button', () => {
-      component.load();
+  describe('onloadAsync', () => {
+    it('should register a markdown code block processor for code-button', async () => {
+      await component.loadWithPromises();
 
       expect(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor).toHaveBeenCalledWith({
         handler: expect.any(Function) as unknown,
@@ -309,51 +316,40 @@ describe('CodeButtonBlockComponent', () => {
       });
     });
 
-    it('should register code highlighting on load', () => {
-      component.load();
+    it('should register the editor mode for code-button', async () => {
+      await component.loadWithPromises();
 
-      expect(mockDefineMode).toHaveBeenCalledWith('code-button', expect.any(Function));
+      expect(mocks.modes['code-button']).toBeDefined();
     });
 
-    it('should invoke the defineMode callback which calls getMode with text/typescript', () => {
-      component.load();
+    it('should highlight the fence as TypeScript in the editor', async () => {
+      await component.loadWithPromises();
 
-      // The first call to defineMode is registerCodeHighlighting
-      const defineModeCallback = mockDefineMode.mock.calls[0]?.[1] as (config: unknown) => unknown;
-      const mockConfig = { mode: 'test' };
-      defineModeCallback(mockConfig);
+      const config = castTo<Cm5EditorConfiguration>({ mode: 'test' });
+      mocks.modes['code-button']?.(config);
 
-      expect(mockGetMode).toHaveBeenCalledWith(mockConfig, 'text/typescript');
+      expect(mocks.getMode).toHaveBeenCalledWith(config, 'text/typescript');
     });
 
-    it('should register unregisterCodeHighlighting cleanup callback', () => {
-      const registerSpy = vi.spyOn(component, 'register');
-      component.load();
+    it('should not register a Prism language, as the fence is replaced by a button in reading view', async () => {
+      await component.loadWithPromises();
 
-      // Register is called with unregisterCodeHighlighting
-      expect(registerSpy).toHaveBeenCalled();
+      expect(loadPrismMock).not.toHaveBeenCalled();
+      expect('code-button' in mocks.prism.languages).toBe(false);
     });
 
-    it('should call unregisterCodeHighlighting which redefines mode to null', () => {
-      // Drive the real Component lifecycle: `load()` registers the cleanup, then
-      // `unload()` invokes every registered cleanup (here unregisterCodeHighlighting).
-      component.load();
+    it('should remove the editor mode when the highlighting component is unloaded', async () => {
+      await component.loadWithPromises();
 
-      mockDefineMode.mockClear();
-      component.unload();
+      syntaxHighlightingComponent.unload();
 
-      expect(mockDefineMode).toHaveBeenCalledWith('code-button', expect.any(Function));
-      // The callback should call getMode with 'null'
-      const defineModeCallback = mockDefineMode.mock.calls[0]?.[1] as (config: unknown) => unknown;
-      const mockConfig = { mode: 'test' };
-      defineModeCallback(mockConfig);
-      expect(mockGetMode).toHaveBeenCalledWith(mockConfig, 'null');
+      expect('code-button' in mocks.modes).toBe(false);
     });
   });
 
-  describe('onload markdown processor callback', () => {
+  describe('onloadAsync markdown processor callback', () => {
     it('should invoke processCodeButtonBlock via invokeAsyncSafely when callback is triggered', async () => {
-      component.load();
+      await component.loadWithPromises();
 
       const registerMock = vi.mocked(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor);
       const registerCall = registerMock.mock.calls[0];
@@ -1008,3 +1004,36 @@ describe('CodeButtonBlockComponent', () => {
     });
   });
 });
+
+function createGetModeMock(): ReturnType<typeof vi.fn<(config: Cm5EditorConfiguration, modeSpec: string) => Cm5Mode<unknown>>> {
+  return vi.fn<(config: Cm5EditorConfiguration, modeSpec: string) => Cm5Mode<unknown>>(() => castTo<Cm5Mode<unknown>>({}));
+}
+
+/**
+ * Builds the two Obsidian runtime globals {@link SyntaxHighlightingComponent} talks to.
+ *
+ * Neither is modeled by `obsidian-test-mocks` — its `loadPrism` resolves to an empty object and there is no
+ * `window.CodeMirror` at all — so supplementing them here is the sanctioned test double, mirroring the
+ * component's own suite in `obsidian-dev-utils`. `strictProxy` is deliberately NOT used: reading a
+ * not-yet-registered language or mode as `undefined` is exactly the behavior under test.
+ *
+ * @returns The mocked registries.
+ */
+function createSyntaxHighlightingMocks(): SyntaxHighlightingMocks {
+  const modes: CodeMirrorModule['modes'] = {};
+  const getMode = createGetModeMock();
+
+  window.CodeMirror = castTo<CodeMirrorModule>({
+    defineMode: (name: string, modeFactory: Cm5ModeFactory<unknown>): void => {
+      modes[name] = modeFactory;
+    },
+    getMode,
+    modes
+  });
+
+  const prism = castTo<PrismModule>({ languages: {} });
+  loadPrismMock.mockReset();
+  loadPrismMock.mockResolvedValue(prism);
+
+  return { getMode, modes, prism };
+}
