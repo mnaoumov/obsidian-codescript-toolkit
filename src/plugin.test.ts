@@ -48,8 +48,12 @@ vi.mock('./code-button-block.ts', () => ({
   CodeButtonBlockComponent: vi.fn()
 }));
 
-vi.mock('./code-script-block.ts', () => ({
-  CodeScriptBlockComponent: vi.fn()
+vi.mock('./code-button-code-highlighter-component.ts', () => ({
+  CodeButtonCodeHighlighterComponent: vi.fn()
+}));
+
+vi.mock('./code-script-code-highlighter-component.ts', () => ({
+  CodeScriptCodeHighlighterComponent: vi.fn()
 }));
 
 vi.mock('./command-handlers/clear-cache-command-handler.ts', () => ({

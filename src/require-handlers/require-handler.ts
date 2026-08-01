@@ -62,7 +62,7 @@ import {
   CachedModuleProxyHandler,
   EMPTY_MODULE_SYMBOL
 } from '../cached-module-proxy-handler.ts';
-import { CODE_SCRIPT_BLOCK_LANGUAGE } from '../code-script-block.ts';
+import { CODE_SCRIPT_BLOCK_LANGUAGE } from '../code-script-code-highlighter-component.ts';
 import { CodeScriptToolkitModuleImpl } from '../code-script-toolkit-module-impl.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from '../code-script-toolkit-note-settings.ts';
 import { registerObsidianDevUtilsModule } from '../obsidian-dev-utils-module.ts';

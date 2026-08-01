@@ -1,7 +1,6 @@
 import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
 import { OpenSettingsCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler';
 import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
-import { SyntaxHighlightingComponent } from 'obsidian-dev-utils/obsidian/components/syntax-highlighting-component';
 import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
 import { PluginMarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import { PluginObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
@@ -9,7 +8,8 @@ import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
 import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
 
 import { CodeButtonBlockComponent } from './code-button-block.ts';
-import { CodeScriptBlockComponent } from './code-script-block.ts';
+import { CodeButtonCodeHighlighterComponent } from './code-button-code-highlighter-component.ts';
+import { CodeScriptCodeHighlighterComponent } from './code-script-code-highlighter-component.ts';
 import { ClearCacheCommandHandler } from './command-handlers/clear-cache-command-handler.ts';
 import { InsertSampleCodeButtonCommandHandler } from './command-handlers/insert-sample-code-button-command-handler.ts';
 import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-script-choose-command-handler.ts';
@@ -28,7 +28,6 @@ import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 export class Plugin extends PluginBase {
   protected override onloadImpl(): void {
     const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);
-    const syntaxHighlightingComponent = this.addChild(new SyntaxHighlightingComponent());
 
     const pluginSettingsComponent = this.addChild(
       new PluginSettingsComponent({
@@ -85,7 +84,8 @@ export class Plugin extends PluginBase {
       scriptRegistry
     });
 
-    this.addChild(new CodeScriptBlockComponent({ syntaxHighlightingComponent }));
+    this.addChild(new CodeScriptCodeHighlighterComponent());
+    this.addChild(new CodeButtonCodeHighlighterComponent());
 
     const pluginSettingsTab = new PluginSettingsTab({
       plugin: this,
@@ -143,7 +143,6 @@ export class Plugin extends PluginBase {
         pluginSettingsComponent,
         RequireHandlerFactoryComponent: requireHandlerFactory,
         resourceLockComponent: this.resourceLockComponent,
-        syntaxHighlightingComponent,
         tempPluginRegistry
       })
     );

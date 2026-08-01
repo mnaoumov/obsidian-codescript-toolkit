@@ -4,7 +4,6 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
-import type { SyntaxHighlightingComponent } from 'obsidian-dev-utils/obsidian/components/syntax-highlighting-component';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 import type { Promisable } from 'type-fest';
@@ -44,6 +43,7 @@ import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
 import { ReplaceDynamicImportBabelPlugin } from './babel/replace-dynamic-import-babel-plugin.ts';
 import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-plugin.ts';
+import { CODE_BUTTON_BLOCK_LANGUAGE } from './code-button-code-highlighter-component.ts';
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
@@ -56,8 +56,6 @@ interface CodeButtonBlockComponentHandleClickParams {
 }
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
-
-const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
 
 export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   caption: '(no caption)',
@@ -80,7 +78,6 @@ interface CodeButtonBlockComponentConstructorParams {
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   readonly resourceLockComponent: null | ResourceLockComponent;
-  readonly syntaxHighlightingComponent: SyntaxHighlightingComponent;
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
@@ -103,7 +100,6 @@ export class CodeButtonBlockComponent extends ComponentEx {
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   private readonly resourceLockComponent: null | ResourceLockComponent;
-  private readonly syntaxHighlightingComponent: SyntaxHighlightingComponent;
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
@@ -113,16 +109,10 @@ export class CodeButtonBlockComponent extends ComponentEx {
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
-    this.syntaxHighlightingComponent = params.syntaxHighlightingComponent;
     this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
-  public override async onloadAsync(): Promise<void> {
-    // No `prismGrammar`: unlike `code-script`, this fence is replaced by a button in reading view, so Prism has nothing to highlight there.
-    await this.syntaxHighlightingComponent.registerCodeBlockLanguageAsync({
-      editorMode: 'text/typescript',
-      language: CODE_BUTTON_BLOCK_LANGUAGE
-    });
+  public override onload(): void {
     this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor({
       handler: async (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> => {
         await this.processCodeButtonBlock({

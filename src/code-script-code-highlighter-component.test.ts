@@ -8,7 +8,6 @@ import type {
 } from '@obsidian-typings/obsidian-public-latest';
 
 import { castTo } from 'obsidian-dev-utils/object-utils';
-import { SyntaxHighlightingComponent } from 'obsidian-dev-utils/obsidian/components/syntax-highlighting-component';
 import {
   beforeEach,
   describe,
@@ -19,8 +18,8 @@ import {
 
 import {
   CODE_SCRIPT_BLOCK_LANGUAGE,
-  CodeScriptBlockComponent
-} from './code-script-block.ts';
+  CodeScriptCodeHighlighterComponent
+} from './code-script-code-highlighter-component.ts';
 
 interface Mocks {
   getMode: ReturnType<typeof createGetModeMock>;
@@ -44,28 +43,25 @@ describe('CODE_SCRIPT_BLOCK_LANGUAGE', () => {
   });
 });
 
-describe('CodeScriptBlockComponent', () => {
+describe('CodeScriptCodeHighlighterComponent', () => {
   let mocks: Mocks;
-  let syntaxHighlightingComponent: SyntaxHighlightingComponent;
-  let component: CodeScriptBlockComponent;
+  let component: CodeScriptCodeHighlighterComponent;
 
   beforeEach(() => {
     mocks = createMocks();
     mocks.prism.languages['typescript'] = TYPESCRIPT_GRAMMAR;
-    syntaxHighlightingComponent = new SyntaxHighlightingComponent();
-    syntaxHighlightingComponent.load();
-    component = new CodeScriptBlockComponent({ syntaxHighlightingComponent });
+    component = new CodeScriptCodeHighlighterComponent();
   });
 
   describe('onloadAsync', () => {
     it('should register the editor mode for code-script', async () => {
-      await loadComponent();
+      await component.loadWithPromises();
 
       expect(mocks.modes[CODE_SCRIPT_BLOCK_LANGUAGE]).toBeDefined();
     });
 
     it('should highlight the fence as TypeScript in the editor', async () => {
-      await loadComponent();
+      await component.loadWithPromises();
 
       const config = castTo<Cm5EditorConfiguration>({ indentUnit: 2 });
       mocks.modes[CODE_SCRIPT_BLOCK_LANGUAGE]?.(config);
@@ -74,7 +70,7 @@ describe('CodeScriptBlockComponent', () => {
     });
 
     it('should alias the code-script Prism language to typescript', async () => {
-      await loadComponent();
+      await component.loadWithPromises();
 
       expect(mocks.prism.languages[CODE_SCRIPT_BLOCK_LANGUAGE]).toBe(TYPESCRIPT_GRAMMAR);
     });
@@ -82,24 +78,20 @@ describe('CodeScriptBlockComponent', () => {
     it('should throw when the typescript Prism language is not registered', async () => {
       delete mocks.prism.languages['typescript'];
 
-      await expect(loadComponent()).rejects.toMatchObject({
+      await expect(component.loadWithPromises()).rejects.toMatchObject({
         errors: [expect.objectContaining({ message: 'Prism language "typescript" is not registered.' })]
       });
     });
 
-    it('should remove the editor mode and the Prism language when the highlighting component is unloaded', async () => {
-      await loadComponent();
+    it('should remove the editor mode and the Prism language when unloaded', async () => {
+      await component.loadWithPromises();
 
-      syntaxHighlightingComponent.unload();
+      component.unload();
 
       expect(CODE_SCRIPT_BLOCK_LANGUAGE in mocks.modes).toBe(false);
       expect(CODE_SCRIPT_BLOCK_LANGUAGE in mocks.prism.languages).toBe(false);
     });
   });
-
-  async function loadComponent(): Promise<void> {
-    await component.loadWithPromises();
-  }
 });
 
 function createGetModeMock(): ReturnType<typeof vi.fn<(config: Cm5EditorConfiguration, modeSpec: string) => Cm5Mode<unknown>>> {
@@ -107,10 +99,10 @@ function createGetModeMock(): ReturnType<typeof vi.fn<(config: Cm5EditorConfigur
 }
 
 /**
- * Builds the two Obsidian runtime globals {@link SyntaxHighlightingComponent} talks to.
+ * Builds the two Obsidian runtime globals the base `SyntaxHighlightingComponent` talks to.
  *
  * Neither is modeled by `obsidian-test-mocks` — its `loadPrism` resolves to an empty object and there is no
- * `window.CodeMirror` at all — so supplementing them here is the sanctioned test double, mirroring the
+ * `window.CodeMirror` at all — so supplementing them here is the sanctioned test double, mirroring the base
  * component's own suite in `obsidian-dev-utils`. `strictProxy` is deliberately NOT used: reading a
  * not-yet-registered language or mode as `undefined` is exactly the behavior under test.
  *
