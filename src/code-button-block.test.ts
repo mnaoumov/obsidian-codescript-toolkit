@@ -193,15 +193,6 @@ interface ButtonCreateElOptions {
   onclick?(): Promise<void>;
 }
 
-interface CodeMirrorApi {
-  defineMode: ReturnType<typeof vi.fn>;
-  getMode: ReturnType<typeof vi.fn>;
-}
-
-interface WindowWithCodeMirror {
-  CodeMirror: CodeMirrorApi;
-}
-
 describe('insertSampleCodeButton', () => {
   it('should insert a code-button block at the cursor position', () => {
     const partialEditor: Partial<Editor> = {
@@ -254,19 +245,9 @@ describe('CodeButtonBlockComponent', () => {
   let mockPluginSettingsComponent: PluginSettingsComponent;
   let mockRequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   let mockTempPluginRegistry: TempPluginRegistryComponent;
-  let mockDefineMode: ReturnType<typeof vi.fn>;
-  let mockGetMode: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockDefineMode = vi.fn();
-    mockGetMode = vi.fn().mockReturnValue({});
-
-    castTo<WindowWithCodeMirror>(window).CodeMirror = {
-      defineMode: mockDefineMode,
-      getMode: mockGetMode
-    };
 
     const partialApp: Partial<App> = { vault: {} as App['vault'] };
     mockApp = partialApp as App;
@@ -307,47 +288,6 @@ describe('CodeButtonBlockComponent', () => {
         handler: expect.any(Function) as unknown,
         language: 'code-button'
       });
-    });
-
-    it('should register code highlighting on load', () => {
-      component.load();
-
-      expect(mockDefineMode).toHaveBeenCalledWith('code-button', expect.any(Function));
-    });
-
-    it('should invoke the defineMode callback which calls getMode with text/typescript', () => {
-      component.load();
-
-      // The first call to defineMode is registerCodeHighlighting
-      const defineModeCallback = mockDefineMode.mock.calls[0]?.[1] as (config: unknown) => unknown;
-      const mockConfig = { mode: 'test' };
-      defineModeCallback(mockConfig);
-
-      expect(mockGetMode).toHaveBeenCalledWith(mockConfig, 'text/typescript');
-    });
-
-    it('should register unregisterCodeHighlighting cleanup callback', () => {
-      const registerSpy = vi.spyOn(component, 'register');
-      component.load();
-
-      // Register is called with unregisterCodeHighlighting
-      expect(registerSpy).toHaveBeenCalled();
-    });
-
-    it('should call unregisterCodeHighlighting which redefines mode to null', () => {
-      // Drive the real Component lifecycle: `load()` registers the cleanup, then
-      // `unload()` invokes every registered cleanup (here unregisterCodeHighlighting).
-      component.load();
-
-      mockDefineMode.mockClear();
-      component.unload();
-
-      expect(mockDefineMode).toHaveBeenCalledWith('code-button', expect.any(Function));
-      // The callback should call getMode with 'null'
-      const defineModeCallback = mockDefineMode.mock.calls[0]?.[1] as (config: unknown) => unknown;
-      const mockConfig = { mode: 'test' };
-      defineModeCallback(mockConfig);
-      expect(mockGetMode).toHaveBeenCalledWith(mockConfig, 'null');
     });
   });
 

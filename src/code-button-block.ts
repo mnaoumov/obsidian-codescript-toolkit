@@ -43,6 +43,7 @@ import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
 import { ReplaceDynamicImportBabelPlugin } from './babel/replace-dynamic-import-babel-plugin.ts';
 import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-plugin.ts';
+import { CODE_BUTTON_BLOCK_LANGUAGE } from './code-button-code-highlighter-component.ts';
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
@@ -55,8 +56,6 @@ interface CodeButtonBlockComponentHandleClickParams {
 }
 
 type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
-
-const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
 
 export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   caption: '(no caption)',
@@ -114,8 +113,6 @@ export class CodeButtonBlockComponent extends ComponentEx {
   }
 
   public override onload(): void {
-    registerCodeHighlighting();
-    this.register(unregisterCodeHighlighting);
     this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor({
       handler: async (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> => {
         await this.processCodeButtonBlock({
@@ -374,14 +371,6 @@ function makeWrapperScript(params: MakeWrapperScriptParams): string {
   }
 
   return result.transformedCode;
-}
-
-function registerCodeHighlighting(): void {
-  window.CodeMirror.defineMode(CODE_BUTTON_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'text/typescript'));
-}
-
-function unregisterCodeHighlighting(): void {
-  window.CodeMirror.defineMode(CODE_BUTTON_BLOCK_LANGUAGE, (config) => window.CodeMirror.getMode(config, 'null'));
 }
 
 function updateSourcePath(ctx: MarkdownPostProcessorContext, sourceFile: TFile): MarkdownPostProcessorContext {
