@@ -27,11 +27,13 @@ beforeAll(async () => {
       shouldUseSyncFallback: false,
       startupScriptPath: ''
     }),
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/check-callback.cjs`]: 'exports.invokeCommand = { checkCallback: (checking) => { if (checking) { return true; } window.__checkCallbackInvoked = true; } };',
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/cmd-invoke.cjs`]: 'exports.invokeCommand = { callback: () => { window.__cmdInvoked = true; } };',
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-callback.cjs`]: 'exports.invokeCommand = { editorCallback: (editor) => { window.__editorCallbackInvoked = true; window.__editorExists = typeof editor.getValue === "function"; } };',
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-check-callback.cjs`]: 'exports.invokeCommand = { editorCheckCallback: (checking, editor) => { if (checking) { return editor !== undefined; } window.__editorCheckCallbackInvoked = true; window.__editorCheckHasEditor = typeof editor.getValue === "function"; } };',
-    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/hotkey-invoke.cjs`]: 'exports.invokeCommand = { hotkeys: [{ modifiers: ["Ctrl", "Shift"], key: "F9" }], callback: () => { window.__hotkeyInvoked = true; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/async-cmd-invoke.cjs`]: 'exports.buildInvokeCommand = async (app) => { await Promise.resolve(); return { name: "Async built for " + app.vault.getName(), callback: () => { window.__asyncCmdInvoked = true; } }; };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/check-callback.cjs`]: 'exports.buildInvokeCommand = () => ({ checkCallback: (checking) => { if (checking) { return true; } window.__checkCallbackInvoked = true; } });',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/cmd-invoke.cjs`]: 'exports.buildInvokeCommand = (app) => ({ callback: () => { window.__cmdInvoked = true; window.__cmdInvokedAppMatches = app === window.app; } });',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/deprecated-invoke-command.cjs`]: 'exports.invokeCommand = { callback: () => { window.__deprecatedInvokeCommandInvoked = true; } };',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-callback.cjs`]: 'exports.buildInvokeCommand = () => ({ editorCallback: (editor) => { window.__editorCallbackInvoked = true; window.__editorExists = typeof editor.getValue === "function"; } });',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/editor-check-callback.cjs`]: 'exports.buildInvokeCommand = () => ({ editorCheckCallback: (checking, editor) => { if (checking) { return editor !== undefined; } window.__editorCheckCallbackInvoked = true; window.__editorCheckHasEditor = typeof editor.getValue === "function"; } });',
+    [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/hotkey-invoke.cjs`]: 'exports.buildInvokeCommand = () => ({ hotkeys: [{ modifiers: ["Ctrl", "Shift"], key: "F9" }], callback: () => { window.__hotkeyInvoked = true; } });',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/scratch.md`]: '# Scratch note for editor tests',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/simple-invoke.cjs`]: 'exports.invoke = () => { window.__invocableResult = "invoked"; };',
     [`${MODULES_ROOT}/${INVOCABLES_FOLDER}/ts-invoke.ts`]: 'export function invoke(): void { (window as Record<string, unknown>).__tsInvoked = true; }'
@@ -109,29 +111,87 @@ describe('ScriptRegistry integration', () => {
     expect(result.found).toBe(true);
   });
 
-  it('should register and execute invokeCommand pattern', async () => {
+  it('should register and execute buildInvokeCommand pattern, passing the app to the builder', async () => {
     const result = await evalInObsidian({
       args: { pluginId: PLUGIN_ID },
       async fn({ app, pluginId }) {
         const commandId = Object.keys(app.commands.commands)
-          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('cmd-invoke'));
+          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('cmd-invoke') && !id.includes('async-cmd-invoke'));
 
         if (!commandId) {
-          return { error: 'Command not found', executed: false };
+          return { appMatches: false, error: 'Command not found', executed: false };
         }
 
         Reflect.deleteProperty(window, '__cmdInvoked');
+        Reflect.deleteProperty(window, '__cmdInvokedAppMatches');
         app.commands.executeCommandById(commandId);
         const COMMAND_EXECUTION_DELAY_MS = 500;
         await sleep(COMMAND_EXECUTION_DELAY_MS);
 
         const cmdInvoked = Reflect.get(window, '__cmdInvoked') === true;
-        return { executed: cmdInvoked };
+        const appMatches = Reflect.get(window, '__cmdInvokedAppMatches') === true;
+        return { appMatches, executed: cmdInvoked };
       },
       vaultPath: vaultPath()
     });
 
     expect(result.executed).toBe(true);
+    expect(result.appMatches).toBe(true);
+  });
+
+  it('should await an async buildInvokeCommand and use the command it builds', async () => {
+    const result = await evalInObsidian({
+      args: { pluginId: PLUGIN_ID },
+      async fn({ app, pluginId }) {
+        const commandId = Object.keys(app.commands.commands)
+          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('async-cmd-invoke'));
+
+        if (!commandId) {
+          return { error: 'Command not found', executed: false, name: '' };
+        }
+
+        const name = app.commands.commands[commandId]?.name ?? '';
+
+        Reflect.deleteProperty(window, '__asyncCmdInvoked');
+        app.commands.executeCommandById(commandId);
+        const COMMAND_EXECUTION_DELAY_MS = 500;
+        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        const executed = Reflect.get(window, '__asyncCmdInvoked') === true;
+        return { executed, name };
+      },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.executed).toBe(true);
+    expect(result.name).toContain('Async built for ');
+  });
+
+  it('should register a failing command for a script exporting the deprecated invokeCommand', async () => {
+    const result = await evalInObsidian({
+      args: { pluginId: PLUGIN_ID },
+      async fn({ app, pluginId }) {
+        const commandId = Object.keys(app.commands.commands)
+          .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('deprecated-invoke-command'));
+
+        if (!commandId) {
+          return { executed: false, found: false };
+        }
+
+        Reflect.deleteProperty(window, '__deprecatedInvokeCommandInvoked');
+        app.commands.executeCommandById(commandId);
+        const COMMAND_EXECUTION_DELAY_MS = 500;
+        await sleep(COMMAND_EXECUTION_DELAY_MS);
+
+        const executed = Reflect.get(window, '__deprecatedInvokeCommandInvoked') === true;
+        return { executed, found: true };
+      },
+      vaultPath: vaultPath()
+    });
+
+    // The command is still registered, but it only reports the deprecation instead of running the callback.
+    expect(result.found).toBe(true);
+    expect(result.executed).toBe(false);
   });
 
   it('should execute checkCallback invocable script', async () => {

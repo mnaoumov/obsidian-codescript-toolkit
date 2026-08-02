@@ -2,14 +2,13 @@
 
 ## What's done
 
-- 35 integration tests across 7 files, all passing
 - Bug fix: ScriptFolderWatcher missed initial loadSettings event (component load ordering)
 - Bug fix: broken relative links in docs/code-button-config.md and docs/code-button-context.md
 - Workaround: afterAll detaches markdown leaves to avoid CLI eval interference
 - Added dedent dependency for multiline strings
 - Added strictProxy rule to global TypeScript rules
 
-## Integration test coverage (140 tests)
+## Integration test coverage (142 tests)
 
 | Feature                                                                                        | Tests |
 |------------------------------------------------------------------------------------------------|-------|
@@ -27,7 +26,7 @@
 | WASM modules (requireAsync desktop, sync throw, mobile, Android)                               | 4     |
 | ASAR archives (sync + async from .asar file)                                                   | 2     |
 | Node binaries (async + sync error, mobile throw, Android throw)                                | 4     |
-| Invocable scripts (register, execute, TS, invokeCommand, checkCallback, editor, editorCheck)   | 8     |
+| Invocable scripts (register, execute, TS, buildInvokeCommand + async, deprecated, editor)      | 10    |
 | Code buttons (render, autoRun, isRaw, import transform)                                        | 4     |
 | Code-button context (renderMarkdown, insertBefore/After, remove, replace)                      | 5     |
 | Code-button config (shouldAutoOutput, shouldWrapConsole, removeAfterExecution)                 | 3     |
@@ -47,7 +46,7 @@
 
 ## Coverage status
 
-All features are now fully covered across code, docs, demo vault, and integration tests (140 tests).
+All features are now fully covered across code, docs, demo vault, and integration tests (142 tests).
 
 - ~~Integration test gaps (WASM, ASAR, node binaries)~~ — **Done**
 - ~~Demo vault gap (`requireAsyncWrapper()`)~~ — **Done**

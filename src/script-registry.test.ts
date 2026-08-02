@@ -46,6 +46,7 @@ vi.mock('./code-script-toolkit-note-settings.ts', () => ({
 interface CreateRegistryOverrides {
   app?: App;
   consoleDebugComponent?: ConsoleDebugComponent;
+  pluginNoticeComponent?: PluginNoticeComponent;
   RequireHandlerFactoryComponent?: RequireHandlerFactoryComponent;
 }
 
@@ -60,6 +61,12 @@ function createApp(files: Record<string, string> = {}): App {
 function createConsoleDebugComponent(): ConsoleDebugComponent {
   return strictProxy<ConsoleDebugComponent>({
     consoleDebug: vi.fn<(message: string, ...args: unknown[]) => void>()
+  });
+}
+
+function createPluginNoticeComponent(): PluginNoticeComponent {
+  return strictProxy<PluginNoticeComponent>({
+    showNotice: vi.fn()
   });
 }
 
@@ -78,9 +85,7 @@ function createRegistry(overrides?: CreateRegistryOverrides): ScriptRegistryComp
       registerCommandHandlers: vi.fn(() => ({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() }))
     }),
     consoleDebugComponent: overrides?.consoleDebugComponent ?? createConsoleDebugComponent(),
-    pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
-      showNotice: vi.fn()
-    }),
+    pluginNoticeComponent: overrides?.pluginNoticeComponent ?? createPluginNoticeComponent(),
     pluginSettingsComponent: createPluginSettingsComponent(),
     RequireHandlerFactoryComponent: strictProxy<RequireHandlerFactoryComponent>(
       overrides?.RequireHandlerFactoryComponent ?? createRequireHandlerFactoryComponent()
@@ -97,8 +102,10 @@ function createRequireHandlerFactoryComponent(): MockRequireHandlerFactoryCompon
 describe('ScriptRegistry', () => {
   let consoleDebugComponent: ConsoleDebugComponent;
   let consoleDebug: Mock<(message: string, ...args: unknown[]) => void>;
+  let pluginNoticeComponent: PluginNoticeComponent;
   let requireHandlerFactoryComponent: MockRequireHandlerFactoryComponent;
   let registry: ScriptRegistryComponent;
+  let showNotice: Mock<PluginNoticeComponent['showNotice']>;
 
   beforeEach(() => {
     mockPrintError.mockReset();
@@ -110,6 +117,8 @@ describe('ScriptRegistry', () => {
 
     consoleDebug = vi.fn();
     consoleDebugComponent = strictProxy<ConsoleDebugComponent>({ consoleDebug });
+    showNotice = vi.fn<PluginNoticeComponent['showNotice']>();
+    pluginNoticeComponent = strictProxy<PluginNoticeComponent>({ showNotice });
     requireHandlerFactoryComponent = createRequireHandlerFactoryComponent();
   });
 
@@ -117,6 +126,7 @@ describe('ScriptRegistry', () => {
     return createRegistry({
       app: createApp(files),
       consoleDebugComponent,
+      pluginNoticeComponent,
       RequireHandlerFactoryComponent: strictProxy<RequireHandlerFactoryComponent>(requireHandlerFactoryComponent)
     });
   }
@@ -358,15 +368,15 @@ describe('ScriptRegistry', () => {
   });
 
   describe('CommandWrapperCommandHandler via registerScript + invokeScriptPath', () => {
-    it('should invoke script with invokeCommand callback successfully', async () => {
+    it('should invoke script with buildInvokeCommand callback successfully', async () => {
       const SCRIPT_PATH = 'command-test.js';
       registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       registry.load();
       const mockCallback = vi.fn();
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
-        invokeCommand: {
+        buildInvokeCommand: () => ({
           callback: mockCallback
-        }
+        })
       });
 
       await registry.registerScript(SCRIPT_PATH);
@@ -378,7 +388,130 @@ describe('ScriptRegistry', () => {
       );
     });
 
-    it('should handle error from invokeCommand callback', async () => {
+    it('should pass the app to buildInvokeCommand', async () => {
+      const SCRIPT_PATH = 'command-app.js';
+      const app = createApp({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry = createRegistry({
+        app,
+        consoleDebugComponent,
+        RequireHandlerFactoryComponent: strictProxy<RequireHandlerFactoryComponent>(requireHandlerFactoryComponent)
+      });
+      registry.load();
+      const mockBuildInvokeCommand = vi.fn(() => ({ callback: vi.fn() }));
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        buildInvokeCommand: mockBuildInvokeCommand
+      });
+
+      await registry.registerScript(SCRIPT_PATH);
+
+      expect(mockBuildInvokeCommand).toHaveBeenCalledWith(app);
+    });
+
+    it('should await an async buildInvokeCommand', async () => {
+      const SCRIPT_PATH = 'command-async.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      const mockCallback = vi.fn();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        buildInvokeCommand: () => Promise.resolve({ callback: mockCallback })
+      });
+
+      await registry.registerScript(SCRIPT_PATH);
+      await registry.invokeScriptPath(SCRIPT_PATH);
+
+      expect(mockCallback).toHaveBeenCalled();
+      expect(consoleDebug).toHaveBeenCalledWith(
+        `${SCRIPT_PATH} command executed successfully`
+      );
+    });
+
+    it('should report the error and register a failing command when buildInvokeCommand throws', async () => {
+      const SCRIPT_PATH = 'command-build-error.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      const buildError = new Error('build failed');
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        buildInvokeCommand: () => {
+          throw buildError;
+        }
+      });
+
+      await registry.registerScript(SCRIPT_PATH);
+
+      // The failure is reported as soon as it happens, not deferred to the first invocation.
+      expect(mockPrintError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cause: buildError,
+          message: `Error building invoke command for ${SCRIPT_PATH}`
+        })
+      );
+      expect(showNotice).toHaveBeenCalledWith(
+        `Error building invoke command for ${SCRIPT_PATH}. See console for details.`
+      );
+
+      // The registered command stays invocable, but invoking it only re-reports the build failure.
+      mockPrintError.mockClear();
+      showNotice.mockClear();
+      await registry.invokeScriptPath(SCRIPT_PATH);
+
+      expect(mockPrintError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cause: buildError,
+          message: `Error building invoke command for ${SCRIPT_PATH}`
+        })
+      );
+      expect(showNotice).toHaveBeenCalledWith(
+        `Error building invoke command for ${SCRIPT_PATH}. See console for details.`
+      );
+    });
+
+    it('should wrap a non-Error value thrown by buildInvokeCommand', async () => {
+      const SCRIPT_PATH = 'command-build-non-error.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      const THROWN_VALUE = 'build failed';
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        buildInvokeCommand: () => {
+          // eslint-disable-next-line @typescript-eslint/only-throw-error -- Throwing a non-Error value is what this test covers.
+          throw THROWN_VALUE;
+        }
+      });
+
+      await registry.registerScript(SCRIPT_PATH);
+
+      // The thrown string is normalized to an `Error` so the `cause` chain stays printable.
+      expect(mockPrintError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cause: expect.objectContaining({
+            cause: THROWN_VALUE,
+            name: 'ErrorWrapper'
+          }) as unknown,
+          message: `Error building invoke command for ${SCRIPT_PATH}`
+        })
+      );
+    });
+
+    it('should report the error when an async buildInvokeCommand rejects', async () => {
+      const SCRIPT_PATH = 'command-build-async-error.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      const buildError = new Error('async build failed');
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        buildInvokeCommand: () => Promise.reject(buildError)
+      });
+
+      await registry.registerScript(SCRIPT_PATH);
+      await registry.invokeScriptPath(SCRIPT_PATH);
+
+      expect(mockPrintError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cause: buildError,
+          message: `Error building invoke command for ${SCRIPT_PATH}`
+        })
+      );
+    });
+
+    it('should handle error from buildInvokeCommand callback', async () => {
       const SCRIPT_PATH = 'command-error.js';
       registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       registry.load();
@@ -387,9 +520,9 @@ describe('ScriptRegistry', () => {
         throw callbackError;
       });
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
-        invokeCommand: {
+        buildInvokeCommand: () => ({
           callback: mockCallback
-        }
+        })
       });
 
       await registry.registerScript(SCRIPT_PATH);
@@ -410,9 +543,9 @@ describe('ScriptRegistry', () => {
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(undefined);
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
-        invokeCommand: {
+        buildInvokeCommand: () => ({
           checkCallback: mockCheckCallback
-        }
+        })
       });
 
       await registry.registerScript(SCRIPT_PATH);
@@ -430,9 +563,9 @@ describe('ScriptRegistry', () => {
       registry.load();
       const mockCheckCallback = vi.fn().mockReturnValue(false);
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
-        invokeCommand: {
+        buildInvokeCommand: () => ({
           checkCallback: mockCheckCallback
-        }
+        })
       });
 
       await registry.registerScript(SCRIPT_PATH);
@@ -452,9 +585,9 @@ describe('ScriptRegistry', () => {
         throw checkError;
       });
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
-        invokeCommand: {
+        buildInvokeCommand: () => ({
           checkCallback: mockCheckCallback
-        }
+        })
       });
 
       await registry.registerScript(SCRIPT_PATH);
@@ -478,9 +611,9 @@ describe('ScriptRegistry', () => {
           throw execError;
         });
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
-        invokeCommand: {
+        buildInvokeCommand: () => ({
           checkCallback: mockCheckCallback
-        }
+        })
       });
 
       await registry.registerScript(SCRIPT_PATH);
@@ -499,12 +632,12 @@ describe('ScriptRegistry', () => {
       registry.load();
       const mockCallback = vi.fn();
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
-        invokeCommand: {
+        buildInvokeCommand: () => ({
           callback: mockCallback,
           icon: 'star',
           id: 'custom-id',
           name: 'Custom Name'
-        }
+        })
       });
 
       await registry.registerScript(SCRIPT_PATH);
@@ -513,26 +646,122 @@ describe('ScriptRegistry', () => {
       expect(mockCallback).toHaveBeenCalled();
     });
 
-    it('should throw when script exports neither invoke nor invokeCommand', async () => {
+    it('should report the error when script exports neither invoke nor buildInvokeCommand', async () => {
       const SCRIPT_PATH = 'no-handler.js';
       registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       registry.load();
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({});
 
-      // Because the registry is loaded, addChild eagerly loads the new wrapper component, whose
-      // Real onload throws synchronously when the script exports neither invoke nor invokeCommand.
-      // The throw propagates out of registerScript.
-      await expect(registry.registerScript(SCRIPT_PATH)).rejects.toThrow(
-        `${SCRIPT_PATH} does not export invoke() function`
+      // `ComponentEx` swallows an `onloadAsync()` rejection into its load errors, so the failure is
+      // Reported eagerly instead of thrown, and registration of the remaining scripts keeps going.
+      await registry.registerScript(SCRIPT_PATH);
+
+      expect(mockPrintError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cause: expect.objectContaining({
+            message: `${SCRIPT_PATH} does not export \`invoke()\` or \`buildInvokeCommand()\` functions`
+          }) as unknown,
+          message: `Error building invoke command for ${SCRIPT_PATH}`
+        })
+      );
+      expect(showNotice).toHaveBeenCalledWith(
+        `Error building invoke command for ${SCRIPT_PATH}. See console for details.`
       );
     });
 
-    it('should do nothing when invokeCommand has neither callback nor checkCallback', async () => {
+    it('should re-surface the reason when a script exporting neither invoke nor buildInvokeCommand is invoked', async () => {
+      const SCRIPT_PATH = 'no-handler-invoke.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({});
+
+      await registry.registerScript(SCRIPT_PATH);
+      mockPrintError.mockClear();
+      showNotice.mockClear();
+      await registry.invokeScriptPath(SCRIPT_PATH);
+
+      // Invoking the failing command reports the reason again instead of silently doing nothing.
+      expect(showNotice).toHaveBeenCalledWith(
+        `Error building invoke command for ${SCRIPT_PATH}. See console for details.`
+      );
+      expect(mockPrintError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: `Error building invoke command for ${SCRIPT_PATH}`
+        })
+      );
+    });
+
+    it('should report the error when script exports the deprecated invokeCommand', async () => {
+      const SCRIPT_PATH = 'deprecated-invoke-command.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        invokeCommand: { callback: vi.fn() }
+      });
+
+      await registry.registerScript(SCRIPT_PATH);
+
+      expect(mockPrintError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cause: expect.objectContaining({
+            message: `${SCRIPT_PATH} exports deprecated \`invokeCommand\`. Rewrite it to use \`buildInvokeCommand()\` instead.`
+          }) as unknown,
+          message: `Error building invoke command for ${SCRIPT_PATH}`
+        })
+      );
+      expect(showNotice).toHaveBeenCalledWith(
+        `Error building invoke command for ${SCRIPT_PATH}. See console for details.`
+      );
+    });
+
+    it('should not run the deprecated invokeCommand callback', async () => {
+      const SCRIPT_PATH = 'deprecated-invoke-command-run.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      const mockCallback = vi.fn();
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        invokeCommand: { callback: mockCallback }
+      });
+
+      await registry.registerScript(SCRIPT_PATH);
+      showNotice.mockClear();
+      await registry.invokeScriptPath(SCRIPT_PATH);
+
+      expect(mockCallback).not.toHaveBeenCalled();
+      expect(showNotice).toHaveBeenCalledWith(
+        `Error building invoke command for ${SCRIPT_PATH}. See console for details.`
+      );
+    });
+
+    it('should prefer the deprecated invokeCommand error over buildInvokeCommand when both are exported', async () => {
+      const SCRIPT_PATH = 'deprecated-and-build.js';
+      registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
+      registry.load();
+      const mockBuildInvokeCommand = vi.fn(() => ({ callback: vi.fn() }));
+      requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        buildInvokeCommand: mockBuildInvokeCommand,
+        invokeCommand: { callback: vi.fn() }
+      });
+
+      await registry.registerScript(SCRIPT_PATH);
+
+      expect(mockBuildInvokeCommand).not.toHaveBeenCalled();
+      expect(mockPrintError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cause: expect.objectContaining({
+            message: `${SCRIPT_PATH} exports deprecated \`invokeCommand\`. Rewrite it to use \`buildInvokeCommand()\` instead.`
+          }) as unknown,
+          message: `Error building invoke command for ${SCRIPT_PATH}`
+        })
+      );
+    });
+
+    it('should do nothing when the built command has neither callback nor checkCallback', async () => {
       const SCRIPT_PATH = 'empty-command.js';
       registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       registry.load();
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
-        invokeCommand: {}
+        buildInvokeCommand: () => ({})
       });
 
       await registry.registerScript(SCRIPT_PATH);

@@ -6,10 +6,12 @@ import {
   Notice
 } from 'obsidian';
 
-export const invokeCommand: Partial<Command> = {
-  editorCallback(editor: Editor, ctx: MarkdownView | MarkdownFileInfo): void {
-    const message = 'Command with editorCallback';
-    new Notice(message);
-    console.log(message);
-  }
-};
+export function buildInvokeCommand(): Partial<Command> {
+  return {
+    editorCallback: (editor: Editor, ctx: MarkdownView | MarkdownFileInfo): void => {
+      const message = 'Command with editorCallback';
+      new Notice(message);
+      console.log(message);
+    }
+  };
+}

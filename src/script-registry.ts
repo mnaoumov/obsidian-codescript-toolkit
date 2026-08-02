@@ -8,7 +8,10 @@ import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/componen
 import type { Promisable } from 'type-fest';
 
 import { App } from 'obsidian';
-import { printError } from 'obsidian-dev-utils/error';
+import {
+  ErrorWrapper,
+  printError
+} from 'obsidian-dev-utils/error';
 import { noopAsync } from 'obsidian-dev-utils/function';
 import { CommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler';
 import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
@@ -26,12 +29,11 @@ import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-set
 const INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX = 'invoke-script-file-';
 
 interface CommandWrapperCommandHandlerConstructorParams {
-  readonly app: App;
   readonly command: Partial<Command>;
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly defaultCommandIcon: IconName;
   readonly defaultCommandId: string;
-  readonly defaultName: string;
+  readonly defaultCommandName: string;
   readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly relativeScriptPath: string;
 }
@@ -47,10 +49,6 @@ interface FunctionWrapperCommandHandlerConstructorParams {
   readonly relativeScriptPath: string;
 }
 
-interface InvokeCommand extends Command {
-  app: App;
-}
-
 interface ScriptComponentConstructorParams {
   readonly app: App;
   readonly commandHandlerComponent: CommandHandlerComponent;
@@ -61,6 +59,10 @@ interface ScriptComponentConstructorParams {
 }
 
 interface ScriptOrCommand extends Partial<Script> {
+  buildInvokeCommand?(app: App): Promisable<Partial<Command>>;
+  // Deprecated for script authors, who should export `buildInvokeCommand()` instead. Declared here only so legacy
+  // Scripts still exporting it can be detected and reported. Not a `@deprecated` tag: this interface is module-private,
+  // So the tag would reach no consumer while making its own detection below fail `@typescript-eslint/no-deprecated`.
   invokeCommand?: Partial<Command>;
 }
 
@@ -78,7 +80,6 @@ interface WrapperCommandHandler extends CommandHandler {
 }
 
 class CommandWrapperCommandHandler extends CommandHandler implements WrapperCommandHandler {
-  private readonly app: App;
   private readonly command: Partial<Command>;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly pluginNoticeComponent: PluginNoticeComponent;
@@ -88,9 +89,8 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
     super({
       icon: params.command.icon ?? params.defaultCommandIcon,
       id: params.command.id ?? params.defaultCommandId,
-      name: params.command.name ?? params.defaultName
+      name: params.command.name ?? params.defaultCommandName
     });
-    this.app = params.app;
     this.command = params.command;
     this.relativeScriptPath = params.relativeScriptPath;
     this.consoleDebugComponent = params.consoleDebugComponent;
@@ -98,17 +98,12 @@ class CommandWrapperCommandHandler extends CommandHandler implements WrapperComm
   }
 
   public override buildCommand(): Command {
-    const invokeCommand: InvokeCommand = {
-      app: this.app,
+    const invokeCommand: Command = {
       icon: this.icon,
       id: this.id,
       name: this.name,
       ...this.command
     };
-    rebind(invokeCommand, 'callback');
-    rebind(invokeCommand, 'checkCallback');
-    rebind(invokeCommand, 'editorCallback');
-    rebind(invokeCommand, 'editorCheckCallback');
     return invokeCommand;
   }
 
@@ -209,19 +204,34 @@ class WrapperCommandHandlerComponent extends ComponentEx {
     await this.wrapperCommandHandler.forceInvoke();
   }
 
-  public override onload(): void {
+  public override async onloadAsync(): Promise<void> {
     const DEFAULT_COMMAND_ICON: IconName = 'play';
     const DEFAULT_COMMAND_ID = `${INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX}${this.relativeScriptPath}`;
-    const DEFAULT_NAME = `Invoke script: ${this.relativeScriptPath}`;
+    const DEFAULT_COMMAND_NAME = `Invoke script: ${this.relativeScriptPath}`;
 
     if (this.scriptOrCommand.invokeCommand) {
       this._wrapperCommandHandler = new CommandWrapperCommandHandler({
-        app: this.app,
-        command: this.scriptOrCommand.invokeCommand,
+        command: this.createFailingInvokeCommand(new Error(`${this.relativeScriptPath} exports deprecated \`invokeCommand\`. Rewrite it to use \`buildInvokeCommand()\` instead.`)),
         consoleDebugComponent: this.consoleDebugComponent,
         defaultCommandIcon: DEFAULT_COMMAND_ICON,
         defaultCommandId: DEFAULT_COMMAND_ID,
-        defaultName: DEFAULT_NAME,
+        defaultCommandName: DEFAULT_COMMAND_NAME,
+        pluginNoticeComponent: this.pluginNoticeComponent,
+        relativeScriptPath: this.relativeScriptPath
+      });
+    } else if (this.scriptOrCommand.buildInvokeCommand) {
+      let invokeCommand: Partial<Command>;
+      try {
+        invokeCommand = await this.scriptOrCommand.buildInvokeCommand(this.app);
+      } catch (error) {
+        invokeCommand = this.createFailingInvokeCommand(ErrorWrapper.create(error));
+      }
+      this._wrapperCommandHandler = new CommandWrapperCommandHandler({
+        command: invokeCommand,
+        consoleDebugComponent: this.consoleDebugComponent,
+        defaultCommandIcon: DEFAULT_COMMAND_ICON,
+        defaultCommandId: DEFAULT_COMMAND_ID,
+        defaultCommandName: DEFAULT_COMMAND_NAME,
         pluginNoticeComponent: this.pluginNoticeComponent,
         relativeScriptPath: this.relativeScriptPath
       });
@@ -231,19 +241,41 @@ class WrapperCommandHandlerComponent extends ComponentEx {
         consoleDebugComponent: this.consoleDebugComponent,
         defaultCommandIcon: DEFAULT_COMMAND_ICON,
         defaultCommandId: DEFAULT_COMMAND_ID,
-        defaultName: DEFAULT_NAME,
+        defaultName: DEFAULT_COMMAND_NAME,
         invoke: this.scriptOrCommand.invoke.bind(this.scriptOrCommand),
         pluginNoticeComponent: this.pluginNoticeComponent,
         relativeScriptPath: this.relativeScriptPath
       });
     } else {
-      throw new Error(`${this.relativeScriptPath} does not export invoke() function`);
+      this._wrapperCommandHandler = new CommandWrapperCommandHandler({
+        command: this.createFailingInvokeCommand(new Error(`${this.relativeScriptPath} does not export \`invoke()\` or \`buildInvokeCommand()\` functions`)),
+        consoleDebugComponent: this.consoleDebugComponent,
+        defaultCommandIcon: DEFAULT_COMMAND_ICON,
+        defaultCommandId: DEFAULT_COMMAND_ID,
+        defaultCommandName: DEFAULT_COMMAND_NAME,
+        pluginNoticeComponent: this.pluginNoticeComponent,
+        relativeScriptPath: this.relativeScriptPath
+      });
     }
 
     const disposable = this.commandHandlerComponent.registerCommandHandlers([this.wrapperCommandHandler]);
-    this.register(() => {
-      disposable[Symbol.dispose]();
-    });
+    this.registerDisposable(disposable);
+  }
+
+  private createFailingInvokeCommand(error: Error): Partial<Command> {
+    const buildError = new Error(`Error building invoke command for ${this.relativeScriptPath}`, { cause: error });
+    printError(buildError);
+    const noticeMessage = `${buildError.message}. See console for details.`;
+    this.pluginNoticeComponent.showNotice(noticeMessage);
+    return {
+      checkCallback: (checking: boolean): boolean => {
+        if (!checking) {
+          this.pluginNoticeComponent.showNotice(noticeMessage);
+        }
+        printError(buildError);
+        return true;
+      }
+    };
   }
 }
 
@@ -322,12 +354,5 @@ export class ScriptRegistryComponent extends ComponentEx {
       }
     }
     return await this.RequireHandlerFactoryComponent.requireVaultScriptAsync(vaultScriptPath) as Partial<ScriptOrCommand>;
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- We need T to get proper prop type.
-function rebind<T extends keyof InvokeCommand>(invokeCommand: InvokeCommand, prop: T): void {
-  if (typeof invokeCommand[prop] === 'function') {
-    invokeCommand[prop] = invokeCommand[prop].bind(invokeCommand) as InvokeCommand[T];
   }
 }

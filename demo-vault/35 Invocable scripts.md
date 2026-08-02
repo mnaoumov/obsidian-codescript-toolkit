@@ -15,3 +15,7 @@ The invocable scripts folder is configured automatically by the Demo Vault Helpe
 - Invoke command `CodeScript Toolkit: Invoke script: InvokeCommands/editorCallback.ts`
 - Invoke command `CodeScript Toolkit: Invoke script: InvokeCommands/editorCheckCallback.ts`
 - Invoke command `CodeScript Toolkit: Custom name`
+- Invoke command `CodeScript Toolkit: Async built command`
+- Invoke command `CodeScript Toolkit: Invoke script: InvokeCommands/deprecatedInvokeCommand.ts`
+
+`InvokeCommands/deprecatedInvokeCommand.ts` fails on purpose. It exports the removed `invokeCommand` object instead of a `buildInvokeCommand()` function, so a notice about it appears when this vault is loaded, and invoking its command only repeats that notice instead of running the script.
