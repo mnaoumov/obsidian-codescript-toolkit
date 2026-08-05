@@ -88,7 +88,9 @@ describe('CodeScriptCodeHighlighterComponent', () => {
 
       component.unload();
 
+      // eslint-disable-next-line unicorn/no-computed-property-existence-check -- The key is a constant module identifier, and the check is on a mock registry object.
       expect(CODE_SCRIPT_BLOCK_LANGUAGE in mocks.modes).toBe(false);
+      // eslint-disable-next-line unicorn/no-computed-property-existence-check -- The key is a constant module identifier, and the check is on a mock registry object.
       expect(CODE_SCRIPT_BLOCK_LANGUAGE in mocks.prism.languages).toBe(false);
     });
   });

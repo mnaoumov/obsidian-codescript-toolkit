@@ -258,7 +258,7 @@ class WrapperCommandHandlerComponent extends ComponentEx {
       });
     }
 
-    const disposable = this.commandHandlerComponent.registerCommandHandlers([this.wrapperCommandHandler]);
+    const disposable = this.commandHandlerComponent.registerCommandHandlers(() => [this.wrapperCommandHandler]);
     this.registerDisposable(disposable);
   }
 
@@ -268,8 +268,8 @@ class WrapperCommandHandlerComponent extends ComponentEx {
     const noticeMessage = `${buildError.message}. See console for details.`;
     this.pluginNoticeComponent.showNotice(noticeMessage);
     return {
-      checkCallback: (checking: boolean): boolean => {
-        if (!checking) {
+      checkCallback: (isChecking: boolean): boolean => {
+        if (!isChecking) {
           this.pluginNoticeComponent.showNotice(noticeMessage);
         }
         printError(buildError);

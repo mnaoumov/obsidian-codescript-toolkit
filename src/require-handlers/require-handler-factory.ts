@@ -30,11 +30,14 @@ export class RequireHandlerFactoryComponent extends ComponentEx implements Requi
     await super.onloadAsync();
 
     if (document.body.hasClass('emulate-mobile')) {
-      this._platformRequireHandler = new (await import('./require-handler-emulate-mobile.ts')).RequireHandlerEmulateMobileComponent(this.params);
+      const emulateMobileModule = await import('./require-handler-emulate-mobile.ts');
+      this._platformRequireHandler = new emulateMobileModule.RequireHandlerEmulateMobileComponent(this.params);
     } else if (Platform.isMobile) {
-      this._platformRequireHandler = new (await import('./require-handler-mobile.ts')).RequireHandlerMobileComponent(this.params);
+      const mobileModule = await import('./require-handler-mobile.ts');
+      this._platformRequireHandler = new mobileModule.RequireHandlerMobileComponent(this.params);
     } else {
-      this._platformRequireHandler = new (await import('./require-handler-desktop.ts')).RequireHandlerDesktopComponent(this.params);
+      const desktopModule = await import('./require-handler-desktop.ts');
+      this._platformRequireHandler = new desktopModule.RequireHandlerDesktopComponent(this.params);
     }
 
     this.addChild(this._platformRequireHandler);

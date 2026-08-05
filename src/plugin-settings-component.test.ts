@@ -48,7 +48,7 @@ const mockParseYaml = vi.fn();
 
 vi.mock('obsidian', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian')>(),
-  parseYaml: (...args: unknown[]): unknown => mockParseYaml(...args)
+  parseYaml: (...$arguments: unknown[]): unknown => mockParseYaml(...$arguments)
 }));
 
 vi.mock('./require-handlers/require-handler.ts', () => ({
@@ -170,16 +170,16 @@ describe('PluginSettingsComponent', () => {
     });
 
     it('should convert invocableScriptsDirectory to invocableScriptsFolder', () => {
-      const converterFn = getRegisteredLegacyConverter();
+      const converterFunction = getRegisteredLegacyConverter();
       const legacySettings = { invocableScriptsDirectory: 'my-scripts', invocableScriptsFolder: '' };
-      converterFn(legacySettings);
+      converterFunction(legacySettings);
       expect(legacySettings.invocableScriptsFolder).toBe('my-scripts');
     });
 
     it('should not overwrite invocableScriptsFolder when invocableScriptsDirectory is empty', () => {
-      const converterFn = getRegisteredLegacyConverter();
+      const converterFunction = getRegisteredLegacyConverter();
       const legacySettings = { invocableScriptsDirectory: '', invocableScriptsFolder: 'existing' };
-      converterFn(legacySettings);
+      converterFunction(legacySettings);
       expect(legacySettings.invocableScriptsFolder).toBe('existing');
     });
 
@@ -321,11 +321,11 @@ describe('PluginSettingsComponent', () => {
   function createMockPluginEventSource(): PluginEventSource {
     const source: PluginEventSource = strictProxy<PluginEventSource>({
       offref: noop,
-      on: castTo<PluginEventSource['on']>(vi.fn((name: string, callback: () => void, thisArg?: unknown) => ({
+      on: castTo<PluginEventSource['on']>(vi.fn((name: string, callback: () => void, thisArgument?: unknown) => ({
         asyncEventSource: source,
         callback,
         name,
-        thisArg
+        thisArgument
       })))
     });
     return source;

@@ -83,25 +83,25 @@ describe('ScriptFolderWatcherMobile', () => {
       settings.getInvocableScriptsFolder.mockReturnValue('');
 
       const onChange = vi.fn().mockResolvedValue(undefined);
-      const result = await watcher['startWatcher'](onChange);
+      const isResult = await watcher['startWatcher'](onChange);
 
-      expect(result).toBe(false);
+      expect(isResult).toBe(false);
     });
 
     it('should return false when folder does not exist', async () => {
       existsMock.mockResolvedValue(false);
 
       const onChange = vi.fn().mockResolvedValue(undefined);
-      const result = await watcher['startWatcher'](onChange);
+      const isResult = await watcher['startWatcher'](onChange);
 
-      expect(result).toBe(false);
+      expect(isResult).toBe(false);
     });
 
     it('should return true when folder exists and watching starts', async () => {
       const onChange = vi.fn().mockResolvedValue(undefined);
-      const result = await watcher['startWatcher'](onChange);
+      const isResult = await watcher['startWatcher'](onChange);
 
-      expect(result).toBe(true);
+      expect(isResult).toBe(true);
     });
 
     it('should call onChange on first check because all files are new', async () => {

@@ -31,15 +31,16 @@ export abstract class BabelPluginBase<Data = unknown> {
     try {
       const result = babelTransform(code, {
         filename,
+        // eslint-disable-next-line unicorn/name-replacements -- Named by a dependency's API - Obsidian's MetadataCache/Vault and Babel's InputOptions.
         parserOpts: {
           allowReturnOutsideFunction: true
         },
         plugins: [
-          (): PluginObject => this.getPluginObj()
+          (): PluginObject => this.getPluginObject()
         ],
         presets: ['typescript'],
         sourceMaps: 'inline',
-        ...folder === undefined ? {} : { cwd: folder }
+        ...folder !== undefined && { cwd: folder }
       });
 
       if (result.code === null || result.code === undefined) {
@@ -50,10 +51,10 @@ export abstract class BabelPluginBase<Data = unknown> {
         data: this.data,
         transformedCode: result.code
       };
-    } catch (e) {
+    } catch (error) {
       return {
         data: this.data,
-        error: e as Error,
+        error: error as Error,
         transformedCode: ''
       };
     }
@@ -68,13 +69,14 @@ export abstract class BabelPluginBase<Data = unknown> {
     return undefined;
   }
 
-  private getPluginObj(): PluginObject {
+  private getPluginObject(): PluginObject {
     const thisWrapper = ValueWrapper.of(this);
     const visitor = this.getVisitor();
     const inherits = this.getInherits();
 
-    function manipulateOptions(opts: unknown, parserOpts: unknown): void {
-      thisWrapper.value.manipulateOptions(opts, parserOpts);
+    // eslint-disable-next-line unicorn/name-replacements -- Named by a dependency's API - Obsidian's MetadataCache/Vault and Babel's InputOptions.
+    function manipulateOptions(options: unknown, parserOpts: unknown): void {
+      thisWrapper.value.manipulateOptions(options, parserOpts);
     }
 
     function pre(this: PluginPass, file: File): void {
@@ -90,11 +92,11 @@ export abstract class BabelPluginBase<Data = unknown> {
       post,
       pre,
       visitor,
-      ...inherits === undefined ? {} : { inherits }
+      ...inherits !== undefined && { inherits }
     };
   }
 
-  private manipulateOptions(_opts: unknown, _parserOpts: unknown): void {
+  private manipulateOptions(_options: unknown, _parserOptions: unknown): void {
     noop();
   }
 

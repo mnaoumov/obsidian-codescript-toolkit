@@ -47,9 +47,11 @@ export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComp
   }
 
   protected override stopWatcher(): void {
-    if (this.watcher) {
-      this.watcher.close();
-      this.watcher = null;
+    if (!this.watcher) {
+      return;
     }
+
+    this.watcher.close();
+    this.watcher = null;
   }
 }

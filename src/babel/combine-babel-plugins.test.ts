@@ -48,10 +48,12 @@ class RenameFooBabelPlugin extends BabelPluginBase<RenameData> {
   public override getVisitor(): Visitor<PluginPass> {
     return {
       Identifier: (path): void => {
-        if (path.node.name === 'foo') {
-          path.node.name = 'bar';
-          this.data.renamed = true;
+        if (path.node.name !== 'foo') {
+          return;
         }
+
+        path.node.name = 'bar';
+        this.data.renamed = true;
       }
     };
   }
@@ -65,11 +67,11 @@ class WrapInCallBabelPlugin extends BabelPluginBase<WrapData> {
   public override getVisitor(): Visitor<PluginPass> {
     return {
       ExpressionStatement: (path): void => {
-        const expr = path.node.expression;
-        if (isCallExpression(expr) && isIdentifier(expr.callee) && expr.callee.name === 'wrapper') {
+        const expression = path.node.expression;
+        if (isCallExpression(expression) && isIdentifier(expression.callee) && expression.callee.name === 'wrapper') {
           return;
         }
-        path.node.expression = callExpression(identifier('wrapper'), [expr]);
+        path.node.expression = callExpression(identifier('wrapper'), [expression]);
         this.data.wrapped = true;
       }
     };

@@ -34,15 +34,13 @@ export class WrapInRequireFunctionBabelPlugin extends BabelPluginBase {
       Program: (path): void => {
         const programBody = path.node.body;
 
-        let wrapperBody: Statement[];
-
-        if (this.isAsync) {
-          wrapperBody = [
+        const wrapperBody: Statement[] = this.isAsync
+          ? [
             returnStatement(callExpression(
               identifier('requireAsyncWrapper'),
               [
                 functionExpression(
-                  identifier('requireFn'),
+                  identifier('requireFunction'),
                   [
                     identifier('require')
                   ],
@@ -53,10 +51,8 @@ export class WrapInRequireFunctionBabelPlugin extends BabelPluginBase {
                 identifier('require')
               ]
             ))
-          ];
-        } else {
-          wrapperBody = programBody;
-        }
+          ]
+          : programBody;
 
         const wrapperFunction = functionExpression(
           identifier('scriptWrapper'),

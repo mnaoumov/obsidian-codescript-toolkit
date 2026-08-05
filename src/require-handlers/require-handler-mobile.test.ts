@@ -86,33 +86,33 @@ interface ReadFileBinaryAsyncAccessor {
   readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
 }
 
-function asCanRequireSync(obj: RequireHandlerMobileComponent): CanRequireSyncAccessor {
-  return castTo<CanRequireSyncAccessor>(obj);
+function asCanRequireSync(object: RequireHandlerMobileComponent): CanRequireSyncAccessor {
+  return castTo<CanRequireSyncAccessor>(object);
 }
 
-function asExistsFileAsync(obj: RequireHandlerMobileComponent): ExistsFileAsyncAccessor {
+function asExistsFileAsync(object: RequireHandlerMobileComponent): ExistsFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return obj as unknown as ExistsFileAsyncAccessor;
+  return object as unknown as ExistsFileAsyncAccessor;
 }
 
-function asExistsFolderAsync(obj: RequireHandlerMobileComponent): ExistsFolderAsyncAccessor {
+function asExistsFolderAsync(object: RequireHandlerMobileComponent): ExistsFolderAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return obj as unknown as ExistsFolderAsyncAccessor;
+  return object as unknown as ExistsFolderAsyncAccessor;
 }
 
-function asGetTimestampAsync(obj: RequireHandlerMobileComponent): GetTimestampAsyncAccessor {
+function asGetTimestampAsync(object: RequireHandlerMobileComponent): GetTimestampAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return obj as unknown as GetTimestampAsyncAccessor;
+  return object as unknown as GetTimestampAsyncAccessor;
 }
 
-function asReadFileAsync(obj: RequireHandlerMobileComponent): ReadFileAsyncAccessor {
+function asReadFileAsync(object: RequireHandlerMobileComponent): ReadFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return obj as unknown as ReadFileAsyncAccessor;
+  return object as unknown as ReadFileAsyncAccessor;
 }
 
-function asReadFileBinaryAsync(obj: RequireHandlerMobileComponent): ReadFileBinaryAsyncAccessor {
+function asReadFileBinaryAsync(object: RequireHandlerMobileComponent): ReadFileBinaryAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return obj as unknown as ReadFileBinaryAsyncAccessor;
+  return object as unknown as ReadFileBinaryAsyncAccessor;
 }
 
 function createMockParams(adapter?: unknown): RequireHandlerConstructorParams {
@@ -134,6 +134,7 @@ function createMockParams(adapter?: unknown): RequireHandlerConstructorParams {
         modulesRoot: ''
       }
     }),
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     tempPluginRegistry: castTo<RequireHandlerConstructorParams['tempPluginRegistry']>({})
   };
   return partial as RequireHandlerConstructorParams;
@@ -259,8 +260,8 @@ describe('RequireHandlerMobileComponent', () => {
       mockCapacitorFs.stat.mockResolvedValue({ type: 'file' });
 
       const accessor = asExistsFileAsync(handler);
-      const result = await accessor.existsFileAsync('test.js');
-      expect(result).toBe(true);
+      const isResult = await accessor.existsFileAsync('test.js');
+      expect(isResult).toBe(true);
     });
 
     it('should return false when file exists but is a directory', async () => {
@@ -270,8 +271,8 @@ describe('RequireHandlerMobileComponent', () => {
       mockCapacitorFs.stat.mockResolvedValue({ type: 'directory' });
 
       const accessor = asExistsFileAsync(handler);
-      const result = await accessor.existsFileAsync('test');
-      expect(result).toBe(false);
+      const isResult = await accessor.existsFileAsync('test');
+      expect(isResult).toBe(false);
     });
 
     it('should return false when file does not exist', async () => {
@@ -280,8 +281,8 @@ describe('RequireHandlerMobileComponent', () => {
       mockCapacitorFs.exists.mockResolvedValue(false);
 
       const accessor = asExistsFileAsync(handler);
-      const result = await accessor.existsFileAsync('nonexistent.js');
-      expect(result).toBe(false);
+      const isResult = await accessor.existsFileAsync('nonexistent.js');
+      expect(isResult).toBe(false);
     });
 
     it('should strip query string from path', async () => {
@@ -304,8 +305,8 @@ describe('RequireHandlerMobileComponent', () => {
       mockCapacitorFs.stat.mockResolvedValue({ type: 'directory' });
 
       const accessor = asExistsFolderAsync(handler);
-      const result = await accessor.existsFolderAsync('test-dir');
-      expect(result).toBe(true);
+      const isResult = await accessor.existsFolderAsync('test-dir');
+      expect(isResult).toBe(true);
     });
 
     it('should return false when path exists but is a file', async () => {
@@ -315,8 +316,8 @@ describe('RequireHandlerMobileComponent', () => {
       mockCapacitorFs.stat.mockResolvedValue({ type: 'file' });
 
       const accessor = asExistsFolderAsync(handler);
-      const result = await accessor.existsFolderAsync('test.js');
-      expect(result).toBe(false);
+      const isResult = await accessor.existsFolderAsync('test.js');
+      expect(isResult).toBe(false);
     });
 
     it('should return false when path does not exist', async () => {
@@ -325,8 +326,8 @@ describe('RequireHandlerMobileComponent', () => {
       mockCapacitorFs.exists.mockResolvedValue(false);
 
       const accessor = asExistsFolderAsync(handler);
-      const result = await accessor.existsFolderAsync('nonexistent');
-      expect(result).toBe(false);
+      const isResult = await accessor.existsFolderAsync('nonexistent');
+      expect(isResult).toBe(false);
     });
   });
 
@@ -334,7 +335,7 @@ describe('RequireHandlerMobileComponent', () => {
     it('should return mtime from stat', async () => {
       const adapter = new MockCapacitorAdapterClass();
       handler = createHandler(adapter);
-      const EXPECTED_MTIME = 1234567890;
+      const EXPECTED_MTIME = 1_234_567_890;
       mockCapacitorFs.stat.mockResolvedValue({ mtime: EXPECTED_MTIME });
 
       const accessor = asGetTimestampAsync(handler);

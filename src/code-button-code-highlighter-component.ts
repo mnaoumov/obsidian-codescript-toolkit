@@ -6,7 +6,7 @@ export class CodeButtonCodeHighlighterComponent extends SyntaxHighlightingCompon
   public override async onloadAsync(): Promise<void> {
     await super.onloadAsync();
     // No `prismGrammar`: unlike `code-script`, this fence is replaced by a button in reading view, so Prism has nothing to highlight there.
-    await this.registerCodeBlockLanguageAsync({
+    await this.registerCodeBlockLanguage({
       editorMode: 'text/typescript',
       language: CODE_BUTTON_BLOCK_LANGUAGE
     });

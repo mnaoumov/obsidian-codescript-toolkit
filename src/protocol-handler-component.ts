@@ -10,9 +10,10 @@ import type { RequireHandlerFactoryComponent } from './require-handlers/require-
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
-type GenericAsyncFn = (...args: unknown[]) => Promise<unknown>;
+type GenericAsyncFunction = (...$arguments: unknown[]) => Promise<unknown>;
 
-interface InvokeModuleFnParams {
+interface InvokeModuleFunctionParams {
+  // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
   readonly args: unknown[];
   readonly functionName: string;
   readonly moduleSpecifier: string;
@@ -26,6 +27,7 @@ interface ProtocolHandlerComponentConstructorParams {
 }
 
 interface Query {
+  // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
   args?: string;
   code?: string;
   functionName?: string;
@@ -75,15 +77,17 @@ export class ProtocolHandlerComponent extends ComponentEx {
 
     if (parsedQuery.module) {
       parsedQuery.functionName ??= 'invoke';
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       parsedQuery.args ??= parsedQuery.functionName === 'invoke' ? 'app' : '';
 
       this.consoleDebugComponent.consoleDebug('Invoking script file from URL action:', {
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: parsedQuery.args,
         functionName: parsedQuery.functionName,
         module: parsedQuery.module
       });
 
-      parsedQuery.code = `(${String(invokeModuleFn)})({ args: [${parsedQuery.args}], functionName: '${parsedQuery.functionName}', moduleSpecifier: '${parsedQuery.module}' })`;
+      parsedQuery.code = `(${String(invokeModuleFunction)})({ args: [${parsedQuery.args}], functionName: '${parsedQuery.functionName}', moduleSpecifier: '${parsedQuery.module}' })`;
     } else {
       parsedQuery.code ??= '';
 
@@ -100,21 +104,21 @@ export class ProtocolHandlerComponent extends ComponentEx {
 }
 
 /* v8 ignore start -- serialized via toString() and evaluated in another runtime context via requireStringAsync. */
-async function invokeModuleFn(params: InvokeModuleFnParams): Promise<void> {
+async function invokeModuleFunction(params: InvokeModuleFunctionParams): Promise<void> {
   const { args, functionName, moduleSpecifier } = params;
   const windowWithRequireAsync = window as Partial<WindowWithRequireAsync>;
   const requireAsync = windowWithRequireAsync.requireAsync;
   if (typeof requireAsync !== 'function') {
-    throw new Error('requireAsync is not defined in window.');
+    throw new TypeError('requireAsync is not defined in window.');
   }
   const module = await requireAsync(moduleSpecifier);
-  const fn = module[functionName];
-  if (typeof fn === 'undefined') {
+  const $function = module[functionName];
+  if ($function === undefined) {
     throw new Error(`Function ${functionName} in module ${moduleSpecifier} is not defined.`);
   }
-  if (typeof fn !== 'function') {
-    throw new Error(`${functionName} in module ${moduleSpecifier} is not a function.`);
+  if (typeof $function !== 'function') {
+    throw new TypeError(`${functionName} in module ${moduleSpecifier} is not a function.`);
   }
-  await (fn as GenericAsyncFn)(...args);
+  await ($function as GenericAsyncFunction)(...args);
 }
 /* v8 ignore stop */

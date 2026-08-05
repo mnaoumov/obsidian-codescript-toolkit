@@ -28,15 +28,15 @@ const mockParseFrontmatter = vi.fn();
 const mockGetFrontmatterSafe = vi.fn();
 
 vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
-  isMarkdownFile: (...args: unknown[]): unknown => mockIsMarkdownFile(...args as [string])
+  isMarkdownFile: (...$arguments: unknown[]): unknown => mockIsMarkdownFile(...$arguments as [string])
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/frontmatter', () => ({
-  parseFrontmatter: (...args: unknown[]): unknown => mockParseFrontmatter(...args)
+  parseFrontmatter: (...$arguments: unknown[]): unknown => mockParseFrontmatter(...$arguments)
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/metadata-cache', () => ({
-  getFrontmatterSafe: (...args: unknown[]): unknown => mockGetFrontmatterSafe(...args)
+  getFrontmatterSafe: (...$arguments: unknown[]): unknown => mockGetFrontmatterSafe(...$arguments)
 }));
 
 interface CreateMockAppOptions {

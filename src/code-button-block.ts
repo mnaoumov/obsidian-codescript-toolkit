@@ -46,6 +46,7 @@ import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-p
 import { CODE_BUTTON_BLOCK_LANGUAGE } from './code-button-code-highlighter-component.ts';
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 interface CodeButtonBlockComponentHandleClickParams {
@@ -55,7 +56,7 @@ interface CodeButtonBlockComponentHandleClickParams {
   readonly escapedCaption: string;
 }
 
-type CodeButtonBlockScriptWrapper = (ctx: CodeButtonContext) => Promisable<void>;
+type CodeButtonBlockScriptWrapper = (context: CodeButtonContext) => Promisable<void>;
 
 export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   caption: '(no caption)',
@@ -78,11 +79,12 @@ interface CodeButtonBlockComponentConstructorParams {
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   readonly resourceLockComponent: null | ResourceLockComponent;
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
 interface CodeButtonBlockComponentProcessCodeButtonBlockParams {
-  readonly ctx: MarkdownPostProcessorContext;
+  readonly context: MarkdownPostProcessorContext;
   readonly el: HTMLElement;
   readonly source: string;
 }
@@ -100,6 +102,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   private readonly resourceLockComponent: null | ResourceLockComponent;
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
@@ -109,14 +112,15 @@ export class CodeButtonBlockComponent extends ComponentEx {
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
   public override onload(): void {
     this.markdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor({
-      handler: async (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): Promise<void> => {
+      handler: async (source: string, el: HTMLElement, context: MarkdownPostProcessorContext): Promise<void> => {
         await this.processCodeButtonBlock({
-          ctx,
+          context,
           el,
           source
         });
@@ -160,20 +164,25 @@ export class CodeButtonBlockComponent extends ComponentEx {
     } finally {
       let shouldRemoveButton = false;
       switch (params.codeButtonContext.config.removeAfterExecution.when) {
-        case 'always':
+        case 'always': {
           shouldRemoveButton = true;
           break;
-        case 'never':
+        }
+        case 'never': {
           break;
-        case 'onError':
+        }
+        case 'onError': {
           shouldRemoveButton = !isSuccess;
           break;
-        case 'onSuccess':
+        }
+        case 'onSuccess': {
           shouldRemoveButton = isSuccess;
           break;
-        default:
+        }
+        default: {
           console.error(`Unknown remove after execution mode: ${params.codeButtonContext.config.removeAfterExecution.when as string}`);
           break;
+        }
       }
       if (shouldRemoveButton) {
         if (params.codeButtonContext.markdownInfo) {
@@ -191,13 +200,14 @@ export class CodeButtonBlockComponent extends ComponentEx {
   }
 
   private async processCodeButtonBlock(params: CodeButtonBlockComponentProcessCodeButtonBlockParams): Promise<void> {
-    const sourceFile = getFile({ app: this.app, pathOrFile: params.ctx.sourcePath });
+    const sourceFile = getFile({ app: this.app, pathOrFile: params.context.sourcePath });
+    // eslint-disable-next-line unicorn/no-top-level-assignment-in-function -- The counter is module-level on purpose: every rendered button needs a vault-unique index.
     lastButtonIndex++;
     const resultEl = params.el.createDiv({ cls: 'fix-require-modules console-log-container' });
 
     const markdownInfo = await getCodeBlockMarkdownInfo({
       app: this.app,
-      ctx: params.ctx,
+      context: params.context,
       el: params.el,
       source: params.source
     });
@@ -205,7 +215,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     const frontMatterInfo = getFrontMatterInfo(params.source);
     const code = params.source.slice(frontMatterInfo.contentStart);
 
-    if (markdownInfo && markdownInfo.args.length > 0) {
+    if (markdownInfo && markdownInfo.$arguments.length > 0) {
       new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
         f.appendText('❌ Error!\nYour code block uses legacy button config.');
         addLinkToDocs(f);
@@ -216,12 +226,12 @@ export class CodeButtonBlockComponent extends ComponentEx {
             'click',
             convertAsyncToSync(async () => {
               const config: Partial<CodeButtonBlockConfig> = removeUndefinedProperties(normalizeOptionalProperties<Partial<CodeButtonBlockConfig>>({
-                caption: markdownInfo.args[0],
-                isRaw: getBooleanArgument(markdownInfo.args, 'raw'),
-                shouldAutoOutput: getBooleanArgument(markdownInfo.args, 'autoOutput'),
-                shouldAutoRun: getBooleanArgument(markdownInfo.args, 'autorun'),
-                shouldShowSystemMessages: getBooleanArgument(markdownInfo.args, 'systemMessages'),
-                shouldWrapConsole: getBooleanArgument(markdownInfo.args, 'console')
+                caption: markdownInfo.$arguments[0],
+                isRaw: getBooleanArgument(markdownInfo.$arguments, 'raw'),
+                shouldAutoOutput: getBooleanArgument(markdownInfo.$arguments, 'autoOutput'),
+                shouldAutoRun: getBooleanArgument(markdownInfo.$arguments, 'autorun'),
+                shouldShowSystemMessages: getBooleanArgument(markdownInfo.$arguments, 'systemMessages'),
+                shouldWrapConsole: getBooleanArgument(markdownInfo.$arguments, 'console')
               }));
               const newCodeBlock = `\`\`\`code-button
   ---
@@ -231,7 +241,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
               await replaceCodeBlock({
                 app: this.app,
                 codeBlockProvider: newCodeBlock,
-                ctx: updateSourcePath(params.ctx, sourceFile),
+                context: updateSourcePath(params.context, sourceFile),
                 el: params.el,
                 resourceLockComponent: this.resourceLockComponent,
                 shouldPreserveLinePrefix: true,
@@ -267,8 +277,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
       config.shouldWrapConsole = false;
     }
 
-    const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config };
-    fullConfig.removeAfterExecution = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG.removeAfterExecution, ...config.removeAfterExecution };
+    const fullConfig = { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG, ...config, removeAfterExecution: { ...DEFAULT_CODE_BUTTON_BLOCK_CONFIG.removeAfterExecution, ...config.removeAfterExecution } };
 
     const thisWrapper = ValueWrapper.of(this);
 
@@ -295,11 +304,12 @@ export class CodeButtonBlockComponent extends ComponentEx {
           app: thisWrapper.value.app,
           config: fullConfig,
           markdownInfo,
-          markdownPostProcessorContext: updateSourcePath(params.ctx, sourceFile),
+          markdownPostProcessorContext: updateSourcePath(params.context, sourceFile),
           parentEl: params.el,
           resourceLockComponent: thisWrapper.value.resourceLockComponent,
           resultEl,
           source: params.source,
+          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
           tempPluginRegistry: thisWrapper.value.tempPluginRegistry
         }),
         escapedCaption: escapeForFileName(fullConfig.caption)
@@ -335,8 +345,8 @@ function addLinkToDocs(f: DocumentFragment): void {
   f.createEl('br');
 }
 
-function escapeForFileName(str: string): string {
-  return str.replace(getOsAndObsidianUnsafePathCharsRegExp(), '_');
+function escapeForFileName($string: string): string {
+  return $string.replace(getOsAndObsidianUnsafePathCharsRegExp(), '_');
 }
 
 function getBooleanArgument(codeBlockArguments: string[], argumentName: string): boolean | undefined {
@@ -373,9 +383,9 @@ function makeWrapperScript(params: MakeWrapperScriptParams): string {
   return result.transformedCode;
 }
 
-function updateSourcePath(ctx: MarkdownPostProcessorContext, sourceFile: TFile): MarkdownPostProcessorContext {
+function updateSourcePath(context: MarkdownPostProcessorContext, sourceFile: TFile): MarkdownPostProcessorContext {
   return {
-    ...ctx,
+    ...context,
     sourcePath: sourceFile.path
   };
 }

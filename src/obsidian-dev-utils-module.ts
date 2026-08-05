@@ -10,7 +10,7 @@ import packageJson from '../node_modules/obsidian-dev-utils/package.json';
 
 const EXPORT_PATH_PREFIX = './';
 const EXPORT_PATH_SEPARATOR = '/';
-const FORBIDDEN_EXPORT_PATHS = ['script-utils', '@types'];
+const FORBIDDEN_EXPORT_PATHS = new Set(['@types', 'script-utils']);
 const LIB_NAME = 'obsidian-dev-utils';
 const PROPERTY_PATH_SEPARATOR = '.';
 const ROOT_EXPORT_PATH = '.';
@@ -24,15 +24,15 @@ export function registerObsidianDevUtilsModule(specialModuleFactories: Map<strin
       continue;
     }
 
-    const relativeExportPath = trimStart({ prefix: EXPORT_PATH_PREFIX, str: exportPath });
+    const relativeExportPath = trimStart({ $string: exportPath, prefix: EXPORT_PATH_PREFIX });
 
     const pathParts = relativeExportPath.split(EXPORT_PATH_SEPARATOR);
-    if (pathParts.some((pathPart) => FORBIDDEN_EXPORT_PATHS.includes(pathPart))) {
+    if (pathParts.some((pathPart) => FORBIDDEN_EXPORT_PATHS.has(pathPart))) {
       continue;
     }
 
     const propertyPath = relativeExportPath
-      .replaceAll(EXPORT_PATH_SEPARATOR, PROPERTY_PATH_SEPARATOR);
+      .replaceAll(EXPORT_PATH_SEPARATOR, () => PROPERTY_PATH_SEPARATOR);
 
     const module = relativeExportPath === ROOT_EXPORT_PATH ? obsidianDevUtils : getNestedPropertyValue(obsidianDevUtils, propertyPath) as object;
 

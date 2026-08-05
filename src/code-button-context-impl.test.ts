@@ -16,7 +16,8 @@ import {
 } from 'vitest';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
-import type { RegisterTempPluginParams } from './code-button-context.ts';
+import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from './code-button-context.ts';
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
@@ -27,8 +28,8 @@ const mockInsertBeforeCodeBlock = vi.fn();
 const mockRemoveCodeBlock = vi.fn();
 const mockReplaceCodeBlock = vi.fn();
 const mockGetConsoleInstance = vi.fn();
-const mockGetTempPlugin = vi.fn();
-const mockRegisterTempPlugin = vi.fn();
+const mockGetTemporaryPlugin = vi.fn();
+const mockRegisterTemporaryPlugin = vi.fn();
 const mockMarkdownRendererRender = vi.fn();
 const mockResourceLockComponent = castTo<ResourceLockComponent>({});
 
@@ -36,37 +37,40 @@ vi.mock('obsidian', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian')>(),
   Component: vi.fn(),
   MarkdownRenderer: {
-    render: (...args: unknown[]): unknown => mockMarkdownRendererRender(...args)
+    render: (...$arguments: unknown[]): unknown => mockMarkdownRendererRender(...$arguments)
   }
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
-  getFile: (...args: unknown[]): unknown => mockGetFile(...args)
+  getFile: (...$arguments: unknown[]): unknown => mockGetFile(...$arguments)
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor', () => ({
-  insertAfterCodeBlock: (...args: unknown[]): unknown => mockInsertAfterCodeBlock(...args),
-  insertBeforeCodeBlock: (...args: unknown[]): unknown => mockInsertBeforeCodeBlock(...args),
-  removeCodeBlock: (...args: unknown[]): unknown => mockRemoveCodeBlock(...args),
-  replaceCodeBlock: (...args: unknown[]): unknown => mockReplaceCodeBlock(...args)
+  insertAfterCodeBlock: (...$arguments: unknown[]): unknown => mockInsertAfterCodeBlock(...$arguments),
+  insertBeforeCodeBlock: (...$arguments: unknown[]): unknown => mockInsertBeforeCodeBlock(...$arguments),
+  removeCodeBlock: (...$arguments: unknown[]): unknown => mockRemoveCodeBlock(...$arguments),
+  replaceCodeBlock: (...$arguments: unknown[]): unknown => mockReplaceCodeBlock(...$arguments)
 }));
 
 vi.mock('./console-wrapper.ts', () => ({
   ConsoleWrapper: class MockConsoleWrapper {
-    public getConsoleInstance(...args: unknown[]): unknown {
-      return mockGetConsoleInstance(...args);
+    public getConsoleInstance(...$arguments: unknown[]): unknown {
+      return mockGetConsoleInstance(...$arguments);
     }
   }
 }));
 
 vi.mock('./temp-plugin-registry.ts', () => ({
-  TempPluginRegistry: class MockTempPluginRegistry {
-    public getTempPlugin(...args: unknown[]): unknown {
-      return mockGetTempPlugin(...args);
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  TempPluginRegistry: class MockTemporaryPluginRegistry {
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    public getTempPlugin(...$arguments: unknown[]): unknown {
+      return mockGetTemporaryPlugin(...$arguments);
     }
 
-    public registerTempPlugin(...args: unknown[]): void {
-      mockRegisterTempPlugin(...args);
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    public registerTempPlugin(...$arguments: unknown[]): void {
+      mockRegisterTemporaryPlugin(...$arguments);
     }
   }
 }));
@@ -91,30 +95,33 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImplC
   const parentEl = createDiv();
   const resultEl = createDiv();
 
-  const partialCtx: Partial<MarkdownPostProcessorContext> = {
+  const partialContext: Partial<MarkdownPostProcessorContext> = {
     addChild: vi.fn(),
     docId: 'doc-1',
     frontmatter: undefined,
     getSectionInfo: vi.fn().mockReturnValue(null),
     sourcePath: params.sourcePath ?? 'notes/test.md'
   };
-  const ctx = partialCtx as MarkdownPostProcessorContext;
+  const context = partialContext as MarkdownPostProcessorContext;
 
-  const mockTempPluginRegistry: Partial<TempPluginRegistryComponent> = {
-    getTempPlugin: mockGetTempPlugin,
-    registerTempPlugin: mockRegisterTempPlugin
+  const mockTemporaryPluginRegistry: Partial<TempPluginRegistryComponent> = {
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    getTempPlugin: mockGetTemporaryPlugin,
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    registerTempPlugin: mockRegisterTemporaryPlugin
   };
 
   return new CodeButtonContextImplComponent({
     app: mockApp,
     config,
     markdownInfo: params.markdownInfo ?? null,
-    markdownPostProcessorContext: ctx,
+    markdownPostProcessorContext: context,
     parentEl,
     resourceLockComponent: mockResourceLockComponent,
     resultEl,
     source: params.source ?? 'console.log("hello")',
-    tempPluginRegistry: mockTempPluginRegistry as TempPluginRegistryComponent
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    tempPluginRegistry: mockTemporaryPluginRegistry as TempPluginRegistryComponent
   });
 }
 
@@ -176,7 +183,7 @@ describe('CodeButtonContextImplComponent', () => {
     });
 
     it('should assign markdownInfo from params', () => {
-      const info = strictProxy<CodeBlockMarkdownInformation>({ args: [] });
+      const info = strictProxy<CodeBlockMarkdownInformation>({ $arguments: [] });
       const context = createContext({ markdownInfo: info });
       expect(context.markdownInfo).toBe(info);
     });
@@ -219,14 +226,14 @@ describe('CodeButtonContextImplComponent', () => {
       );
     });
 
-    it('should pass app, ctx, el, and source to insertAfterCodeBlock', async () => {
+    it('should pass app, context, el, and source to insertAfterCodeBlock', async () => {
       const context = createContext();
       await context.insertAfterCodeButtonBlock({ markdown: 'md' });
 
       expect(mockInsertAfterCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
           app: context.app,
-          ctx: context.markdownPostProcessorContext,
+          context: context.markdownPostProcessorContext,
           el: context.parentEl,
           resourceLockComponent: mockResourceLockComponent,
           source: context.source
@@ -286,14 +293,14 @@ describe('CodeButtonContextImplComponent', () => {
       );
     });
 
-    it('should pass app, ctx, el, and source to removeCodeBlock', async () => {
+    it('should pass app, context, el, and source to removeCodeBlock', async () => {
       const context = createContext();
       await context.removeCodeButtonBlock();
 
       expect(mockRemoveCodeBlock).toHaveBeenCalledWith(
         expect.objectContaining({
           app: context.app,
-          ctx: context.markdownPostProcessorContext,
+          context: context.markdownPostProcessorContext,
           el: context.parentEl,
           resourceLockComponent: mockResourceLockComponent,
           source: context.source
@@ -348,11 +355,11 @@ describe('CodeButtonContextImplComponent', () => {
     it('should delegate to tempPluginRegistry.getTempPlugin', () => {
       const context = createContext();
       const mockPlugin = { id: 'test' };
-      mockGetTempPlugin.mockReturnValue(mockPlugin);
+      mockGetTemporaryPlugin.mockReturnValue(mockPlugin);
 
       const result = context.getTempPlugin('TestPlugin');
 
-      expect(mockGetTempPlugin).toHaveBeenCalledWith('TestPlugin');
+      expect(mockGetTemporaryPlugin).toHaveBeenCalledWith('TestPlugin');
       expect(result).toBe(mockPlugin);
     });
   });
@@ -360,12 +367,13 @@ describe('CodeButtonContextImplComponent', () => {
   describe('registerTempPlugin', () => {
     it('should delegate to tempPluginRegistry.registerTempPlugin', async () => {
       const context = createContext();
-      const params: RegisterTempPluginParams = {
+      const params: RegisterTemporaryPluginParams = {
+        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
         tempPluginClass: vi.fn()
       };
       await context.registerTempPlugin(params);
 
-      expect(mockRegisterTempPlugin).toHaveBeenCalledWith(params);
+      expect(mockRegisterTemporaryPlugin).toHaveBeenCalledWith(params);
     });
   });
 });

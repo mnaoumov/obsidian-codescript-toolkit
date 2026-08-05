@@ -17,11 +17,11 @@ export class ReplaceDynamicImportBabelPlugin extends BabelPluginBase {
   public override getVisitor(): Visitor<PluginPass> {
     return {
       ImportExpression(path): void {
-        const args: Expression[] = [path.node.source];
+        const $arguments: Expression[] = [path.node.source];
         if (path.node.options !== null && path.node.options !== undefined) {
-          args.push(path.node.options);
+          $arguments.push(path.node.options);
         }
-        path.replaceWith(callExpression(identifier('requireAsync'), args));
+        path.replaceWith(callExpression(identifier('requireAsync'), $arguments));
       }
     };
   }

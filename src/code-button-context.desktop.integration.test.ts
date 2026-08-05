@@ -11,7 +11,7 @@ import {
 // The first code-button execution in a fresh Obsidian session loads babel-standalone and primes the require pipeline — a one-time cost far larger than a warm run. The poll timeout is generous enough to absorb that cold start; the first such test effectively warms the pipeline for the rest.
 const POLL_TIMEOUT_MS = 20_000;
 const POLL_INTERVAL_MS = 100;
-const MODULES_ROOT = '_int-test-ctx';
+const MODULES_ROOT = '_int-test-context';
 const PLUGIN_ID = 'fix-require-modules';
 
 interface ObservedContent {
@@ -22,7 +22,7 @@ beforeAll(() => {
   const vault = getTempVault();
 
   vault.populate({
-    '_int-test-ctx-notes/auto-output.md': dedent`
+    '_int-test-context-notes/auto-output.md': dedent`
       \`\`\`code-button
       ---
       shouldAutoRun: true
@@ -32,7 +32,7 @@ beforeAll(() => {
       42 + 1
       \`\`\`
     `,
-    '_int-test-ctx-notes/insert-after.md': dedent`
+    '_int-test-context-notes/insert-after.md': dedent`
       Some text before.
 
       \`\`\`code-button
@@ -45,7 +45,7 @@ beforeAll(() => {
 
       Some text after.
     `,
-    '_int-test-ctx-notes/insert-before.md': dedent`
+    '_int-test-context-notes/insert-before.md': dedent`
       Some text before.
 
       \`\`\`code-button
@@ -58,7 +58,7 @@ beforeAll(() => {
 
       Some text after.
     `,
-    '_int-test-ctx-notes/remove-after-success.md': dedent`
+    '_int-test-context-notes/remove-after-success.md': dedent`
       Before.
 
       \`\`\`code-button
@@ -74,7 +74,7 @@ beforeAll(() => {
 
       After.
     `,
-    '_int-test-ctx-notes/remove-block.md': dedent`
+    '_int-test-context-notes/remove-block.md': dedent`
       Before block.
 
       \`\`\`code-button
@@ -87,7 +87,7 @@ beforeAll(() => {
 
       After block.
     `,
-    '_int-test-ctx-notes/render-markdown.md': dedent`
+    '_int-test-context-notes/render-markdown.md': dedent`
       \`\`\`code-button
       ---
       shouldAutoRun: true
@@ -96,7 +96,7 @@ beforeAll(() => {
       await codeButtonContext.renderMarkdown("**bold text**");
       \`\`\`
     `,
-    '_int-test-ctx-notes/replace-block.md': dedent`
+    '_int-test-context-notes/replace-block.md': dedent`
       Before block.
 
       \`\`\`code-button
@@ -109,7 +109,7 @@ beforeAll(() => {
 
       After block.
     `,
-    '_int-test-ctx-notes/wrap-console.md': dedent`
+    '_int-test-context-notes/wrap-console.md': dedent`
       \`\`\`code-button
       ---
       shouldAutoRun: true
@@ -138,12 +138,14 @@ function vaultPath(): string {
 describe('CodeButtonContext integration', () => {
   it('should render markdown inside the container', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
-        await app.workspace.openLinkText('_int-test-ctx-notes/render-markdown', '', false);
+        await app.workspace.openLinkText('_int-test-context-notes/render-markdown', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
-          state: { file: '_int-test-ctx-notes/render-markdown.md', mode: 'preview' },
+          state: { file: '_int-test-context-notes/render-markdown.md', mode: 'preview' },
           type: 'markdown'
         });
 
@@ -170,19 +172,22 @@ describe('CodeButtonContext integration', () => {
 
   it('should insert markdown after the code button block', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
-        await app.workspace.openLinkText('_int-test-ctx-notes/insert-after', '', false);
+        await app.workspace.openLinkText('_int-test-context-notes/insert-after', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
-          state: { file: '_int-test-ctx-notes/insert-after.md', mode: 'preview' },
+          state: { file: '_int-test-context-notes/insert-after.md', mode: 'preview' },
           type: 'markdown'
         });
 
         await waitUntil({
           intervalInMilliseconds: intervalMs,
           async predicate(): Promise<boolean> {
-            return (await readContent())?.includes('Inserted after.') ?? false;
+            const content = await readContent();
+            return content?.includes('Inserted after.') ?? false;
           },
           timeoutInMilliseconds: timeoutMs
         });
@@ -194,7 +199,7 @@ describe('CodeButtonContext integration', () => {
         return { content };
 
         async function readContent(): Promise<null | string> {
-          const file = app.vault.getAbstractFileByPath('_int-test-ctx-notes/insert-after.md');
+          const file = app.vault.getAbstractFileByPath('_int-test-context-notes/insert-after.md');
           if (!file || !('path' in file)) {
             return null;
           }
@@ -209,19 +214,22 @@ describe('CodeButtonContext integration', () => {
 
   it('should insert markdown before the code button block', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
-        await app.workspace.openLinkText('_int-test-ctx-notes/insert-before', '', false);
+        await app.workspace.openLinkText('_int-test-context-notes/insert-before', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
-          state: { file: '_int-test-ctx-notes/insert-before.md', mode: 'preview' },
+          state: { file: '_int-test-context-notes/insert-before.md', mode: 'preview' },
           type: 'markdown'
         });
 
         await waitUntil({
           intervalInMilliseconds: intervalMs,
           async predicate(): Promise<boolean> {
-            return (await readContent())?.includes('Inserted before.') ?? false;
+            const content = await readContent();
+            return content?.includes('Inserted before.') ?? false;
           },
           timeoutInMilliseconds: timeoutMs
         });
@@ -233,7 +241,7 @@ describe('CodeButtonContext integration', () => {
         return { content };
 
         async function readContent(): Promise<null | string> {
-          const file = app.vault.getAbstractFileByPath('_int-test-ctx-notes/insert-before.md');
+          const file = app.vault.getAbstractFileByPath('_int-test-context-notes/insert-before.md');
           if (!file || !('path' in file)) {
             return null;
           }
@@ -248,12 +256,14 @@ describe('CodeButtonContext integration', () => {
 
   it('should remove the code button block from the note', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
-        await app.workspace.openLinkText('_int-test-ctx-notes/remove-block', '', false);
+        await app.workspace.openLinkText('_int-test-context-notes/remove-block', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
-          state: { file: '_int-test-ctx-notes/remove-block.md', mode: 'preview' },
+          state: { file: '_int-test-context-notes/remove-block.md', mode: 'preview' },
           type: 'markdown'
         });
 
@@ -273,7 +283,7 @@ describe('CodeButtonContext integration', () => {
         return { content };
 
         async function readContent(): Promise<null | string> {
-          const file = app.vault.getAbstractFileByPath('_int-test-ctx-notes/remove-block.md');
+          const file = app.vault.getAbstractFileByPath('_int-test-context-notes/remove-block.md');
           if (!file || !('path' in file)) {
             return null;
           }
@@ -290,12 +300,14 @@ describe('CodeButtonContext integration', () => {
 
   it('should replace the code button block with new markdown', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
-        await app.workspace.openLinkText('_int-test-ctx-notes/replace-block', '', false);
+        await app.workspace.openLinkText('_int-test-context-notes/replace-block', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
-          state: { file: '_int-test-ctx-notes/replace-block.md', mode: 'preview' },
+          state: { file: '_int-test-context-notes/replace-block.md', mode: 'preview' },
           type: 'markdown'
         });
 
@@ -320,7 +332,7 @@ describe('CodeButtonContext integration', () => {
         return { content: observed.content };
 
         async function readContent(): Promise<null | string> {
-          const file = app.vault.getAbstractFileByPath('_int-test-ctx-notes/replace-block.md');
+          const file = app.vault.getAbstractFileByPath('_int-test-context-notes/replace-block.md');
           if (!file || !('path' in file)) {
             return null;
           }
@@ -338,12 +350,14 @@ describe('CodeButtonContext integration', () => {
 
   it('should auto-output the last expression when shouldAutoOutput is true', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
-        await app.workspace.openLinkText('_int-test-ctx-notes/auto-output', '', false);
+        await app.workspace.openLinkText('_int-test-context-notes/auto-output', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
-          state: { file: '_int-test-ctx-notes/auto-output.md', mode: 'preview' },
+          state: { file: '_int-test-context-notes/auto-output.md', mode: 'preview' },
           type: 'markdown'
         });
 
@@ -374,12 +388,14 @@ describe('CodeButtonContext integration', () => {
 
   it('should wrap console output when shouldWrapConsole is true', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
-        await app.workspace.openLinkText('_int-test-ctx-notes/wrap-console', '', false);
+        await app.workspace.openLinkText('_int-test-context-notes/wrap-console', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
-          state: { file: '_int-test-ctx-notes/wrap-console.md', mode: 'preview' },
+          state: { file: '_int-test-context-notes/wrap-console.md', mode: 'preview' },
           type: 'markdown'
         });
 
@@ -410,23 +426,25 @@ describe('CodeButtonContext integration', () => {
 
   it('should remove code button block after successful execution with removeAfterExecution.when: onSuccess', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__removeAfterSuccess');
 
-        await app.workspace.openLinkText('_int-test-ctx-notes/remove-after-success', '', false);
+        await app.workspace.openLinkText('_int-test-context-notes/remove-after-success', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
-          state: { file: '_int-test-ctx-notes/remove-after-success.md', mode: 'preview' },
+          state: { file: '_int-test-context-notes/remove-after-success.md', mode: 'preview' },
           type: 'markdown'
         });
 
         await waitUntil({
           intervalInMilliseconds: intervalMs,
           async predicate(): Promise<boolean> {
-            const executed = Reflect.get(window, '__removeAfterSuccess') === true;
+            const isExecuted = Reflect.get(window, '__removeAfterSuccess') === true;
             const current = await readContent();
-            return executed && current !== null && !current.includes('code-button');
+            return isExecuted && current !== null && !current.includes('code-button');
           },
           timeoutInMilliseconds: timeoutMs
         });
@@ -435,11 +453,11 @@ describe('CodeButtonContext integration', () => {
         if (content === null) {
           return { content: '', error: 'File not found' };
         }
-        const windowResult = Reflect.get(window, '__removeAfterSuccess') === true;
-        return { content, executed: windowResult };
+        const isWindowResult = Reflect.get(window, '__removeAfterSuccess') === true;
+        return { content, executed: isWindowResult };
 
         async function readContent(): Promise<null | string> {
-          const file = app.vault.getAbstractFileByPath('_int-test-ctx-notes/remove-after-success.md');
+          const file = app.vault.getAbstractFileByPath('_int-test-context-notes/remove-after-success.md');
           if (!file || !('path' in file)) {
             return null;
           }

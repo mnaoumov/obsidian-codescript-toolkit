@@ -1,3 +1,4 @@
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { Plugin as ObsidianPlugin } from 'obsidian';
 
 import { evalInObsidian } from 'obsidian-integration-testing';
@@ -8,11 +9,14 @@ import {
   it
 } from 'vitest';
 
-import type { RegisterTempPluginParams } from './code-button-context.ts';
+import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from './code-button-context.ts';
 
 interface CodeScriptToolkitModule {
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   getTempPlugin(tempPluginClass: string): null | ObsidianPlugin;
-  registerTempPlugin(params: RegisterTempPluginParams): Promise<null | ObsidianPlugin>;
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  registerTempPlugin(params: RegisterTemporaryPluginParams): Promise<null | ObsidianPlugin>;
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   unregisterTempPlugin(tempPluginClass: string): void;
 }
 
@@ -23,11 +27,13 @@ function vaultPath(): string {
 describe('TempPluginRegistry integration', () => {
   it('should require codescript-toolkit module and access its API', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn() {
         const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<Record<string, unknown>>;
         const cstModule = await requireAsync('codescript-toolkit');
 
         return {
+          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
           hasGetTempPlugin: typeof cstModule['getTempPlugin'] === 'function',
           hasRegister: typeof cstModule['registerTempPlugin'] === 'function',
           hasUnregister: typeof cstModule['unregisterTempPlugin'] === 'function'
@@ -43,6 +49,7 @@ describe('TempPluginRegistry integration', () => {
 
   it('should register and unregister a temp plugin', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ obsidianModule }) {
         const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<CodeScriptToolkitModule>;
         const cstModule = await requireAsync('codescript-toolkit');
@@ -56,13 +63,14 @@ describe('TempPluginRegistry integration', () => {
         };
         Object.defineProperty(TestPlugin, 'name', { value: TEMP_PLUGIN_NAME });
 
+        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
         const plugin = await cstModule.registerTempPlugin({ tempPluginClass: TestPlugin });
-        const loaded = Reflect.get(window, '__tempPluginLoaded') === true;
+        const isLoaded = Reflect.get(window, '__tempPluginLoaded') === true;
         const hasPlugin = plugin !== null;
 
         cstModule.unregisterTempPlugin(TEMP_PLUGIN_NAME);
 
-        return { hasPlugin, loaded };
+        return { hasPlugin, loaded: isLoaded };
       },
       vaultPath: vaultPath()
     });
@@ -73,6 +81,7 @@ describe('TempPluginRegistry integration', () => {
 
   it('should retrieve a registered temp plugin via getTempPlugin', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ obsidianModule }) {
         const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<CodeScriptToolkitModule>;
         const cstModule = await requireAsync('codescript-toolkit');
@@ -86,15 +95,16 @@ describe('TempPluginRegistry integration', () => {
         };
         Object.defineProperty(TestPlugin, 'name', { value: TEMP_PLUGIN_NAME });
 
-        const beforeRegister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
+        const isBeforeRegister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
 
+        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
         await cstModule.registerTempPlugin({ tempPluginClass: TestPlugin });
-        const afterRegister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
+        const isAfterRegister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
 
         cstModule.unregisterTempPlugin(TEMP_PLUGIN_NAME);
-        const afterUnregister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
+        const isAfterUnregister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
 
-        return { afterRegister, afterUnregister, beforeRegister };
+        return { afterRegister: isAfterRegister, afterUnregister: isAfterUnregister, beforeRegister: isBeforeRegister };
       },
       vaultPath: vaultPath()
     });

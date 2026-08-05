@@ -15,7 +15,7 @@ import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 
 import type { RequireOptions } from '../types.ts';
 import type {
-  RequireFn,
+  RequireFunction,
   RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
   RequireHandlerComponentBaseRequireNonCachedParams
 } from './require-handler.ts';
@@ -63,12 +63,12 @@ interface RequireHandlerDesktopComponentRequireStringParams {
 export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase {
   private _fs: NodeFsModule | null = null;
   private _fsPromises: NodeFsPromisesModule | null = null;
-  private originalModulePrototypeRequire?: RequireFn;
+  private originalModulePrototypeRequire?: RequireFunction;
 
   private get fileSystemAdapter(): FileSystemAdapter {
     const adapter = this.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) {
-      throw new Error('Vault adapter is not a FileSystemAdapter.');
+      throw new TypeError('Vault adapter is not a FileSystemAdapter.');
     }
 
     return adapter;
@@ -94,17 +94,18 @@ export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase 
     return this._fsPromises;
   }
 
-  public override async existsFileAsync(path: string): Promise<boolean> {
-    return await Promise.resolve(this.existsFile(path));
+  public override existsFileAsync(path: string): Promise<boolean> {
+    return Promise.resolve(this.existsFile(path));
   }
 
-  public override async existsFolderAsync(path: string): Promise<boolean> {
-    return await Promise.resolve(this.existsFolder(path));
+  public override existsFolderAsync(path: string): Promise<boolean> {
+    return Promise.resolve(this.existsFolder(path));
   }
 
   public override async getTimestampAsync(path: string): Promise<number> {
-    path = splitQuery(path).cleanStr;
-    return (await this.fsPromises.stat(path)).mtimeMs;
+    path = splitQuery(path).cleanString;
+    const stats = await this.fsPromises.stat(path);
+    return stats.mtimeMs;
   }
 
   public modulePrototypeRequire(id: string | TFile, module: NodeJS.Module): unknown {
@@ -136,12 +137,12 @@ export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase 
   }
 
   public override async readFileAsync(path: string): Promise<string> {
-    path = splitQuery(path).cleanStr;
-    return await this.fsPromises.readFile(path, 'utf8');
+    path = splitQuery(path).cleanString;
+    return await this.fsPromises.readFile(path, 'utf-8');
   }
 
   public override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     const buffer = await this.fsPromises.readFile(path);
     const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
     return arrayBuffer;
@@ -150,15 +151,15 @@ export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase 
   public override async requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown> {
     try {
       return await super.requireAsync(id, options);
-    } catch (e) {
+    } catch (error) {
       if (this.pluginSettingsComponent.settings.shouldUseSyncFallback) {
-        console.warn(`requireAsync('${id}') failed with error:`, e);
+        console.warn(`requireAsync('${id}') failed with error:`, error);
         console.warn('Trying a synchronous fallback.');
         this.currentModulesTimestampChain.clear();
         return this.requireEx(id, options ?? {});
       }
 
-      throw e;
+      throw error;
     }
   }
 
@@ -190,16 +191,16 @@ ${this.getRequireAsyncAdvice(path)}`);
     } = params;
     await noopAsync();
     if (arrayBuffer) {
-      const tempDir = join(this.app.vault.configDir, 'temp');
-      if (!this.existsFolder(tempDir)) {
-        await this.fsPromises.mkdir(tempDir);
+      const temporaryDirectory = join(this.app.vault.configDir, 'temp');
+      if (!this.existsFolder(temporaryDirectory)) {
+        await this.fsPromises.mkdir(temporaryDirectory);
       }
-      const tmpFilePath = join(tempDir, `${String(Date.now())}.node`);
-      await this.writeFileBinaryAsync(tmpFilePath, arrayBuffer);
+      const temporaryFilePath = join(temporaryDirectory, `${String(Date.now())}.node`);
+      await this.writeFileBinaryAsync(temporaryFilePath, arrayBuffer);
       try {
-        return this.requireNodeBinary(tmpFilePath, options);
+        return this.requireNodeBinary(temporaryFilePath, options);
       } finally {
-        await this.fsPromises.rm(tmpFilePath);
+        await this.fsPromises.rm(temporaryFilePath);
       }
     }
 
@@ -218,24 +219,28 @@ ${this.getRequireAsyncAdvice(path)}`);
         const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
         return this.requireModule({ moduleName, options, parentFolder });
       }
-      case ResolvedType.Path:
+      case ResolvedType.Path: {
         return this.requirePath(id, options);
-      case ResolvedType.SpecialModule:
+      }
+      case ResolvedType.SpecialModule: {
         return this.requireSpecialModule(id, options);
-      case ResolvedType.Url:
+      }
+      case ResolvedType.Url: {
         throw new Error(`Cannot require synchronously from URL. ${this.getRequireAsyncAdvice(id)}`);
-      default:
+      }
+      default: {
         throw new Error(`Unknown type: '${type as string}'.`);
+      }
     }
   }
 
   private existsFile(path: string): boolean {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     return this.fs.existsSync(path) && this.fs.statSync(path).isFile();
   }
 
   private existsFolder(path: string): boolean {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     return this.fs.existsSync(path) && this.fs.statSync(path).isDirectory();
   }
 
@@ -269,7 +274,7 @@ ${this.getRequireAsyncAdvice(path)}`);
     for (const dependency of dependencies) {
       const { resolvedId, resolvedType } = this.resolve({ id: dependency, parentPath: path });
       switch (resolvedType) {
-        case ResolvedType.Module:
+        case ResolvedType.Module: {
           for (const rootFolder of this.getRootFolders(path)) {
             const packageJsonPath = this.getPackageJsonPath(rootFolder);
             if (!this.existsFile(packageJsonPath)) {
@@ -280,6 +285,7 @@ ${this.getRequireAsyncAdvice(path)}`);
             updateTimestamp(dependencyTimestamp);
           }
           break;
+        }
         case ResolvedType.Path: {
           const existingFilePath = this.findExistingFilePath(resolvedId);
           if (existingFilePath === null) {
@@ -290,8 +296,9 @@ ${this.getRequireAsyncAdvice(path)}`);
           updateTimestamp(dependencyTimestamp);
           break;
         }
-        case ResolvedType.SpecialModule:
+        case ResolvedType.SpecialModule: {
           break;
+        }
         case ResolvedType.Url: {
           const errorMessage = this.getUrlDependencyErrorMessage(
             normalizeOptionalProperties<RequireHandlerDesktopComponentGetUrlDependencyErrorMessageParams>({
@@ -301,20 +308,25 @@ ${this.getRequireAsyncAdvice(path)}`);
             })
           );
           switch (options.cacheInvalidationMode) {
-            case CacheInvalidationMode.Always:
+            case CacheInvalidationMode.Always: {
               throw new Error(errorMessage);
-            case CacheInvalidationMode.Never:
+            }
+            case CacheInvalidationMode.Never: {
               break;
-            case CacheInvalidationMode.WhenPossible:
+            }
+            case CacheInvalidationMode.WhenPossible: {
               console.warn(errorMessage);
               break;
-            default:
+            }
+            default: {
               throw new Error(`Unknown cacheInvalidationMode: '${String(options.cacheInvalidationMode)}'.`);
+            }
           }
           break;
         }
-        default:
+        default: {
           throw new Error(`Unknown type: '${resolvedType as string}'.`);
+        }
       }
     }
 
@@ -359,7 +371,7 @@ ${this.getRequireAsyncAdvice(path)}`);
   }
 
   private getTimestamp(path: string): number {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     return this.fs.statSync(path).mtimeMs;
   }
 
@@ -381,24 +393,26 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 
   private readFile(path: string): string {
-    path = splitQuery(path).cleanStr;
-    return this.fs.readFileSync(path, 'utf8');
+    path = splitQuery(path).cleanString;
+    return this.fs.readFileSync(path, 'utf-8');
   }
 
   private readPackageJson(path: string): PackageJson {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
+    // eslint-disable-next-line unicorn/consistent-json-file-read -- `readFile` is this class's own single-argument method, not `node:fs`, so the fixer's encoding argument does not compile.
     const content = this.readFile(path);
     return JSON.parse(content) as PackageJson;
   }
 
   private requireJson(path: string): unknown {
-    path = splitQuery(path).cleanStr;
-    const jsonStr = this.readFile(path);
-    return JSON.parse(jsonStr);
+    path = splitQuery(path).cleanString;
+    // eslint-disable-next-line unicorn/consistent-json-file-read -- `readFile` is this class's own single-argument method, not `node:fs`, so the fixer's encoding argument does not compile.
+    const jsonString = this.readFile(path);
+    return JSON.parse(jsonString);
   }
 
   private requireJsTs(path: string): unknown {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     const code = this.readFile(path);
     return this.requireString({ code, path });
   }
@@ -487,18 +501,24 @@ ${this.getRequireAsyncAdvice(path)}`;
   private requirePathImpl(path: string, options: Partial<RequireOptions>): unknown {
     const moduleType = options.moduleType ?? getModuleTypeFromPath(path);
     switch (moduleType) {
-      case ModuleType.Json:
+      case ModuleType.Json: {
         return this.requireJson(path);
-      case ModuleType.JsTs:
+      }
+      case ModuleType.JsTs: {
         return this.requireJsTs(path);
-      case ModuleType.Markdown:
+      }
+      case ModuleType.Markdown: {
         return this.requireMd(path);
-      case ModuleType.Node:
+      }
+      case ModuleType.Node: {
         return this.requireNodeBinary(path, options);
-      case ModuleType.Wasm:
+      }
+      case ModuleType.Wasm: {
         return this.requireWasm(path);
-      default:
+      }
+      default: {
         throw new Error(`Unknown module type: '${moduleType as string}'.`);
+      }
     }
   }
 
@@ -513,10 +533,10 @@ ${this.getRequireAsyncAdvice(path)}`;
           shouldWrapInAsyncFunction: false,
           urlSuffix: ''
         });
-        return result.exportsFn();
+        return result.exportsFunction();
       });
-    } catch (e) {
-      throw new Error(`Failed to load module: ${path}`, { cause: e });
+    } catch (error) {
+      throw new Error(`Failed to load module: ${path}`, { cause: error });
     }
   }
 
@@ -525,7 +545,7 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 
   private async writeFileBinaryAsync(path: string, arrayBuffer: ArrayBuffer): Promise<void> {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     const buffer = Buffer.from(arrayBuffer);
     await this.fsPromises.writeFile(path, buffer);
   }

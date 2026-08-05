@@ -41,10 +41,10 @@ export class SequentialBabelPlugin<DataList extends unknown[]> extends CombineBa
           throw result.error;
         }
         code = result.transformedCode;
-      } catch (e) {
+      } catch (error) {
         return {
           data: this.data,
-          error: e as Error,
+          error: error as Error,
           transformedCode: ''
         };
       }

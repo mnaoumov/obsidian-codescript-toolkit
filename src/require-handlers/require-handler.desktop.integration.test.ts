@@ -10,9 +10,9 @@ import {
   it
 } from 'vitest';
 
-type RequireAsyncFn = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
-type RequireAsyncWrapperFn = (fn: (require: (id: string, options?: Record<string, unknown>) => unknown) => unknown) => Promise<unknown>;
-type RequireFn = (id: string | TFile, options?: Record<string, unknown>) => unknown;
+type RequireAsyncFunction = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
+type RequireAsyncWrapperFunction = ($function: (require: (id: string, options?: Record<string, unknown>) => unknown) => unknown) => Promise<unknown>;
+type RequireFunction = (id: string | TFile, options?: Record<string, unknown>) => unknown;
 
 const SCRIPTS_DIR = '_int-test-scripts';
 
@@ -28,11 +28,11 @@ function createMinimalAsar(fileName: string, content: string): Uint8Array {
   });
   const headerJsonBytes = new TextEncoder().encode(headerJson);
   const PICKLE_ALIGNMENT = 4;
-  const paddedJsonLen = Math.ceil(headerJsonBytes.length / PICKLE_ALIGNMENT) * PICKLE_ALIGNMENT;
+  const paddedJsonLength = Math.ceil(headerJsonBytes.length / PICKLE_ALIGNMENT) * PICKLE_ALIGNMENT;
 
   const UINT32_SIZE = 4;
   // Header pickle: [payloadLen(4)] [strLen(4)] [paddedJson]
-  const headerPicklePayloadSize = UINT32_SIZE + paddedJsonLen;
+  const headerPicklePayloadSize = UINT32_SIZE + paddedJsonLength;
   const headerPickleSize = UINT32_SIZE + headerPicklePayloadSize;
   // Size pickle: [payloadLen(4)] [headerPickleSize(4)]
   const SIZE_PICKLE_SIZE = 8;
@@ -56,7 +56,7 @@ function createMinimalAsar(fileName: string, content: string): Uint8Array {
   view.setUint32(offset, headerJsonBytes.length, true);
   offset += UINT32_SIZE;
   bytes.set(headerJsonBytes, offset);
-  offset += paddedJsonLen;
+  offset += paddedJsonLength;
 
   // File data
   bytes.set(fileBytes, offset);
@@ -124,6 +124,7 @@ beforeAll(() => {
     [`${SCRIPTS_DIR}/dynamic-target.mjs`]: 'export const dynValue = "dynamic-ok";',
     [`${SCRIPTS_DIR}/module.cjs`]: 'exports.value = 42;',
     [`${SCRIPTS_DIR}/module.cts`]: 'exports.value = \'cts-\' + (1 + 2).toString();',
+    // eslint-disable-next-line unicorn/name-replacements -- An arbitrary fixture name in a test, not a member of the plugin's own surface.
     [`${SCRIPTS_DIR}/module.json`]: JSON.stringify({ key: 'val', num: 7 }),
     [`${SCRIPTS_DIR}/module.md`]: dedent`
       \`\`\`code-script
@@ -155,9 +156,11 @@ describe('RequireHandler integration', () => {
   describe('module formats', () => {
     it('should require a CJS module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/module.cjs`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -168,9 +171,11 @@ describe('RequireHandler integration', () => {
 
     it('should require an ESM module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/module.mjs`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -181,9 +186,11 @@ describe('RequireHandler integration', () => {
 
     it('should require a TypeScript CTS module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/module.cts`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -194,9 +201,11 @@ describe('RequireHandler integration', () => {
 
     it('should require a TypeScript MTS module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/module.mts`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -207,22 +216,27 @@ describe('RequireHandler integration', () => {
 
     it('should require a JSON module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/module.json`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
 
+      // eslint-disable-next-line unicorn/name-replacements -- An arbitrary fixture name in a test, not a member of the plugin's own surface.
       expect(result).toEqual({ key: 'val', num: 7 });
     });
 
     it('should require a Markdown module with code-script block', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/module.md`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -235,9 +249,11 @@ describe('RequireHandler integration', () => {
   describe('path resolution', () => {
     it('should resolve relative paths with parentPath option', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync('./nested/child.cjs', {
             parentPath: `${dir}/relative-parent.cjs`
           })) as Record<string, unknown>;
@@ -250,9 +266,11 @@ describe('RequireHandler integration', () => {
 
     it('should resolve transitive require chains', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/relative-parent.cjs`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -265,12 +283,13 @@ describe('RequireHandler integration', () => {
   describe('built-in modules', () => {
     it('should require the obsidian module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = (await requireAsync('obsidian')) as Record<string, unknown>;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = (await requireAsync('obsidian')) as Record<string, unknown>;
           return {
-            hasNotice: typeof mod['Notice'] === 'function',
-            hasPlugin: typeof mod['Plugin'] === 'function'
+            hasNotice: typeof module_['Notice'] === 'function',
+            hasPlugin: typeof module_['Plugin'] === 'function'
           };
         },
         vaultPath: vaultPath()
@@ -282,11 +301,12 @@ describe('RequireHandler integration', () => {
 
     it('should require @codemirror/state module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = (await requireAsync('@codemirror/state')) as Record<string, unknown>;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = (await requireAsync('@codemirror/state')) as Record<string, unknown>;
           return {
-            hasEditorState: typeof mod['EditorState'] === 'function'
+            hasEditorState: typeof module_['EditorState'] === 'function'
           };
         },
         vaultPath: vaultPath()
@@ -299,9 +319,11 @@ describe('RequireHandler integration', () => {
   describe('async features', () => {
     it('should support top-level await in requireAsync', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/top-level-await.mjs`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -312,11 +334,13 @@ describe('RequireHandler integration', () => {
 
     it('should support dynamic import', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = (await requireAsync(`//${dir}/dynamic-target.mjs`)) as Record<string, unknown>;
-          return { dynValue: mod['dynValue'] };
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = (await requireAsync(`//${dir}/dynamic-target.mjs`)) as Record<string, unknown>;
+          return { dynValue: module_['dynValue'] };
         },
         vaultPath: vaultPath()
       });
@@ -326,14 +350,16 @@ describe('RequireHandler integration', () => {
 
     it('should support requireAsyncWrapper', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsyncWrapper = Reflect.get(window, 'requireAsyncWrapper') as RequireAsyncWrapperFn;
+          const requireAsyncWrapper = Reflect.get(window, 'requireAsyncWrapper') as RequireAsyncWrapperFunction;
           return (await requireAsyncWrapper((require) => {
             const modulePath = `//${dir}/module.cjs`;
             // eslint-disable-next-line import-x/no-dynamic-require -- vault-root-relative path resolved at runtime
-            const mod = require(modulePath) as Record<string, unknown>;
-            return mod['value'];
+            const module_ = require(modulePath) as Record<string, unknown>;
+            return module_['value'];
           })) as number;
         },
         vaultPath: vaultPath()
@@ -346,10 +372,12 @@ describe('RequireHandler integration', () => {
   describe('synchronous require', () => {
     it('should require a CJS module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`//${dir}/module.cjs`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`//${dir}/module.cjs`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -359,23 +387,28 @@ describe('RequireHandler integration', () => {
 
     it('should require a JSON module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`//${dir}/module.json`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`//${dir}/module.json`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
 
+      // eslint-disable-next-line unicorn/name-replacements -- An arbitrary fixture name in a test, not a member of the plugin's own surface.
       expect(result).toEqual({ key: 'val', num: 7 });
     });
 
     it('should require an ESM module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`//${dir}/module.mjs`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`//${dir}/module.mjs`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -385,10 +418,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a TypeScript CTS module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`//${dir}/module.cts`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`//${dir}/module.cts`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -398,10 +433,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a TypeScript MTS module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`//${dir}/module.mts`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`//${dir}/module.mts`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -411,10 +448,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a Markdown module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`//${dir}/module.md`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`//${dir}/module.md`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -424,12 +463,13 @@ describe('RequireHandler integration', () => {
 
     it('should require the obsidian module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn() {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const mod = requireFn('obsidian') as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const module_ = requireFunction('obsidian') as Record<string, unknown>;
           return {
-            hasNotice: typeof mod['Notice'] === 'function',
-            hasPlugin: typeof mod['Plugin'] === 'function'
+            hasNotice: typeof module_['Notice'] === 'function',
+            hasPlugin: typeof module_['Plugin'] === 'function'
           };
         },
         vaultPath: vaultPath()
@@ -441,10 +481,11 @@ describe('RequireHandler integration', () => {
 
     it('should require @codemirror/state synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn() {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const mod = requireFn('@codemirror/state') as Record<string, unknown>;
-          return { hasEditorState: typeof mod['EditorState'] === 'function' };
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const module_ = requireFunction('@codemirror/state') as Record<string, unknown>;
+          return { hasEditorState: typeof module_['EditorState'] === 'function' };
         },
         vaultPath: vaultPath()
       });
@@ -454,9 +495,10 @@ describe('RequireHandler integration', () => {
 
     it('should require obsidian/app synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn() {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const appModule = requireFn('obsidian/app') as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const appModule = requireFunction('obsidian/app') as Record<string, unknown>;
           return {
             hasVault: typeof appModule['vault'] === 'object',
             hasWorkspace: typeof appModule['workspace'] === 'object'
@@ -471,12 +513,13 @@ describe('RequireHandler integration', () => {
 
     it('should require obsidian/specialModuleNames synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn() {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const mod = requireFn('obsidian/specialModuleNames') as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const module_ = requireFunction('obsidian/specialModuleNames') as Record<string, unknown>;
           return {
-            hasNodeBuiltIn: Array.isArray(mod['nodeBuiltInModuleNames']),
-            hasObsidianBuiltIn: Array.isArray(mod['obsidianBuiltInModuleNames'])
+            hasNodeBuiltIn: Array.isArray(module_['nodeBuiltInModuleNames']),
+            hasObsidianBuiltIn: Array.isArray(module_['obsidianBuiltInModuleNames'])
           };
         },
         vaultPath: vaultPath()
@@ -488,10 +531,11 @@ describe('RequireHandler integration', () => {
 
     it('should require obsidian-dev-utils synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn() {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const mod = requireFn('obsidian-dev-utils') as object;
-          return { hasKeys: Object.keys(mod).length > 0 };
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const module_ = requireFunction('obsidian-dev-utils') as object;
+          return { hasKeys: Object.keys(module_).length > 0 };
         },
         vaultPath: vaultPath()
       });
@@ -501,12 +545,13 @@ describe('RequireHandler integration', () => {
 
     it('should require Node built-in module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn() {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const pathMod = requireFn('node:path') as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const pathModule = requireFunction('node:path') as Record<string, unknown>;
           return {
-            hasJoin: typeof pathMod['join'] === 'function',
-            hasResolve: typeof pathMod['resolve'] === 'function'
+            hasJoin: typeof pathModule['join'] === 'function',
+            hasResolve: typeof pathModule['resolve'] === 'function'
           };
         },
         vaultPath: vaultPath()
@@ -518,10 +563,11 @@ describe('RequireHandler integration', () => {
 
     it('should require electron synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn() {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const mod = requireFn('electron') as Record<string, unknown>;
-          return { hasIpcRenderer: typeof mod['ipcRenderer'] === 'object' };
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const module_ = requireFunction('electron') as Record<string, unknown>;
+          return { hasIpcRenderer: typeof module_['ipcRenderer'] === 'object' };
         },
         vaultPath: vaultPath()
       });
@@ -531,12 +577,13 @@ describe('RequireHandler integration', () => {
 
     it('should require @electron/remote synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn() {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const mod = requireFn('@electron/remote') as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const module_ = requireFunction('@electron/remote') as Record<string, unknown>;
           return {
-            hasApp: typeof mod['app'] === 'object',
-            isObject: typeof mod === 'object'
+            hasApp: typeof module_['app'] === 'object',
+            isObject: typeof module_ === 'object'
           };
         },
         vaultPath: vaultPath()
@@ -548,10 +595,12 @@ describe('RequireHandler integration', () => {
 
     it('should resolve relative path synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`//${dir}/relative-parent.cjs`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`//${dir}/relative-parent.cjs`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -561,10 +610,12 @@ describe('RequireHandler integration', () => {
 
     it('should require NPM module synchronously via global require()', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn('fake-pkg', {
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction('fake-pkg', {
             parentPath: `${dir}/npm-test/index.js`
           })) as Record<string, unknown>;
         },
@@ -578,9 +629,11 @@ describe('RequireHandler integration', () => {
   describe('NPM modules', () => {
     it('should require an NPM module from vault node_modules', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync('fake-pkg', {
             parentPath: `${dir}/npm-test/index.js`
           })) as Record<string, unknown>;
@@ -595,24 +648,26 @@ describe('RequireHandler integration', () => {
   describe('smart caching', () => {
     it('should re-read module with cacheInvalidationMode always', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const cachePath = `${dir}/cache-test.cjs`;
 
           // Write initial module
           await app.vault.adapter.write(cachePath, 'exports.version = 1;');
 
           // First require — should get version 1
-          const mod1 = (await requireAsync(`//${cachePath}`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
-          const v1 = mod1['version'];
+          const module1 = (await requireAsync(`//${cachePath}`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const v1 = module1['version'];
 
           // Overwrite with version 2
           await app.vault.adapter.write(cachePath, 'exports.version = 2;');
 
           // Second require with always — should get version 2
-          const mod2 = (await requireAsync(`//${cachePath}`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
-          const v2 = mod2['version'];
+          const module2 = (await requireAsync(`//${cachePath}`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const v2 = module2['version'];
 
           return { v1, v2 };
         },
@@ -627,8 +682,9 @@ describe('RequireHandler integration', () => {
   describe('special modules', () => {
     it('should require obsidian/app module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const appModule = (await requireAsync('obsidian/app')) as Record<string, unknown>;
           return {
             hasVault: typeof appModule['vault'] === 'object',
@@ -644,10 +700,11 @@ describe('RequireHandler integration', () => {
 
     it('should require obsidian-dev-utils module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = await requireAsync('obsidian-dev-utils');
-          return { hasKeys: Object.keys(mod as object).length > 0 };
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = await requireAsync('obsidian-dev-utils');
+          return { hasKeys: Object.keys(module_ as object).length > 0 };
         },
         vaultPath: vaultPath()
       });
@@ -657,12 +714,13 @@ describe('RequireHandler integration', () => {
 
     it('should require obsidian/specialModuleNames module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = (await requireAsync('obsidian/specialModuleNames')) as Record<string, unknown>;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = (await requireAsync('obsidian/specialModuleNames')) as Record<string, unknown>;
           return {
-            hasNodeBuiltIn: Array.isArray(mod['nodeBuiltInModuleNames']),
-            hasObsidianBuiltIn: Array.isArray(mod['obsidianBuiltInModuleNames'])
+            hasNodeBuiltIn: Array.isArray(module_['nodeBuiltInModuleNames']),
+            hasObsidianBuiltIn: Array.isArray(module_['obsidianBuiltInModuleNames'])
           };
         },
         vaultPath: vaultPath()
@@ -674,12 +732,13 @@ describe('RequireHandler integration', () => {
 
     it('should require Node built-in module via node: prefix', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const pathMod = (await requireAsync('node:path')) as Record<string, unknown>;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const pathModule = (await requireAsync('node:path')) as Record<string, unknown>;
           return {
-            hasJoin: typeof pathMod['join'] === 'function',
-            hasResolve: typeof pathMod['resolve'] === 'function'
+            hasJoin: typeof pathModule['join'] === 'function',
+            hasResolve: typeof pathModule['resolve'] === 'function'
           };
         },
         vaultPath: vaultPath()
@@ -693,11 +752,12 @@ describe('RequireHandler integration', () => {
   describe('desktop modules', () => {
     it('should require the electron module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = (await requireAsync('electron')) as Record<string, unknown>;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = (await requireAsync('electron')) as Record<string, unknown>;
           return {
-            hasIpcRenderer: typeof mod['ipcRenderer'] === 'object'
+            hasIpcRenderer: typeof module_['ipcRenderer'] === 'object'
           };
         },
         vaultPath: vaultPath()
@@ -708,12 +768,13 @@ describe('RequireHandler integration', () => {
 
     it('should require @electron/remote module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = (await requireAsync('@electron/remote')) as Record<string, unknown>;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = (await requireAsync('@electron/remote')) as Record<string, unknown>;
           return {
-            hasApp: typeof mod['app'] === 'object',
-            isObject: typeof mod === 'object'
+            hasApp: typeof module_['app'] === 'object',
+            isObject: typeof module_ === 'object'
           };
         },
         vaultPath: vaultPath()
@@ -727,9 +788,11 @@ describe('RequireHandler integration', () => {
   describe('module type override', () => {
     it('should load a .txt file as JavaScript with moduleType override', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const txtPath = `${dir}/script-as-txt.txt`;
           await app.vault.adapter.write(txtPath, 'exports.fromTxt = "loaded";');
           return (await requireAsync(`//${txtPath}`, { moduleType: 'jsTs' })) as Record<string, unknown>;
@@ -742,9 +805,11 @@ describe('RequireHandler integration', () => {
 
     it('should load a file as JSON with moduleType override', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const datPath = `${dir}/data-file.dat`;
           await app.vault.adapter.write(datPath, JSON.stringify({ loaded: true }));
           return (await requireAsync(`//${datPath}`, { moduleType: 'json' })) as Record<string, unknown>;
@@ -759,23 +824,25 @@ describe('RequireHandler integration', () => {
   describe('source maps', () => {
     it('should include source file path in error stack trace via source maps', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const tsPath = `${dir}/sourcemap-error.ts`;
           await app.vault.adapter.write(tsPath, 'export function throwErr(): never { throw new Error("source-map-test"); }');
 
-          const mod = (await requireAsync(`//${tsPath}`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
-          const throwErr = mod['throwErr'] as () => never;
+          const module_ = (await requireAsync(`//${tsPath}`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const throwError = module_['throwErr'] as () => never;
 
           try {
-            throwErr();
+            throwError();
             return { error: 'Did not throw', hasSourcePath: false };
-          } catch (e: unknown) {
-            const stack = (e as Error).stack ?? '';
+          } catch (error: unknown) {
+            const stack = (error as Error).stack ?? '';
             // Source map should map the error back to the original .ts file path
             const hasSourcePath = stack.includes(tsPath) || stack.includes('sourcemap-error');
-            return { hasSourcePath, stack: stack.substring(0, 500) };
+            return { hasSourcePath, stack: stack.slice(0, 500) };
           }
         },
         vaultPath: vaultPath()
@@ -788,29 +855,31 @@ describe('RequireHandler integration', () => {
   describe('clear cache', () => {
     it('should clear cache so re-require gets fresh module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR, pluginId: 'fix-require-modules' },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir, pluginId }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const cachePath = `${dir}/clear-cache-test.cjs`;
 
           // Write and require version 1
           await app.vault.adapter.write(cachePath, 'exports.version = 1;');
-          const mod1 = (await requireAsync(`//${cachePath}`)) as Record<string, unknown>;
-          const v1 = mod1['version'];
+          const module1 = (await requireAsync(`//${cachePath}`)) as Record<string, unknown>;
+          const v1 = module1['version'];
 
           // Overwrite with version 2
           await app.vault.adapter.write(cachePath, 'exports.version = 2;');
 
           // With cacheInvalidationMode: never, should still get version 1
-          const mod2 = (await requireAsync(`//${cachePath}`, { cacheInvalidationMode: 'never' })) as Record<string, unknown>;
-          const v2Cached = mod2['version'];
+          const module2 = (await requireAsync(`//${cachePath}`, { cacheInvalidationMode: 'never' })) as Record<string, unknown>;
+          const v2Cached = module2['version'];
 
           // Clear cache via command
           app.commands.executeCommandById(`${pluginId}:clear-cache`);
 
           // Now re-require should get version 2
-          const mod3 = (await requireAsync(`//${cachePath}`)) as Record<string, unknown>;
-          const v3Fresh = mod3['version'];
+          const module3 = (await requireAsync(`//${cachePath}`)) as Record<string, unknown>;
+          const v3Fresh = module3['version'];
 
           return { v1, v2Cached, v3Fresh };
         },
@@ -826,9 +895,11 @@ describe('RequireHandler integration', () => {
   describe('file URLs', () => {
     it('should requireAsync a module via file:/// URL', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const basePath = Reflect.get(app.vault.adapter, 'basePath') as string;
           const filePath = `${basePath}/${dir}/module.cjs`.replaceAll('\\', '/');
           return (await requireAsync(`file:///${filePath}`)) as Record<string, unknown>;
@@ -841,12 +912,14 @@ describe('RequireHandler integration', () => {
 
     it('should require a module synchronously via file:/// URL', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ app, dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
           const basePath = Reflect.get(app.vault.adapter, 'basePath') as string;
           const filePath = `${basePath}/${dir}/module.cjs`.replaceAll('\\', '/');
-          return (requireFn(`file:///${filePath}`)) as Record<string, unknown>;
+          return (requireFunction(`file:///${filePath}`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -858,11 +931,13 @@ describe('RequireHandler integration', () => {
   describe('resource URLs', () => {
     it('should requireAsync a module via resource URL', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const obsidianMod = (await requireAsync('obsidian')) as Record<string, unknown>;
-          const Platform = obsidianMod['Platform'] as Record<string, unknown>;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const obsidianModule = (await requireAsync('obsidian')) as Record<string, unknown>;
+          const Platform = obsidianModule['Platform'] as Record<string, unknown>;
           const resourcePathPrefix = Platform['resourcePathPrefix'] as string;
           const basePath = Reflect.get(app.vault.adapter, 'basePath') as string;
           const filePath = `${basePath}/${dir}/module.cjs`.replaceAll('\\', '/');
@@ -876,15 +951,17 @@ describe('RequireHandler integration', () => {
 
     it('should require a module synchronously via resource URL', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ app, dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          const obsidianMod = requireFn('obsidian') as Record<string, unknown>;
-          const Platform = obsidianMod['Platform'] as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const obsidianModule = requireFunction('obsidian') as Record<string, unknown>;
+          const Platform = obsidianModule['Platform'] as Record<string, unknown>;
           const resourcePathPrefix = Platform['resourcePathPrefix'] as string;
           const basePath = Reflect.get(app.vault.adapter, 'basePath') as string;
           const filePath = `${basePath}/${dir}/module.cjs`.replaceAll('\\', '/');
-          return (requireFn(`${resourcePathPrefix}${filePath}`)) as Record<string, unknown>;
+          return (requireFunction(`${resourcePathPrefix}${filePath}`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -896,13 +973,14 @@ describe('RequireHandler integration', () => {
   describe('HTTP URLs', () => {
     it('should requireAsync a module from an HTTP URL', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn() {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = (await requireAsync(
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = (await requireAsync(
             'https://cdn.jsdelivr.net/npm/is-number@7.0.0/index.js',
             { moduleType: 'jsTs' }
           )) as Record<string, unknown>;
-          const isNumber = mod['default'] as (val: unknown) => boolean;
+          const isNumber = module_['default'] as (value: unknown) => boolean;
           return { result: isNumber(5) };
         },
         vaultPath: vaultPath()
@@ -915,11 +993,13 @@ describe('RequireHandler integration', () => {
   describe('WASM modules', () => {
     it('should requireAsync a WASM module and return its exports', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
-          const mod = (await requireAsync(`//${dir}/module.wasm`)) as Record<string, unknown>;
-          const add = mod['add'] as (a: number, b: number) => number;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const module_ = (await requireAsync(`//${dir}/module.wasm`)) as Record<string, unknown>;
+          const add = module_['add'] as (a: number, b: number) => number;
           return { result: add(3, 4) };
         },
         vaultPath: vaultPath()
@@ -930,11 +1010,13 @@ describe('RequireHandler integration', () => {
 
     it('should throw when requiring WASM synchronously', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
           try {
-            requireFn(`//${dir}/module.wasm`);
+            requireFunction(`//${dir}/module.wasm`);
             return { threw: false };
           } catch {
             return { threw: true };
@@ -950,10 +1032,12 @@ describe('RequireHandler integration', () => {
   describe('ASAR archives', () => {
     it('should require a module from inside an ASAR archive', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`//${dir}/archive.asar/index.js`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`//${dir}/archive.asar/index.js`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -963,9 +1047,11 @@ describe('RequireHandler integration', () => {
 
     it('should requireAsync a module from inside an ASAR archive', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/archive.asar/index.js`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -978,9 +1064,11 @@ describe('RequireHandler integration', () => {
   describe('TFile instances', () => {
     it('should requireAsync a module via TFile instance', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const file = app.vault.getFileByPath(`${dir}/module.cjs`);
           if (!file) {
             return { error: 'File not found', value: null };
@@ -995,14 +1083,16 @@ describe('RequireHandler integration', () => {
 
     it('should require a module synchronously via TFile instance', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ app, dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
           const file = app.vault.getFileByPath(`${dir}/module.cjs`);
           if (!file) {
             return { error: 'File not found', value: null };
           }
-          return (requireFn(file)) as Record<string, unknown>;
+          return (requireFunction(file)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -1012,9 +1102,11 @@ describe('RequireHandler integration', () => {
 
     it('should forward options when requireAsync is called with TFile', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const cachePath = `${dir}/tfile-cache-test.cjs`;
 
           await app.vault.adapter.write(cachePath, 'exports.version = 1;');
@@ -1023,8 +1115,8 @@ describe('RequireHandler integration', () => {
             return { error: 'File not found', v1: null, v2: null };
           }
 
-          const mod1 = (await requireAsync(file1, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
-          const v1 = mod1['version'];
+          const module1 = (await requireAsync(file1, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const v1 = module1['version'];
 
           await app.vault.adapter.write(cachePath, 'exports.version = 2;');
           const file2 = app.vault.getFileByPath(cachePath);
@@ -1032,8 +1124,8 @@ describe('RequireHandler integration', () => {
             return { error: 'File not found after rewrite', v1, v2: null };
           }
 
-          const mod2 = (await requireAsync(file2, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
-          const v2 = mod2['version'];
+          const module2 = (await requireAsync(file2, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
+          const v2 = module2['version'];
 
           return { v1, v2 };
         },
@@ -1046,9 +1138,11 @@ describe('RequireHandler integration', () => {
 
     it('should forward options when require is called synchronously with TFile', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ app, dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
           const cachePath = `${dir}/tfile-sync-cache-test.cjs`;
 
           await app.vault.adapter.write(cachePath, 'exports.version = 1;');
@@ -1057,8 +1151,8 @@ describe('RequireHandler integration', () => {
             return { error: 'File not found', v1: null, v2: null };
           }
 
-          const mod1 = requireFn(file1, { cacheInvalidationMode: 'always' }) as Record<string, unknown>;
-          const v1 = mod1['version'];
+          const module1 = requireFunction(file1, { cacheInvalidationMode: 'always' }) as Record<string, unknown>;
+          const v1 = module1['version'];
 
           await app.vault.adapter.write(cachePath, 'exports.version = 2;');
           const file2 = app.vault.getFileByPath(cachePath);
@@ -1066,8 +1160,8 @@ describe('RequireHandler integration', () => {
             return { error: 'File not found after rewrite', v1, v2: null };
           }
 
-          const mod2 = requireFn(file2, { cacheInvalidationMode: 'always' }) as Record<string, unknown>;
-          const v2 = mod2['version'];
+          const module2 = requireFunction(file2, { cacheInvalidationMode: 'always' }) as Record<string, unknown>;
+          const v2 = module2['version'];
 
           return { v1, v2 };
         },
@@ -1082,9 +1176,11 @@ describe('RequireHandler integration', () => {
   describe('wikilinks and markdown links', () => {
     it('should requireAsync a module via wikilink', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`[[${dir}/module.cjs]]`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -1095,9 +1191,11 @@ describe('RequireHandler integration', () => {
 
     it('should requireAsync a module via markdown link', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`[Module](${dir}/module.cjs)`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -1108,10 +1206,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a module synchronously via wikilink', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`[[${dir}/module.cjs]]`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`[[${dir}/module.cjs]]`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -1121,10 +1221,12 @@ describe('RequireHandler integration', () => {
 
     it('should require a module synchronously via markdown link', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
-          return (requireFn(`[Module](${dir}/module.cjs)`)) as Record<string, unknown>;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          return (requireFunction(`[Module](${dir}/module.cjs)`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
       });
@@ -1134,9 +1236,11 @@ describe('RequireHandler integration', () => {
 
     it('should requireAsync a module via wikilink with alias', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`[[${dir}/module.cjs|My Module]]`)) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -1149,14 +1253,16 @@ describe('RequireHandler integration', () => {
   describe('node binaries', () => {
     it('should attempt to load a .node binary via requireAsync', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           try {
             await requireAsync(`//${dir}/dummy.node`);
             return { errorMessage: '' };
-          } catch (e: unknown) {
-            return { errorMessage: (e as Error).message };
+          } catch (error: unknown) {
+            return { errorMessage: (error as Error).message };
           }
         },
         vaultPath: vaultPath()
@@ -1169,14 +1275,16 @@ describe('RequireHandler integration', () => {
 
     it('should require a .node binary synchronously via native require', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         fn({ dir }) {
-          const requireFn = Reflect.get(window, 'require') as RequireFn;
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
           try {
-            requireFn(`//${dir}/dummy.node`);
+            requireFunction(`//${dir}/dummy.node`);
             return { errorMessage: '' };
-          } catch (e: unknown) {
-            return { errorMessage: (e as Error).message };
+          } catch (error: unknown) {
+            return { errorMessage: (error as Error).message };
           }
         },
         vaultPath: vaultPath()
@@ -1193,9 +1301,11 @@ describe('RequireHandler integration', () => {
     // global object when the module runs raw. It is a runtime signal for which path actually executed.
     it('should run a .cjs module raw (no Babel) by default', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/strict-probe.cjs`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -1206,9 +1316,11 @@ describe('RequireHandler integration', () => {
 
     it('should transpile a .cjs module through Babel when shouldTranspile is true', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/strict-probe.cjs`, { cacheInvalidationMode: 'always', shouldTranspile: true })) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -1219,9 +1331,11 @@ describe('RequireHandler integration', () => {
 
     it('should run a .js module raw when its nearest package.json is CommonJS', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/pkg-cjs/probe.js`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
         },
         vaultPath: vaultPath()
@@ -1232,9 +1346,11 @@ describe('RequireHandler integration', () => {
 
     it('should transpile a .js module when its nearest package.json is an ESM module', async () => {
       const result = await evalInObsidian({
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: { dir: SCRIPTS_DIR },
+        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
         async fn({ dir }) {
-          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFn;
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           return (await requireAsync(`//${dir}/pkg-esm/probe.js`, { cacheInvalidationMode: 'always' })) as Record<string, unknown>;
         },
         vaultPath: vaultPath()

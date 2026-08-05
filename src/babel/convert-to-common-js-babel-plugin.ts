@@ -24,6 +24,7 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
       const result = babelTransform(code, {
         ast: true,
         filename,
+        // eslint-disable-next-line unicorn/name-replacements -- Named by a dependency's API - Obsidian's MetadataCache/Vault and Babel's InputOptions.
         parserOpts: {
           allowReturnOutsideFunction: true
         },
@@ -34,7 +35,7 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
         ],
         presets: ['typescript'],
         sourceMaps: 'inline',
-        ...folder === undefined ? {} : { cwd: folder }
+        ...folder !== undefined && { cwd: folder }
       });
 
       return {
@@ -47,12 +48,12 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
         transformedCode: result.code ?? ''
         /* v8 ignore stop */
       };
-    } catch (e) {
+    } catch (error) {
       return {
         data: {
           hasTopLevelAwait: false
         },
-        error: e as Error,
+        error: error as Error,
         transformedCode: ''
       };
     }

@@ -5,52 +5,52 @@ import {
   vi
 } from 'vitest';
 
-import { ExtractRequireArgsListBabelPlugin } from './extract-require-args-list-babel-plugin.ts';
+import { ExtractRequireArgumentsListBabelPlugin } from './extract-require-arguments-list-babel-plugin.ts';
 
 const TEST_FILENAME = 'test.ts';
 
-describe('ExtractRequireArgsListBabelPlugin', () => {
+describe('ExtractRequireArgumentsListBabelPlugin', () => {
   describe('arrow function with require calls', () => {
     it('should extract require arguments from arrow function', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a"); req("module-b"); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireFnName).toBe('req');
-      expect(result.data.requireArgsList).toHaveLength(2);
-      expect(result.data.requireArgsList[0]?.id).toBe('module-a');
-      expect(result.data.requireArgsList[1]?.id).toBe('module-b');
+      expect(result.data.requireFunctionName).toBe('req');
+      expect(result.data.requireArgumentsList).toHaveLength(2);
+      expect(result.data.requireArgumentsList[0]?.id).toBe('module-a');
+      expect(result.data.requireArgumentsList[1]?.id).toBe('module-b');
     });
 
     it('should extract require arguments with parentPath option', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { "parentPath": "/some/path" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(1);
-      expect(result.data.requireArgsList[0]?.id).toBe('module-a');
-      expect(result.data.requireArgsList[0]?.options.parentPath).toBe('/some/path');
+      expect(result.data.requireArgumentsList).toHaveLength(1);
+      expect(result.data.requireArgumentsList[0]?.id).toBe('module-a');
+      expect(result.data.requireArgumentsList[0]?.options.parentPath).toBe('/some/path');
     });
 
     it('should extract require arguments with cacheInvalidationMode option', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { "cacheInvalidationMode": "always" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(1);
-      expect(result.data.requireArgsList[0]?.options.cacheInvalidationMode).toBe('always');
+      expect(result.data.requireArgumentsList).toHaveLength(1);
+      expect(result.data.requireArgumentsList[0]?.options.cacheInvalidationMode).toBe('always');
     });
   });
 
   describe('function declaration with require calls', () => {
     it('should extract require arguments from function declaration', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = 'function wrapper(req) { req("module-x"); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireFnName).toBe('req');
-      expect(result.data.requireArgsList).toHaveLength(1);
-      expect(result.data.requireArgsList[0]?.id).toBe('module-x');
+      expect(result.data.requireFunctionName).toBe('req');
+      expect(result.data.requireArgumentsList).toHaveLength(1);
+      expect(result.data.requireArgumentsList[0]?.id).toBe('module-x');
     });
   });
 
@@ -59,11 +59,11 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req(someVariable); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireArgumentsList).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Could not statically analyze require call'));
       warnSpy.mockRestore();
     });
@@ -74,11 +74,11 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { "cacheInvalidationMode": "invalid" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireArgumentsList).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalled();
       warnSpy.mockRestore();
     });
@@ -87,11 +87,11 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { "unknownKey": "value" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireArgumentsList).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalled();
       warnSpy.mockRestore();
     });
@@ -100,11 +100,11 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", someVar); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireArgumentsList).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalled();
       warnSpy.mockRestore();
     });
@@ -112,29 +112,29 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
 
   describe('edge cases', () => {
     it('should ignore calls to functions that are not the require function', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { console.log("hello"); req("module-a"); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(1);
-      expect(result.data.requireArgsList[0]?.id).toBe('module-a');
+      expect(result.data.requireArgumentsList).toHaveLength(1);
+      expect(result.data.requireArgumentsList[0]?.id).toBe('module-a');
     });
 
     it('should handle empty options object', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", {}); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(1);
-      expect(result.data.requireArgsList[0]?.id).toBe('module-a');
-      expect(result.data.requireArgsList[0]?.options).toEqual({});
+      expect(result.data.requireArgumentsList).toHaveLength(1);
+      expect(result.data.requireArgumentsList[0]?.id).toBe('module-a');
+      expect(result.data.requireArgumentsList[0]?.options).toEqual({});
     });
 
     it('should warn when arrow function has no identifier parameter', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '({}) => { }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
@@ -146,7 +146,7 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = 'function wrapper({}) { }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
@@ -155,32 +155,32 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
     });
 
     it('should ignore arrow function not at top level (nested in another function)', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = 'function outer() { const inner = (req) => { req("module-a"); }; }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireFnName).toBe('');
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireFunctionName).toBe('');
+      expect(result.data.requireArgumentsList).toHaveLength(0);
     });
 
     it('should ignore function declaration not at top level (nested)', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = 'function outer() { function inner(req) { req("module-a"); } }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireFnName).toBe('');
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireFunctionName).toBe('');
+      expect(result.data.requireArgumentsList).toHaveLength(0);
     });
 
     it('should return null for spread element in options object', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { ...opts }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireArgumentsList).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalled();
       warnSpy.mockRestore();
     });
@@ -189,42 +189,42 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { "parentPath": 42 }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireArgumentsList).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalled();
       warnSpy.mockRestore();
     });
 
     it('should extract require arguments with identifier (unquoted) option key', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { parentPath: "/some/path" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(1);
-      expect(result.data.requireArgsList[0]?.options.parentPath).toBe('/some/path');
+      expect(result.data.requireArgumentsList).toHaveLength(1);
+      expect(result.data.requireArgumentsList[0]?.options.parentPath).toBe('/some/path');
     });
 
     it('should extract require arguments with identifier cacheInvalidationMode key', () => {
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { cacheInvalidationMode: "never" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(1);
-      expect(result.data.requireArgsList[0]?.options.cacheInvalidationMode).toBe('never');
+      expect(result.data.requireArgumentsList).toHaveLength(1);
+      expect(result.data.requireArgumentsList[0]?.options.cacheInvalidationMode).toBe('never');
     });
 
     it('should return null for computed property key in options', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { [dynamicKey]: "value" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireArgumentsList).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalled();
       warnSpy.mockRestore();
     });
@@ -233,11 +233,11 @@ describe('ExtractRequireArgsListBabelPlugin', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Intentional noop for test spy.
       });
-      const plugin = new ExtractRequireArgsListBabelPlugin();
+      const plugin = new ExtractRequireArgumentsListBabelPlugin();
       const code = '(req) => { req("module-a", { 5: "value" }); }';
       const result = plugin.transform({ code, filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.data.requireArgsList).toHaveLength(0);
+      expect(result.data.requireArgumentsList).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalled();
       warnSpy.mockRestore();
     });

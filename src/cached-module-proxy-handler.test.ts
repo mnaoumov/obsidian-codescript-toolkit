@@ -60,15 +60,15 @@ describe('CachedModuleProxyHandler', () => {
     it('should set property on cachedModule when it is an object', () => {
       const module: Record<string, unknown> = {};
       const handler = new CachedModuleProxyHandler(() => module);
-      const result = handler.set({}, TEST_PROPERTY, TEST_VALUE, module);
-      expect(result).toBe(true);
+      const isResult = handler.set({}, TEST_PROPERTY, TEST_VALUE, module);
+      expect(isResult).toBe(true);
       expect(module[TEST_PROPERTY]).toBe(TEST_VALUE);
     });
 
     it('should return false when cachedModule is null', () => {
       const handler = new CachedModuleProxyHandler(() => null);
-      const result = handler.set({}, TEST_PROPERTY, TEST_VALUE, undefined);
-      expect(result).toBe(false);
+      const isResult = handler.set({}, TEST_PROPERTY, TEST_VALUE, undefined);
+      expect(isResult).toBe(false);
     });
   });
 
@@ -76,21 +76,21 @@ describe('CachedModuleProxyHandler', () => {
     it('should return true when property exists on cachedModule', () => {
       const module = { [TEST_PROPERTY]: TEST_VALUE };
       const handler = new CachedModuleProxyHandler(() => module);
-      const result = handler.has({}, TEST_PROPERTY);
-      expect(result).toBe(true);
+      const isResult = handler.has({}, TEST_PROPERTY);
+      expect(isResult).toBe(true);
     });
 
     it('should return false when property does not exist', () => {
       const module = {};
       const handler = new CachedModuleProxyHandler(() => module);
-      const result = handler.has({}, 'nonexistent');
-      expect(result).toBe(false);
+      const isResult = handler.has({}, 'nonexistent');
+      expect(isResult).toBe(false);
     });
 
     it('should return false when cachedModule is null', () => {
       const handler = new CachedModuleProxyHandler(() => null);
-      const result = handler.has({}, TEST_PROPERTY);
-      expect(result).toBe(false);
+      const isResult = handler.has({}, TEST_PROPERTY);
+      expect(isResult).toBe(false);
     });
   });
 
@@ -98,15 +98,15 @@ describe('CachedModuleProxyHandler', () => {
     it('should delete property from cachedModule', () => {
       const module: Record<string, unknown> = { [TEST_PROPERTY]: TEST_VALUE };
       const handler = new CachedModuleProxyHandler(() => module);
-      const result = handler.deleteProperty({}, TEST_PROPERTY);
-      expect(result).toBe(true);
+      const isResult = handler.deleteProperty({}, TEST_PROPERTY);
+      expect(isResult).toBe(true);
       expect(module[TEST_PROPERTY]).toBeUndefined();
     });
 
     it('should return false when cachedModule is null', () => {
       const handler = new CachedModuleProxyHandler(() => null);
-      const result = handler.deleteProperty({}, TEST_PROPERTY);
-      expect(result).toBe(false);
+      const isResult = handler.deleteProperty({}, TEST_PROPERTY);
+      expect(isResult).toBe(false);
     });
   });
 
@@ -115,15 +115,15 @@ describe('CachedModuleProxyHandler', () => {
       const module: Record<string, unknown> = {};
       const handler = new CachedModuleProxyHandler(() => module);
       const descriptor: PropertyDescriptor = { configurable: true, value: TEST_VALUE };
-      const result = handler.defineProperty({}, TEST_PROPERTY, descriptor);
-      expect(result).toBe(true);
+      const isResult = handler.defineProperty({}, TEST_PROPERTY, descriptor);
+      expect(isResult).toBe(true);
       expect(module[TEST_PROPERTY]).toBe(TEST_VALUE);
     });
 
     it('should return false when cachedModule is null', () => {
       const handler = new CachedModuleProxyHandler(() => null);
-      const result = handler.defineProperty({}, TEST_PROPERTY, { value: TEST_VALUE });
-      expect(result).toBe(false);
+      const isResult = handler.defineProperty({}, TEST_PROPERTY, { value: TEST_VALUE });
+      expect(isResult).toBe(false);
     });
   });
 
@@ -151,11 +151,11 @@ describe('CachedModuleProxyHandler', () => {
 
   describe('getPrototypeOf', () => {
     it('should return prototype of cachedModule', () => {
-      const proto = { protoMethod: vi.fn() };
-      const module = Object.create(proto) as object;
+      const prototype = { prototypeMethod: vi.fn() };
+      const module = Object.create(prototype) as object;
       const handler = new CachedModuleProxyHandler(() => module);
       const result = handler.getPrototypeOf();
-      expect(result).toBe(proto);
+      expect(result).toBe(prototype);
     });
 
     it('should return null when cachedModule is null', () => {
@@ -169,21 +169,21 @@ describe('CachedModuleProxyHandler', () => {
     it('should return true for extensible cachedModule', () => {
       const module = {};
       const handler = new CachedModuleProxyHandler(() => module);
-      const result = handler.isExtensible();
-      expect(result).toBe(true);
+      const isResult = handler.isExtensible();
+      expect(isResult).toBe(true);
     });
 
     it('should return false for non-extensible cachedModule', () => {
       const module = Object.preventExtensions({});
       const handler = new CachedModuleProxyHandler(() => module);
-      const result = handler.isExtensible();
-      expect(result).toBe(false);
+      const isResult = handler.isExtensible();
+      expect(isResult).toBe(false);
     });
 
     it('should return false when cachedModule is null', () => {
       const handler = new CachedModuleProxyHandler(() => null);
-      const result = handler.isExtensible();
-      expect(result).toBe(false);
+      const isResult = handler.isExtensible();
+      expect(isResult).toBe(false);
     });
   });
 
@@ -206,51 +206,51 @@ describe('CachedModuleProxyHandler', () => {
     it('should prevent extensions on cachedModule', () => {
       const module = {};
       const handler = new CachedModuleProxyHandler(() => module);
-      const result = handler.preventExtensions();
-      expect(result).toBe(true);
+      const isResult = handler.preventExtensions();
+      expect(isResult).toBe(true);
       expect(Object.isExtensible(module)).toBe(false);
     });
 
     it('should return false when cachedModule is null', () => {
       const handler = new CachedModuleProxyHandler(() => null);
-      const result = handler.preventExtensions();
-      expect(result).toBe(false);
+      const isResult = handler.preventExtensions();
+      expect(isResult).toBe(false);
     });
   });
 
   describe('setPrototypeOf', () => {
     it('should set prototype of cachedModule', () => {
       const module = {};
-      const newProto = { newMethod: vi.fn() };
+      const newPrototype = { newMethod: vi.fn() };
       const handler = new CachedModuleProxyHandler(() => module);
-      const result = handler.setPrototypeOf({}, newProto);
-      expect(result).toBe(true);
-      expect(Object.getPrototypeOf(module)).toBe(newProto);
+      const isResult = handler.setPrototypeOf({}, newPrototype);
+      expect(isResult).toBe(true);
+      expect(Object.getPrototypeOf(module)).toBe(newPrototype);
     });
 
     it('should return false when cachedModule is null', () => {
       const handler = new CachedModuleProxyHandler(() => null);
-      const result = handler.setPrototypeOf({}, {});
-      expect(result).toBe(false);
+      const isResult = handler.setPrototypeOf({}, {});
+      expect(isResult).toBe(false);
     });
   });
 
   describe('apply', () => {
     it('should call cachedModule as a function when it is a function', () => {
       const RETURN_VALUE = 42;
-      const moduleFn = vi.fn().mockReturnValue(RETURN_VALUE);
-      const handler = new CachedModuleProxyHandler(() => moduleFn);
+      const moduleFunction = vi.fn().mockReturnValue(RETURN_VALUE);
+      const handler = new CachedModuleProxyHandler(() => moduleFunction);
       const result = handler.apply({}, undefined, ['arg1', 'arg2']);
-      expect(moduleFn).toHaveBeenCalledWith('arg1', 'arg2');
+      expect(moduleFunction).toHaveBeenCalledWith('arg1', 'arg2');
       expect(result).toBe(RETURN_VALUE);
     });
 
-    it('should pass thisArg correctly', () => {
-      const moduleFn = vi.fn();
-      const handler = new CachedModuleProxyHandler(() => moduleFn);
-      const thisArg = { context: true };
-      handler.apply({}, thisArg, []);
-      expect(moduleFn.mock.contexts[0]).toBe(thisArg);
+    it('should pass thisArgument correctly', () => {
+      const moduleFunction = vi.fn();
+      const handler = new CachedModuleProxyHandler(() => moduleFunction);
+      const thisArgument = { context: true };
+      handler.apply({}, thisArgument, []);
+      expect(moduleFunction.mock.contexts[0]).toBe(thisArgument);
     });
 
     it('should return undefined when cachedModule is not a function', () => {
@@ -266,10 +266,10 @@ describe('CachedModuleProxyHandler', () => {
     });
 
     it('should use empty array when argArray is undefined', () => {
-      const moduleFn = vi.fn();
-      const handler = new CachedModuleProxyHandler(() => moduleFn);
+      const moduleFunction = vi.fn();
+      const handler = new CachedModuleProxyHandler(() => moduleFunction);
       handler.apply({}, undefined, undefined);
-      expect(moduleFn).toHaveBeenCalledWith();
+      expect(moduleFunction).toHaveBeenCalledWith();
     });
   });
 
@@ -293,8 +293,8 @@ describe('CachedModuleProxyHandler', () => {
     });
 
     it('should return empty object when cachedModule is not a function', () => {
-      const nonFnHandler = new CachedModuleProxyHandler(() => ({ notAFunction: true }));
-      const result = nonFnHandler.construct({}, [], MockClass);
+      const nonFunctionHandler = new CachedModuleProxyHandler(() => ({ notAFunction: true }));
+      const result = nonFunctionHandler.construct({}, [], MockClass);
       expect(result).toEqual({});
     });
 

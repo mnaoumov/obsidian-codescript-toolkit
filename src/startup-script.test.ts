@@ -224,8 +224,8 @@ describe('StartupScriptComponent', () => {
       });
 
       let registeredCallback: (() => void) | null = null;
-      const registerSpy = vi.spyOn(component, 'register').mockImplementation((fn: () => void) => {
-        registeredCallback = fn;
+      const registerSpy = vi.spyOn(component, 'register').mockImplementation(($function: () => void) => {
+        registeredCallback = $function;
       });
 
       await component.onloadAsync();

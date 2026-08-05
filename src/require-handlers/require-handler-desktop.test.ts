@@ -17,7 +17,7 @@ import {
 
 import type { RequireOptions } from '../types.ts';
 import type {
-  RequireFn,
+  RequireFunction,
   RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
   RequireHandlerConstructorParams
 } from './require-handler.ts';
@@ -66,7 +66,7 @@ vi.mock('../code-script-toolkit-module-impl.ts', () => ({
 
 const EMPTY = '';
 const MOCK_CONFIG_DIR = `${EMPTY}.obsidian`;
-const MOCK_MTIME_MS = 1234567890;
+const MOCK_MTIME_MS = 1_234_567_890;
 
 interface CurrentModulesTimestampChainAccessor {
   currentModulesTimestampChain: Set<string>;
@@ -172,7 +172,7 @@ interface ModulePrototypeRequireAccessor {
   modulePrototypeRequire(id: string, module: NodeJS.Module): unknown;
 }
 
-interface ModuleRequireProto {
+interface ModuleRequirePrototype {
   require(id: string): unknown;
 }
 
@@ -259,7 +259,7 @@ interface RequireStringImplAccessor {
 }
 
 interface RequireStringImplResult {
-  exportsFn(): unknown;
+  exportsFunction(): unknown;
   readonly promisable: unknown;
 }
 
@@ -343,8 +343,8 @@ class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopCompon
     this['_fsPromises'] = castTo<NodeFsPromisesModule>(fsPromises);
   }
 
-  public setOriginalModulePrototypeRequire(fn: ReturnType<typeof vi.fn>): void {
-    this['originalModulePrototypeRequire'] = castTo<RequireFn>(fn);
+  public setOriginalModulePrototypeRequire($function: ReturnType<typeof vi.fn>): void {
+    this['originalModulePrototypeRequire'] = castTo<RequireFunction>($function);
   }
 
   public unsetFs(): void {
@@ -388,6 +388,7 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
     app: castTo<App>({
       vault: {
         adapter: Object.create(FileSystemAdapter.prototype) as App['vault']['adapter'],
+        // eslint-disable-next-line unicorn/name-replacements -- Named by a dependency's API - Obsidian's MetadataCache/Vault and Babel's InputOptions.
         configDir: MOCK_CONFIG_DIR
       },
       workspace: {
@@ -408,6 +409,7 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
         shouldUseSyncFallback: false
       }
     }),
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     tempPluginRegistry: castTo<RequireHandlerConstructorParams['tempPluginRegistry']>({})
   };
   return params as RequireHandlerConstructorParams;
@@ -419,18 +421,18 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
  * monkey-patch `getPrototypeOf(window.module).require` for real, instead of polluting
  * `Object.prototype`. The original `require` is returned so tests can assert against it.
  */
-function setWindowModuleWithRequireProto(): ReturnType<typeof vi.fn> {
-  const originalRequireFn = vi.fn();
-  const moduleProto: ModuleRequireProto = { require: originalRequireFn };
-  const mod: ModuleWithExports = Object.assign(Object.create(moduleProto), { exports: {} });
+function setWindowModuleWithRequirePrototype(): ReturnType<typeof vi.fn> {
+  const originalRequireFunction = vi.fn();
+  const modulePrototype: ModuleRequirePrototype = { require: originalRequireFunction };
+  const module_: ModuleWithExports = Object.assign(Object.create(modulePrototype), { exports: {} });
 
   Object.defineProperty(window, 'module', {
     configurable: true,
-    value: mod,
+    value: module_,
     writable: true
   });
 
-  return originalRequireFn;
+  return originalRequireFunction;
 }
 
 describe('RequireHandlerDesktopComponent', () => {
@@ -548,7 +550,7 @@ describe('RequireHandlerDesktopComponent', () => {
       // eslint-disable-next-line no-restricted-syntax -- testing undefined case
       handler.setOriginalModulePrototypeRequire(undefined as unknown as ReturnType<typeof vi.fn>);
 
-      handler['originalModulePrototypeRequire'] = castTo<RequireFn>(undefined);
+      handler['originalModulePrototypeRequire'] = castTo<RequireFunction>(undefined);
 
       const result = handler.exposeRequireNodeBuiltInModule('node:fs', {});
 
@@ -589,26 +591,26 @@ describe('RequireHandlerDesktopComponent', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.statSync.mockReturnValue({ isFile: (): boolean => true });
 
-      const result = await handler.existsFileAsync('/path/to/file.ts');
+      const isResult = await handler.existsFileAsync('/path/to/file.ts');
 
-      expect(result).toBe(true);
+      expect(isResult).toBe(true);
     });
 
     it('should resolve with false when file does not exist', async () => {
       mockFs.existsSync.mockReturnValue(false);
 
-      const result = await handler.existsFileAsync('/path/to/missing.ts');
+      const isResult = await handler.existsFileAsync('/path/to/missing.ts');
 
-      expect(result).toBe(false);
+      expect(isResult).toBe(false);
     });
 
     it('should resolve with false when path is a directory', async () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.statSync.mockReturnValue({ isFile: (): boolean => false });
 
-      const result = await handler.existsFileAsync('/path/to/dir');
+      const isResult = await handler.existsFileAsync('/path/to/dir');
 
-      expect(result).toBe(false);
+      expect(isResult).toBe(false);
     });
 
     it('should strip query before checking', async () => {
@@ -626,26 +628,26 @@ describe('RequireHandlerDesktopComponent', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.statSync.mockReturnValue({ isDirectory: (): boolean => true });
 
-      const result = await handler.existsFolderAsync('/path/to/dir');
+      const isResult = await handler.existsFolderAsync('/path/to/dir');
 
-      expect(result).toBe(true);
+      expect(isResult).toBe(true);
     });
 
     it('should resolve with false when folder does not exist', async () => {
       mockFs.existsSync.mockReturnValue(false);
 
-      const result = await handler.existsFolderAsync('/path/to/missing');
+      const isResult = await handler.existsFolderAsync('/path/to/missing');
 
-      expect(result).toBe(false);
+      expect(isResult).toBe(false);
     });
 
     it('should resolve with false when path is a file', async () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.statSync.mockReturnValue({ isDirectory: (): boolean => false });
 
-      const result = await handler.existsFolderAsync('/path/to/file.ts');
+      const isResult = await handler.existsFolderAsync('/path/to/file.ts');
 
-      expect(result).toBe(false);
+      expect(isResult).toBe(false);
     });
 
     it('should strip query before checking', async () => {
@@ -684,7 +686,7 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should strip query before reading', async () => {
       await handler.readFileAsync('/path/to/file.ts?query=1');
 
-      expect(mockFsPromises.readFile).toHaveBeenCalledWith('/path/to/file.ts', 'utf8');
+      expect(mockFsPromises.readFile).toHaveBeenCalledWith('/path/to/file.ts', 'utf-8');
     });
   });
 
@@ -803,7 +805,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const superOnload = vi.spyOn(RequireHandlerComponentBase.prototype, 'onload')
         .mockResolvedValue(undefined);
 
-      setWindowModuleWithRequireProto();
+      setWindowModuleWithRequirePrototype();
 
       await handler.loadWithPromises();
 
@@ -816,13 +818,13 @@ describe('RequireHandlerDesktopComponent', () => {
         .mockResolvedValue(undefined);
       const registerPatchSpy = vi.spyOn(MonkeyAroundComponent.prototype, 'registerPatch');
 
-      setWindowModuleWithRequireProto();
-      const moduleProto = getPrototypeOf(window.module);
+      setWindowModuleWithRequirePrototype();
+      const modulePrototype = getPrototypeOf(window.module);
 
       await handler.loadWithPromises();
 
       expect(registerPatchSpy).toHaveBeenCalledOnce();
-      expect(registerPatchSpy.mock.calls[0]?.[0]).toBe(moduleProto);
+      expect(registerPatchSpy.mock.calls[0]?.[0]).toBe(modulePrototype);
       registerPatchSpy.mockRestore();
       superOnloadAsync.mockRestore();
     });
@@ -1039,14 +1041,14 @@ describe('RequireHandlerDesktopComponent', () => {
       const superOnloadAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'onloadAsync')
         .mockResolvedValue(undefined);
 
-      const originalRequireFn = setWindowModuleWithRequireProto();
+      const originalRequireFunction = setWindowModuleWithRequirePrototype();
 
       // The real `ModuleRequirePatchComponent.onload` runs the monkey-around factory immediately.
       // The original `require` from the module prototype is therefore captured on the handler.
       await handler.loadWithPromises();
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      expect((handler as unknown as OriginalModulePrototypeRequireAccessor).originalModulePrototypeRequire).toBe(originalRequireFn);
+      expect((handler as unknown as OriginalModulePrototypeRequireAccessor).originalModulePrototypeRequire).toBe(originalRequireFunction);
       superOnloadAsync.mockRestore();
     });
 
@@ -1054,7 +1056,7 @@ describe('RequireHandlerDesktopComponent', () => {
       const superOnloadAsync = vi.spyOn(RequireHandlerComponentBase.prototype, 'onloadAsync')
         .mockResolvedValue(undefined);
 
-      setWindowModuleWithRequireProto();
+      setWindowModuleWithRequirePrototype();
 
       await handler.loadWithPromises();
 
@@ -1065,10 +1067,10 @@ describe('RequireHandlerDesktopComponent', () => {
       ).mockReturnValue({ patched: true });
 
       // After load, the module prototype's `require` is the really-patched function.
-      const patchedProto = castTo<ModuleRequireProto>(getPrototypeOf(window.module));
+      const patchedPrototype = castTo<ModuleRequirePrototype>(getPrototypeOf(window.module));
       // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion
       const mockModule = { exports: {} } as unknown as NodeJS.Module;
-      const result = patchedProto.require.call(mockModule, 'some-id');
+      const result = patchedPrototype.require.call(mockModule, 'some-id');
 
       expect(result).toEqual({ patched: true });
       expect(modulePrototypeRequireSpy).toHaveBeenCalledWith('some-id', mockModule);
@@ -1205,7 +1207,7 @@ describe('RequireHandlerDesktopComponent', () => {
       mockFs.existsSync.mockImplementation((p: string) => p === '/path/to/file.js');
       mockFs.statSync.mockReturnValue({ isFile: (): boolean => true, mtimeMs: MOCK_MTIME_MS });
 
-      const getDepsTimestampSpy = vi.spyOn(
+      const getDependenciesTimestampSpy = vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         handler as unknown as GetDependenciesTimestampAccessor,
         'getDependenciesTimestampChangedAndReloadIfNeeded'
@@ -1230,14 +1232,14 @@ describe('RequireHandlerDesktopComponent', () => {
       const result = (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js');
 
       expect(result).toBe(EXPECTED_EXPORTS);
-      getDepsTimestampSpy.mockRestore();
+      getDependenciesTimestampSpy.mockRestore();
     });
 
     it('should clear currentModulesTimestampChain after root require', () => {
       mockFs.existsSync.mockImplementation((p: string) => p === '/path/to/file.js');
       mockFs.statSync.mockReturnValue({ isFile: (): boolean => true, mtimeMs: MOCK_MTIME_MS });
 
-      const getDepsTimestampSpy = vi.spyOn(
+      const getDependenciesTimestampSpy = vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         handler as unknown as GetDependenciesTimestampAccessor,
         'getDependenciesTimestampChangedAndReloadIfNeeded'
@@ -1251,19 +1253,19 @@ describe('RequireHandlerDesktopComponent', () => {
       (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js');
 
       expect(chain.size).toBe(0);
-      getDepsTimestampSpy.mockRestore();
+      getDependenciesTimestampSpy.mockRestore();
     });
 
     it('should clear currentModulesTimestampChain even if getDependenciesTimestampChangedAndReloadIfNeeded throws', () => {
       mockFs.existsSync.mockImplementation((p: string) => p === '/path/to/file.js');
       mockFs.statSync.mockReturnValue({ isFile: (): boolean => true, mtimeMs: MOCK_MTIME_MS });
 
-      const getDepsTimestampSpy = vi.spyOn(
+      const getDependenciesTimestampSpy = vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         handler as unknown as GetDependenciesTimestampAccessor,
         'getDependenciesTimestampChangedAndReloadIfNeeded'
       ).mockImplementation(() => {
-        throw new Error('dependency error');
+        throw new Error('dep error');
       });
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -1272,10 +1274,10 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js');
-      }).toThrow('dependency error');
+      }).toThrow('dep error');
 
       expect(chain.size).toBe(0);
-      getDepsTimestampSpy.mockRestore();
+      getDependenciesTimestampSpy.mockRestore();
     });
   });
 
@@ -1385,7 +1387,7 @@ describe('RequireHandlerDesktopComponent', () => {
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       (handler as unknown as RequireJsonAccessor).requireJson('/path/to/file.json?v=1');
 
-      expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/file.json', 'utf8');
+      expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/file.json', 'utf-8');
     });
   });
 
@@ -1421,7 +1423,7 @@ describe('RequireHandlerDesktopComponent', () => {
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       (handler as unknown as ReadFileAccessor).readFile('/path/to/file.txt?q=1');
 
-      expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/file.txt', 'utf8');
+      expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/file.txt', 'utf-8');
     });
   });
 
@@ -1442,7 +1444,7 @@ describe('RequireHandlerDesktopComponent', () => {
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       (handler as unknown as ReadPackageJsonAccessor).readPackageJson('/path/to/package.json?v=2');
 
-      expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/package.json', 'utf8');
+      expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/package.json', 'utf-8');
     });
   });
 
@@ -1505,7 +1507,7 @@ describe('RequireHandlerDesktopComponent', () => {
     });
 
     it('should return undefined when originalModulePrototypeRequire is not set', () => {
-      handler['originalModulePrototypeRequire'] = castTo<RequireFn>(undefined);
+      handler['originalModulePrototypeRequire'] = castTo<RequireFunction>(undefined);
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const result = (handler as unknown as OriginalModulePrototypeRequireWrappedAccessor)
@@ -1903,9 +1905,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should resolve Module dependencies through root folder package.json', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['some-module']);
+      const dependencies = new Set(['some-module']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       const resolveSpy = vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -1933,9 +1935,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should skip root folders without package.json for Module dependencies', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['some-module']);
+      const dependencies = new Set(['some-module']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -1962,9 +1964,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should resolve Path dependencies through findExistingFilePath', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['./helper']);
+      const dependencies = new Set(['./helper']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -1989,9 +1991,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should skip Path dependencies when file not found', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['./missing']);
+      const dependencies = new Set(['./missing']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2015,9 +2017,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should do nothing for SpecialModule dependencies', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['obsidian']);
+      const dependencies = new Set(['obsidian']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2035,9 +2037,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should throw for Url dependencies with CacheInvalidationMode.Always', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['https://example.com/dep.js']);
+      const dependencies = new Set(['https://example.com/dep.js']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2055,9 +2057,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should silently skip Url dependencies with CacheInvalidationMode.Never', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['https://example.com/dep.js']);
+      const dependencies = new Set(['https://example.com/dep.js']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2076,9 +2078,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should warn for Url dependencies with CacheInvalidationMode.WhenPossible', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['https://example.com/dep.js']);
+      const dependencies = new Set(['https://example.com/dep.js']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2099,9 +2101,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should throw for Url dependencies with unknown cacheInvalidationMode', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['https://example.com/dep.js']);
+      const dependencies = new Set(['https://example.com/dep.js']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2119,9 +2121,9 @@ describe('RequireHandlerDesktopComponent', () => {
     it('should throw for unknown resolved type', () => {
       setupDependencyTest(handler);
 
-      const deps = new Set(['unknown-dep']);
+      const dependencies = new Set(['unknown-dep']);
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', deps);
+      (handler as unknown as MockModuleDependenciesAccessor).moduleDependencies.set('/path/to/file.js', dependencies);
 
       vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2167,7 +2169,7 @@ describe('RequireHandlerDesktopComponent', () => {
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       (handler as unknown as RequireJsTsAccessor).requireJsTs('/path/to/file.ts?q=1');
 
-      expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/file.ts', 'utf8');
+      expect(mockFs.readFileSync).toHaveBeenCalledWith('/path/to/file.ts', 'utf-8');
       requireStringSpy.mockRestore();
     });
   });
@@ -2218,7 +2220,7 @@ describe('RequireHandlerDesktopComponent', () => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         handler as unknown as RequireStringImplAccessor,
         'requireStringImpl'
-      ).mockReturnValue({ exportsFn: () => ({ result: true }), promisable: undefined });
+      ).mockReturnValue({ exportsFunction: () => ({ result: true }), promisable: undefined });
 
       const initModuleSpy = vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2245,7 +2247,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
   describe('getTimestamp (private sync)', () => {
     it('should return mtimeMs from statSync', () => {
-      const CUSTOM_MTIME = 9999999;
+      const CUSTOM_MTIME = 9_999_999;
       mockFs.statSync.mockReturnValue({ mtimeMs: CUSTOM_MTIME });
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
@@ -2286,9 +2288,9 @@ describe('RequireHandlerDesktopComponent', () => {
       ).mockReturnValue({ loaded: true });
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      const getDepsTimestamp = (handler as unknown as GetDependenciesTimestampAccessor).getDependenciesTimestampChangedAndReloadIfNeeded;
+      const getDependenciesTimestamp = (handler as unknown as GetDependenciesTimestampAccessor).getDependenciesTimestampChangedAndReloadIfNeeded;
 
-      getDepsTimestamp.call(handler, MODULE_PATH);
+      getDependenciesTimestamp.call(handler, MODULE_PATH);
 
       expect(requirePathImplSpy).toHaveBeenCalledWith(MODULE_PATH, undefined);
       requirePathImplSpy.mockRestore();
@@ -2326,9 +2328,9 @@ describe('RequireHandlerDesktopComponent', () => {
       );
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      const getDepsTimestamp = (handler as unknown as GetDependenciesTimestampAccessor).getDependenciesTimestampChangedAndReloadIfNeeded;
+      const getDependenciesTimestamp = (handler as unknown as GetDependenciesTimestampAccessor).getDependenciesTimestampChangedAndReloadIfNeeded;
 
-      const result = getDepsTimestamp.call(handler, MODULE_PATH);
+      const result = getDependenciesTimestamp.call(handler, MODULE_PATH);
 
       expect(result).toBe(CACHED_TIMESTAMP);
       expect(initModuleSpy).not.toHaveBeenCalled();
@@ -2355,7 +2357,7 @@ describe('RequireHandlerDesktopComponent', () => {
       mockFs.existsSync.mockImplementation((p: string) => p === '/path/to/nested.js');
       mockFs.statSync.mockReturnValue({ isFile: (): boolean => true, mtimeMs: MOCK_MTIME_MS });
 
-      const getDepsTimestampSpy = vi.spyOn(
+      const getDependenciesTimestampSpy = vi.spyOn(
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         handler as unknown as GetDependenciesTimestampAccessor,
         'getDependenciesTimestampChangedAndReloadIfNeeded'
@@ -2370,7 +2372,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       // Chain should still contain the parent module since this is not a root require
       expect(chain.has('some-parent-module')).toBe(true);
-      getDepsTimestampSpy.mockRestore();
+      getDependenciesTimestampSpy.mockRestore();
     });
   });
 });

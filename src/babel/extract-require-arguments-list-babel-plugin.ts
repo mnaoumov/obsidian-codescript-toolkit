@@ -17,21 +17,23 @@ import type { RequireOptions } from '../types.ts';
 import { CacheInvalidationMode } from '../types.ts';
 import { BabelPluginBase } from './babel-plugin-base.ts';
 
-interface ExtractRequireArgsListData {
-  requireArgsList: RequireArgs[];
-  requireFnName: string;
+interface ExtractRequireArgumentsListData {
+  requireArgumentsList: RequireArguments[];
+  requireFunctionName: string;
 }
 
-interface RequireArgs {
+interface RequireArguments {
   id: string;
   options: Partial<RequireOptions>;
 }
-export class ExtractRequireArgsListBabelPlugin extends BabelPluginBase<ExtractRequireArgsListData> {
-  public constructor(data: ExtractRequireArgsListData = {
-    requireArgsList: [],
-    requireFnName: ''
-  }) {
-    super(data);
+export class ExtractRequireArgumentsListBabelPlugin extends BabelPluginBase<ExtractRequireArgumentsListData> {
+  public constructor(data?: ExtractRequireArgumentsListData) {
+    super(
+      data ?? {
+        requireArgumentsList: [],
+        requireFunctionName: ''
+      }
+    );
   }
 
   public override getVisitor(): Visitor<PluginPass> {
@@ -40,45 +42,45 @@ export class ExtractRequireArgsListBabelPlugin extends BabelPluginBase<ExtractRe
         if (!isExpressionStatement(path.parent) || !isProgram(path.parentPath.parent)) {
           return;
         }
-        const requireFnArgument = path.node.params[0];
-        if (!isIdentifier(requireFnArgument)) {
+        const requireFunctionArgument = path.node.params[0];
+        if (!isIdentifier(requireFunctionArgument)) {
           console.warn('Could not find require function name in arrow function expression.');
           return;
         }
 
-        this.data.requireFnName = requireFnArgument.name;
+        this.data.requireFunctionName = requireFunctionArgument.name;
       },
       CallExpression: (path): void => {
-        if (!isIdentifier(path.node.callee, { name: this.data.requireFnName })) {
+        if (!isIdentifier(path.node.callee, { name: this.data.requireFunctionName })) {
           return;
         }
 
-        const requireArgs = extractRequireArgs(path.node);
+        const requireArguments = extractRequireArguments(path.node);
 
-        if (!requireArgs) {
+        if (!requireArguments) {
           console.warn(`Could not statically analyze require call\n${path.getSource()}`);
           return;
         }
 
-        this.data.requireArgsList.push(requireArgs);
+        this.data.requireArgumentsList.push(requireArguments);
       },
       FunctionDeclaration: (path): void => {
         if (!isProgram(path.parent)) {
           return;
         }
-        const requireFnArgument = path.node.params[0];
-        if (!isIdentifier(requireFnArgument)) {
+        const requireFunctionArgument = path.node.params[0];
+        if (!isIdentifier(requireFunctionArgument)) {
           console.warn('Could not find require function name in function declaration.');
           return;
         }
 
-        this.data.requireFnName = requireFnArgument.name;
+        this.data.requireFunctionName = requireFunctionArgument.name;
       }
     };
   }
 }
 
-function extractRequireArgs(callExpression: CallExpression): null | RequireArgs {
+function extractRequireArguments(callExpression: CallExpression): null | RequireArguments {
   const idArgument = callExpression.arguments[0];
   const optionsArgument = callExpression.arguments[1];
 

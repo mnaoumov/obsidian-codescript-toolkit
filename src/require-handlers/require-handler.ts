@@ -41,20 +41,21 @@ import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { TempPluginRegistryComponent } from '../temp-plugin-registry.ts';
 import type {
   ParentPathOptions,
   require,
   requireAsync,
   requireAsyncWrapper,
-  RequireExFn,
+  RequireExFunction,
   RequireOptions
 } from '../types.ts';
 import type { CheckShouldTranspileParams } from './check-should-transpile.ts';
 
 import { SequentialBabelPlugin } from '../babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from '../babel/convert-to-common-js-babel-plugin.ts';
-import { ExtractRequireArgsListBabelPlugin } from '../babel/extract-require-args-list-babel-plugin.ts';
+import { ExtractRequireArgumentsListBabelPlugin } from '../babel/extract-require-arguments-list-babel-plugin.ts';
 import { FixSourceMapBabelPlugin } from '../babel/fix-source-map-babel-plugin.ts';
 import { ReplaceDynamicImportBabelPlugin } from '../babel/replace-dynamic-import-babel-plugin.ts';
 import { WrapInRequireFunctionBabelPlugin } from '../babel/wrap-in-require-function-babel-plugin.ts';
@@ -84,7 +85,7 @@ export enum ResolvedType {
   Url = 'url'
 }
 
-export type RequireFn = typeof require;
+export type RequireFunction = typeof require;
 interface EmptyModule {
   [EMPTY_MODULE_SYMBOL]: boolean;
 }
@@ -108,11 +109,11 @@ interface Module {
   exports: object;
 }
 
-type PluginRequireFn = (id: string) => unknown;
+type PluginRequireFunction = (id: string) => unknown;
 
-type RequireAsyncFn = typeof requireAsync;
+type RequireAsyncFunction = typeof requireAsync;
 
-type RequireAsyncWrapperFn = typeof requireAsyncWrapper;
+type RequireAsyncWrapperFunction = typeof requireAsyncWrapper;
 
 interface RequireHandlerComponentBaseAddToModuleCacheParams {
   readonly id: string;
@@ -127,7 +128,7 @@ interface RequireHandlerComponentBaseApplyConditionParams {
 }
 
 interface RequireHandlerComponentBaseRequireJsonAsyncParams {
-  readonly jsonStr?: string;
+  readonly jsonString?: string;
   readonly path: string;
 }
 
@@ -168,7 +169,7 @@ interface RequireHandlerComponentBaseWrapRequireParams {
   beforeRequire?(id: string): void;
   readonly optionsToAppend?: Partial<RequireOptions>;
   readonly optionsToPrepend?: Partial<RequireOptions>;
-  readonly require: RequireExFn;
+  readonly require: RequireExFunction;
 }
 
 interface RequireStringImplParams {
@@ -181,14 +182,14 @@ interface RequireStringImplParams {
 }
 
 interface RequireStringImplResult {
-  exportsFn(): unknown;
+  exportsFunction(): unknown;
   readonly promisable: Promisable<void>;
 }
 
 interface RequireWindow {
-  require?: RequireExFn;
-  requireAsync?: RequireAsyncFn;
-  requireAsyncWrapper?: RequireAsyncWrapperFn;
+  require?: RequireExFunction;
+  requireAsync?: RequireAsyncFunction;
+  requireAsyncWrapper?: RequireAsyncWrapperFunction;
 }
 
 interface ResolveResult {
@@ -196,16 +197,16 @@ interface ResolveResult {
   readonly resolvedType: ResolvedType;
 }
 
-type ScriptWrapper = (ctx: ScriptWrapperContext) => Promisable<void>;
+type ScriptWrapper = (context: ScriptWrapperContext) => Promisable<void>;
 
 interface ScriptWrapperContext {
   __dirname: string;
   __filename: string;
   exports: object;
   module: Module;
-  require: RequireExFn;
-  requireAsync: RequireAsyncFn;
-  requireAsyncWrapper: RequireAsyncWrapperFn;
+  require: RequireExFunction;
+  requireAsync: RequireAsyncFunction;
+  requireAsyncWrapper: RequireAsyncWrapperFunction;
 }
 
 const CALLER_LINE_INDEX = 4;
@@ -215,7 +216,7 @@ export const EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts', '.md'];
 export const MODULE_NAME_SEPARATOR = '*';
 export const NODE_MODULES_FOLDER = 'node_modules';
 const PACKAGE_JSON = 'package.json';
-export const PATH_SUFFIXES = ['', ...EXTENSIONS, ...EXTENSIONS.map((ext) => `/index${ext}`)];
+export const PATH_SUFFIXES = ['', ...EXTENSIONS, ...EXTENSIONS.map((extension) => `/index${extension}`)];
 export const PRIVATE_MODULE_PREFIX = '#';
 export const RELATIVE_MODULE_PATH_SEPARATOR = '/';
 export const SCOPED_MODULE_PREFIX = '@';
@@ -257,8 +258,9 @@ export interface RequireHandlerComponentBaseRequireNonCachedParams {
 export interface RequireHandlerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly pluginRequire: PluginRequireFn;
+  readonly pluginRequire: PluginRequireFunction;
   readonly pluginSettingsComponent: PluginSettingsComponent;
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
@@ -269,16 +271,24 @@ export interface RequireStringAsyncParams {
   readonly urlSuffix?: string | undefined;
 }
 
-/** @see {@link RequireHandlerConstructorParams} */
+/**
+@see {@link RequireHandlerConstructorParams}
+*/
 type RequireHandlerComponentBaseConstructorParams = RequireHandlerConstructorParams;
 
-/** @see {@link RequireStringAsyncParams} */
+/**
+@see {@link RequireStringAsyncParams}
+*/
 type RequireHandlerComponentBaseRequireStringAsyncParams = RequireStringAsyncParams;
 
-/** @see {@link RequireStringImplParams} */
+/**
+@see {@link RequireStringImplParams}
+*/
 type RequireHandlerComponentBaseRequireStringImplParams = RequireStringImplParams;
 
-/** @see {@link CheckShouldTranspileParams} */
+/**
+@see {@link CheckShouldTranspileParams}
+*/
 type RequireHandlerComponentBaseResolveShouldTranspileAsyncParams = CheckShouldTranspileParams;
 
 export abstract class RequireHandlerComponentBase extends ComponentEx implements RequireHandler {
@@ -290,7 +300,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   protected readonly moduleTimestamps = new Map<string, number>();
 
   protected readonly pluginSettingsComponent: PluginSettingsComponent;
-  protected get requireEx(): RequireExFn {
+  protected get requireEx(): RequireExFunction {
     if (!this._requireEx) {
       throw new Error('requireEx is not set');
     }
@@ -301,7 +311,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return ensureNonNullable(this._vaultAbsolutePath);
   }
 
-  private _requireEx?: RequireExFn;
+  private _requireEx?: RequireExFunction;
 
   private _vaultAbsolutePath?: string;
 
@@ -309,8 +319,9 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   private originalRequire?: NodeJS.Require;
 
-  private readonly pluginRequire: PluginRequireFn;
+  private readonly pluginRequire: PluginRequireFunction;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: RequireHandlerComponentBaseConstructorParams) {
@@ -318,6 +329,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     this.tempPluginRegistry = params.tempPluginRegistry;
     this.pluginRequire = params.pluginRequire;
   }
@@ -346,7 +358,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     this.originalRequire = window.require;
     this._requireEx = Object.assign(this.require.bind(this), {
       cache: {}
-    }, this.originalRequire) as RequireExFn;
+    }, this.originalRequire) as RequireExFunction;
     this.modulesCache = this.requireEx.cache;
     this.addChild(new AllWindowsEventComponent(this.app)).registerAllWindowsHandler((win) => {
       const requireWindow = win as Partial<RequireWindow>;
@@ -356,7 +368,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
         if (!this.originalRequire) {
           return;
         }
-        requireWindow.require = castTo<RequireExFn>(this.originalRequire);
+        requireWindow.require = castTo<RequireExFunction>(this.originalRequire);
       });
 
       requireWindow.requireAsync = this.requireAsync.bind(this);
@@ -399,12 +411,12 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       cleanResolvedId = resolvedId;
       query = '';
     } else {
-      ({ cleanStr: cleanResolvedId, query } = splitQuery(resolvedId));
+      ({ cleanString: cleanResolvedId, query } = splitQuery(resolvedId));
     }
 
     const RELOAD_TIMEOUT_IN_MILLISECONDS = 2000;
     const REPEAT_INTERVAL_IN_MILLISECONDS = 100;
-    let cachedModuleEntry: NodeJS.Module | undefined = undefined;
+    let cachedModuleEntry: NodeJS.Module | undefined;
     const start = performance.now();
     while (performance.now() - start < RELOAD_TIMEOUT_IN_MILLISECONDS) {
       cachedModuleEntry = this.modulesCache[resolvedId];
@@ -425,17 +437,21 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       }
 
       switch (fullOptions.cacheInvalidationMode) {
-        case CacheInvalidationMode.Always:
+        case CacheInvalidationMode.Always: {
           break;
-        case CacheInvalidationMode.Never:
+        }
+        case CacheInvalidationMode.Never: {
           return cachedModuleEntry.exports;
-        case CacheInvalidationMode.WhenPossible:
+        }
+        case CacheInvalidationMode.WhenPossible: {
           if (query) {
             return cachedModuleEntry.exports;
           }
           break;
-        default:
+        }
+        default: {
           throw new Error(`Unknown cacheInvalidationMode: '${String(fullOptions.cacheInvalidationMode)}'.`);
+        }
       }
     }
 
@@ -470,10 +486,10 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
           urlSuffix
         });
         await result.promisable;
-        return result.exportsFn();
+        return result.exportsFunction();
       });
-    } catch (e) {
-      throw new Error(`Failed to load module: '${params.path}'.`, { cause: e });
+    } catch (error) {
+      throw new Error(`Failed to load module: '${params.path}'.`, { cause: error });
     }
   }
 
@@ -502,7 +518,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     let parentPath = callStackMatch?.groups?.['ParentPath'] ?? null;
 
     if (parentPath) {
-      parentPath = trimStart({ prefix: 'requireString/', str: parentPath });
+      parentPath = trimStart({ $string: parentPath, prefix: 'requireString/' });
     }
 
     if (parentPath?.includes('<anonymous>') || parentPath?.startsWith('plugin:')) {
@@ -539,6 +555,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   protected initModuleAndAddToCache(id: string, moduleInitializer: () => unknown): unknown {
+    // eslint-disable-next-line unicorn/no-computed-property-existence-check -- The key is a constant module identifier, and the check is on a mock registry object.
     if (!this.modulesCache[id] || this.modulesCache[id].loaded) {
       this.deleteCacheEntry(id);
       this.addToModuleCache({ id, isLoaded: false, module: this.createEmptyModule(id) });
@@ -556,9 +573,9 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       /* v8 ignore stop */
 
       return module;
-    } catch (e) {
+    } catch (error) {
       this.deleteCacheEntry(id);
-      throw e;
+      throw error;
     }
   }
 
@@ -581,7 +598,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       return this.requireElectronModule(id, options);
     }
 
-    const cleanId = splitQuery(id).cleanStr;
+    const cleanId = splitQuery(id).cleanString;
     return this.specialModuleFactories.get(cleanId)?.(options);
   }
 
@@ -623,7 +640,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const scriptWrapper = debuggableEval(wrappedCode, `${options.evalPrefix}/${options.path}${options.urlSuffix}`) as ScriptWrapper;
     const module = { exports: {} };
 
-    const ctx: ScriptWrapperContext = {
+    const context: ScriptWrapperContext = {
       __dirname: dirname(options.path),
       __filename: options.path,
       // eslint-disable-next-line import-x/no-commonjs -- Need to return exports.
@@ -633,10 +650,10 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       requireAsync: this.makeChildRequireAsync(options.path),
       requireAsyncWrapper: this.requireAsyncWrapper.bind(this)
     };
-    const promisable = scriptWrapper(ctx);
+    const promisable = scriptWrapper(context);
     return {
       // eslint-disable-next-line import-x/no-commonjs -- Need to return exports.
-      exportsFn: () => module.exports,
+      exportsFunction: () => module.exports,
       promisable
     };
   }
@@ -645,7 +662,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const { parentPath } = params;
     const id = toPosixPath(params.id);
 
-    const cleanId = splitQuery(id).cleanStr;
+    const cleanId = splitQuery(id).cleanString;
     if (this.specialModuleFactories.has(cleanId)) {
       return { resolvedId: id, resolvedType: ResolvedType.SpecialModule };
     }
@@ -721,7 +738,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
 
     if (condition.endsWith(WILDCARD_MODULE_CONDITION_SUFFIX)) {
-      const parentCondition = trimEnd({ str: condition, suffix: WILDCARD_MODULE_CONDITION_SUFFIX });
+      const parentCondition = trimEnd({ $string: condition, suffix: WILDCARD_MODULE_CONDITION_SUFFIX });
       const separatorIndex = relativeModuleName.lastIndexOf(RELATIVE_MODULE_PATH_SEPARATOR);
       /* v8 ignore start -- separatorIndex is always >= 0 when a wildcard condition matches because the condition contains a separator. */
       const parentRelativeModuleName = separatorIndex === -1 ? relativeModuleName : relativeModuleName.slice(0, separatorIndex);
@@ -768,7 +785,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   private async findExistingFilePathAsync(path: string): Promise<null | string> {
-    const { cleanStr: cleanPath, query } = splitQuery(path);
+    const { cleanString: cleanPath, query } = splitQuery(path);
     for (const suffix of PATH_SUFFIXES) {
       const newPath = cleanPath + suffix;
       if (await this.existsFileAsync(newPath)) {
@@ -800,7 +817,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     for (const dependency of dependencies) {
       const { resolvedId, resolvedType } = this.resolve({ id: dependency, parentPath: path });
       switch (resolvedType) {
-        case ResolvedType.Module:
+        case ResolvedType.Module: {
           for (const rootFolder of await this.getRootFoldersAsync(path)) {
             const packageJsonPath = this.getPackageJsonPath(rootFolder);
             if (!await this.existsFileAsync(packageJsonPath)) {
@@ -811,6 +828,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
             updateTimestamp(dependencyTimestamp);
           }
           break;
+        }
         case ResolvedType.Path: {
           const existingFilePath = await this.findExistingFilePathAsync(resolvedId);
           if (existingFilePath === null) {
@@ -821,8 +839,9 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
           updateTimestamp(dependencyTimestamp);
           break;
         }
-        case ResolvedType.SpecialModule:
+        case ResolvedType.SpecialModule: {
           break;
+        }
         case ResolvedType.Url: {
           if (options.cacheInvalidationMode !== CacheInvalidationMode.Never) {
             updateTimestamp(Date.now());
@@ -830,8 +849,9 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
           break;
         }
         /* v8 ignore start -- defensive default case: all ResolvedType values are handled above. */
-        default:
+        default: {
           throw new Error(`Unknown resolvedType: '${resolvedType as string}'.`);
+        }
           /* v8 ignore stop */
       }
     }
@@ -856,7 +876,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
         path = join(path, MODULE_NAME_SEPARATOR);
       }
 
-      const resolvedPath = replaceAll({ replacer: relativeModuleName, searchValue: MODULE_NAME_SEPARATOR, str: path });
+      const resolvedPath = replaceAll({ $string: path, replacer: relativeModuleName, searchValue: MODULE_NAME_SEPARATOR });
       return [resolvedPath];
     }
 
@@ -883,8 +903,8 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
         .flatMap(([condition, exportsNodeChild]) => this.applyCondition({ condition, exportsNodeChild, relativeModuleName }));
     }
 
-    const arr = exportsNode;
-    return arr.flatMap((exportsNodeChild) => this.getExportsRelativeModulePaths(exportsNodeChild, relativeModuleName));
+    const array = exportsNode;
+    return array.flatMap((exportsNodeChild) => this.getExportsRelativeModulePaths(exportsNodeChild, relativeModuleName));
   }
 
   private async getRootFolderAsync(cwd: string): Promise<null | string> {
@@ -921,6 +941,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   private async initModuleAndAddToCacheAsync(id: string, moduleInitializer: () => Promise<unknown>): Promise<unknown> {
+    // eslint-disable-next-line unicorn/no-computed-property-existence-check -- The key is a constant module identifier, and the check is on a mock registry object.
     if (!this.modulesCache[id] || this.modulesCache[id].loaded) {
       this.deleteCacheEntry(id);
       this.addToModuleCache({ id, isLoaded: false, module: this.createEmptyModule(id) });
@@ -937,9 +958,9 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       }
       /* v8 ignore stop */
       return module;
-    } catch (e) {
+    } catch (error) {
       this.deleteCacheEntry(id);
-      throw e;
+      throw error;
     }
   }
 
@@ -973,10 +994,11 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   private isEmptyModule(module: unknown): boolean {
+    // eslint-disable-next-line unicorn/no-unsafe-property-key -- A unique symbol is exactly the safe key here; the marker must not collide with any string member.
     return (module as Partial<EmptyModule> | undefined)?.[EMPTY_MODULE_SYMBOL] === true;
   }
 
-  private makeChildRequire(parentPath: string): RequireExFn {
+  private makeChildRequire(parentPath: string): RequireExFunction {
     return this.wrapRequire({
       beforeRequire: (id: string): void => {
         let dependencies = this.moduleDependencies.get(parentPath);
@@ -991,7 +1013,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     });
   }
 
-  private makeChildRequireAsync(parentPath: string): RequireAsyncFn {
+  private makeChildRequireAsync(parentPath: string): RequireAsyncFunction {
     const thisWrapper = ValueWrapper.of(this);
     return wrapped;
 
@@ -1037,7 +1059,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       cleanResolvedId = resolvedId;
       query = '';
     } else {
-      ({ cleanStr: cleanResolvedId, query } = splitQuery(resolvedId));
+      ({ cleanString: cleanResolvedId, query } = splitQuery(resolvedId));
     }
 
     const cachedModuleEntry = this.modulesCache[resolvedId];
@@ -1053,16 +1075,18 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       }
 
       switch (fullOptions.cacheInvalidationMode) {
-        case CacheInvalidationMode.Always:
+        case CacheInvalidationMode.Always: {
           if (!this.canRequireNonCached(resolvedType, fullOptions)) {
             throw new Error(
               `Cached module ${resolvedId} cannot be invalidated synchronously when cacheInvalidationMode=${CacheInvalidationMode.Always}. ${this.getRequireAsyncAdvice(resolvedId)}`
             );
           }
           break;
-        case CacheInvalidationMode.Never:
+        }
+        case CacheInvalidationMode.Never: {
           return cachedModuleEntry.exports;
-        case CacheInvalidationMode.WhenPossible:
+        }
+        case CacheInvalidationMode.WhenPossible: {
           if (query) {
             return cachedModuleEntry.exports;
           }
@@ -1074,8 +1098,10 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
             return cachedModuleEntry.exports;
           }
           break;
-        default:
+        }
+        default: {
           throw new Error(`Unknown cacheInvalidationMode: '${String(fullOptions.cacheInvalidationMode)}'.`);
+        }
       }
     }
 
@@ -1095,20 +1121,20 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return module;
   }
 
-  private async requireAsyncWrapper(requireFn: (require: RequireExFn) => Promisable<unknown>, require?: RequireExFn): Promise<unknown> {
-    const result = new ExtractRequireArgsListBabelPlugin().transform({ code: requireFn.toString(), filename: 'extract-requires.js' });
-    const requireArgsList = result.data.requireArgsList;
+  private async requireAsyncWrapper(requireFunction: (require: RequireExFunction) => Promisable<unknown>, require?: RequireExFunction): Promise<unknown> {
+    const result = new ExtractRequireArgumentsListBabelPlugin().transform({ code: requireFunction.toString(), filename: 'extract-requires.js' });
+    const requireArgumentsList = result.data.requireArgumentsList;
     const idErrorMap = new Map<string, Error>();
-    for (const requireArgs of requireArgsList) {
-      const { id, options } = requireArgs;
+    for (const requireArguments of requireArgumentsList) {
+      const { id, options } = requireArguments;
       const newOptions = normalizeOptionalProperties<Partial<RequireOptions>>({ parentPath: require?.parentPath, ...options });
       try {
         await this.requireAsync(id, newOptions);
-      } catch (e) {
-        idErrorMap.set(id, e as Error);
+      } catch (error) {
+        idErrorMap.set(id, error as Error);
       }
     }
-    return await requireFn(this.wrapRequire({
+    return await requireFunction(this.wrapRequire({
       beforeRequire: (id: string): void => {
         const error = idErrorMap.get(id);
         if (error) {
@@ -1125,20 +1151,20 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   private async requireJsonAsync(params: RequireHandlerComponentBaseRequireJsonAsyncParams): Promise<unknown> {
     const { path } = params;
-    const jsonStr = params.jsonStr ?? await this.readFileAsync(splitQuery(path).cleanStr);
-    return JSON.parse(jsonStr);
+    const jsonString = params.jsonString ?? await this.readFileAsync(splitQuery(path).cleanString);
+    return JSON.parse(jsonString);
   }
 
   private async requireJsTsAsync(params: RequireHandlerComponentBaseRequireJsTsAsyncParams): Promise<unknown> {
     const { path } = params;
-    const code = params.code ?? await this.readFileAsync(splitQuery(path).cleanStr);
+    const code = params.code ?? await this.readFileAsync(splitQuery(path).cleanString);
     const shouldTranspile = await this.resolveShouldTranspileAsync({ code, path, shouldTranspile: params.shouldTranspile });
     return this.requireStringAsync({ code, path, shouldTranspile });
   }
 
   private async requireMdAsync(params: RequireHandlerComponentBaseRequireMdAsyncParams): Promise<unknown> {
     const { path } = params;
-    const md = params.md ?? await this.readFileAsync(splitQuery(path).cleanStr);
+    const md = params.md ?? await this.readFileAsync(splitQuery(path).cleanString);
     const { code, codeScriptName } = extractCodeScript({ md, path });
     return this.requireStringAsync({
       code,
@@ -1208,17 +1234,21 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
         const [parentFolder = '', moduleName = ''] = id.split(MODULE_NAME_SEPARATOR);
         return await this.requireModuleAsync({ moduleName, options, parentFolder });
       }
-      case ResolvedType.Path:
+      case ResolvedType.Path: {
         return await this.requirePathAsync(id, options);
+      }
       /* v8 ignore start -- special modules are handled early in requireAsync before reaching requireNonCachedAsync. */
-      case ResolvedType.SpecialModule:
+      case ResolvedType.SpecialModule: {
         return this.requireSpecialModule(id, options);
+      }
       /* v8 ignore stop */
-      case ResolvedType.Url:
+      case ResolvedType.Url: {
         return await this.requireUrlAsync(id, options);
+      }
       /* v8 ignore start -- defensive default case: all ResolvedType values are handled above. */
-      default:
+      default: {
         throw new Error(`Unknown resolvedType: '${type as string}'.`);
+      }
         /* v8 ignore stop */
     }
   }
@@ -1245,18 +1275,24 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   private async requirePathImplAsync(path: string, options: Partial<RequireOptions>): Promise<unknown> {
     const moduleType = options.moduleType ?? getModuleTypeFromPath(path);
     switch (moduleType) {
-      case ModuleType.Json:
+      case ModuleType.Json: {
         return this.requireJsonAsync({ path });
-      case ModuleType.JsTs:
+      }
+      case ModuleType.JsTs: {
         return this.requireJsTsAsync({ path, shouldTranspile: options.shouldTranspile });
-      case ModuleType.Markdown:
+      }
+      case ModuleType.Markdown: {
         return this.requireMdAsync({ path });
-      case ModuleType.Node:
+      }
+      case ModuleType.Node: {
         return this.requireNodeBinaryAsync({ options, path });
-      case ModuleType.Wasm:
+      }
+      case ModuleType.Wasm: {
         return this.requireWasmAsync(path);
-      default:
+      }
+      default: {
         throw new Error(`Unknown module type: '${moduleType as string}'.`);
+      }
     }
   }
 
@@ -1265,18 +1301,24 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const moduleType = options.moduleType ?? getModuleTypeFromContentType({ contentType: response.headers['content-type'], url });
 
     switch (moduleType) {
-      case ModuleType.Json:
-        return this.requireJsonAsync({ jsonStr: response.text, path: url });
-      case ModuleType.JsTs:
+      case ModuleType.Json: {
+        return this.requireJsonAsync({ jsonString: response.text, path: url });
+      }
+      case ModuleType.JsTs: {
         return this.requireJsTsAsync({ code: response.text, path: url, shouldTranspile: options.shouldTranspile });
-      case ModuleType.Markdown:
+      }
+      case ModuleType.Markdown: {
         return this.requireMdAsync({ md: response.text, path: url });
-      case ModuleType.Node:
+      }
+      case ModuleType.Node: {
         return this.requireNodeBinaryAsync({ arrayBuffer: response.arrayBuffer, options, path: url });
-      case ModuleType.Wasm:
+      }
+      case ModuleType.Wasm: {
         return this.requireWasmAsync(url, response.arrayBuffer);
-      default:
+      }
+      default: {
         throw new Error(`Unknown module type: '${moduleType as string}'.`);
+      }
     }
   }
 
@@ -1308,18 +1350,18 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   private resolvePathPrefix(id: string): null | ResolveResult {
     if (id.startsWith(VAULT_ROOT_PREFIX)) {
-      return { resolvedId: join(this.vaultAbsolutePath, trimStart({ prefix: VAULT_ROOT_PREFIX, str: id })), resolvedType: ResolvedType.Path };
+      return { resolvedId: join(this.vaultAbsolutePath, trimStart({ $string: id, prefix: VAULT_ROOT_PREFIX })), resolvedType: ResolvedType.Path };
     }
 
     const SYSTEM_ROOT_PATH_PREFIX = '~/';
     if (id.startsWith(SYSTEM_ROOT_PATH_PREFIX)) {
-      return { resolvedId: `/${trimStart({ prefix: SYSTEM_ROOT_PATH_PREFIX, str: id })}`, resolvedType: ResolvedType.Path };
+      return { resolvedId: `/${trimStart({ $string: id, prefix: SYSTEM_ROOT_PATH_PREFIX })}`, resolvedType: ResolvedType.Path };
     }
 
     const MODULES_ROOT_PATH_PREFIX = '/';
     if (id.startsWith(MODULES_ROOT_PATH_PREFIX)) {
       return {
-        resolvedId: join(this.vaultAbsolutePath, this.pluginSettingsComponent.settings.modulesRoot, trimStart({ prefix: MODULES_ROOT_PATH_PREFIX, str: id })),
+        resolvedId: join(this.vaultAbsolutePath, this.pluginSettingsComponent.settings.modulesRoot, trimStart({ $string: id, prefix: MODULES_ROOT_PATH_PREFIX })),
         resolvedType: ResolvedType.Path
       };
     }
@@ -1349,7 +1391,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       return params.shouldTranspile;
     }
 
-    const cleanPath = splitQuery(params.path).cleanStr;
+    const cleanPath = splitQuery(params.path).cleanString;
     // A bare `.js` runs raw only with positive CommonJS evidence: a nearest package.json that does not declare `"type": "module"`.
     // This rules out ESM-only features (e.g. top-level await) that the content regex cannot detect.
     // Without such evidence (no package.json, `"type": "module"`, a bad package.json, or a URL) the file is transpiled — the safe default.
@@ -1380,7 +1422,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return { resolvedId: id, resolvedType: ResolvedType.Url };
   }
 
-  private wrapRequire(options: RequireHandlerComponentBaseWrapRequireParams): RequireExFn {
+  private wrapRequire(options: RequireHandlerComponentBaseWrapRequireParams): RequireExFunction {
     function wrapped(id: string, requireOptions?: Partial<RequireOptions>): unknown {
       options.beforeRequire?.(id);
       const newOptions = { ...options.optionsToPrepend, ...requireOptions, ...options.optionsToAppend };
@@ -1391,7 +1433,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       wrapped,
       options.require,
       normalizeOptionalProperties<ParentPathOptions>({ parentPath: options.optionsToPrepend?.parentPath })
-    ) as RequireExFn;
+    ) as RequireExFunction;
   }
 }
 
@@ -1435,25 +1477,31 @@ export function extractCodeScript(params: ExtractCodeScriptParams): ExtractCodeS
 }
 
 export function getModuleTypeFromPath(path: string): ModuleType {
-  const ext = extname(splitQuery(path).cleanStr);
-  switch (ext) {
+  const extension = extname(splitQuery(path).cleanString);
+  switch (extension) {
     case '.cjs':
     case '.cts':
     case '.js':
     case '.mjs':
     case '.mts':
-    case '.ts':
+    case '.ts': {
       return ModuleType.JsTs;
-    case '.json':
+    }
+    case '.json': {
       return ModuleType.Json;
-    case '.md':
+    }
+    case '.md': {
       return ModuleType.Markdown;
-    case '.node':
+    }
+    case '.node': {
       return ModuleType.Node;
-    case '.wasm':
+    }
+    case '.wasm': {
       return ModuleType.Wasm;
-    default:
-      throw new Error(`Unsupported file extension: '${ext}'.`);
+    }
+    default: {
+      throw new Error(`Unsupported file extension: '${extension}'.`);
+    }
   }
 }
 
@@ -1489,23 +1537,29 @@ function getModuleTypeFromContentType(params: GetModuleTypeFromContentTypeParams
   contentType ??= '';
   switch (contentType) {
     case 'application/javascript':
-    case 'application/typescript':
+    case 'application/typescript': {
       return ModuleType.JsTs;
-    case 'application/json':
+    }
+    case 'application/json': {
       return ModuleType.Json;
-    case 'application/octet-stream':
+    }
+    case 'application/octet-stream': {
       return ModuleType.Node;
-    case 'application/wasm':
+    }
+    case 'application/wasm': {
       return ModuleType.Wasm;
-    case 'text/markdown':
+    }
+    case 'text/markdown': {
       return ModuleType.Markdown;
-    default:
+    }
+    default: {
       console.warn(`URL: ${url} returned unsupported content type: ${contentType}.
 Assuming it's a JavaScript/TypeScript file.
 Consider passing moduleType explicitly:
 
 const module = await requireAsync(url, { moduleType: 'jsTs' });`);
       return ModuleType.JsTs;
+    }
   }
 }
 
