@@ -98,8 +98,8 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
         return ans;
       }
 
-      const ext = extname(path);
-      if (!EXTENSIONS.includes(ext)) {
+      const extension = extname(path);
+      if (!EXTENSIONS.includes(extension)) {
         return `Only the following extensions are supported: ${EXTENSIONS.join(', ')}`;
       }
     });

@@ -21,8 +21,8 @@ import { ScriptFolderWatcherDesktopComponent } from './script-folder-watcher-des
 const mockWatch = vi.fn();
 
 vi.mock('node:fs', () => ({
-  default: { watch: (...args: unknown[]): unknown => mockWatch(...args) },
-  watch: (...args: unknown[]): unknown => mockWatch(...args)
+  default: { watch: (...$arguments: unknown[]): unknown => mockWatch(...$arguments) },
+  watch: (...$arguments: unknown[]): unknown => mockWatch(...$arguments)
 }));
 
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
@@ -81,18 +81,18 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
       settings.getInvocableScriptsFolder.mockReturnValue('');
       const onChange = vi.fn().mockResolvedValue(undefined);
 
-      const result = await watcher['startWatcher'](onChange);
+      const isResult = await watcher['startWatcher'](onChange);
 
-      expect(result).toBe(false);
+      expect(isResult).toBe(false);
     });
 
     it('should return false when folder does not exist', async () => {
       existsMock.mockResolvedValue(false);
       const onChange = vi.fn().mockResolvedValue(undefined);
 
-      const result = await watcher['startWatcher'](onChange);
+      const isResult = await watcher['startWatcher'](onChange);
 
-      expect(result).toBe(false);
+      expect(isResult).toBe(false);
     });
 
     it('should create a file watcher when folder exists', async () => {
@@ -100,9 +100,9 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
       mockWatch.mockReturnValue(mockFSWatcher);
       const onChange = vi.fn().mockResolvedValue(undefined);
 
-      const result = await watcher['startWatcher'](onChange);
+      const isResult = await watcher['startWatcher'](onChange);
 
-      expect(result).toBe(true);
+      expect(isResult).toBe(true);
       expect(mockWatch).toHaveBeenCalledWith(
         '/vault/scripts',
         { recursive: true },

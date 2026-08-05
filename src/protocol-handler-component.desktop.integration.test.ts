@@ -36,7 +36,9 @@ beforeAll(async () => {
   });
 
   await evalInObsidian({
+    // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
     args: { pluginId: PLUGIN_ID },
+    // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
     async fn({ app, pluginId }) {
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
@@ -46,7 +48,7 @@ beforeAll(async () => {
     },
     vaultPath: vault.path
   });
-}, 30000);
+}, 30_000);
 
 function vaultPath(): string {
   return getTempVault().path;
@@ -55,7 +57,9 @@ function vaultPath(): string {
 describe('ProtocolHandler integration', () => {
   it('should execute module via protocol URL code param with requireAsync', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { executionDelay: EXECUTION_DELAY_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, executionDelay }) {
         Reflect.deleteProperty(window, '__protoInvoked');
 
@@ -74,19 +78,21 @@ describe('ProtocolHandler integration', () => {
 
         await sleep(executionDelay);
 
-        const protoInvoked = Reflect.get(window, '__protoInvoked') as string | undefined;
-        return { invoked: protoInvoked !== undefined, protoInvoked };
+        const prototypeInvoked = Reflect.get(window, '__protoInvoked') as string | undefined;
+        return { invoked: prototypeInvoked !== undefined, prototypeInvoked };
       },
       vaultPath: vaultPath()
     });
 
     expect(result.invoked).toBe(true);
-    expect(result.protoInvoked).toBe('yes');
+    expect(result.prototypeInvoked).toBe('yes');
   });
 
   it('should execute inline code via protocol URL', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { executionDelay: EXECUTION_DELAY_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, executionDelay }) {
         Reflect.deleteProperty(window, '__protoCodeResult');
 

@@ -7,10 +7,10 @@ import {
 import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/monkey-around-component';
 
 import type { RequireHandlerDesktopComponent } from '../require-handlers/require-handler-desktop.ts';
-import type { RequireFn } from '../require-handlers/require-handler.ts';
+import type { RequireFunction } from '../require-handlers/require-handler.ts';
 
 export class ModuleRequirePatchComponent extends MonkeyAroundComponent {
-  public originalModulePrototypeRequire?: RequireFn;
+  public originalModulePrototypeRequire?: RequireFunction;
 
   public constructor(private readonly requireHandlerDesktopComponent: RequireHandlerDesktopComponent) {
     super();
@@ -20,12 +20,13 @@ export class ModuleRequirePatchComponent extends MonkeyAroundComponent {
     const requireHandlerDesktopComponent = this.requireHandlerDesktopComponent;
 
     this.registerFunctionPatch({
+      $object: getPrototypeOf(window.module),
       functionName: 'require',
-      obj: getPrototypeOf(window.module),
-      patchHandler: (originalFn) => {
-        this.originalModulePrototypeRequire = castTo<RequireFn>(originalFn);
+      patchHandler: (originalFunction) => {
+        this.originalModulePrototypeRequire = castTo<RequireFunction>(originalFunction);
         return modulePrototypeRequirePatched;
 
+        // eslint-disable-next-line unicorn/consistent-function-scoping -- It captures `requireHandlerDesktopComponent`, and its `this: NodeJS.Module` typing needs a function declaration.
         function modulePrototypeRequirePatched(this: NodeJS.Module, id: string | TFile): unknown {
           return requireHandlerDesktopComponent.modulePrototypeRequire(id, this);
         }

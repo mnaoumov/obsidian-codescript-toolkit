@@ -15,7 +15,7 @@ export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
   private get capacitorAdapter(): CapacitorAdapter {
     const adapter = this.app.vault.adapter;
     if (!(adapter instanceof CapacitorAdapter)) {
-      throw new Error('Vault adapter is not a CapacitorAdapter.');
+      throw new TypeError('Vault adapter is not a CapacitorAdapter.');
     }
 
     return adapter;
@@ -56,7 +56,7 @@ export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
   }
 
   protected override async existsFileAsync(path: string): Promise<boolean> {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     if (!await this.capacitorAdapter.fs.exists(path)) {
       return false;
     }
@@ -66,7 +66,7 @@ export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
   }
 
   protected override async existsFolderAsync(path: string): Promise<boolean> {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     if (!await this.capacitorAdapter.fs.exists(path)) {
       return false;
     }
@@ -76,18 +76,18 @@ export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
   }
 
   protected override async getTimestampAsync(path: string): Promise<number> {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     const stat = await this.capacitorAdapter.fs.stat(path);
     return stat.mtime ?? 0;
   }
 
   protected override async readFileAsync(path: string): Promise<string> {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     return await this.capacitorAdapter.fs.read(path);
   }
 
   protected override async readFileBinaryAsync(path: string): Promise<ArrayBuffer> {
-    path = splitQuery(path).cleanStr;
+    path = splitQuery(path).cleanString;
     return await this.capacitorAdapter.fs.readBinary(path);
   }
 }

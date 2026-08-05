@@ -74,14 +74,14 @@ describe('WrapInRequireFunctionBabelPlugin', () => {
       expect(result.transformedCode).toContain('requireAsyncWrapper');
     });
 
-    it('should create inner requireFn function', () => {
+    it('should create inner requireFunction function', () => {
       const plugin = new WrapInRequireFunctionBabelPlugin({
         contextKeys: ['app'],
         isAsync: true
       });
       const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
-      expect(result.transformedCode).toContain('requireFn');
+      expect(result.transformedCode).toContain('requireFunction');
     });
 
     it('should still wrap in scriptWrapper function', () => {

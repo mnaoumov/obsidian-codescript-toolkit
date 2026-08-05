@@ -10,17 +10,17 @@ import type { RequireOptions } from './types.ts';
 
 import { registerObsidianDevUtilsModule } from './obsidian-dev-utils-module.ts';
 
-const MOCK_NESTED_MODULE = { nestedFunc: (): string => 'nested' };
+const MOCK_NESTED_MODULE = { nestedFunction: (): string => 'nested' };
 const MOCK_ROOT_FUNC_RESULT = 'test';
 
-const mockGetNestedPropertyValue = vi.fn((_obj: unknown, _path: unknown) => MOCK_NESTED_MODULE);
+const mockGetNestedPropertyValue = vi.fn((_object: unknown, _path: unknown) => MOCK_NESTED_MODULE);
 
 vi.mock('obsidian-dev-utils', () => ({
-  someFunc: (): string => MOCK_ROOT_FUNC_RESULT
+  someFunction: (): string => MOCK_ROOT_FUNC_RESULT
 }));
 
 vi.mock('obsidian-dev-utils/object-utils', () => ({
-  getNestedPropertyValue: (obj: unknown, path: unknown): unknown => mockGetNestedPropertyValue(obj, path)
+  getNestedPropertyValue: (object: unknown, path: unknown): unknown => mockGetNestedPropertyValue(object, path)
 }));
 
 vi.mock('../node_modules/obsidian-dev-utils/package.json', () => ({
@@ -50,12 +50,12 @@ describe('registerObsidianDevUtilsModule', () => {
     const factory = specialModuleFactories.get('obsidian-dev-utils');
     expect(factory).toBeDefined();
     const module = factory?.({});
-    expect(module).toEqual({ someFunc: expect.any(Function) as unknown });
+    expect(module).toEqual({ someFunction: expect.any(Function) as unknown });
   });
 
   it('should register individual exports of the root module', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils/someFunc');
+    const factory = specialModuleFactories.get('obsidian-dev-utils/someFunction');
     expect(factory).toBeDefined();
     const value = factory?.({});
     expect(typeof value).toBe('function');
@@ -63,27 +63,27 @@ describe('registerObsidianDevUtilsModule', () => {
 
   it('should register non-root export paths with their individual exports', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils/error/nestedFunc');
+    const factory = specialModuleFactories.get('obsidian-dev-utils/error/nestedFunction');
     expect(factory).toBeDefined();
     const value = factory?.({});
-    expect(value).toBe(MOCK_NESTED_MODULE.nestedFunc);
+    expect(value).toBe(MOCK_NESTED_MODULE.nestedFunction);
   });
 
   it('should skip wildcard export paths', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
-    const hasWildcard = Array.from(specialModuleFactories.keys()).some((key) => key.includes('*'));
+    const hasWildcard = [...specialModuleFactories.keys()].some((key) => key.includes('*'));
     expect(hasWildcard).toBe(false);
   });
 
   it('should skip forbidden export path script-utils', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
-    const hasScriptUtils = Array.from(specialModuleFactories.keys()).some((key) => key.includes('script-utils'));
+    const hasScriptUtils = [...specialModuleFactories.keys()].some((key) => key.includes('script-utils'));
     expect(hasScriptUtils).toBe(false);
   });
 
   it('should skip forbidden export path @types', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
-    const hasTypes = Array.from(specialModuleFactories.keys()).some((key) => key.includes('@types'));
+    const hasTypes = [...specialModuleFactories.keys()].some((key) => key.includes('@types'));
     expect(hasTypes).toBe(false);
   });
 
@@ -105,13 +105,13 @@ describe('registerObsidianDevUtilsModule', () => {
 
   it('should use the requireId with the original kebab-case path', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils/my-utils/nestedFunc');
+    const factory = specialModuleFactories.get('obsidian-dev-utils/my-utils/nestedFunction');
     expect(factory).toBeDefined();
   });
 
   it('should register nested kebab-case module exports', () => {
     registerObsidianDevUtilsModule(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils/obsidian/file-manager/nestedFunc');
+    const factory = specialModuleFactories.get('obsidian-dev-utils/obsidian/file-manager/nestedFunction');
     expect(factory).toBeDefined();
   });
 });

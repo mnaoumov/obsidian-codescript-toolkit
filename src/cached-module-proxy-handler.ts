@@ -2,32 +2,32 @@ import { noop } from 'obsidian-dev-utils/function';
 
 export const EMPTY_MODULE_SYMBOL = Symbol('emptyModule');
 
-type ApplyTarget = (this: unknown, ...args: unknown[]) => unknown;
-type ConstructTarget = new (...args: unknown[]) => unknown;
+type ApplyTarget = (this: unknown, ...$arguments: unknown[]) => unknown;
+type ConstructTarget = new (...$arguments: unknown[]) => unknown;
 
 export class CachedModuleProxyHandler implements ProxyHandler<object> {
-  public constructor(private readonly cachedModuleFn: () => unknown) {
+  public constructor(private readonly cachedModuleFunction: () => unknown) {
     noop();
   }
 
-  public apply(_target: object, thisArg: unknown, argArray?: unknown[]): unknown {
-    const cachedModule = this.cachedModuleFn();
+  public apply(_target: object, thisArgument: unknown, argumentArray?: unknown[]): unknown {
+    const cachedModule = this.cachedModuleFunction();
     if (typeof cachedModule === 'function') {
-      return Reflect.apply(cachedModule as ApplyTarget, thisArg, argArray ?? []);
+      return Reflect.apply(cachedModule as ApplyTarget, thisArgument, argumentArray ?? []);
     }
     return undefined;
   }
 
-  public construct(_target: object, argArray: unknown[], newTarget: unknown): object {
-    const cachedModule = this.cachedModuleFn();
+  public construct(_target: object, argumentArray: unknown[], newTarget: unknown): object {
+    const cachedModule = this.cachedModuleFunction();
     if (typeof cachedModule === 'function') {
-      return Reflect.construct(cachedModule as ConstructTarget, argArray, newTarget as ConstructTarget) as object;
+      return Reflect.construct(cachedModule as ConstructTarget, argumentArray, newTarget as ConstructTarget) as object;
     }
     return {};
   }
 
   public defineProperty(_target: object, property: string | symbol, attributes: PropertyDescriptor): boolean {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.defineProperty(cachedModule, property, attributes);
     }
@@ -35,7 +35,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public deleteProperty(_target: object, property: string | symbol): boolean {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.deleteProperty(cachedModule, property);
     }
@@ -47,7 +47,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
       return true;
     }
 
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.get(cachedModule, property, receiver);
     }
@@ -55,7 +55,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public getOwnPropertyDescriptor(_target: object, property: string | symbol): PropertyDescriptor | undefined {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.getOwnPropertyDescriptor(cachedModule, property);
     }
@@ -63,7 +63,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public getPrototypeOf(): null | object {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.getPrototypeOf(cachedModule);
     }
@@ -71,7 +71,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public has(_target: object, property: string | symbol): boolean {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.has(cachedModule, property);
     }
@@ -79,7 +79,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public isExtensible(): boolean {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.isExtensible(cachedModule);
     }
@@ -87,7 +87,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public ownKeys(): ArrayLike<string | symbol> {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.ownKeys(cachedModule);
     }
@@ -95,7 +95,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public preventExtensions(): boolean {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.preventExtensions(cachedModule);
     }
@@ -103,7 +103,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public set(_target: object, property: string | symbol, value: unknown, receiver: unknown): boolean {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.set(cachedModule, property, value, receiver);
     }
@@ -111,7 +111,7 @@ export class CachedModuleProxyHandler implements ProxyHandler<object> {
   }
 
   public setPrototypeOf(_target: object, prototype: null | object): boolean {
-    const cachedModule = this.cachedModuleFn();
+    const cachedModule = this.cachedModuleFunction();
     if (cachedModule && typeof cachedModule === 'object') {
       return Reflect.setPrototypeOf(cachedModule, prototype);
     }

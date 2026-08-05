@@ -14,7 +14,7 @@ import { ClearCacheCommandHandler } from './command-handlers/clear-cache-command
 import { InsertSampleCodeButtonCommandHandler } from './command-handlers/insert-sample-code-button-command-handler.ts';
 import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-script-choose-command-handler.ts';
 import { ReloadStartupScriptCommandHandler } from './command-handlers/reload-startup-script-command-handler.ts';
-import { UnloadTempPluginsCommandHandler } from './command-handlers/unload-temp-plugins-command-handler.ts';
+import { UnloadTempPluginsCommandHandler as UnloadTemporaryPluginsCommandHandler } from './command-handlers/unload-temp-plugins-command-handler.ts';
 import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
@@ -23,6 +23,7 @@ import { ScriptFolderWatcherFactoryComponent } from './script-folder-watchers/sc
 import { ScriptRegistryComponent } from './script-registry.ts';
 import { ScriptManager } from './script.ts';
 import { StartupScriptComponent } from './startup-script.ts';
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 export class Plugin extends PluginBase {
@@ -37,6 +38,7 @@ export class Plugin extends PluginBase {
       })
     );
 
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     const tempPluginRegistry = this.addChild(
       new TempPluginRegistryComponent({
         app: this.app,
@@ -52,6 +54,7 @@ export class Plugin extends PluginBase {
         consoleDebugComponent: this.consoleDebugComponent,
         pluginRequire: require,
         pluginSettingsComponent,
+
         tempPluginRegistry
       })
     );
@@ -100,7 +103,7 @@ export class Plugin extends PluginBase {
       })
     );
 
-    this.commandHandlerComponent.registerCommandHandlers([
+    this.commandHandlerComponent.registerCommandHandlers(() => [
       new ClearCacheCommandHandler(requireHandlerFactory),
       new InsertSampleCodeButtonCommandHandler(),
       new InvokeScriptChooseCommandHandler(scriptManager),
@@ -115,7 +118,7 @@ export class Plugin extends PluginBase {
         settingTab: pluginSettingsTab
       }),
       new ReloadStartupScriptCommandHandler(startupScriptComponent),
-      new UnloadTempPluginsCommandHandler(tempPluginRegistry)
+      new UnloadTemporaryPluginsCommandHandler(tempPluginRegistry)
     ]);
 
     this.addChild(
@@ -143,6 +146,7 @@ export class Plugin extends PluginBase {
         pluginSettingsComponent,
         RequireHandlerFactoryComponent: requireHandlerFactory,
         resourceLockComponent: this.resourceLockComponent,
+
         tempPluginRegistry
       })
     );

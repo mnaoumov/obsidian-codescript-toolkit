@@ -17,8 +17,8 @@ export class ConsoleWrapper {
     this.resultEl = params.resultEl;
   }
 
-  public appendToResultEl(args: unknown[], method: ConsoleMethod): void {
-    const formattedMessage = args.map(formatMessage).join(' ');
+  public appendToResultEl($arguments: unknown[], method: ConsoleMethod): void {
+    const formattedMessage = $arguments.map((argument) => formatMessage(argument)).join(' ');
     this.appendToLog(formattedMessage, method);
   }
 
@@ -31,9 +31,9 @@ export class ConsoleWrapper {
 
     const originalConsole = console;
     for (const method of ['log', 'debug', 'error', 'info', 'warn'] as ConsoleMethod[]) {
-      wrappedConsole[method] = (...args: unknown[]): void => {
-        originalConsole[method](...args);
-        this.appendToResultEl(args, method);
+      wrappedConsole[method] = (...$arguments: unknown[]): void => {
+        originalConsole[method](...$arguments);
+        this.appendToResultEl($arguments, method);
       };
     }
 
@@ -51,16 +51,16 @@ export class ConsoleWrapper {
   }
 }
 
-function formatMessage(arg: unknown): string {
-  if (typeof arg === 'string') {
-    return arg;
+function formatMessage(argument: unknown): string {
+  if (typeof argument === 'string') {
+    return argument;
   }
 
-  if (arg instanceof Error) {
-    return errorToString(arg);
+  if (argument instanceof Error) {
+    return errorToString(argument);
   }
 
-  return toJson(arg, {
+  return toJson(argument, {
     functionHandlingMode: FunctionHandlingMode.NameOnly,
     maxDepth: 0,
     shouldCatchToJSONErrors: true,

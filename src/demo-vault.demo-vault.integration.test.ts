@@ -80,7 +80,9 @@ afterAll(() => {
 describe('demo vault execution', () => {
   it.each(NOTES)('runs every code button in "%s" without error', async (noteName) => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { buttonTimeoutMs: BUTTON_TIMEOUT_MS, intervalMs: POLL_INTERVAL_MS, notePath: noteName, renderTimeoutMs: RENDER_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, buttonTimeoutMs, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }): Promise<NoteExecutionResult> {
         function dismissModals(): void {
           for (const closeButton of document.querySelectorAll<HTMLElement>('.modal-container .modal-close-button')) {
@@ -94,7 +96,7 @@ describe('demo vault execution', () => {
         }
 
         function runButtons(): HTMLButtonElement[] {
-          return [...activeView()?.containerEl.querySelectorAll<HTMLButtonElement>('.block-language-code-button button.mod-cta') ?? []];
+          return [...activeView()?.containerEl.querySelectorAll<HTMLButtonElement>(':scope .block-language-code-button button.mod-cta') ?? []];
         }
 
         try {
@@ -105,7 +107,7 @@ describe('demo vault execution', () => {
             type: 'markdown'
           });
 
-          let renderOk = true;
+          let isRenderOk = true;
           try {
             await waitUntil({
               intervalInMilliseconds: intervalMs,
@@ -113,7 +115,7 @@ describe('demo vault execution', () => {
               timeoutInMilliseconds: renderTimeoutMs
             });
           } catch {
-            renderOk = false;
+            isRenderOk = false;
           }
 
           const buttons = runButtons();
@@ -151,7 +153,7 @@ describe('demo vault execution', () => {
             results.push({ caption, output: (block?.textContent ?? '').slice(0, 600), status });
           }
 
-          return { buttonCount: buttons.length, renderOk, results };
+          return { buttonCount: buttons.length, renderOk: isRenderOk, results };
         } finally {
           // Dismiss any modal/suggester a button opened so it cannot block the next note.
           dismissModals();
@@ -164,10 +166,10 @@ describe('demo vault execution', () => {
 
     const broken = result.results.filter((buttonResult) =>
       (buttonResult.status === 'error' || buttonResult.status === 'timeout')
-      && !EXPECTED_NON_OK.some((expected) =>
-        expected.note === noteName
-        && expected.status === buttonResult.status
-        && buttonResult.caption.includes(expected.captionIncludes)
+      && EXPECTED_NON_OK.every((expected) =>
+        !(expected.note === noteName
+          && expected.status === buttonResult.status
+          && buttonResult.caption.includes(expected.captionIncludes))
       )
     );
     expect(broken, `"${noteName}" (renderOk=${String(result.renderOk)}, buttons=${String(result.buttonCount)}):\n${JSON.stringify(broken, null, 2)}`).toEqual([]);

@@ -1,3 +1,4 @@
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type {
   App,
   PluginManifest
@@ -20,9 +21,10 @@ import {
   vi
 } from 'vitest';
 
-import type { RegisterTempPluginParams } from './code-button-context.ts';
+import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 const mockPrintError = vi.fn();
@@ -30,7 +32,7 @@ const mockPrintError = vi.fn();
 let showNoticeMock: Mock<PluginNoticeComponent['showNotice']>;
 
 interface ObsidianDocumentHead {
-  createEl(...args: unknown[]): HTMLElement;
+  createEl(...$arguments: unknown[]): HTMLElement;
 }
 
 function getObsidianDocumentHead(): ObsidianDocumentHead {
@@ -42,7 +44,7 @@ function getObsidianDocumentHead(): ObsidianDocumentHead {
 // The real `invokeAsyncSafely`) are preserved via `importOriginal`. No dev-utils logic is reimplemented.
 vi.mock('obsidian-dev-utils/error', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian-dev-utils/error')>(),
-  printError: (...args: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...args)
+  printError: (...$arguments: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...$arguments)
 }));
 
 interface MockPlugin {
@@ -67,7 +69,7 @@ function createMockPlugin(): MockPlugin {
   };
 }
 
-function createRegistry(shouldShowTempPluginLoadUnloadNotices = true): TempPluginRegistryComponent {
+function createRegistry(shouldShowTemporaryPluginLoadUnloadNotices = true): TempPluginRegistryComponent {
   return new TempPluginRegistryComponent({
     app: createApp(),
     commandHandlerComponent: createCommandHandlerComponent(),
@@ -75,18 +77,19 @@ function createRegistry(shouldShowTempPluginLoadUnloadNotices = true): TempPlugi
       showNotice: showNoticeMock
     }),
     pluginSettingsComponent: strictProxy<PluginSettingsComponent>({
-      settings: strictProxy<PluginSettingsComponent['settings']>({ shouldShowTempPluginLoadUnloadNotices })
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      settings: strictProxy<PluginSettingsComponent['settings']>({ shouldShowTempPluginLoadUnloadNotices: shouldShowTemporaryPluginLoadUnloadNotices })
     })
   });
 }
 
-function createTempPluginClass(name: string, mockPlugin: MockPlugin): RegisterTempPluginParams['tempPluginClass'] {
+function createTemporaryPluginClass(name: string, mockPlugin: MockPlugin): RegisterTemporaryPluginParams['tempPluginClass'] {
   // eslint-disable-next-line func-style -- Function expression needed for `this` typing and type casting.
-  const pluginFn = function pluginFn(this: MockPlugin, _app: App, _manifest: PluginManifest): void {
+  const pluginFunction = function pluginFunction(this: MockPlugin, _app: App, _manifest: PluginManifest): void {
     Object.assign(this, mockPlugin);
   };
-  const intermediate = pluginFn;
-  const PluginClass = castTo<RegisterTempPluginParams['tempPluginClass']>(intermediate);
+  const intermediate = pluginFunction;
+  const PluginClass = castTo<RegisterTemporaryPluginParams['tempPluginClass']>(intermediate);
   Object.defineProperty(PluginClass, 'name', { value: name });
   return PluginClass;
 }
@@ -114,7 +117,8 @@ describe('TempPluginRegistry', () => {
 
     it('should return plugin after registration by string name', async () => {
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('TestPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -124,7 +128,8 @@ describe('TempPluginRegistry', () => {
 
     it('should return plugin after registration by class', async () => {
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('TestPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -134,7 +139,8 @@ describe('TempPluginRegistry', () => {
 
     it('should return null after plugin is unregistered', async () => {
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('TestPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
       registry.unregisterTempPlugin('TestPlugin');
@@ -147,7 +153,8 @@ describe('TempPluginRegistry', () => {
   describe('registerTempPlugin', () => {
     it('should register a new temp plugin and return it', async () => {
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('TestPlugin', mockPlugin);
 
       const result = await registry.registerTempPlugin({ tempPluginClass });
 
@@ -167,11 +174,13 @@ describe('TempPluginRegistry', () => {
           showNotice: showNoticeMock
         }),
         pluginSettingsComponent: strictProxy<PluginSettingsComponent>({
+          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
           settings: strictProxy<PluginSettingsComponent['settings']>({ shouldShowTempPluginLoadUnloadNotices: true })
         })
       });
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('DisposePlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('DisposePlugin', mockPlugin);
 
       await localRegistry.registerTempPlugin({ tempPluginClass });
       expect(registerCommandHandlersMock).toHaveBeenCalledOnce();
@@ -183,7 +192,8 @@ describe('TempPluginRegistry', () => {
     it('should not show load notice when shouldShowTempPluginLoadUnloadNotices is false', async () => {
       const silentRegistry = createRegistry(false);
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('SilentPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('SilentPlugin', mockPlugin);
 
       await silentRegistry.registerTempPlugin({ tempPluginClass });
 
@@ -193,7 +203,8 @@ describe('TempPluginRegistry', () => {
     it('should return null when plugin load fails', async () => {
       const mockPlugin = createMockPlugin();
       mockPlugin.load.mockRejectedValue(new Error('Load failed'));
-      const tempPluginClass = createTempPluginClass('FailPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('FailPlugin', mockPlugin);
 
       const result = await registry.registerTempPlugin({ tempPluginClass });
 
@@ -211,7 +222,8 @@ describe('TempPluginRegistry', () => {
           resolveLoad = resolve;
         })
       );
-      const tempPluginClass = createTempPluginClass('SlowPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('SlowPlugin', mockPlugin);
 
       const registerPromise = registry.registerTempPlugin({ tempPluginClass });
 
@@ -234,7 +246,8 @@ describe('TempPluginRegistry', () => {
       const HANG_TIMEOUT = 3000;
 
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('FastPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('FastPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
       showNoticeMock.mockClear();
@@ -253,10 +266,14 @@ describe('TempPluginRegistry', () => {
     it('should unload existing plugin when re-registering with same class name', async () => {
       const mockPlugin1 = createMockPlugin();
       const mockPlugin2 = createMockPlugin();
-      const tempPluginClass1 = createTempPluginClass('TestPlugin', mockPlugin1);
-      const tempPluginClass2 = createTempPluginClass('TestPlugin', mockPlugin2);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass1 = createTemporaryPluginClass('TestPlugin', mockPlugin1);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass2 = createTemporaryPluginClass('TestPlugin', mockPlugin2);
 
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
       await registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
       await registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
 
       // Re-registering with the same class name unloads the previously registered instance.
@@ -266,7 +283,8 @@ describe('TempPluginRegistry', () => {
 
     it('should use _AnonymousPlugin when class name is empty', async () => {
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -275,7 +293,8 @@ describe('TempPluginRegistry', () => {
 
     it('should execute the async callback that loads the plugin', async () => {
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('TestPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('TestPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -286,7 +305,8 @@ describe('TempPluginRegistry', () => {
       const loadError = new Error('Load failed');
       const mockPlugin = createMockPlugin();
       mockPlugin.load.mockRejectedValue(loadError);
-      const tempPluginClass = createTempPluginClass('FailPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('FailPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -297,7 +317,8 @@ describe('TempPluginRegistry', () => {
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('StyledPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('StyledPlugin', mockPlugin);
       const CSS_TEXT = '.test { color: red; }';
 
       await registry.registerTempPlugin({ cssText: CSS_TEXT, tempPluginClass });
@@ -314,7 +335,8 @@ describe('TempPluginRegistry', () => {
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('NoStylePlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('NoStylePlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -328,7 +350,8 @@ describe('TempPluginRegistry', () => {
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(castTo<HTMLElement>({}));
 
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('WrappedPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('WrappedPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -354,7 +377,8 @@ describe('TempPluginRegistry', () => {
       mockPlugin.unload.mockImplementation(() => {
         throw unloadError;
       });
-      const tempPluginClass = createTempPluginClass('ErrorPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('ErrorPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -375,7 +399,8 @@ describe('TempPluginRegistry', () => {
       mockPlugin.unload.mockImplementation(() => {
         throw unloadError;
       });
-      const tempPluginClass = createTempPluginClass('CrashPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('CrashPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -395,7 +420,8 @@ describe('TempPluginRegistry', () => {
       const createElSpy = vi.spyOn(getObsidianDocumentHead(), 'createEl').mockReturnValue(mockStyleEl);
 
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('StyledUnloadPlugin', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('StyledUnloadPlugin', mockPlugin);
 
       await registry.registerTempPlugin({ cssText: '.test { color: blue; }', tempPluginClass });
 
@@ -411,10 +437,14 @@ describe('TempPluginRegistry', () => {
     it('should unload all registered temp plugins', async () => {
       const mockPlugin1 = createMockPlugin();
       const mockPlugin2 = createMockPlugin();
-      const tempPluginClass1 = createTempPluginClass('Plugin1', mockPlugin1);
-      const tempPluginClass2 = createTempPluginClass('Plugin2', mockPlugin2);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass1 = createTemporaryPluginClass('Plugin1', mockPlugin1);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass2 = createTemporaryPluginClass('Plugin2', mockPlugin2);
 
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
       await registry.registerTempPlugin({ tempPluginClass: tempPluginClass1 });
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
       await registry.registerTempPlugin({ tempPluginClass: tempPluginClass2 });
 
       registry.unloadTempPlugins();
@@ -444,7 +474,8 @@ describe('TempPluginRegistry', () => {
     it('should unload the plugin when it is registered', async () => {
       const mockPlugin = createMockPlugin();
       const PLUGIN_NAME = 'ExistingPlugin';
-      const tempPluginClass = createTempPluginClass(PLUGIN_NAME, mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass(PLUGIN_NAME, mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 
@@ -455,7 +486,8 @@ describe('TempPluginRegistry', () => {
 
     it('should unload the plugin when called with class instead of string', async () => {
       const mockPlugin = createMockPlugin();
-      const tempPluginClass = createTempPluginClass('ClassUnregister', mockPlugin);
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      const tempPluginClass = createTemporaryPluginClass('ClassUnregister', mockPlugin);
 
       await registry.registerTempPlugin({ tempPluginClass });
 

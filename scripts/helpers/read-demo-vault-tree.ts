@@ -25,25 +25,25 @@ const EXCLUDED_NAMES = new Set(['.git', '.gitignore', '.markdownlint-cli2.jsonc'
  * @returns A map of vault-relative path to file bytes.
  */
 export function readDemoVaultTree(): PopulateFilesParams {
-  const demoVaultDir = join(getRootFolder() ?? process.cwd(), 'demo-vault');
+  const demoVaultDirectory = join(getRootFolder() ?? process.cwd(), 'demo-vault');
   const map: PopulateFilesParams = {};
-  collect(demoVaultDir, demoVaultDir, map);
+  collect(demoVaultDirectory, demoVaultDirectory, map);
   return map;
 }
 
-function collect(root: string, dir: string, map: PopulateFilesParams): void {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+function collect(root: string, directory: string, map: PopulateFilesParams): void {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (EXCLUDED_NAMES.has(entry.name)) {
       continue;
     }
 
-    const abs = join(dir, entry.name);
+    const abs = join(directory, entry.name);
     if (entry.isDirectory()) {
       collect(root, abs, map);
       continue;
     }
 
-    const relPath = relative(root, abs).split(sep).join('/');
-    map[relPath] = readFileSync(abs);
+    const relativePath = relative(root, abs).split(sep).join('/');
+    map[relativePath] = readFileSync(abs);
   }
 }

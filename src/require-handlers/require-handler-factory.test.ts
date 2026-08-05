@@ -71,6 +71,7 @@ describe('RequireHandlerFactoryComponent', () => {
       consoleDebugComponent: {},
       pluginRequire: vi.fn(),
       pluginSettingsComponent: {},
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
       tempPluginRegistry: {}
     });
 

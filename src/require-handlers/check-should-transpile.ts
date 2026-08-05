@@ -21,7 +21,7 @@ export function checkShouldTranspile(params: CheckShouldTranspileParams): boolea
   // Without a package.json, only `.cjs` is unambiguously CommonJS: top-level await is illegal in it, so a valid `.cjs` never needs the transpiled async wrapper.
   // Skip transpilation for `.cjs` unless it uses ESM-only or dynamic-import syntax.
   // Everything else defaults to transpiling; the async resolver refines a bare `.js` via the nearest package.json before this is reached.
-  if (extname(splitQuery(params.path).cleanStr) === COMMON_JS_EXTENSION) {
+  if (extname(splitQuery(params.path).cleanString) === COMMON_JS_EXTENSION) {
     if (ESM_SYNTAX_REG_EXP.test(params.code)) {
       return true;
     }

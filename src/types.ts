@@ -61,7 +61,7 @@ export interface ParentPathOptions {
 /**
  * An extended require function.
  */
-export type RequireExFn =
+export type RequireExFunction =
   & NodeJS.Require
   & ParentPathOptions
   & typeof require;
@@ -110,7 +110,7 @@ export interface RequireOptions {
  * @param require - The require function.
  * @returns The resolved module or a promise that resolves to the module.
  */
-type RequireAsyncWrapperArg = (require: RequireExFn) => Promisable<unknown>;
+type RequireAsyncWrapperArgument = (require: RequireExFunction) => Promisable<unknown>;
 
 /**
  * Require a module.
@@ -133,7 +133,7 @@ export declare function requireAsync(id: string | TFile, options?: Partial<Requi
 /**
  * Wrap a synchronous require function with an asynchronous require function.
  *
- * @param requireFn - The synchronous require function to wrap.
+ * @param requireFunction - The synchronous require function to wrap.
  * @returns The module.
  */
-export declare function requireAsyncWrapper(requireFn: RequireAsyncWrapperArg): Promise<unknown>;
+export declare function requireAsyncWrapper(requireFunction: RequireAsyncWrapperArgument): Promise<unknown>;

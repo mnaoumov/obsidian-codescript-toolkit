@@ -23,11 +23,14 @@ import type {
   CodeButtonContextInsertAfterCodeButtonBlockParams,
   CodeButtonContextInsertBeforeCodeButtonBlockParams,
   CodeButtonContextReplaceCodeButtonBlockParams,
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   RegisterTempPluginParams,
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginClass
 } from './code-button-context.ts';
 
 import { ConsoleWrapper } from './console-wrapper.ts';
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 interface CodeButtonContextImplComponentConstructorParams {
@@ -39,9 +42,11 @@ interface CodeButtonContextImplComponentConstructorParams {
   readonly resourceLockComponent: null | ResourceLockComponent;
   readonly resultEl: HTMLElement;
   readonly source: string;
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 type CodeButtonContextImplComponentRegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> = RegisterTempPluginParams<TPlugin>;
 
 export class CodeButtonContextImplComponent extends ComponentEx implements CodeButtonContext {
@@ -56,6 +61,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
   public readonly sourceFile: TFile;
 
   private readonly resourceLockComponent: null | ResourceLockComponent;
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: CodeButtonContextImplComponentConstructorParams) {
@@ -72,9 +78,11 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     this.container = params.config.isRaw ? this.parentEl : params.resultEl;
     const wrappedConsole = new ConsoleWrapper({ resultEl: this.container });
     this.console = wrappedConsole.getConsoleInstance(this.config.shouldWrapConsole);
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   public getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin {
     return this.tempPluginRegistry.getTempPlugin(tempPluginClass);
   }
@@ -84,7 +92,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     const { lineOffset, markdown, shouldPreserveLinePrefix } = params;
     await insertAfterCodeBlock({
       app: this.app,
-      ctx: this.markdownPostProcessorContext,
+      context: this.markdownPostProcessorContext,
       el: this.parentEl,
       lineOffset: lineOffset ?? 0,
       resourceLockComponent: this.resourceLockComponent,
@@ -99,7 +107,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     const { lineOffset, markdown, shouldPreserveLinePrefix } = params;
     await insertBeforeCodeBlock({
       app: this.app,
-      ctx: this.markdownPostProcessorContext,
+      context: this.markdownPostProcessorContext,
       el: this.parentEl,
       lineOffset: lineOffset ?? 0,
       resourceLockComponent: this.resourceLockComponent,
@@ -109,6 +117,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     });
   }
 
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(
     params: CodeButtonContextImplComponentRegisterTempPluginParams<TPlugin>
   ): Promise<null | TPlugin> {
@@ -118,7 +127,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
   public async removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void> {
     await removeCodeBlock({
       app: this.app,
-      ctx: this.markdownPostProcessorContext,
+      context: this.markdownPostProcessorContext,
       el: this.parentEl,
       resourceLockComponent: this.resourceLockComponent,
       shouldKeepGap: shouldKeepGap ?? false,
@@ -136,7 +145,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     await replaceCodeBlock({
       app: this.app,
       codeBlockProvider: markdown,
-      ctx: this.markdownPostProcessorContext,
+      context: this.markdownPostProcessorContext,
       el: this.parentEl,
       resourceLockComponent: this.resourceLockComponent,
       shouldKeepGapWhenEmpty: shouldKeepGapWhenEmpty ?? false,

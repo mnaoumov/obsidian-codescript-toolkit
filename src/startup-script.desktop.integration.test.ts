@@ -32,7 +32,9 @@ beforeAll(async () => {
   });
 
   await evalInObsidian({
+    // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
     args: { pluginId: PLUGIN_ID },
+    // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
     async fn({ app, pluginId }) {
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
@@ -42,7 +44,7 @@ beforeAll(async () => {
     },
     vaultPath: vault.path
   });
-}, 30000);
+}, 30_000);
 
 function vaultPath(): string {
   return getTempVault().path;
@@ -51,6 +53,7 @@ function vaultPath(): string {
 describe('StartupScript integration', () => {
   it('should run startup script invoke on plugin load', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       fn() {
         return {
           appType: Reflect.get(window, '__startupApp') as string | undefined,
@@ -66,6 +69,7 @@ describe('StartupScript integration', () => {
 
   it('should read shouldExecuteOnLoad and run invoke when it returns true', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       fn() {
         return {
           invoked: Reflect.get(window, '__startupInvoked') as boolean | undefined,
@@ -81,7 +85,9 @@ describe('StartupScript integration', () => {
 
   it('should run cleanup on reload', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { pluginId: PLUGIN_ID },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, pluginId }) {
         Reflect.deleteProperty(window, '__startupCleaned');
         Reflect.deleteProperty(window, '__startupInvoked');

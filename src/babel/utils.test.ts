@@ -19,16 +19,16 @@ describe('objectPatternFromKeys', () => {
     const result = objectPatternFromKeys(['foo']);
     expect(result.type).toBe('ObjectPattern');
     expect(result.properties).toHaveLength(1);
-    const prop = result.properties[0] as ObjectProperty | undefined;
-    expect(prop?.type).toBe('ObjectProperty');
-    if (prop?.type === 'ObjectProperty') {
-      expect(prop.shorthand).toBe(true);
-      expect(prop.computed).toBe(false);
-      if (prop.key.type === 'Identifier') {
-        expect(prop.key.name).toBe('foo');
+    const property = result.properties[0] as ObjectProperty | undefined;
+    expect(property?.type).toBe('ObjectProperty');
+    if (property?.type === 'ObjectProperty') {
+      expect(property.shorthand).toBe(true);
+      expect(property.computed).toBe(false);
+      if (property.key.type === 'Identifier') {
+        expect(property.key.name).toBe('foo');
       }
-      if (prop.value.type === 'Identifier') {
-        expect(prop.value.name).toBe('foo');
+      if (property.value.type === 'Identifier') {
+        expect(property.value.name).toBe('foo');
       }
     }
   });
@@ -39,10 +39,10 @@ describe('objectPatternFromKeys', () => {
     expect(result.type).toBe('ObjectPattern');
     expect(result.properties).toHaveLength(keys.length);
     for (const [index, key] of keys.entries()) {
-      const prop = result.properties[index] as ObjectProperty | undefined;
-      expect(prop?.type).toBe('ObjectProperty');
-      if (prop?.type === 'ObjectProperty' && prop.key.type === 'Identifier') {
-        expect(prop.key.name).toBe(key);
+      const property = result.properties[index] as ObjectProperty | undefined;
+      expect(property?.type).toBe('ObjectProperty');
+      if (property?.type === 'ObjectProperty' && property.key.type === 'Identifier') {
+        expect(property.key.name).toBe(key);
       }
     }
   });

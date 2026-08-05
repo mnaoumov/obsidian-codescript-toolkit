@@ -31,7 +31,7 @@ interface MockSettings {
 describe('ProtocolHandlerComponent', () => {
   let component: ProtocolHandlerComponent;
   let mockRequireStringAsync: Mock<RequireHandlerFactoryComponent['requireStringAsync']>;
-  let mockDebug: Mock<(message: string, ...args: unknown[]) => void>;
+  let mockDebug: Mock<(message: string, ...$arguments: unknown[]) => void>;
   let mockRegisterObsidianProtocolHandler: Mock<ObsidianProtocolHandlerRegistrar['registerObsidianProtocolHandler']>;
   let registeredHandler: (query: ObsidianProtocolData) => Promise<void>;
   let mockSettings: MockSettings;
@@ -103,6 +103,7 @@ describe('ProtocolHandlerComponent', () => {
       }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: 'app',
         functionName: 'invoke',
         module: 'my-module'
@@ -122,6 +123,7 @@ describe('ProtocolHandlerComponent', () => {
       }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: '',
         functionName: 'run',
         module: 'my-module'
@@ -131,11 +133,13 @@ describe('ProtocolHandlerComponent', () => {
     it('should use custom args when provided', async () => {
       await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: 'arg1, arg2',
         module: 'my-module'
       }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
         args: 'arg1, arg2',
         functionName: 'invoke',
         module: 'my-module'
@@ -151,6 +155,7 @@ describe('ProtocolHandlerComponent', () => {
       expect(mockDebug).toHaveBeenCalledWith(
         'Invoking script file from URL action:',
         expect.objectContaining({
+          // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
           args: 'app'
         }) as unknown
       );
@@ -166,6 +171,7 @@ describe('ProtocolHandlerComponent', () => {
       expect(mockDebug).toHaveBeenCalledWith(
         'Invoking script file from URL action:',
         expect.objectContaining({
+          // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
           args: ''
         }) as unknown
       );
@@ -189,10 +195,10 @@ describe('ProtocolHandlerComponent', () => {
       const originalRequireAsync = genericObjectWindow['requireAsync'];
       try {
         genericObjectWindow['requireAsync'] = mockRequireAsync;
-        const fn = createFunction<() => Promise<void>>({
+        const $function = createFunction<() => Promise<void>>({
           functionBody: `return (async () => { ${generatedCode} })()`
         });
-        await fn();
+        await $function();
       } finally {
         genericObjectWindow['requireAsync'] = originalRequireAsync;
       }

@@ -26,6 +26,7 @@ import type {
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 import {
@@ -48,29 +49,29 @@ interface BabelTransformResult {
 }
 
 interface CodeButtonBlockComponentPrivateApi {
-  handleClick(...args: never[]): Promise<void>;
-  processCodeButtonBlock(...args: never[]): Promise<void>;
+  handleClick(...$arguments: never[]): Promise<void>;
+  processCodeButtonBlock(...$arguments: never[]): Promise<void>;
 }
 
 vi.mock('obsidian-dev-utils/error', () => ({
-  printError: (...args: unknown[]): unknown => mockPrintError(...args)
+  printError: (...$arguments: unknown[]): unknown => mockPrintError(...$arguments)
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
-  getFile: (...args: unknown[]): unknown => mockGetFile(...args)
+  getFile: (...$arguments: unknown[]): unknown => mockGetFile(...$arguments)
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor', () => ({
-  getCodeBlockMarkdownInfo: (...args: unknown[]): unknown => mockGetCodeBlockMarkdownInfo(...args),
-  replaceCodeBlock: (...args: unknown[]): unknown => mockReplaceCodeBlock(...args)
+  getCodeBlockMarkdownInfo: (...$arguments: unknown[]): unknown => mockGetCodeBlockMarkdownInfo(...$arguments),
+  replaceCodeBlock: (...$arguments: unknown[]): unknown => mockReplaceCodeBlock(...$arguments)
 }));
 
 vi.mock('obsidian-dev-utils/obsidian/validation', () => ({
-  getOsAndObsidianUnsafePathCharsRegExp: (...args: unknown[]): unknown => mockGetOsAndObsidianUnsafePathCharsRegExp(...args)
+  getOsAndObsidianUnsafePathCharsRegExp: (...$arguments: unknown[]): unknown => mockGetOsAndObsidianUnsafePathCharsRegExp(...$arguments)
 }));
 
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
-  getDataAdapterEx: (...args: unknown[]): unknown => mockGetDataAdapterEx(...args)
+  getDataAdapterEx: (...$arguments: unknown[]): unknown => mockGetDataAdapterEx(...$arguments)
 }));
 
 vi.mock('./babel/combine-babel-plugins.ts', () => ({
@@ -98,16 +99,16 @@ const mockConsoleWrapperAppendToResultEl = vi.fn();
 
 vi.mock('./console-wrapper.ts', () => ({
   ConsoleWrapper: class MockConsoleWrapper {
-    public appendToResultEl(...args: unknown[]): void {
-      mockConsoleWrapperAppendToResultEl(...args);
+    public appendToResultEl(...$arguments: unknown[]): void {
+      mockConsoleWrapperAppendToResultEl(...$arguments);
     }
 
     public getConsoleInstance(): Console {
       return console;
     }
 
-    public writeSystemMessage(...args: unknown[]): void {
-      mockConsoleWrapperWriteSystemMessage(...args);
+    public writeSystemMessage(...$arguments: unknown[]): void {
+      mockConsoleWrapperWriteSystemMessage(...$arguments);
     }
   }
 }));
@@ -152,6 +153,7 @@ vi.mock('./code-button-context-impl.ts', () => ({
 }));
 
 vi.mock('./temp-plugin-registry.ts', () => ({
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistry: vi.fn()
 }));
 
@@ -244,7 +246,7 @@ describe('CodeButtonBlockComponent', () => {
   let mockMarkdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
   let mockPluginSettingsComponent: PluginSettingsComponent;
   let mockRequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
-  let mockTempPluginRegistry: TempPluginRegistryComponent;
+  let mockTemporaryPluginRegistry: TempPluginRegistryComponent;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -262,8 +264,8 @@ describe('CodeButtonBlockComponent', () => {
       requireStringAsync: vi.fn()
     };
     mockRequireHandlerFactoryComponent = partialRequireHandlerFactoryComponent as RequireHandlerFactoryComponent;
-    const partialTempPluginRegistry: Partial<TempPluginRegistryComponent> = {};
-    mockTempPluginRegistry = partialTempPluginRegistry as TempPluginRegistryComponent;
+    const partialTemporaryPluginRegistry: Partial<TempPluginRegistryComponent> = {};
+    mockTemporaryPluginRegistry = partialTemporaryPluginRegistry as TempPluginRegistryComponent;
 
     mockGetFile.mockReturnValue({ path: 'notes/test.md' });
     mockGetCodeBlockMarkdownInfo.mockResolvedValue(null);
@@ -276,7 +278,8 @@ describe('CodeButtonBlockComponent', () => {
       pluginSettingsComponent: mockPluginSettingsComponent,
       RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent,
       resourceLockComponent: mockResourceLockComponent,
-      tempPluginRegistry: mockTempPluginRegistry
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      tempPluginRegistry: mockTemporaryPluginRegistry
     });
   });
 
@@ -297,20 +300,20 @@ describe('CodeButtonBlockComponent', () => {
 
       const registerMock = vi.mocked(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor);
       const registerCall = registerMock.mock.calls[0];
-      const callback = registerCall?.[0]?.handler as ((source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => void) | undefined;
+      const callback = registerCall?.[0]?.handler as ((source: string, el: HTMLElement, context: MarkdownPostProcessorContext) => void) | undefined;
       expect(callback).toBeDefined();
 
       const el = createDiv();
       el.createDiv = vi.fn().mockReturnValue(createDiv());
       el.createEl = vi.fn().mockReturnValue(createEl('button'));
-      const partialCtx: Partial<MarkdownPostProcessorContext> = { sourcePath: 'test.md' };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const partialContext: Partial<MarkdownPostProcessorContext> = { sourcePath: 'test.md' };
+      const context = partialContext as MarkdownPostProcessorContext;
       mockGetFile.mockReturnValue({ path: 'test.md' });
       mockGetCodeBlockMarkdownInfo.mockResolvedValue(null);
 
       const processSpy = vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'processCodeButtonBlock');
 
-      callback?.('source code', el, ctx);
+      callback?.('source code', el, context);
 
       // The callback schedules processCodeButtonBlock via the real invokeAsyncSafely (fire-and-forget).
       // Drain the tracked operation before asserting.
@@ -326,29 +329,29 @@ describe('CodeButtonBlockComponent', () => {
       el.createDiv = vi.fn().mockReturnValue(createDiv());
       el.createEl = vi.fn().mockReturnValue(createEl('button'));
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
-      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
 
       expect(el.createDiv).toHaveBeenCalledWith({ cls: 'fix-require-modules console-log-container' });
     });
 
     it('should show legacy config error when markdownInfo has args', async () => {
-      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ args: ['Run'] });
+      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ $arguments: ['Run'] });
 
       const el = createDiv();
       const resultEl = createDiv();
       el.createDiv = vi.fn().mockReturnValue(resultEl);
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
-      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
 
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
     });
@@ -359,12 +362,12 @@ describe('CodeButtonBlockComponent', () => {
       el.createDiv = vi.fn().mockReturnValue(resultEl);
       el.createEl = vi.fn().mockReturnValue(createEl('button'));
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
-      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
 
       expect(el.createEl).toHaveBeenCalledWith(
         'button',
@@ -382,16 +385,16 @@ describe('CodeButtonBlockComponent', () => {
       el.createDiv = vi.fn().mockReturnValue(resultEl);
       el.createEl = vi.fn().mockReturnValue(createEl('button'));
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
       const source = '---\nisRaw: true\n---\nconsole.log("test")';
 
       const handleClickSpy = vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
 
-      await component['processCodeButtonBlock']({ ctx, el, source });
+      await component['processCodeButtonBlock']({ context, el, source });
 
       // When isRaw is true, shouldAutoRun is set to true, so handleClick is scheduled via the real
       // Fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
@@ -405,16 +408,16 @@ describe('CodeButtonBlockComponent', () => {
       el.createDiv = vi.fn().mockReturnValue(resultEl);
       el.createEl = vi.fn().mockReturnValue(createEl('button'));
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
       const source = '---\nshouldAutoRun: true\n---\nconsole.log("test")';
 
       const handleClickSpy = vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
 
-      await component['processCodeButtonBlock']({ ctx, el, source });
+      await component['processCodeButtonBlock']({ context, el, source });
 
       // Auto-run schedules handleClick via the real invokeAsyncSafely (fire-and-forget).
       // Drain the tracked operation before asserting.
@@ -431,15 +434,15 @@ describe('CodeButtonBlockComponent', () => {
       const resultEl = createDiv();
       el.createDiv = vi.fn().mockReturnValue(resultEl);
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
       // Genuinely malformed YAML so the REAL parseYaml throws (unclosed flow sequence).
       const source = '---\nfoo: [unclosed\n---\ncode';
 
-      await component['processCodeButtonBlock']({ ctx, el, source });
+      await component['processCodeButtonBlock']({ context, el, source });
 
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
@@ -448,61 +451,61 @@ describe('CodeButtonBlockComponent', () => {
     });
 
     it('should parse argumentName:false as false for getBooleanArgument', async () => {
-      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ args: ['Run', 'raw:false', 'autorun:false', 'console:false'] });
+      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ $arguments: ['Run', 'raw:false', 'autorun:false', 'console:false'] });
 
       const el = createDiv();
       const resultEl = createDiv();
       el.createDiv = vi.fn().mockReturnValue(resultEl);
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
-      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
 
       // Legacy config is detected and system message shown
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
     });
 
     it('should handle legacy config with args and create update button', async () => {
-      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ args: ['Run', 'autorun', 'raw:false'] });
+      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ $arguments: ['Run', 'autorun', 'raw:false'] });
 
       const el = createDiv();
       const resultEl = createDiv();
       el.createDiv = vi.fn().mockReturnValue(resultEl);
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
-      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
 
       expect(mockConsoleWrapperWriteSystemMessage).toHaveBeenCalled();
     });
 
     it('should invoke the update config click handler that calls replaceCodeBlock', async () => {
-      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ args: ['Run', 'autorun', 'raw:false'] });
+      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ $arguments: ['Run', 'autorun', 'raw:false'] });
       mockReplaceCodeBlock.mockResolvedValue(undefined);
 
       const el = createDiv();
       const resultEl = createDiv();
       el.createDiv = vi.fn().mockReturnValue(resultEl);
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
-      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
 
       // The writeSystemMessage was called with a DocumentFragment containing a button
-      const fragmentArg = mockConsoleWrapperWriteSystemMessage.mock.calls[0]?.[0] as DocumentFragment | undefined;
-      expect(fragmentArg).toBeDefined();
+      const fragmentArgument = mockConsoleWrapperWriteSystemMessage.mock.calls[0]?.[0] as DocumentFragment | undefined;
+      expect(fragmentArgument).toBeDefined();
 
       // Find the button in the fragment and click it
-      const button = fragmentArg?.querySelector('button');
+      const button = fragmentArgument?.querySelector('button');
       expect(button).toBeDefined();
 
       expect(button).not.toBeNull();
@@ -525,10 +528,10 @@ describe('CodeButtonBlockComponent', () => {
       el.createDiv = vi.fn().mockReturnValue(createDiv());
       el.createEl = vi.fn().mockReturnValue(createEl('button'));
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'original/path.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
       const source = '---\nshouldAutoRun: true\n---\nconsole.log("test")';
 
@@ -537,7 +540,7 @@ describe('CodeButtonBlockComponent', () => {
 
       const handleClickSpy = vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
 
-      await component['processCodeButtonBlock']({ ctx, el, source });
+      await component['processCodeButtonBlock']({ context, el, source });
 
       // Auto-run schedules handleClick (which uses the updated sourcePath) via the real
       // Fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
@@ -551,14 +554,14 @@ describe('CodeButtonBlockComponent', () => {
       el.createDiv = vi.fn().mockReturnValue(createDiv());
       el.createEl = vi.fn().mockReturnValue(createEl('button'));
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'original/path.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
-      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
 
-      // The component uses updateSourcePath which sets ctx.sourcePath = sourceFile.path
+      // The component uses updateSourcePath which sets context.sourcePath = sourceFile.path
       expect(mockGetFile).toHaveBeenCalledWith({ app: mockApp, pathOrFile: 'original/path.md' });
     });
   });
@@ -685,7 +688,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'always' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ $arguments: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -710,7 +713,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: true, when: 'onSuccess' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ $arguments: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -735,7 +738,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'onError' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ $arguments: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -759,7 +762,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'onError' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ $arguments: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -784,7 +787,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'never' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ $arguments: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 
@@ -870,12 +873,12 @@ describe('CodeButtonBlockComponent', () => {
       const buttonEl = createEl('button');
       el.createEl = vi.fn().mockReturnValue(buttonEl);
 
-      const partialCtx: Partial<MarkdownPostProcessorContext> = {
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
         sourcePath: 'notes/test.md'
       };
-      const ctx = partialCtx as MarkdownPostProcessorContext;
+      const context = partialContext as MarkdownPostProcessorContext;
 
-      await component['processCodeButtonBlock']({ ctx, el, source: 'console.log("test")' });
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
 
       // The button has an onclick handler that calls handleClick
       const createElCall = vi.mocked(el.createEl).mock.calls[0];
@@ -906,7 +909,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: castTo<RemoveAfterExecutionConfig>({ shouldKeepGap: false, when: 'unknownValue' }),
           shouldShowSystemMessages: false
         },
-        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] })
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ $arguments: [] })
       });
 
       await component['handleClick']({
@@ -932,7 +935,7 @@ describe('CodeButtonBlockComponent', () => {
           removeAfterExecution: { shouldKeepGap: false, when: 'always' as const },
           shouldShowSystemMessages: false
         },
-        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ args: [] }),
+        markdownInfo: strictProxy<CodeBlockMarkdownInformation>({ $arguments: [] }),
         removeCodeButtonBlock: mockRemoveCodeButtonBlock
       });
 

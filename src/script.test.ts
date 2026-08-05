@@ -19,14 +19,14 @@ import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-set
 import { ScriptRegistryComponent } from './script-registry.ts';
 import { ScriptManager } from './script.ts';
 
-interface SelectItemArgs {
-  itemTextFunc(s: string): string;
+interface SelectItemArguments {
+  itemTextFunction(s: string): string;
 }
 
 const mockSelectItem = vi.fn();
 
 vi.mock('obsidian-dev-utils/obsidian/modals/select-item', () => ({
-  selectItem: (...args: unknown[]): unknown => mockSelectItem(...args)
+  selectItem: (...$arguments: unknown[]): unknown => mockSelectItem(...$arguments)
 }));
 
 vi.mock('./code-script-toolkit-note-settings.ts', () => ({
@@ -340,15 +340,15 @@ describe('ScriptManager', () => {
       );
     });
 
-    it('should pass itemTextFunc that returns the script path as-is', async () => {
+    it('should pass itemTextFunction that returns the script path as-is', async () => {
       mockPluginSettingsComponent.settings.getInvocableScriptsFolder.mockReturnValue('');
       mockSelectItem.mockResolvedValue(null);
 
       await scriptManager.selectAndInvokeScript();
 
-      const callArgs = mockSelectItem.mock.calls[0]?.[0] as SelectItemArgs | undefined;
-      expect(callArgs?.itemTextFunc).toBeDefined();
-      const result = callArgs?.itemTextFunc('test-script.js');
+      const callArguments = mockSelectItem.mock.calls[0]?.[0] as SelectItemArguments | undefined;
+      expect(callArguments?.itemTextFunction).toBeDefined();
+      const result = callArguments?.itemTextFunction('test-script.js');
       expect(result).toBe('test-script.js');
     });
   });

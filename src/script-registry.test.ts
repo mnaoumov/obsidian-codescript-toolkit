@@ -31,7 +31,7 @@ const INVOCABLE_SCRIPTS_FOLDER = 'scripts';
 // Reimplemented (printError only logs to console).
 vi.mock('obsidian-dev-utils/error', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian-dev-utils/error')>(),
-  printError: (...args: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...args)
+  printError: (...$arguments: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...$arguments)
 }));
 
 // `getCodeScriptToolkitNoteSettings` is the plugin's OWN sibling module; stubbing it is allowed.
@@ -60,7 +60,7 @@ function createApp(files: Record<string, string> = {}): App {
 
 function createConsoleDebugComponent(): ConsoleDebugComponent {
   return strictProxy<ConsoleDebugComponent>({
-    consoleDebug: vi.fn<(message: string, ...args: unknown[]) => void>()
+    consoleDebug: vi.fn<(message: string, ...$arguments: unknown[]) => void>()
   });
 }
 
@@ -101,7 +101,7 @@ function createRequireHandlerFactoryComponent(): MockRequireHandlerFactoryCompon
 
 describe('ScriptRegistry', () => {
   let consoleDebugComponent: ConsoleDebugComponent;
-  let consoleDebug: Mock<(message: string, ...args: unknown[]) => void>;
+  let consoleDebug: Mock<(message: string, ...$arguments: unknown[]) => void>;
   let pluginNoticeComponent: PluginNoticeComponent;
   let requireHandlerFactoryComponent: MockRequireHandlerFactoryComponent;
   let registry: ScriptRegistryComponent;
@@ -580,9 +580,9 @@ describe('ScriptRegistry', () => {
       const SCRIPT_PATH = 'check-error.js';
       registry = createRegistryWithFiles({ [`${INVOCABLE_SCRIPTS_FOLDER}/${SCRIPT_PATH}`]: '' });
       registry.load();
-      const checkError = new Error('check failed');
+      const thrownFailure = new Error('check failed');
       const mockCheckCallback = vi.fn().mockImplementation(() => {
-        throw checkError;
+        throw thrownFailure;
       });
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
         buildInvokeCommand: () => ({

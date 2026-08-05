@@ -77,7 +77,9 @@ function vaultPath(): string {
 describe('CodeButtonBlock integration', () => {
   it('should render a code button in markdown', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-buttons/basic', '', false);
         const leaf = app.workspace.getLeaf(false);
@@ -112,7 +114,9 @@ describe('CodeButtonBlock integration', () => {
 
   it('should auto-run code button with shouldAutoRun: true', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__autoRunResult');
 
@@ -141,7 +145,9 @@ describe('CodeButtonBlock integration', () => {
   // Regression test for GitHub issue #56: rendering this note used to hang the main thread (catastrophic regex backtracking in ODU's getCodeBlockMarkdownInfo). Pre-fix the poll below would time out; post-fix the render completes and sets the flag.
   it('should render issue-56 note without freezing', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__issue56Result');
 
@@ -169,7 +175,9 @@ describe('CodeButtonBlock integration', () => {
 
   it('should execute isRaw code button without visible button', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         Reflect.deleteProperty(window, '__rawResult');
 
@@ -203,7 +211,9 @@ describe('CodeButtonBlock integration', () => {
 
   it('should transform import statements in code buttons', async () => {
     const result = await evalInObsidian({
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
       args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
       async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__importResult');
 

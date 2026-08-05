@@ -9,7 +9,7 @@ import {
 
 import { EXTENSIONS } from './require-handlers/require-handler.ts';
 
-const CACHE_DURATION_IN_MILLISECONDS = 30000;
+const CACHE_DURATION_IN_MILLISECONDS = 30_000;
 
 interface PathEntry {
   path: string;
@@ -83,12 +83,10 @@ export class PathSuggest extends AbstractInputSuggest<PathEntry> {
 
     let shouldAdd = type === this.type && path !== this.getRootPath();
 
-    if (shouldAdd) {
-      if (type === 'file') {
-        const ext = extname(path);
-        if (!EXTENSIONS.includes(ext)) {
-          shouldAdd = false;
-        }
+    if (shouldAdd && type === 'file') {
+      const extension = extname(path);
+      if (!EXTENSIONS.includes(extension)) {
+        shouldAdd = false;
       }
     }
 

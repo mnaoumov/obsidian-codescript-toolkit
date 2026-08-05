@@ -42,7 +42,7 @@
     "brace-expansion": "file:patches/brace-expansion-callable",
     "eslint": "$eslint",
     "eslint-plugin-import": "npm:eslint-plugin-import-x@^4.17.1",
-    "js-yaml": "^5.2.2",
+    "js-yaml": "^5.2.3",
     "markdown-it": "^15.0.0"
   },
   "devDependencies": {
@@ -69,9 +69,9 @@
     "mdast": "^3.0.0",
     "nano-staged": "^1.0.2",
     "obsidian": "^1.13.1",
-    "obsidian-dev-utils": "^88.8.0",
-    "obsidian-integration-testing": "^9.2.0",
-    "obsidian-test-mocks": "^3.9.0",
+    "obsidian-dev-utils": "^89.0.0",
+    "obsidian-integration-testing": "^9.2.1",
+    "obsidian-test-mocks": "^3.10.1",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
     "type-fest": "^5.8.0",

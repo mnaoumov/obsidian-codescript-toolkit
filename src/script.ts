@@ -87,7 +87,7 @@ export class ScriptManager {
     const scriptPath = await selectItem({
       app: this.app,
       items: scriptPaths,
-      itemTextFunc: (script) => script,
+      itemTextFunction: (script) => script,
       placeholder: 'Choose a script to invoke'
     });
 
@@ -110,7 +110,7 @@ async function getAllScriptPaths(params: GetAllScriptPathsParams): Promise<strin
   for (const fileName of getSortedBaseNames(listedFiles.files)) {
     const path = join(scriptsFolder, folder, fileName);
     const lowerCasedFileName = fileName.toLowerCase();
-    if (await isInvocableMarkdownFile(app, path) || extensions.some((ext) => lowerCasedFileName.endsWith(ext))) {
+    if (await isInvocableMarkdownFile(app, path) || extensions.some((extension) => lowerCasedFileName.endsWith(extension))) {
       files.push(join(folder, fileName));
     }
   }
@@ -127,5 +127,6 @@ function getSortedBaseNames(fullNames: string[]): string[] {
 }
 
 async function isInvocableMarkdownFile(app: App, path: string): Promise<boolean> {
-  return (await getCodeScriptToolkitNoteSettings(app, path)).isInvocable;
+  const noteSettings = await getCodeScriptToolkitNoteSettings(app, path);
+  return noteSettings.isInvocable;
 }

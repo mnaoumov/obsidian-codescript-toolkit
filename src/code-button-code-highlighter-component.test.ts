@@ -69,7 +69,7 @@ describe('CodeButtonCodeHighlighterComponent', () => {
       await component.loadWithPromises();
 
       expect(loadPrismMock).not.toHaveBeenCalled();
-      expect(CODE_BUTTON_BLOCK_LANGUAGE in mocks.prism.languages).toBe(false);
+      expect(Object.hasOwn(mocks.prism.languages, CODE_BUTTON_BLOCK_LANGUAGE)).toBe(false);
     });
 
     it('should remove the editor mode when unloaded', async () => {
@@ -77,6 +77,7 @@ describe('CodeButtonCodeHighlighterComponent', () => {
 
       component.unload();
 
+      // eslint-disable-next-line unicorn/no-computed-property-existence-check -- The key is a constant module identifier, and the check is on a mock registry object.
       expect(CODE_BUTTON_BLOCK_LANGUAGE in mocks.modes).toBe(false);
     });
   });

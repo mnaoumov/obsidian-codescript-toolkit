@@ -34,10 +34,10 @@ interface BindCall {
   propertyName: string;
 }
 
-type BindFn = (params: MockBindParams) => unknown;
+type BindFunction = (params: MockBindParams) => unknown;
 
 interface BindTarget {
-  bind: BindFn;
+  bind: BindFunction;
 }
 
 interface MockBindOptions {
@@ -77,9 +77,9 @@ const mockButtonClickHandlers: (() => void)[] = [];
 const mockTextInstances: MockTextInstance[] = [];
 
 const mockSettingExInstance = {
-  addButton: (...args: unknown[]): unknown => {
-    mockSettingExAddButton(...args);
-    const cb = args[0] as (button: Record<string, unknown>) => void;
+  addButton: (...$arguments: unknown[]): unknown => {
+    mockSettingExAddButton(...$arguments);
+    const callback = $arguments[0] as (button: Record<string, unknown>) => void;
     const button = {
       onClick: vi.fn().mockImplementation(function handleClick(this: Record<string, unknown>, handler: () => void) {
         mockButtonClickHandlers.push(handler);
@@ -89,13 +89,13 @@ const mockSettingExInstance = {
       setDestructive: vi.fn().mockReturnThis(),
       setTooltip: vi.fn().mockReturnThis()
     };
-    cb(button);
+    callback(button);
     return mockSettingExInstance;
   },
-  addCodeHighlighter: (...args: unknown[]): unknown => {
-    mockSettingExAddCodeHighlighter(...args);
-    const cb = args[0] as (highlighter: Record<string, unknown>) => void;
-    cb({
+  addCodeHighlighter: (...$arguments: unknown[]): unknown => {
+    mockSettingExAddCodeHighlighter(...$arguments);
+    const callback = $arguments[0] as (highlighter: Record<string, unknown>) => void;
+    callback({
       inputEl: { addClass: vi.fn() },
       onChange: vi.fn().mockReturnThis(),
       setLanguage: vi.fn(),
@@ -103,10 +103,10 @@ const mockSettingExInstance = {
     });
     return mockSettingExInstance;
   },
-  addNumber: (...args: unknown[]): unknown => {
-    mockSettingExAddNumber(...args);
-    const cb = args[0] as (text: Record<string, unknown>) => void;
-    cb({
+  addNumber: (...$arguments: unknown[]): unknown => {
+    mockSettingExAddNumber(...$arguments);
+    const callback = $arguments[0] as (text: Record<string, unknown>) => void;
+    callback({
       onChange: vi.fn().mockReturnThis(),
       setMax: vi.fn(),
       setMin: vi.fn().mockReturnValue({ setMax: vi.fn() }),
@@ -114,32 +114,32 @@ const mockSettingExInstance = {
     });
     return mockSettingExInstance;
   },
-  addText: (...args: unknown[]): unknown => {
-    mockSettingExAddText(...args);
-    const cb = args[0] as (text: Record<string, unknown>) => void;
-    const textObj = {
+  addText: (...$arguments: unknown[]): unknown => {
+    mockSettingExAddText(...$arguments);
+    const callback = $arguments[0] as (text: Record<string, unknown>) => void;
+    const textObject = {
       inputEl: createEl('input'),
       onChange: vi.fn().mockReturnThis(),
       onChanged: vi.fn(),
       setPlaceholder: vi.fn().mockReturnThis(),
       setValue: vi.fn()
     };
-    mockTextInstances.push(textObj);
-    cb(textObj);
+    mockTextInstances.push(textObject);
+    callback(textObject);
     return mockSettingExInstance;
   },
-  addToggle: (...args: unknown[]): unknown => {
-    mockSettingExAddToggle(...args);
-    const cb = args[0] as (toggle: unknown) => void;
-    cb({ onChange: vi.fn().mockReturnThis(), setValue: vi.fn() });
+  addToggle: (...$arguments: unknown[]): unknown => {
+    mockSettingExAddToggle(...$arguments);
+    const callback = $arguments[0] as (toggle: unknown) => void;
+    callback({ onChange: vi.fn().mockReturnThis(), setValue: vi.fn() });
     return mockSettingExInstance;
   },
-  setDesc: (...args: unknown[]): unknown => {
-    mockSettingExSetDesc(...args);
+  setDesc: (...$arguments: unknown[]): unknown => {
+    mockSettingExSetDesc(...$arguments);
     return mockSettingExInstance;
   },
-  setName: (...args: unknown[]): unknown => {
-    mockSettingExSetName(...args);
+  setName: (...$arguments: unknown[]): unknown => {
+    mockSettingExSetName(...$arguments);
     return mockSettingExInstance;
   }
 };
@@ -162,12 +162,12 @@ vi.mock('obsidian', async (importOriginal) => ({
       }
     }
   },
-  stringifyYaml: (obj: unknown): unknown => JSON.stringify(obj)
+  stringifyYaml: (object: unknown): unknown => JSON.stringify(object)
 }));
 
 vi.mock('obsidian-dev-utils/async', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian-dev-utils/async')>(),
-  convertAsyncToSync: vi.fn((fn: unknown) => fn)
+  convertAsyncToSync: vi.fn(($function: unknown) => $function)
 }));
 
 vi.mock('obsidian-dev-utils/html-element', () => ({
@@ -482,9 +482,9 @@ describe('PluginSettingsTab', () => {
     });
 
     it('should invoke reset button onClick handler that calls editAndSave and display', () => {
-      const mockEditAndSave = vi.fn().mockImplementation((fn: (settings: Record<string, unknown>) => void) => {
+      const mockEditAndSave = vi.fn().mockImplementation(($function: (settings: Record<string, unknown>) => void) => {
         const settings: Record<string, unknown> = {};
-        fn(settings);
+        $function(settings);
         expect(settings['defaultCodeButtonConfig']).toBeDefined();
       });
 
@@ -567,7 +567,7 @@ describe('PluginSettingsTab', () => {
     createdTab.refresh = vi.fn();
 
     // Record bind invocations while delegating to the real base-class `bind`.
-    const originalBind = castTo<BindFn>(createdTab.bind.bind(createdTab));
+    const originalBind = castTo<BindFunction>(createdTab.bind.bind(createdTab));
     castTo<BindTarget>(createdTab).bind = vi.fn((bindParams: MockBindParams) => {
       const options = bindParams.onChanged ? { onChanged: bindParams.onChanged } : undefined;
       bindCalls.push({ options, propertyName: bindParams.propertyName });
@@ -590,11 +590,11 @@ describe('PluginSettingsTab', () => {
       defaultSettings: new PluginSettings(),
       editAndSave: castTo<PluginSettingsComponentBase<PluginSettings>['editAndSave']>(editAndSave ?? vi.fn()),
       offref: vi.fn(),
-      on: castTo<PluginSettingsComponentBase<PluginSettings>['on']>(vi.fn((name: string, callback: unknown, thisArg?: unknown): AsyncEventRef => ({
+      on: castTo<PluginSettingsComponentBase<PluginSettings>['on']>(vi.fn((name: string, callback: unknown, thisArgument?: unknown): AsyncEventRef => ({
         asyncEventSource: source,
         callback: castTo<AsyncEventRef['callback']>(callback),
         name,
-        thisArg
+        thisArgument
       }))),
       setProperty: vi.fn(() => Promise.resolve('')),
       settings,

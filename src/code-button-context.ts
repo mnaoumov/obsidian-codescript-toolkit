@@ -51,6 +51,7 @@ export interface CodeButtonContext {
    * @param tempPluginClass - The class name or class itself of the temp plugin.
    * @returns The temp plugin.
    */
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin;
 
   /**
@@ -95,6 +96,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-context.md#codebuttoncontextregistertempplugin}
    */
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin>;
 
   /**
@@ -195,12 +197,15 @@ export interface CodeButtonContextReplaceCodeButtonBlockParams {
   readonly shouldPreserveLinePrefix?: boolean;
 }
 
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 export interface RegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> {
   readonly cssText?: string;
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly tempPluginClass: TempPluginClass<TPlugin>;
 }
 
 /**
  * A temp plugin class signature.
  */
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 export type TempPluginClass<TPlugin extends ObsidianPlugin = ObsidianPlugin> = new (app: App, manifest: PluginManifest) => TPlugin;

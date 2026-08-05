@@ -11,12 +11,12 @@ import {
 import { ConsoleWrapper } from './console-wrapper.ts';
 
 vi.mock('obsidian-dev-utils/error', () => ({
-  errorToString: vi.fn((err: Error): string => `ErrorString:${err.message}`)
+  errorToString: vi.fn((error: Error): string => `ErrorString:${error.message}`)
 }));
 
 vi.mock('obsidian-dev-utils/object-utils', () => ({
   FunctionHandlingMode: { NameOnly: 'NameOnly' },
-  toJson: vi.fn((_obj: unknown): string => '{"mocked":"json"}')
+  toJson: vi.fn((_object: unknown): string => '{"mocked":"json"}')
 }));
 
 interface MockElement {
@@ -104,11 +104,11 @@ describe('ConsoleWrapper', () => {
     });
 
     it('should call toJson for object args', () => {
-      const obj = { key: 'value' };
-      wrapper.appendToResultEl([obj], 'log');
+      const object = { key: 'value' };
+      wrapper.appendToResultEl([object], 'log');
 
       expect(toJson).toHaveBeenCalledWith(
-        obj,
+        object,
         expect.objectContaining({
           functionHandlingMode: 'NameOnly',
           maxDepth: 0,
@@ -125,10 +125,10 @@ describe('ConsoleWrapper', () => {
     });
 
     it('should call toJson for number args', () => {
-      const num = 42;
-      wrapper.appendToResultEl([num], 'log');
+      const number_ = 42;
+      wrapper.appendToResultEl([number_], 'log');
 
-      expect(toJson).toHaveBeenCalledWith(num, expect.anything());
+      expect(toJson).toHaveBeenCalledWith(number_, expect.anything());
     });
 
     it('should format mixed args separated by spaces', () => {

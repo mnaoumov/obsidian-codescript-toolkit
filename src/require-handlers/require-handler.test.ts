@@ -105,6 +105,7 @@ interface MockCleanups {
 }
 
 interface MockMetadataCache {
+  // eslint-disable-next-line unicorn/name-replacements -- Named by a dependency's API - Obsidian's MetadataCache/Vault and Babel's InputOptions.
   getFirstLinkpathDest: ReturnType<typeof vi.fn>;
 }
 
@@ -137,11 +138,11 @@ interface RequireAsyncWindow {
 }
 
 interface RequireAsyncWrapperTypedWindow {
-  requireAsyncWrapper?(fn: (r: (id: string) => unknown) => unknown, r?: unknown): Promise<unknown>;
+  requireAsyncWrapper?($function: (r: (id: string) => unknown) => unknown, r?: unknown): Promise<unknown>;
 }
 
 interface RequireAsyncWrapperWindow {
-  requireAsyncWrapper?(fn: (r: unknown) => unknown, r?: unknown): Promise<unknown>;
+  requireAsyncWrapper?($function: (r: unknown) => unknown, r?: unknown): Promise<unknown>;
 }
 
 interface RequireWindowFull {
@@ -169,31 +170,31 @@ function windowCustomRequire(id: string, options?: Partial<RequireOptions>): unk
 describe('splitQuery', () => {
   it('should return the original string and empty query when no query is present', () => {
     const result = splitQuery('path/to/file.ts');
-    expect(result.cleanStr).toBe('path/to/file.ts');
+    expect(result.cleanString).toBe('path/to/file.ts');
     expect(result.query).toBe('');
   });
 
   it('should split path and query when query is present', () => {
     const result = splitQuery('path/to/file.ts?codeScriptName=myScript');
-    expect(result.cleanStr).toBe('path/to/file.ts');
+    expect(result.cleanString).toBe('path/to/file.ts');
     expect(result.query).toBe('?codeScriptName=myScript');
   });
 
   it('should handle query with multiple parameters', () => {
     const result = splitQuery('file.md?a=1&b=2');
-    expect(result.cleanStr).toBe('file.md');
+    expect(result.cleanString).toBe('file.md');
     expect(result.query).toBe('?a=1&b=2');
   });
 
   it('should handle string that is only a query', () => {
     const result = splitQuery('?query');
-    expect(result.cleanStr).toBe('');
+    expect(result.cleanString).toBe('');
     expect(result.query).toBe('?query');
   });
 
   it('should handle empty string', () => {
     const result = splitQuery('');
-    expect(result.cleanStr).toBe('');
+    expect(result.cleanString).toBe('');
     expect(result.query).toBe('');
   });
 });
@@ -602,9 +603,9 @@ describe('RequireHandlerComponentBase', () => {
     });
 
     it('should resolve an http URL as Url type', () => {
-      const result = handler.exposeResolve('http://example.com/mod.js');
+      const result = handler.exposeResolve('https://example.com/mod.js');
       expect(result.resolvedType).toBe(ResolvedType.Url);
-      expect(result.resolvedId).toBe('http://example.com/mod.js');
+      expect(result.resolvedId).toBe('https://example.com/mod.js');
     });
 
     it('should resolve an https URL as Url type', () => {
@@ -805,8 +806,8 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockResolvedValue('module.exports = { test: true };');
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        ctx['module'] = { exports: { test: true } };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        context['module'] = { exports: { test: true } };
       });
 
       const result = await handler.requireAsync('//test.js');
@@ -850,13 +851,13 @@ describe('RequireHandlerComponentBase', () => {
     });
 
     it('should return cached exports for query paths with WhenPossible mode', async () => {
-      const cachedExports = { queryMod: true };
+      const cachedExports = { queryModule: true };
       handler.exposeInitModuleAndAddToCache('/vault/query-mod?v=1', () => cachedExports);
 
       const result = await handler.requireAsync('//query-mod?v=1', {
         cacheInvalidationMode: CacheInvalidationMode.WhenPossible
       });
-      expect(result).toEqual(expect.objectContaining({ queryMod: true }));
+      expect(result).toEqual(expect.objectContaining({ queryModule: true }));
     });
 
     it('should throw for unknown cacheInvalidationMode', async () => {
@@ -875,9 +876,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockReadFile.mockResolvedValue('module.exports = { value: 42 };');
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { value: 42 };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { value: 42 };
       });
 
       const result = await handler.requireAsync(file);
@@ -895,10 +896,10 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockCanRequireNonCached.mockReturnValue(true);
 
       let callCount = 0;
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
         callCount++;
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { version: callCount };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { version: callCount };
       });
 
       const result1 = await handler.requireAsync(file, {
@@ -928,15 +929,15 @@ describe('RequireHandlerComponentBase', () => {
         url: 'scripts/helper.js'
       });
 
-      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(file);
+      getMockGetFirstLinkpathDestination(handler).mockReturnValueOnce(file);
 
       handler.mockExistsFile.mockResolvedValue(true);
       handler.mockReadFile.mockResolvedValue('module.exports = { wiki: true };');
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { wiki: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { wiki: true };
       });
 
       const result = await handler.requireAsync('[[scripts/helper.js]]');
@@ -954,15 +955,15 @@ describe('RequireHandlerComponentBase', () => {
         url: 'scripts/helper.js'
       });
 
-      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(file);
+      getMockGetFirstLinkpathDestination(handler).mockReturnValueOnce(file);
 
       handler.mockExistsFile.mockResolvedValue(true);
       handler.mockReadFile.mockResolvedValue('module.exports = { md: true };');
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { md: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { md: true };
       });
 
       const result = await handler.requireAsync('[Link](scripts/helper.js)');
@@ -980,7 +981,7 @@ describe('RequireHandlerComponentBase', () => {
         url: 'scripts/module.cjs'
       });
 
-      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(file);
+      getMockGetFirstLinkpathDestination(handler).mockReturnValueOnce(file);
 
       handler.mockRequireNonCached.mockReturnValue({ wikiSync: true });
       handler.mockCanRequireNonCached.mockReturnValue(true);
@@ -999,7 +1000,7 @@ describe('RequireHandlerComponentBase', () => {
         url: 'scripts/module.cjs'
       });
 
-      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(file);
+      getMockGetFirstLinkpathDestination(handler).mockReturnValueOnce(file);
 
       handler.mockRequireNonCached.mockReturnValue({ mdSync: true });
       handler.mockCanRequireNonCached.mockReturnValue(true);
@@ -1021,9 +1022,9 @@ describe('RequireHandlerComponentBase', () => {
         text: 'module.exports = { external: true };'
       });
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { external: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { external: true };
       });
 
       const result = await handler.requireAsync('[Lib](https://cdn.example.com/lib.js)');
@@ -1038,7 +1039,7 @@ describe('RequireHandlerComponentBase', () => {
         url: 'nonexistent.js'
       });
 
-      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(null);
+      getMockGetFirstLinkpathDestination(handler).mockReturnValueOnce(null);
 
       const requireAsyncSpy = vi.spyOn(handler, 'requireAsync');
       await expect(handler.requireAsync('[[nonexistent.js]]'))
@@ -1054,7 +1055,7 @@ describe('RequireHandlerComponentBase', () => {
         url: 'nonexistent.js'
       });
 
-      getMockGetFirstLinkpathDest(handler).mockReturnValueOnce(null);
+      getMockGetFirstLinkpathDestination(handler).mockReturnValueOnce(null);
 
       const requireAsyncSpy = vi.spyOn(handler, 'requireAsync');
       await expect(handler.requireAsync('[[nonexistent.js]]', { parentPath: 'scripts' }))
@@ -1085,9 +1086,9 @@ describe('RequireHandlerComponentBase', () => {
     it('should evaluate code string and return module exports', async () => {
       const mockExports = { fromString: true };
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = mockExports;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = mockExports;
       });
 
       const result = await handler.requireStringAsync({
@@ -1109,9 +1110,9 @@ describe('RequireHandlerComponentBase', () => {
     });
 
     it('should append urlSuffix when provided', async () => {
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { withSuffix: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { withSuffix: true };
       });
 
       const result = await handler.requireStringAsync({
@@ -1123,9 +1124,9 @@ describe('RequireHandlerComponentBase', () => {
     });
 
     it('should wrap raw without Babel when shouldTranspile is false', async () => {
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { raw: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { raw: true };
       });
 
       const result = await handler.requireStringAsync({
@@ -1142,9 +1143,9 @@ describe('RequireHandlerComponentBase', () => {
     });
 
     it('should transpile through Babel when shouldTranspile is true', async () => {
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       await handler.requireStringAsync({
@@ -1158,9 +1159,9 @@ describe('RequireHandlerComponentBase', () => {
     });
 
     it('should auto-skip transpilation for a plain CommonJS module without an explicit flag', async () => {
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { auto: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { auto: true };
       });
 
       const result = await handler.requireStringAsync({
@@ -1189,9 +1190,9 @@ describe('RequireHandlerComponentBase', () => {
         }
         return 'module.exports = { fromModulePkg: true };';
       });
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       await handler.requireAsync('//lib.js');
@@ -1221,9 +1222,9 @@ describe('RequireHandlerComponentBase', () => {
         }
         return 'module.exports = { win: true };';
       });
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { win: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { win: true };
       });
 
       const result = await handler.requireAsync('C:/proj/probe.js');
@@ -1238,9 +1239,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/mod.cjs');
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockResolvedValue('module.exports = { forced: true };');
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       await handler.requireAsync('//mod.cjs', { shouldTranspile: true });
@@ -1258,9 +1259,9 @@ describe('RequireHandlerComponentBase', () => {
         }
         return 'import { a } from "./a.js";\nexport const b = a;';
       });
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       await handler.requireAsync('//lib.js');
@@ -1273,9 +1274,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js');
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockResolvedValue('module.exports = { noPkg: true };');
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       await handler.requireAsync('//lib.js');
@@ -1293,9 +1294,9 @@ describe('RequireHandlerComponentBase', () => {
         }
         return 'module.exports = { broken: true };';
       });
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       await handler.requireAsync('//lib.js');
@@ -1311,11 +1312,11 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return packageJsonContent;
         }
-        return 'module.exports = { fromCjsPkg: true };';
+        return 'module.exports = { fromCjsPackage: true };';
       });
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { fromCjsPkg: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { fromCjsPackage: true };
       });
 
       const result = await handler.requireAsync('//lib.js');
@@ -1323,7 +1324,7 @@ describe('RequireHandlerComponentBase', () => {
       const evaluatedCode = mockDebuggableEval.mock.calls[0]?.[0] as string;
       expect(evaluatedCode).toContain('function scriptWrapper');
       expect(evaluatedCode).not.toContain('use strict');
-      expect(result).toEqual(expect.objectContaining({ fromCjsPkg: true }));
+      expect(result).toEqual(expect.objectContaining({ fromCjsPackage: true }));
     }
   });
 
@@ -1369,9 +1370,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockResolvedValue('module.exports = { hello: true };');
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { hello: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { hello: true };
       });
 
       const result = await handler.requireAsync('//hello.js');
@@ -1519,8 +1520,8 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockRequireNonCached.mockReturnValue({ fileSync: true });
       handler.mockCanRequireNonCached.mockReturnValue(true);
 
-      const requireFn = handler.exposeRequireEx() as (id: OriginalTFile) => unknown;
-      const result: unknown = requireFn(file);
+      const requireFunction = handler.exposeRequireEx() as (id: OriginalTFile) => unknown;
+      const result: unknown = requireFunction(file);
       expect(result).toEqual(expect.objectContaining({ fileSync: true }));
     });
 
@@ -1535,9 +1536,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockCanRequireNonCached.mockReturnValue(true);
 
-      const requireFn = handler.exposeRequireEx() as (id: OriginalTFile, options?: Partial<RequireOptions>) => unknown;
-      const result1: unknown = requireFn(file, { cacheInvalidationMode: CacheInvalidationMode.Always });
-      const result2: unknown = requireFn(file, { cacheInvalidationMode: CacheInvalidationMode.Always });
+      const requireFunction = handler.exposeRequireEx() as (id: OriginalTFile, options?: Partial<RequireOptions>) => unknown;
+      const result1: unknown = requireFunction(file, { cacheInvalidationMode: CacheInvalidationMode.Always });
+      const result2: unknown = requireFunction(file, { cacheInvalidationMode: CacheInvalidationMode.Always });
       expect(result1).toEqual(expect.objectContaining({ version: 1 }));
       expect(result2).toEqual(expect.objectContaining({ version: 2 }));
     });
@@ -1557,9 +1558,9 @@ describe('RequireHandlerComponentBase', () => {
         '```'
       ].join('\n'));
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { mdResult: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { mdResult: true };
       });
 
       const result = await handler.requireAsync('//test.md');
@@ -1577,9 +1578,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockResolvedValue('module.exports = { clean: true };');
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { clean: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { clean: true };
       });
 
       await handler.requireAsync('//mod.js?v=1');
@@ -1610,10 +1611,7 @@ describe('RequireHandlerComponentBase', () => {
         return false;
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
-        if (path === '/vault/node_modules/test-pkg') {
-          return true;
-        }
-        return false;
+        return path === '/vault/node_modules/test-pkg';
       });
       handler.mockReadFile.mockImplementation((path: string) => {
         if (path === '/vault/package.json') {
@@ -1626,9 +1624,10 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { pkg: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        // eslint-disable-next-line unicorn/name-replacements -- An arbitrary fixture name in a test, not a member of the plugin's own surface.
+        module_.exports = { pkg: true };
       });
 
       const result = await handler.requireAsync('test-pkg', {
@@ -1654,10 +1653,7 @@ describe('RequireHandlerComponentBase', () => {
         return false;
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
-        if (path === '/vault/node_modules/exports-pkg') {
-          return true;
-        }
-        return false;
+        return path === '/vault/node_modules/exports-pkg';
       });
       handler.mockReadFile.mockImplementation((path: string) => {
         if (path === '/vault/package.json') {
@@ -1670,9 +1666,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { exported: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { exported: true };
       });
 
       const result = await handler.requireAsync('exports-pkg', {
@@ -1692,16 +1688,10 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should throw for invalid scoped module without separator', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        return false;
+        return path === '/vault/package.json';
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
-        if (path === '/vault') {
-          return true;
-        }
-        return false;
+        return path === '/vault';
       });
       handler.mockReadFile.mockImplementation((path: string) => {
         if (path === '/vault/package.json') {
@@ -1795,16 +1785,17 @@ describe('RequireHandlerComponentBase', () => {
         return childCode;
       });
 
-      mockDebuggableEval.mockImplementation((code: string): (ctx: Record<string, unknown>) => void => {
+      mockDebuggableEval.mockImplementation((code: string): (context: Record<string, unknown>) => void => {
         if (code.includes('dep')) {
-          return (ctx: Record<string, unknown>): void => {
-            const mod = ctx['module'] as MockModuleWithExports;
-            mod.exports = { main: true };
+          return (context: Record<string, unknown>): void => {
+            const module_ = context['module'] as MockModuleWithExports;
+            module_.exports = { main: true };
           };
         }
-        return (ctx: Record<string, unknown>): void => {
-          const mod = ctx['module'] as MockModuleWithExports;
-          mod.exports = { dep: true };
+        return (context: Record<string, unknown>): void => {
+          const module_ = context['module'] as MockModuleWithExports;
+          // eslint-disable-next-line unicorn/name-replacements -- An arbitrary fixture name in a test, not a member of the plugin's own surface.
+          module_.exports = { dep: true };
         };
       });
 
@@ -1854,7 +1845,7 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockReadFileBinary.mockResolvedValue(new ArrayBuffer(0));
 
       const WASM_RETURN = 42;
-      const mockWasmExports = { wasmFn: (): number => WASM_RETURN };
+      const mockWasmExports = { wasmFunction: (): number => WASM_RETURN };
       const instantiateSpy = castTo<WebAssemblyInstantiateSpy>(
         castTo<WebAssemblyInstantiateSpyFactory>(
           vi.spyOn(WebAssembly, 'instantiate')
@@ -1902,10 +1893,7 @@ describe('RequireHandlerComponentBase', () => {
         return false;
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
-        if (path === '/vault/node_modules/@scope/pkg') {
-          return true;
-        }
-        return false;
+        return path === '/vault/node_modules/@scope/pkg';
       });
       handler.mockReadFile.mockImplementation((path: string) => {
         if (path === '/vault/package.json') {
@@ -1918,9 +1906,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { scoped: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { scoped: true };
       });
 
       const result = await handler.requireAsync('@scope/pkg', {
@@ -1946,10 +1934,7 @@ describe('RequireHandlerComponentBase', () => {
         return false;
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
-        if (path === '/vault/node_modules/@scope/pkg') {
-          return true;
-        }
-        return false;
+        return path === '/vault/node_modules/@scope/pkg';
       });
       handler.mockReadFile.mockImplementation((path: string) => {
         if (path === '/vault/package.json') {
@@ -1962,9 +1947,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { sub: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { sub: true };
       });
 
       const result = await handler.requireAsync('@scope/pkg/sub', {
@@ -1989,9 +1974,9 @@ describe('RequireHandlerComponentBase', () => {
         return callCount * 100;
       });
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { v2: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { v2: true };
       });
 
       await handler.requireAsync('//evolving.js');
@@ -2035,13 +2020,13 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/node_modules/str-pkg/package.json') {
           return JSON.stringify({ exports: './dist/index.js' });
         }
-        return 'module.exports = { strExports: true };';
+        return 'module.exports = { stringExports: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { strExports: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { stringExports: true };
       });
 
       const result = await handler.requireAsync('str-pkg', {
@@ -2076,13 +2061,13 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/node_modules/arr-pkg/package.json') {
           return JSON.stringify({ exports: ['./lib/main.js', './lib/fallback.js'] });
         }
-        return 'module.exports = { arrExports: true };';
+        return 'module.exports = { arrayExports: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { arrExports: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { arrayExports: true };
       });
 
       const result = await handler.requireAsync('arr-pkg', {
@@ -2128,9 +2113,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { typesSkipped: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { typesSkipped: true };
       });
 
       const result = await handler.requireAsync('types-pkg', {
@@ -2146,9 +2131,9 @@ describe('RequireHandlerComponentBase', () => {
     });
 
     it('should call handleCodeWithTopLevelAwait for top-level await code', async () => {
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { topLevel: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { topLevel: true };
       });
 
       const result = await handler.requireStringAsync({
@@ -2171,9 +2156,9 @@ describe('RequireHandlerComponentBase', () => {
         text: 'module.exports = { fromUrl: true };'
       });
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { fromUrl: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { fromUrl: true };
       });
 
       const result = await handler.requireAsync('https://example.com/module.js');
@@ -2202,9 +2187,9 @@ describe('RequireHandlerComponentBase', () => {
         ].join('\n')
       });
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { md: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { md: true };
       });
 
       const result = await handler.requireAsync('https://example.com/script.md');
@@ -2219,7 +2204,7 @@ describe('RequireHandlerComponentBase', () => {
         text: ''
       });
 
-      const mockWasmExports = { wasmUrlFn: (): number => 1 };
+      const mockWasmExports = { wasmUrlFunction: (): number => 1 };
       castTo<WebAssemblyInstantiateSpyFactory>(
         vi.spyOn(WebAssembly, 'instantiate')
       ).mockResolvedValue({
@@ -2253,9 +2238,9 @@ describe('RequireHandlerComponentBase', () => {
         text: 'module.exports = { plain: true };'
       });
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { plain: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { plain: true };
       });
 
       const result = await handler.requireAsync('https://example.com/script');
@@ -2271,9 +2256,9 @@ describe('RequireHandlerComponentBase', () => {
         text: 'module.exports = {};'
       });
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       await expect(handler.requireAsync('https://example.com/script', {
@@ -2300,7 +2285,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should follow module dependency chain for timestamp checking', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        return path === '/vault/main.js' || path === '/vault/dep.js' || path === '/vault/package.json';
+        return ['/vault/dep.js', '/vault/main.js', '/vault/package.json'].includes(path);
       });
       handler.mockReadFile.mockImplementation((path: string) => {
         if (path === '/vault/package.json') {
@@ -2315,15 +2300,15 @@ describe('RequireHandlerComponentBase', () => {
       let timestamp = 100;
       handler.mockGetTimestamp.mockImplementation(() => timestamp);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('./dep.js');
+          requestFunction('./dep.js');
         } catch {
           // Dep may not be loadable synchronously in tests
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       await handler.requireAsync('//main.js');
@@ -2369,9 +2354,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { private: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { private: true };
       });
 
       const result = await handler.requireAsync('#internal', {
@@ -2421,10 +2406,10 @@ describe('RequireHandlerComponentBase', () => {
     });
 
     it('should add default to function modules', () => {
-      function fn(): number {
+      function $function(): number {
         return 42;
       }
-      handler.exposeInitModuleAndAddToCache('fn-mod', () => fn);
+      handler.exposeInitModuleAndAddToCache('fn-mod', () => $function);
       const cached = handler.exposeModulesCache()['fn-mod'];
       expect((cached?.exports as Record<string, unknown>)['default']).toBe(cached?.exports);
     });
@@ -2472,9 +2457,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(200);
       handler.mockReadFile.mockResolvedValue('module.exports = { fresh: true };');
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { fresh: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { fresh: true };
       });
 
       const result = await handler.requireAsync('//always-mod.js', {
@@ -2523,7 +2508,7 @@ describe('RequireHandlerComponentBase', () => {
         '    at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:1:1)',
         '    at RequireHandlerImpl.resolve (plugin:fix-require-modules:2:2)',
         '    at RequireHandlerImpl.require (plugin:fix-require-modules:3:3)',
-        '    at someFunc (plugin:other-plugin:5:10)'
+        '    at someFunction (plugin:other-plugin:5:10)'
       ].join('\n');
 
       class MockError extends OriginalError {
@@ -2588,7 +2573,7 @@ describe('RequireHandlerComponentBase', () => {
         '    at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:1:1)',
         '    at RequireHandlerImpl.resolve (plugin:fix-require-modules:2:2)',
         '    at RequireHandlerImpl.require (plugin:fix-require-modules:3:3)',
-        '    at someFunc (requireString//path/to/file.js:5:10)'
+        '    at someFunction (requireString//path/to/file.js:5:10)'
       ].join('\n');
 
       class MockError extends OriginalError {
@@ -2622,9 +2607,9 @@ describe('RequireHandlerComponentBase', () => {
     it('should be called when requireStringAsync encounters top-level await in code', async () => {
       const handleSpy = vi.spyOn(handler, 'exposeHandleCodeWithTopLevelAwait');
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { topLevel: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { topLevel: true };
       });
 
       await handler.requireStringAsync({
@@ -2751,9 +2736,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { wildcard: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { wildcard: true };
       });
 
       const result = await handler.requireAsync('wildcard-pkg/utils/helper', {
@@ -2779,22 +2764,22 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(100);
 
       let callCount = 0;
-      mockDebuggableEval.mockImplementation((): (ctx: Record<string, unknown>) => void => {
+      mockDebuggableEval.mockImplementation((): (context: Record<string, unknown>) => void => {
         callCount++;
-        return (ctx: Record<string, unknown>): void => {
-          const reqFn = ctx['require'] as (id: string) => unknown;
+        return (context: Record<string, unknown>): void => {
+          const requestFunction = context['require'] as (id: string) => unknown;
           // First file requires the second, second requires the first
           try {
             if (callCount <= 1) {
-              reqFn('./circular-b.js');
+              requestFunction('./circular-b.js');
             } else {
-              reqFn('./circular-a.js');
+              requestFunction('./circular-a.js');
             }
           } catch {
             // Circular dependency warning
           }
-          const mod = ctx['module'] as MockModuleWithExports;
-          mod.exports = { value: callCount };
+          const module_ = context['module'] as MockModuleWithExports;
+          module_.exports = { value: callCount };
         };
       });
 
@@ -2830,15 +2815,15 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('./dep-file.js');
+          requestFunction('./dep-file.js');
         } catch {
           // May not resolve synchronously in test
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       // First load - populates dependencies
@@ -2871,15 +2856,15 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('some-module');
+          requestFunction('some-module');
         } catch {
           // Module may not resolve
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       // First load
@@ -2904,15 +2889,15 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockReadFile.mockResolvedValue('module.exports = { value: true };');
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('https://example.com/dep.js');
+          requestFunction('https://example.com/dep.js');
         } catch {
           // URL cannot be resolved synchronously
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       // First load
@@ -2937,15 +2922,15 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockReadFile.mockResolvedValue('module.exports = { value: true };');
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('obsidian/app');
+          requestFunction('obsidian/app');
         } catch {
           // Should work for special modules
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       // First load
@@ -2976,10 +2961,10 @@ describe('RequireHandlerComponentBase', () => {
 
       let capturedRequireAsync: ((id: string) => Promise<unknown>) | undefined;
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        capturedRequireAsync = ctx['requireAsync'] as (id: string) => Promise<unknown>;
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { parent: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        capturedRequireAsync = context['requireAsync'] as (id: string) => Promise<unknown>;
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { parent: true };
       });
 
       await handler.requireAsync('//parent-for-child-async.js');
@@ -3050,8 +3035,8 @@ describe('RequireHandlerComponentBase', () => {
       // Function calls require synchronously, it re-throws
       await expect(
         requireWindow.requireAsyncWrapper?.((require) => {
-          const mod = require('../../../../../nonexistent-async-wrapper.js');
-          return mod;
+          const module_ = require('../../../../../nonexistent-async-wrapper.js');
+          return module_;
         })
       ).rejects.toThrow();
     });
@@ -3095,10 +3080,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should skip folder that does not exist', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        return false;
+        return path === '/vault/package.json';
       });
       handler.mockExistsFolder.mockResolvedValue(false);
       handler.mockReadFile.mockImplementation((path: string) => {
@@ -3298,9 +3280,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { cond: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { cond: true };
       });
 
       const result = await handler.requireAsync('cond-pkg', {
@@ -3355,9 +3337,9 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { sorted: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { sorted: true };
       });
 
       const result = await handler.requireAsync('sort-pkg', {
@@ -3380,9 +3362,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockReadFile.mockResolvedValue('module.exports = {};');
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { value: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { value: true };
       });
 
       // First load both files to establish them in cache
@@ -3418,15 +3400,15 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockReadFile.mockResolvedValue('module.exports = {};');
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('./missing-dep.js');
+          requestFunction('./missing-dep.js');
         } catch {
           // Expected
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       // First load
@@ -3465,15 +3447,15 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('some-external-module');
+          requestFunction('some-external-module');
         } catch {
           // Expected
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       // First load
@@ -3522,15 +3504,15 @@ describe('RequireHandlerComponentBase', () => {
       });
       customHandler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('some-ext-module');
+          requestFunction('some-ext-module');
         } catch {
           // Expected
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       // First load
@@ -3564,9 +3546,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(CACHED_TIMESTAMP);
       handler.mockReadFile.mockResolvedValue('module.exports = { cached: true };');
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { cached: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { cached: true };
       });
 
       // First load
@@ -3591,9 +3573,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockResolvedValue('module.exports = { nested: true };');
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { nested: true };
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { nested: true };
       });
 
       // First load to populate cache
@@ -3626,15 +3608,15 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockReadFile.mockResolvedValue('module.exports = { value: true };');
       handler.mockGetTimestamp.mockResolvedValue(100);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('https://example.com/dep.js');
+          requestFunction('https://example.com/dep.js');
         } catch {
           // URL cannot be resolved synchronously
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = { main: true };
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { main: true };
       });
 
       // First load — populates dependencies
@@ -3652,7 +3634,7 @@ describe('RequireHandlerComponentBase', () => {
 
       handler.mockGetTimestamp.mockResolvedValue(200);
 
-      // Re-require with Never mode — getDependenciesTimestamp will process URL dep with Never mode
+      // Re-require with Never mode — getDependenciesTimestamp will process URL dependency with Never mode
       const result = await handler.requireAsync('//url-dep-never.js', {
         cacheInvalidationMode: CacheInvalidationMode.Never
       });
@@ -3670,9 +3652,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockResolvedValue('module.exports = {};');
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       // Load to populate
@@ -3690,15 +3672,15 @@ describe('RequireHandlerComponentBase', () => {
       handler.exposeModuleTimestamps().clear();
       handler.mockGetTimestamp.mockResolvedValue(200);
 
-      mockDebuggableEval.mockReturnValue((ctx: Record<string, unknown>) => {
-        const reqFn = ctx['require'] as (id: string) => unknown;
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const requestFunction = context['require'] as (id: string) => unknown;
         try {
-          reqFn('./chain-ts.js');
+          requestFunction('./chain-ts.js');
         } catch {
           // Circular
         }
-        const mod = ctx['module'] as MockModuleWithExports;
-        mod.exports = {};
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = {};
       });
 
       const result = await handler.requireAsync('//chain-ts.js');
@@ -3736,7 +3718,7 @@ describe('RequireHandlerComponentBase', () => {
       // Return code that produces an empty module (no exports set)
       handler.mockReadFile.mockResolvedValue('// empty module');
 
-      mockDebuggableEval.mockReturnValue((_ctx: Record<string, unknown>) => {
+      mockDebuggableEval.mockReturnValue((_context: Record<string, unknown>) => {
         // Don't set module.exports — leaves the empty proxy as-is
       });
 
@@ -3858,6 +3840,7 @@ class TestRequireHandlerComponent extends RequireHandlerComponentBase {
 function createMockConstructorParams(): RequireHandlerConstructorParams {
   const app = App.createConfigured__().asOriginalType__();
   // Tests control link resolution through getMockGetFirstLinkpathDest, which expects a vi.fn here.
+  // eslint-disable-next-line unicorn/name-replacements -- Named by a dependency's API - Obsidian's MetadataCache/Vault and Babel's InputOptions.
   app.metadataCache.getFirstLinkpathDest = vi.fn().mockReturnValue(null);
   const partial: Partial<RequireHandlerConstructorParams> = {
     app,
@@ -3870,6 +3853,7 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
         modulesRoot: ''
       }
     }),
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     tempPluginRegistry: castTo<RequireHandlerConstructorParams['tempPluginRegistry']>({})
   };
   return partial as RequireHandlerConstructorParams;
@@ -3891,6 +3875,6 @@ function createMockNodeModule(id: string): NodeJS.Module {
   return partial as NodeJS.Module;
 }
 
-function getMockGetFirstLinkpathDest(handler: TestRequireHandlerComponent): ReturnType<typeof vi.fn> {
+function getMockGetFirstLinkpathDestination(handler: TestRequireHandlerComponent): ReturnType<typeof vi.fn> {
   return castTo<MockAppAccessor>(handler).app.metadataCache.getFirstLinkpathDest;
 }

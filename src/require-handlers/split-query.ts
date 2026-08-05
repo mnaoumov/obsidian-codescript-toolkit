@@ -1,12 +1,12 @@
 interface SplitQueryResult {
-  readonly cleanStr: string;
+  readonly cleanString: string;
   readonly query: string;
 }
 
-export function splitQuery(str: string): SplitQueryResult {
-  const queryIndex = str.indexOf('?');
+export function splitQuery($string: string): SplitQueryResult {
+  const queryIndex = $string.indexOf('?');
   return {
-    cleanStr: queryIndex === -1 ? str : str.slice(0, queryIndex),
-    query: queryIndex === -1 ? '' : str.slice(queryIndex)
+    cleanString: queryIndex === -1 ? $string : $string.slice(0, queryIndex),
+    query: queryIndex === -1 ? '' : $string.slice(queryIndex)
   };
 }

@@ -62,9 +62,13 @@ export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
           blockStatement([
             variableDeclaration('const', [
               variableDeclarator(
+                // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                 identifier('__console'),
+                // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                 memberExpression(
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   identifier('window'),
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   identifier('console')
                 )
               )
@@ -72,21 +76,31 @@ export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
             expressionStatement(
               assignmentExpression(
                 '=',
+                // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                 memberExpression(
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   identifier('window'),
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   identifier('console')
                 ),
+                // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                 memberExpression(
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   identifier('codeButtonContext'),
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   identifier('console')
                 )
               )
             ),
             variableDeclaration('const', [
               variableDeclarator(
+                // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                 identifier('app'),
+                // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                 memberExpression(
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   identifier('codeButtonContext'),
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   identifier('app')
                 )
               )
@@ -95,13 +109,19 @@ export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
               blockStatement(programBody),
               null,
               blockStatement([
+                // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                 expressionStatement(
+                  // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                   assignmentExpression(
                     '=',
+                    // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                     memberExpression(
+                      // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                       identifier('window'),
+                      // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                       identifier('console')
                     ),
+                    // eslint-disable-next-line unicorn/max-nested-calls -- Babel AST builders nest by construction; flattening them into named temporaries would hide the tree being built.
                     identifier('__console')
                   )
                 )

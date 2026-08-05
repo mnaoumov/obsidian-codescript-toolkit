@@ -20,7 +20,7 @@ interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstr
   readonly pluginName: string;
 }
 
-const MAX_INTERVAL_FOR_SET_TIMEOUT = 2147483647;
+const MAX_INTERVAL_FOR_SET_TIMEOUT = 2_147_483_647;
 const MILLISECONDS_IN_SECOND = 1000;
 const MAX_CHECKING_INTERVAL_IN_SECONDS = MAX_INTERVAL_FOR_SET_TIMEOUT / MILLISECONDS_IN_SECOND;
 

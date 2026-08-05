@@ -69,6 +69,7 @@ vi.mock('./command-handlers/reload-startup-script-command-handler.ts', () => ({
 }));
 
 vi.mock('./command-handlers/unload-temp-plugins-command-handler.ts', () => ({
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   UnloadTempPluginsCommandHandler: vi.fn()
 }));
 
@@ -105,6 +106,7 @@ vi.mock('./startup-script.ts', () => ({
 }));
 
 vi.mock('./temp-plugin-registry.ts', () => ({
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistryComponent: vi.fn()
 }));
 
@@ -170,7 +172,9 @@ describe('Plugin', () => {
 
     const { registerCommandHandlers } = castTo<PluginPrivateApi>(plugin)._commandHandlerComponent;
     expect(registerCommandHandlers).toHaveBeenCalledOnce();
-    expect(vi.mocked(registerCommandHandlers).mock.calls[0]?.[0]).toHaveLength(EXPECTED_COMMAND_HANDLER_COUNT);
+    // Since obsidian-dev-utils 89.0.0 the handlers are built lazily by a factory, so build them here.
+    const commandHandlerFactory = vi.mocked(registerCommandHandlers).mock.calls[0]?.[0];
+    expect(commandHandlerFactory?.()).toHaveLength(EXPECTED_COMMAND_HANDLER_COUNT);
   });
 
   it('should assign app from constructor argument', () => {

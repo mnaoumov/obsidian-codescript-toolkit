@@ -49,7 +49,7 @@ describe('ScriptFolderWatcher', () => {
     pluginSettingsEvents = new AsyncEvents();
     pluginSettingsComponent = strictProxy<PluginSettingsComponent>({
       // The SUT registers no-arg-bound handlers; delegate to a real AsyncEvents so registration and teardown run for real.
-      on: castTo<PluginSettingsComponent['on']>((...args: Parameters<AsyncEvents['on']>) => pluginSettingsEvents.on(...args))
+      on: castTo<PluginSettingsComponent['on']>((...$arguments: Parameters<AsyncEvents['on']>) => pluginSettingsEvents.on(...$arguments))
     });
 
     registerInvocableScriptsMock = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
