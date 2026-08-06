@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 13.5.1
+
+- test: invoke the command handler factory in the registry stubs
+- fix: await the settings load before the components that read them
+- chore: update libs
+- chore: update libs
+- refactor!: buildInvokeCommand
+- chore(vitest): adopt the shared Obsidian plugin vitest configuration
+- refactor: consume ODU's SyntaxHighlightingComponent for fence highlighting
+- chore: update libs
+
 ## 13.5.0
 
 - fix: unblock the release gate
