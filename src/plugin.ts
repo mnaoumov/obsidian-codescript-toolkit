@@ -38,6 +38,12 @@ export class Plugin extends PluginBase {
       })
     );
 
+    // Since obsidian-dev-utils 90 a child is loaded as it is added, so the settings' async load tail runs
+    // In parallel with the components added below instead of before them. Every one of them reads the
+    // Settings as it loads — StartupScriptComponent asks for `getStartupScriptPath()` in its `onloadAsync`
+    // And silently does nothing when it reads the empty default, so a configured startup script never ran.
+    await pluginSettingsComponent.loadWithPromises();
+
     // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     const tempPluginRegistry = this.addChild(
       new TempPluginRegistryComponent({

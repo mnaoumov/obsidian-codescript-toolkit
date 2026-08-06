@@ -8,6 +8,7 @@ import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/componen
 import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import { App } from 'obsidian-test-mocks/obsidian';
 import {
@@ -74,7 +75,11 @@ vi.mock('./command-handlers/unload-temp-plugins-command-handler.ts', () => ({
 }));
 
 vi.mock('./plugin-settings-component.ts', () => ({
-  PluginSettingsComponent: vi.fn()
+  // A ComponentEx, not a bare mock: onloadImpl awaits its `loadWithPromises`.
+  // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new` and return a real loadable Component.
+  PluginSettingsComponent: vi.fn(function () {
+    return new ComponentEx();
+  })
 }));
 
 vi.mock('./plugin-settings-tab.ts', () => ({
