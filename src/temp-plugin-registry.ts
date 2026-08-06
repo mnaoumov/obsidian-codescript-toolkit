@@ -92,12 +92,15 @@ export class TempPluginRegistryComponent extends ComponentEx {
     this.tempPlugins.set(id, tempPlugin);
 
     let styleEl: HTMLStyleElement | null = null;
-    const unloadTemporaryPluginCommandHandler = new UnloadTemporaryPluginCommandHandler({
-      tempPlugin,
+    // A fresh instance per call, because `CommandHandlerComponent` invokes the factory once per menu
+    // Surface and registering one instance twice throws.
+    const unloadTemporaryPluginCommandHandlerDisposable = await this.commandHandlerComponent.registerCommandHandlers(() => [
+      new UnloadTemporaryPluginCommandHandler({
+        tempPlugin,
 
-      tempPluginClassName
-    });
-    const unloadTemporaryPluginCommandHandlerDisposable = this.commandHandlerComponent.registerCommandHandlers(() => [unloadTemporaryPluginCommandHandler]);
+        tempPluginClassName
+      })
+    ]);
 
     const originalUnload = tempPlugin.unload.bind(tempPlugin);
     tempPlugin.unload = (): void => {

@@ -113,7 +113,7 @@ vi.mock('./temp-plugin-registry.ts', () => ({
 interface PluginPrivateApi {
   _commandHandlerComponent: CommandHandlerComponent;
   consoleDebugComponent: ConsoleDebugComponent;
-  onloadImpl(): void;
+  onloadImpl(): Promise<void>;
   pluginNoticeComponent: PluginNoticeComponent;
   resourceLockComponent: ResourceLockComponent;
 }
@@ -156,19 +156,19 @@ describe('Plugin', () => {
     return plugin;
   }
 
-  it('should call addChild for all components', () => {
+  it('should call addChild for all components', async () => {
     const plugin = createPlugin();
     const addChildSpy = vi.spyOn(plugin, 'addChild');
 
-    castTo<PluginPrivateApi>(plugin).onloadImpl();
+    await castTo<PluginPrivateApi>(plugin).onloadImpl();
 
     expect(addChildSpy).toHaveBeenCalledTimes(EXPECTED_ADD_CHILD_COUNT);
   });
 
-  it('should register the command handlers on the shared command handler component', () => {
+  it('should register the command handlers on the shared command handler component', async () => {
     const plugin = createPlugin();
 
-    castTo<PluginPrivateApi>(plugin).onloadImpl();
+    await castTo<PluginPrivateApi>(plugin).onloadImpl();
 
     const { registerCommandHandlers } = castTo<PluginPrivateApi>(plugin)._commandHandlerComponent;
     expect(registerCommandHandlers).toHaveBeenCalledOnce();

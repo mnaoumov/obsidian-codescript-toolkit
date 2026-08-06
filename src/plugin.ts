@@ -27,7 +27,7 @@ import { StartupScriptComponent } from './startup-script.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 export class Plugin extends PluginBase {
-  protected override onloadImpl(): void {
+  protected override async onloadImpl(): Promise<void> {
     const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);
 
     const pluginSettingsComponent = this.addChild(
@@ -103,7 +103,7 @@ export class Plugin extends PluginBase {
       })
     );
 
-    this.commandHandlerComponent.registerCommandHandlers(() => [
+    await this.commandHandlerComponent.registerCommandHandlers(() => [
       new ClearCacheCommandHandler(requireHandlerFactory),
       new InsertSampleCodeButtonCommandHandler(),
       new InvokeScriptChooseCommandHandler(scriptManager),
