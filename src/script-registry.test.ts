@@ -82,7 +82,12 @@ function createRegistry(overrides?: CreateRegistryOverrides): ScriptRegistryComp
   return new ScriptRegistryComponent({
     app: overrides?.app ?? createApp(),
     commandHandlerComponent: strictProxy<CommandHandlerComponent>({
-      registerCommandHandlers: vi.fn().mockResolvedValue({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() })
+      // The real component invokes the factory (once per menu surface). The stub does the same, so the
+      // Handlers are actually built here rather than the factory being captured and dropped.
+      registerCommandHandlers: vi.fn<CommandHandlerComponent['registerCommandHandlers']>((buildCommandHandlers) => {
+        buildCommandHandlers();
+        return Promise.resolve({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() });
+      })
     }),
     consoleDebugComponent: overrides?.consoleDebugComponent ?? createConsoleDebugComponent(),
     pluginNoticeComponent: overrides?.pluginNoticeComponent ?? createPluginNoticeComponent(),

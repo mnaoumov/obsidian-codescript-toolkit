@@ -58,7 +58,7 @@ function createApp(): App {
 
 function createCommandHandlerComponent(): CommandHandlerComponent {
   return strictProxy<CommandHandlerComponent>({
-    registerCommandHandlers: vi.fn().mockResolvedValue({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() })
+    registerCommandHandlers: createRegisterCommandHandlersMock()
   });
 }
 
@@ -67,6 +67,19 @@ function createMockPlugin(): MockPlugin {
     load: vi.fn().mockResolvedValue(undefined),
     unload: vi.fn()
   };
+}
+
+/**
+ * The real component invokes the factory (once per menu surface). The stub does the same, so the handlers
+ * are actually built here rather than the factory being captured and dropped.
+ *
+ * @returns The mock.
+ */
+function createRegisterCommandHandlersMock(): ReturnType<typeof vi.fn<CommandHandlerComponent['registerCommandHandlers']>> {
+  return vi.fn<CommandHandlerComponent['registerCommandHandlers']>((buildCommandHandlers) => {
+    buildCommandHandlers();
+    return Promise.resolve({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() });
+  });
 }
 
 function createRegistry(shouldShowTemporaryPluginLoadUnloadNotices = true): TempPluginRegistryComponent {
@@ -164,7 +177,10 @@ describe('TempPluginRegistry', () => {
 
     it('should register the unload command on register and dispose it on unload', async () => {
       const disposeMock = vi.fn();
-      const registerCommandHandlersMock = vi.fn().mockResolvedValue({ dispose: vi.fn(), [Symbol.dispose]: disposeMock });
+      const registerCommandHandlersMock = vi.fn<CommandHandlerComponent['registerCommandHandlers']>((buildCommandHandlers) => {
+        buildCommandHandlers();
+        return Promise.resolve({ dispose: vi.fn(), [Symbol.dispose]: disposeMock });
+      });
       const localRegistry = new TempPluginRegistryComponent({
         app: createApp(),
         commandHandlerComponent: strictProxy<CommandHandlerComponent>({
