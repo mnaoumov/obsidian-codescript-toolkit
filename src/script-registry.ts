@@ -209,16 +209,23 @@ class WrapperCommandHandlerComponent extends ComponentEx {
     const DEFAULT_COMMAND_ID = `${INVOKE_SCRIPT_FILE_COMMAND_NAME_PREFIX}${this.relativeScriptPath}`;
     const DEFAULT_COMMAND_NAME = `Invoke script: ${this.relativeScriptPath}`;
 
+    // The command is resolved ONCE, here, and only the handler wrapping it is built per call below.
+    // Resolving it inside the factory would re-run `buildInvokeCommand` (user script code) and re-run
+    // `createFailingInvokeCommand` (which prints an error and shows a notice) once per menu surface.
+    let createWrapperCommandHandler: () => WrapperCommandHandler;
+
     if (this.scriptOrCommand.invokeCommand) {
-      this._wrapperCommandHandler = new CommandWrapperCommandHandler({
-        command: this.createFailingInvokeCommand(new Error(`${this.relativeScriptPath} exports deprecated \`invokeCommand\`. Rewrite it to use \`buildInvokeCommand()\` instead.`)),
-        consoleDebugComponent: this.consoleDebugComponent,
-        defaultCommandIcon: DEFAULT_COMMAND_ICON,
-        defaultCommandId: DEFAULT_COMMAND_ID,
-        defaultCommandName: DEFAULT_COMMAND_NAME,
-        pluginNoticeComponent: this.pluginNoticeComponent,
-        relativeScriptPath: this.relativeScriptPath
-      });
+      const command = this.createFailingInvokeCommand(new Error(`${this.relativeScriptPath} exports deprecated \`invokeCommand\`. Rewrite it to use \`buildInvokeCommand()\` instead.`));
+      createWrapperCommandHandler = (): WrapperCommandHandler =>
+        new CommandWrapperCommandHandler({
+          command,
+          consoleDebugComponent: this.consoleDebugComponent,
+          defaultCommandIcon: DEFAULT_COMMAND_ICON,
+          defaultCommandId: DEFAULT_COMMAND_ID,
+          defaultCommandName: DEFAULT_COMMAND_NAME,
+          pluginNoticeComponent: this.pluginNoticeComponent,
+          relativeScriptPath: this.relativeScriptPath
+        });
     } else if (this.scriptOrCommand.buildInvokeCommand) {
       let invokeCommand: Partial<Command>;
       try {
@@ -226,39 +233,51 @@ class WrapperCommandHandlerComponent extends ComponentEx {
       } catch (error) {
         invokeCommand = this.createFailingInvokeCommand(ErrorWrapper.create(error));
       }
-      this._wrapperCommandHandler = new CommandWrapperCommandHandler({
-        command: invokeCommand,
-        consoleDebugComponent: this.consoleDebugComponent,
-        defaultCommandIcon: DEFAULT_COMMAND_ICON,
-        defaultCommandId: DEFAULT_COMMAND_ID,
-        defaultCommandName: DEFAULT_COMMAND_NAME,
-        pluginNoticeComponent: this.pluginNoticeComponent,
-        relativeScriptPath: this.relativeScriptPath
-      });
+      createWrapperCommandHandler = (): WrapperCommandHandler =>
+        new CommandWrapperCommandHandler({
+          command: invokeCommand,
+          consoleDebugComponent: this.consoleDebugComponent,
+          defaultCommandIcon: DEFAULT_COMMAND_ICON,
+          defaultCommandId: DEFAULT_COMMAND_ID,
+          defaultCommandName: DEFAULT_COMMAND_NAME,
+          pluginNoticeComponent: this.pluginNoticeComponent,
+          relativeScriptPath: this.relativeScriptPath
+        });
     } else if (typeof this.scriptOrCommand.invoke === 'function') {
-      this._wrapperCommandHandler = new FunctionWrapperCommandHandler({
-        app: this.app,
-        consoleDebugComponent: this.consoleDebugComponent,
-        defaultCommandIcon: DEFAULT_COMMAND_ICON,
-        defaultCommandId: DEFAULT_COMMAND_ID,
-        defaultName: DEFAULT_COMMAND_NAME,
-        invoke: this.scriptOrCommand.invoke.bind(this.scriptOrCommand),
-        pluginNoticeComponent: this.pluginNoticeComponent,
-        relativeScriptPath: this.relativeScriptPath
-      });
+      const invoke = this.scriptOrCommand.invoke.bind(this.scriptOrCommand);
+      createWrapperCommandHandler = (): WrapperCommandHandler =>
+        new FunctionWrapperCommandHandler({
+          app: this.app,
+          consoleDebugComponent: this.consoleDebugComponent,
+          defaultCommandIcon: DEFAULT_COMMAND_ICON,
+          defaultCommandId: DEFAULT_COMMAND_ID,
+          defaultName: DEFAULT_COMMAND_NAME,
+          invoke,
+          pluginNoticeComponent: this.pluginNoticeComponent,
+          relativeScriptPath: this.relativeScriptPath
+        });
     } else {
-      this._wrapperCommandHandler = new CommandWrapperCommandHandler({
-        command: this.createFailingInvokeCommand(new Error(`${this.relativeScriptPath} does not export \`invoke()\` or \`buildInvokeCommand()\` functions`)),
-        consoleDebugComponent: this.consoleDebugComponent,
-        defaultCommandIcon: DEFAULT_COMMAND_ICON,
-        defaultCommandId: DEFAULT_COMMAND_ID,
-        defaultCommandName: DEFAULT_COMMAND_NAME,
-        pluginNoticeComponent: this.pluginNoticeComponent,
-        relativeScriptPath: this.relativeScriptPath
-      });
+      const command = this.createFailingInvokeCommand(new Error(`${this.relativeScriptPath} does not export \`invoke()\` or \`buildInvokeCommand()\` functions`));
+      createWrapperCommandHandler = (): WrapperCommandHandler =>
+        new CommandWrapperCommandHandler({
+          command,
+          consoleDebugComponent: this.consoleDebugComponent,
+          defaultCommandIcon: DEFAULT_COMMAND_ICON,
+          defaultCommandId: DEFAULT_COMMAND_ID,
+          defaultCommandName: DEFAULT_COMMAND_NAME,
+          pluginNoticeComponent: this.pluginNoticeComponent,
+          relativeScriptPath: this.relativeScriptPath
+        });
     }
 
-    const disposable = this.commandHandlerComponent.registerCommandHandlers(() => [this.wrapperCommandHandler]);
+    // `forceInvoke()` drives the script programmatically rather than through a command or a menu, so it
+    // Gets an instance of its own: a registered instance cannot be reused, and `forceInvoke` reads only
+    // Constructor state, never the registration context.
+    this._wrapperCommandHandler = createWrapperCommandHandler();
+
+    // A fresh instance per call, because `CommandHandlerComponent` invokes the factory once per menu
+    // Surface and registering one instance twice throws.
+    const disposable = await this.commandHandlerComponent.registerCommandHandlers(() => [createWrapperCommandHandler()]);
     this.registerDisposable(disposable);
   }
 

@@ -58,7 +58,7 @@ function createApp(): App {
 
 function createCommandHandlerComponent(): CommandHandlerComponent {
   return strictProxy<CommandHandlerComponent>({
-    registerCommandHandlers: vi.fn(() => ({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() }))
+    registerCommandHandlers: vi.fn().mockResolvedValue({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() })
   });
 }
 
@@ -164,7 +164,7 @@ describe('TempPluginRegistry', () => {
 
     it('should register the unload command on register and dispose it on unload', async () => {
       const disposeMock = vi.fn();
-      const registerCommandHandlersMock = vi.fn(() => ({ dispose: vi.fn(), [Symbol.dispose]: disposeMock }));
+      const registerCommandHandlersMock = vi.fn().mockResolvedValue({ dispose: vi.fn(), [Symbol.dispose]: disposeMock });
       const localRegistry = new TempPluginRegistryComponent({
         app: createApp(),
         commandHandlerComponent: strictProxy<CommandHandlerComponent>({
