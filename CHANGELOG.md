@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.5.2
+
+- chore: update libs
+
 ## 13.5.1
 
 - test: invoke the command handler factory in the registry stubs
