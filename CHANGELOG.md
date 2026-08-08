@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.5.3
+
+- chore: update libs and adopt obsidian-integration-testing 10
+
 ## 13.5.2
 
 - chore: update libs
