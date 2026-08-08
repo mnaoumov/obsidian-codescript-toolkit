@@ -1,6 +1,6 @@
 import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
+import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   beforeAll,
   describe,
@@ -13,7 +13,7 @@ const POLL_TIMEOUT_MS = 20_000;
 const POLL_INTERVAL_MS = 100;
 
 beforeAll(() => {
-  const vault = getTempVault();
+  const vault = getTemporaryVault();
 
   vault.populate({
     '_int-test-buttons/auto-run.md': dedent`
@@ -71,16 +71,13 @@ beforeAll(() => {
 });
 
 function vaultPath(): string {
-  return getTempVault().path;
+  return getTemporaryVault().path;
 }
 
 describe('CodeButtonBlock integration', () => {
   it('should render a code button in markdown', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-buttons/basic', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -106,6 +103,7 @@ describe('CodeButtonBlock integration', () => {
           return activeView?.containerEl.querySelectorAll('.fix-require-modules').length ?? 0;
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -114,10 +112,7 @@ describe('CodeButtonBlock integration', () => {
 
   it('should auto-run code button with shouldAutoRun: true', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__autoRunResult');
 
         await app.workspace.openLinkText('_int-test-buttons/auto-run', '', false);
@@ -136,6 +131,7 @@ describe('CodeButtonBlock integration', () => {
         const autoRunResult = Reflect.get(window, '__autoRunResult') as string | undefined;
         return { autoRunResult };
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -145,10 +141,7 @@ describe('CodeButtonBlock integration', () => {
   // Regression test for GitHub issue #56: rendering this note used to hang the main thread (catastrophic regex backtracking in ODU's getCodeBlockMarkdownInfo). Pre-fix the poll below would time out; post-fix the render completes and sets the flag.
   it('should render issue-56 note without freezing', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__issue56Result');
 
         await app.workspace.openLinkText('_int-test-buttons/issue-56', '', false);
@@ -167,6 +160,7 @@ describe('CodeButtonBlock integration', () => {
         const issue56Result = Reflect.get(window, '__issue56Result') as string | undefined;
         return { issue56Result };
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -175,10 +169,7 @@ describe('CodeButtonBlock integration', () => {
 
   it('should execute isRaw code button without visible button', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         Reflect.deleteProperty(window, '__rawResult');
 
         await app.workspace.openLinkText('_int-test-buttons/raw', '', false);
@@ -202,6 +193,7 @@ describe('CodeButtonBlock integration', () => {
 
         return { buttonCount: buttons.length, rawResult };
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -211,10 +203,7 @@ describe('CodeButtonBlock integration', () => {
 
   it('should transform import statements in code buttons', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__importResult');
 
         await app.workspace.openLinkText('_int-test-buttons/with-import', '', false);
@@ -233,6 +222,7 @@ describe('CodeButtonBlock integration', () => {
         const importResult = Reflect.get(window, '__importResult') as string | undefined;
         return { importResult };
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 

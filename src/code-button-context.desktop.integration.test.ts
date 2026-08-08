@@ -1,6 +1,6 @@
 import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
+import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   beforeAll,
   describe,
@@ -19,7 +19,7 @@ interface ObservedContent {
 }
 
 beforeAll(() => {
-  const vault = getTempVault();
+  const vault = getTemporaryVault();
 
   vault.populate({
     '_int-test-context-notes/auto-output.md': dedent`
@@ -132,16 +132,13 @@ beforeAll(() => {
 });
 
 function vaultPath(): string {
-  return getTempVault().path;
+  return getTemporaryVault().path;
 }
 
 describe('CodeButtonContext integration', () => {
   it('should render markdown inside the container', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-context-notes/render-markdown', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -163,6 +160,7 @@ describe('CodeButtonContext integration', () => {
           return view?.containerEl.querySelector('strong') ?? null;
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -172,10 +170,7 @@ describe('CodeButtonContext integration', () => {
 
   it('should insert markdown after the code button block', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-context-notes/insert-after', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -206,6 +201,7 @@ describe('CodeButtonContext integration', () => {
           return await app.vault.read(file as import('obsidian').TFile);
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -214,10 +210,7 @@ describe('CodeButtonContext integration', () => {
 
   it('should insert markdown before the code button block', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-context-notes/insert-before', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -248,6 +241,7 @@ describe('CodeButtonContext integration', () => {
           return await app.vault.read(file as import('obsidian').TFile);
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -256,10 +250,7 @@ describe('CodeButtonContext integration', () => {
 
   it('should remove the code button block from the note', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-context-notes/remove-block', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -290,6 +281,7 @@ describe('CodeButtonContext integration', () => {
           return await app.vault.read(file as import('obsidian').TFile);
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -300,10 +292,7 @@ describe('CodeButtonContext integration', () => {
 
   it('should replace the code button block with new markdown', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-context-notes/replace-block', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -339,6 +328,7 @@ describe('CodeButtonContext integration', () => {
           return await app.vault.read(file as import('obsidian').TFile);
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -350,10 +340,7 @@ describe('CodeButtonContext integration', () => {
 
   it('should auto-output the last expression when shouldAutoOutput is true', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-context-notes/auto-output', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -380,6 +367,7 @@ describe('CodeButtonContext integration', () => {
           return resultEl?.textContent ?? '';
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -388,10 +376,7 @@ describe('CodeButtonContext integration', () => {
 
   it('should wrap console output when shouldWrapConsole is true', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText('_int-test-context-notes/wrap-console', '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -418,6 +403,7 @@ describe('CodeButtonContext integration', () => {
           return resultEl?.textContent ?? '';
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -426,10 +412,7 @@ describe('CodeButtonContext integration', () => {
 
   it('should remove code button block after successful execution with removeAfterExecution.when: onSuccess', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {
         Reflect.deleteProperty(window, '__removeAfterSuccess');
 
         await app.workspace.openLinkText('_int-test-context-notes/remove-after-success', '', false);
@@ -464,6 +447,7 @@ describe('CodeButtonContext integration', () => {
           return await app.vault.read(file as import('obsidian').TFile);
         }
       },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 

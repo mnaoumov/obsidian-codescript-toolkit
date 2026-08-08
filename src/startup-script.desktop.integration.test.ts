@@ -1,5 +1,5 @@
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
+import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   beforeAll,
   describe,
@@ -12,7 +12,7 @@ const STARTUP_SCRIPT = 'startup.js';
 const PLUGIN_ID = 'fix-require-modules';
 
 beforeAll(async () => {
-  const vault = getTempVault();
+  const vault = getTemporaryVault();
 
   vault.populate({
     [`.obsidian/plugins/${PLUGIN_ID}/data.json`]: JSON.stringify({
@@ -32,29 +32,26 @@ beforeAll(async () => {
   });
 
   await evalInObsidian({
-    // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-    args: { pluginId: PLUGIN_ID },
-    // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-    async fn({ app, pluginId }) {
+    async callback({ app, pluginId }) {
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
 
       const STARTUP_DELAY_MS = 3000;
       await sleep(STARTUP_DELAY_MS);
     },
+    input: { pluginId: PLUGIN_ID },
     vaultPath: vault.path
   });
 }, 30_000);
 
 function vaultPath(): string {
-  return getTempVault().path;
+  return getTemporaryVault().path;
 }
 
 describe('StartupScript integration', () => {
   it('should run startup script invoke on plugin load', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      fn() {
+      callback() {
         return {
           appType: Reflect.get(window, '__startupApp') as string | undefined,
           invoked: Reflect.get(window, '__startupInvoked') as boolean | undefined
@@ -69,8 +66,7 @@ describe('StartupScript integration', () => {
 
   it('should read shouldExecuteOnLoad and run invoke when it returns true', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      fn() {
+      callback() {
         return {
           invoked: Reflect.get(window, '__startupInvoked') as boolean | undefined,
           shouldExecuteOnLoadAppType: Reflect.get(window, '__startupShouldExecuteOnLoadApp') as string | undefined
@@ -85,10 +81,7 @@ describe('StartupScript integration', () => {
 
   it('should run cleanup on reload', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, pluginId }) {
+      async callback({ app, pluginId }) {
         Reflect.deleteProperty(window, '__startupCleaned');
         Reflect.deleteProperty(window, '__startupInvoked');
 
@@ -102,6 +95,7 @@ describe('StartupScript integration', () => {
           reInvoked: Reflect.get(window, '__startupInvoked') as boolean | undefined
         };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 

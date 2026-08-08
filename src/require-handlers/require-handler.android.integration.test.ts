@@ -2,7 +2,7 @@ import type { TFile } from 'obsidian';
 
 import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
+import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   beforeAll,
   describe,
@@ -66,7 +66,7 @@ function createMinimalWasm(): Uint8Array {
 }
 
 beforeAll(async () => {
-  const vault = getTempVault();
+  const vault = getTemporaryVault();
 
   vault.populate({
     [`${SCRIPTS_DIR}/module.cjs`]: 'exports.value = "android-ok";',
@@ -87,20 +87,18 @@ beforeAll(async () => {
 });
 
 function vaultPath(): string {
-  return getTempVault().path;
+  return getTemporaryVault().path;
 }
 
 describe('RequireHandler Android integration', () => {
   describe('features available on Android', () => {
     it('should requireAsync a CJS module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          return (await requireAsync(`//${dir}/module.cjs`)) as Record<string, unknown>;
+          return (await requireAsync(`//${directory}/module.cjs`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -109,13 +107,11 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync a JSON module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          return (await requireAsync(`//${dir}/module.json`)) as Record<string, unknown>;
+          return (await requireAsync(`//${directory}/module.json`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -124,13 +120,11 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync a TypeScript module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          return (await requireAsync(`//${dir}/module.mts`)) as Record<string, unknown>;
+          return (await requireAsync(`//${directory}/module.mts`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -139,8 +133,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync the obsidian module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const module_ = (await requireAsync('obsidian')) as Record<string, unknown>;
           return { hasPlugin: typeof module_['Plugin'] === 'function' };
@@ -153,13 +146,11 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync an ESM module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          return (await requireAsync(`//${dir}/module.mjs`)) as Record<string, unknown>;
+          return (await requireAsync(`//${directory}/module.mjs`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -168,13 +159,11 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync a Markdown module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          return (await requireAsync(`//${dir}/module.md`)) as Record<string, unknown>;
+          return (await requireAsync(`//${directory}/module.md`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -183,8 +172,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync obsidian/app on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const appModule = (await requireAsync('obsidian/app')) as Record<string, unknown>;
           return {
@@ -201,8 +189,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync obsidian/specialModuleNames on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const module_ = (await requireAsync('obsidian/specialModuleNames')) as Record<string, unknown>;
           return {
@@ -219,8 +206,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync obsidian-dev-utils on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const module_ = await requireAsync('obsidian-dev-utils');
           return { hasKeys: Object.keys(module_ as object).length > 0 };
@@ -233,13 +219,11 @@ describe('RequireHandler Android integration', () => {
 
     it('should resolve relative paths via requireAsync on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          return (await requireAsync(`//${dir}/relative-parent.cjs`)) as Record<string, unknown>;
+          return (await requireAsync(`//${directory}/relative-parent.cjs`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -248,15 +232,13 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync a module via file:/// URL on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ app, dir }) {
+        async callback({ app, directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const basePath = Reflect.get(app.vault.adapter, 'basePath') as string;
-          const filePath = `${basePath}/${dir}/module.cjs`.replaceAll('\\', '/');
+          const filePath = `${basePath}/${directory}/module.cjs`.replaceAll('\\', '/');
           return (await requireAsync(`file:///${filePath}`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -265,18 +247,16 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync a module via resource URL on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ app, dir }) {
+        async callback({ app, directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const obsidianModule = (await requireAsync('obsidian')) as Record<string, unknown>;
           const Platform = obsidianModule['Platform'] as Record<string, unknown>;
           const resourcePathPrefix = Platform['resourcePathPrefix'] as string;
           const basePath = Reflect.get(app.vault.adapter, 'basePath') as string;
-          const filePath = `${basePath}/${dir}/module.cjs`.replaceAll('\\', '/');
+          const filePath = `${basePath}/${directory}/module.cjs`.replaceAll('\\', '/');
           return (await requireAsync(`${resourcePathPrefix}${filePath}`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -285,8 +265,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync a module from an HTTP URL on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const module_ = (await requireAsync(
             'https://cdn.jsdelivr.net/npm/is-number@7.0.0/index.js',
@@ -303,8 +282,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync @codemirror/state on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const module_ = (await requireAsync('@codemirror/state')) as Record<string, unknown>;
           return { hasEditorState: typeof module_['EditorState'] === 'function' };
@@ -317,15 +295,13 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync a WASM module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          const module_ = (await requireAsync(`//${dir}/module.wasm`)) as Record<string, unknown>;
+          const module_ = (await requireAsync(`//${directory}/module.wasm`)) as Record<string, unknown>;
           const add = module_['add'] as (a: number, b: number) => number;
           return { result: add(3, 4) };
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -336,17 +312,15 @@ describe('RequireHandler Android integration', () => {
   describe('TFile instances', () => {
     it('should requireAsync a module via TFile instance on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ app, dir }) {
+        async callback({ app, directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          const file = app.vault.getFileByPath(`${dir}/module.cjs`);
+          const file = app.vault.getFileByPath(`${directory}/module.cjs`);
           if (!file) {
             return { error: 'File not found', value: null };
           }
           return (await requireAsync(file)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -355,12 +329,9 @@ describe('RequireHandler Android integration', () => {
 
     it('should forward options when requireAsync is called with TFile on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ app, dir }) {
+        async callback({ app, directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          const cachePath = `${dir}/tfile-cache-test.cjs`;
+          const cachePath = `${directory}/tfile-cache-test.cjs`;
 
           await app.vault.adapter.write(cachePath, 'exports.version = 1;');
           const file1 = app.vault.getFileByPath(cachePath);
@@ -382,6 +353,7 @@ describe('RequireHandler Android integration', () => {
 
           return { v1, v2 };
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -393,13 +365,11 @@ describe('RequireHandler Android integration', () => {
   describe('wikilinks and markdown links', () => {
     it('should requireAsync a module via wikilink on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          return (await requireAsync(`[[${dir}/module.cjs]]`)) as Record<string, unknown>;
+          return (await requireAsync(`[[${directory}/module.cjs]]`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -408,13 +378,11 @@ describe('RequireHandler Android integration', () => {
 
     it('should requireAsync a module via markdown link on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ dir }) {
+        async callback({ directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          return (await requireAsync(`[Module](${dir}/module.cjs)`)) as Record<string, unknown>;
+          return (await requireAsync(`[Module](${directory}/module.cjs)`)) as Record<string, unknown>;
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -425,19 +393,17 @@ describe('RequireHandler Android integration', () => {
   describe('features unavailable on Android', () => {
     it('should throw when using synchronous require() on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        fn({ dir }) {
+        callback({ directory }) {
           const requireFunction = Reflect.get(window, 'require') as (id: string) => unknown;
           try {
             // Use a path not cached by prior requireAsync tests
-            requireFunction(`//${dir}/uncached-sync-test.cjs`);
+            requireFunction(`//${directory}/uncached-sync-test.cjs`);
             return { error: '', threw: false };
           } catch (error: unknown) {
             return { error: (error as Error).message, threw: true };
           }
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -447,8 +413,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should throw when requiring electron module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           try {
             await requireAsync('electron');
@@ -466,8 +431,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should throw when requiring Node built-in module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           try {
             await requireAsync('node:fs');
@@ -485,12 +449,9 @@ describe('RequireHandler Android integration', () => {
 
     it('should throw when requiring a node binary on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-        args: { dir: SCRIPTS_DIR },
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn({ app, dir }) {
+        async callback({ app, directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          const dummyPath = `${dir}/dummy.node`;
+          const dummyPath = `${directory}/dummy.node`;
           const DUMMY_BYTE_VALUES = [0x00, 0x01, 0x02, 0x03];
           const dummyContent = new Uint8Array(DUMMY_BYTE_VALUES);
           await app.vault.adapter.writeBinary(dummyPath, dummyContent.buffer);
@@ -502,6 +463,7 @@ describe('RequireHandler Android integration', () => {
             return { error: (error as Error).message, threw: true };
           }
         },
+        input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
       });
 
@@ -511,8 +473,7 @@ describe('RequireHandler Android integration', () => {
 
     it('should return null for crypto module on Android', async () => {
       const result = await evalInObsidian({
-        // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-        async fn() {
+        async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const module_ = await requireAsync('node:crypto');
           return { isNull: module_ === null };

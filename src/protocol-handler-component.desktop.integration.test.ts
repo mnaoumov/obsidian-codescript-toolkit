@@ -1,5 +1,5 @@
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
+import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   beforeAll,
   describe,
@@ -20,7 +20,7 @@ const PLUGIN_ID = 'fix-require-modules';
 const EXECUTION_DELAY_MS = 3000;
 
 beforeAll(async () => {
-  const vault = getTempVault();
+  const vault = getTemporaryVault();
 
   vault.populate({
     [`.obsidian/plugins/${PLUGIN_ID}/data.json`]: JSON.stringify({
@@ -36,31 +36,26 @@ beforeAll(async () => {
   });
 
   await evalInObsidian({
-    // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-    args: { pluginId: PLUGIN_ID },
-    // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-    async fn({ app, pluginId }) {
+    async callback({ app, pluginId }) {
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
 
       const PLUGIN_LOAD_DELAY_MS = 2000;
       await sleep(PLUGIN_LOAD_DELAY_MS);
     },
+    input: { pluginId: PLUGIN_ID },
     vaultPath: vault.path
   });
 }, 30_000);
 
 function vaultPath(): string {
-  return getTempVault().path;
+  return getTemporaryVault().path;
 }
 
 describe('ProtocolHandler integration', () => {
   it('should execute module via protocol URL code param with requireAsync', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { executionDelay: EXECUTION_DELAY_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, executionDelay }) {
+      async callback({ app, executionDelay }) {
         Reflect.deleteProperty(window, '__protoInvoked');
 
         const workspaceUnknown: unknown = app.workspace;
@@ -81,6 +76,7 @@ describe('ProtocolHandler integration', () => {
         const prototypeInvoked = Reflect.get(window, '__protoInvoked') as string | undefined;
         return { invoked: prototypeInvoked !== undefined, prototypeInvoked };
       },
+      input: { executionDelay: EXECUTION_DELAY_MS },
       vaultPath: vaultPath()
     });
 
@@ -90,10 +86,7 @@ describe('ProtocolHandler integration', () => {
 
   it('should execute inline code via protocol URL', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { executionDelay: EXECUTION_DELAY_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, executionDelay }) {
+      async callback({ app, executionDelay }) {
         Reflect.deleteProperty(window, '__protoCodeResult');
 
         const workspaceUnknown: unknown = app.workspace;
@@ -111,6 +104,7 @@ describe('ProtocolHandler integration', () => {
         const codeResult = Reflect.get(window, '__protoCodeResult') as string | undefined;
         return { codeResult, executed: codeResult !== undefined };
       },
+      input: { executionDelay: EXECUTION_DELAY_MS },
       vaultPath: vaultPath()
     });
 

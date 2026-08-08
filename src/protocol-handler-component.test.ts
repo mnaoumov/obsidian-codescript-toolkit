@@ -103,7 +103,7 @@ describe('ProtocolHandlerComponent', () => {
       }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
         args: 'app',
         functionName: 'invoke',
         module: 'my-module'
@@ -123,7 +123,7 @@ describe('ProtocolHandlerComponent', () => {
       }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
         args: '',
         functionName: 'run',
         module: 'my-module'
@@ -133,13 +133,13 @@ describe('ProtocolHandlerComponent', () => {
     it('should use custom args when provided', async () => {
       await registeredHandler(castTo<ObsidianProtocolData>({
         action: 'CodeScriptToolkit',
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
         args: 'arg1, arg2',
         module: 'my-module'
       }));
 
       expect(mockDebug).toHaveBeenCalledWith('Invoking script file from URL action:', {
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
         args: 'arg1, arg2',
         functionName: 'invoke',
         module: 'my-module'
@@ -155,7 +155,7 @@ describe('ProtocolHandlerComponent', () => {
       expect(mockDebug).toHaveBeenCalledWith(
         'Invoking script file from URL action:',
         expect.objectContaining({
-          // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+          // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
           args: 'app'
         }) as unknown
       );
@@ -171,7 +171,7 @@ describe('ProtocolHandlerComponent', () => {
       expect(mockDebug).toHaveBeenCalledWith(
         'Invoking script file from URL action:',
         expect.objectContaining({
-          // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+          // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
           args: ''
         }) as unknown
       );

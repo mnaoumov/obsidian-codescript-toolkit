@@ -994,7 +994,6 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   private isEmptyModule(module: unknown): boolean {
-    // eslint-disable-next-line unicorn/no-unsafe-property-key -- A unique symbol is exactly the safe key here; the marker must not collide with any string member.
     return (module as Partial<EmptyModule> | undefined)?.[EMPTY_MODULE_SYMBOL] === true;
   }
 

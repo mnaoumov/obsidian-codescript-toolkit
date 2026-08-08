@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import process from 'node:process';
 import { getRootFolder } from 'obsidian-dev-utils/script-utils/root';
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
+import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   afterAll,
   describe,
@@ -80,10 +80,7 @@ afterAll(() => {
 describe('demo vault execution', () => {
   it.each(NOTES)('runs every code button in "%s" without error', async (noteName) => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { buttonTimeoutMs: BUTTON_TIMEOUT_MS, intervalMs: POLL_INTERVAL_MS, notePath: noteName, renderTimeoutMs: RENDER_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, buttonTimeoutMs, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }): Promise<NoteExecutionResult> {
+      async callback({ app, buttonTimeoutMs, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }): Promise<NoteExecutionResult> {
         function dismissModals(): void {
           for (const closeButton of document.querySelectorAll<HTMLElement>('.modal-container .modal-close-button')) {
             closeButton.click();
@@ -159,7 +156,8 @@ describe('demo vault execution', () => {
           dismissModals();
         }
       },
-      vaultPath: getTempVault().path
+      input: { buttonTimeoutMs: BUTTON_TIMEOUT_MS, intervalMs: POLL_INTERVAL_MS, notePath: noteName, renderTimeoutMs: RENDER_TIMEOUT_MS },
+      vaultPath: getTemporaryVault().path
     });
 
     report.push({ note: noteName, ...result });

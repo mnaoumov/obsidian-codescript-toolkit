@@ -13,7 +13,7 @@ const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 type GenericAsyncFunction = (...$arguments: unknown[]) => Promise<unknown>;
 
 interface InvokeModuleFunctionParams {
-  // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+  // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
   readonly args: unknown[];
   readonly functionName: string;
   readonly moduleSpecifier: string;
@@ -27,7 +27,7 @@ interface ProtocolHandlerComponentConstructorParams {
 }
 
 interface Query {
-  // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+  // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
   args?: string;
   code?: string;
   functionName?: string;
@@ -77,11 +77,11 @@ export class ProtocolHandlerComponent extends ComponentEx {
 
     if (parsedQuery.module) {
       parsedQuery.functionName ??= 'invoke';
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
       parsedQuery.args ??= parsedQuery.functionName === 'invoke' ? 'app' : '';
 
       this.consoleDebugComponent.consoleDebug('Invoking script file from URL action:', {
-        // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+        // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
         args: parsedQuery.args,
         functionName: parsedQuery.functionName,
         module: parsedQuery.module

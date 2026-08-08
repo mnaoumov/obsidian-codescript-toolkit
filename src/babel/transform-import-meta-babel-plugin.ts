@@ -91,7 +91,7 @@ function transformProgram(path: NodePath<Program>): void {
       `${urlId}.pathToFileURL(${requireFactoryIdentifierName}(${urlId}.pathToFileURL(__filename).toString()).resolve(%%args%%)).toString()`
     );
     for (const meta of resolveMetas) {
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
+      // eslint-disable-next-line unicorn/name-replacements -- `args` is the placeholder name in the Babel template above.
       meta.replaceWith(buildResolveReplacement({ args: meta.node.arguments }));
     }
   }

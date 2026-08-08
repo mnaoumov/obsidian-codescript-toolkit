@@ -2,7 +2,7 @@
 import type { Plugin as ObsidianPlugin } from 'obsidian';
 
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
+import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   describe,
   expect,
@@ -21,14 +21,13 @@ interface CodeScriptToolkitModule {
 }
 
 function vaultPath(): string {
-  return getTempVault().path;
+  return getTemporaryVault().path;
 }
 
 describe('TempPluginRegistry integration', () => {
   it('should require codescript-toolkit module and access its API', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn() {
+      async callback() {
         const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<Record<string, unknown>>;
         const cstModule = await requireAsync('codescript-toolkit');
 
@@ -49,8 +48,7 @@ describe('TempPluginRegistry integration', () => {
 
   it('should register and unregister a temp plugin', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ obsidianModule }) {
+      async callback({ obsidianModule }) {
         const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<CodeScriptToolkitModule>;
         const cstModule = await requireAsync('codescript-toolkit');
 
@@ -81,8 +79,7 @@ describe('TempPluginRegistry integration', () => {
 
   it('should retrieve a registered temp plugin via getTempPlugin', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ obsidianModule }) {
+      async callback({ obsidianModule }) {
         const requireAsync = Reflect.get(window, 'requireAsync') as (id: string) => Promise<CodeScriptToolkitModule>;
         const cstModule = await requireAsync('codescript-toolkit');
 

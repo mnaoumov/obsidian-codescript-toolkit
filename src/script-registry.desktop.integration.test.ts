@@ -1,5 +1,5 @@
 import { evalInObsidian } from 'obsidian-integration-testing';
-import { getTempVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
+import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
   beforeAll,
   describe,
@@ -15,7 +15,7 @@ const POLL_TIMEOUT_MS = 20_000;
 const POLL_INTERVAL_MS = 100;
 
 beforeAll(async () => {
-  const vault = getTempVault();
+  const vault = getTemporaryVault();
 
   vault.populate({
     [`.obsidian/plugins/${PLUGIN_ID}/data.json`]: JSON.stringify({
@@ -40,10 +40,7 @@ beforeAll(async () => {
   });
 
   await evalInObsidian({
-    // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-    args: { pluginId: PLUGIN_ID },
-    // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-    async fn({ app, pluginId }) {
+    async callback({ app, pluginId }) {
       // Reload plugin to pick up new data.json + scripts
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
@@ -52,25 +49,24 @@ beforeAll(async () => {
       const WATCHER_SETTLE_DELAY_MS = 3000;
       await sleep(WATCHER_SETTLE_DELAY_MS);
     },
+    input: { pluginId: PLUGIN_ID },
     vaultPath: vault.path
   });
 }, 30_000);
 
 function vaultPath(): string {
-  return getTempVault().path;
+  return getTemporaryVault().path;
 }
 
 describe('ScriptRegistry integration', () => {
   it('should register invocable script as Obsidian command', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      fn({ app, pluginId }) {
+      callback({ app, pluginId }) {
         const invokeCommands = Object.keys(app.commands.commands)
           .filter((id) => id.startsWith(`${pluginId}:invoke-script-file-`));
         return { invokeCommands };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 
@@ -79,10 +75,7 @@ describe('ScriptRegistry integration', () => {
 
   it('should execute invocable CJS script via command', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, pluginId }) {
+      async callback({ app, pluginId }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('simple-invoke'));
 
@@ -96,6 +89,7 @@ describe('ScriptRegistry integration', () => {
         const invocableResult = Reflect.get(window, '__invocableResult') as string | undefined;
         return { executed: true, result: invocableResult };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 
@@ -105,14 +99,12 @@ describe('ScriptRegistry integration', () => {
 
   it('should register TypeScript invocable script', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      fn({ app, pluginId }) {
+      callback({ app, pluginId }) {
         const tsCommand = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('ts-invoke'));
         return { found: tsCommand !== undefined };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 
@@ -121,10 +113,7 @@ describe('ScriptRegistry integration', () => {
 
   it('should register and execute buildInvokeCommand pattern, passing the app to the builder', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, pluginId }) {
+      async callback({ app, pluginId }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('cmd-invoke') && !id.includes('async-cmd-invoke'));
 
@@ -142,6 +131,7 @@ describe('ScriptRegistry integration', () => {
         const isAppMatches = Reflect.get(window, '__cmdInvokedAppMatches') === true;
         return { appMatches: isAppMatches, executed: isCommandInvoked };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 
@@ -151,10 +141,7 @@ describe('ScriptRegistry integration', () => {
 
   it('should await an async buildInvokeCommand and use the command it builds', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, pluginId }) {
+      async callback({ app, pluginId }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('async-cmd-invoke'));
 
@@ -172,6 +159,7 @@ describe('ScriptRegistry integration', () => {
         const isExecuted = Reflect.get(window, '__asyncCmdInvoked') === true;
         return { executed: isExecuted, name };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 
@@ -181,10 +169,7 @@ describe('ScriptRegistry integration', () => {
 
   it('should register a failing command for a script exporting the deprecated invokeCommand', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, pluginId }) {
+      async callback({ app, pluginId }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('deprecated-invoke-command'));
 
@@ -200,6 +185,7 @@ describe('ScriptRegistry integration', () => {
         const isExecuted = Reflect.get(window, '__deprecatedInvokeCommandInvoked') === true;
         return { executed: isExecuted, found: true };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 
@@ -210,10 +196,7 @@ describe('ScriptRegistry integration', () => {
 
   it('should execute checkCallback invocable script', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, pluginId }) {
+      async callback({ app, pluginId }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('check-callback'));
 
@@ -229,6 +212,7 @@ describe('ScriptRegistry integration', () => {
         const checkCallbackInvoked = Reflect.get(window, '__checkCallbackInvoked') === true;
         return { executed: checkCallbackInvoked };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 
@@ -238,10 +222,7 @@ describe('ScriptRegistry integration', () => {
   it('should execute editorCallback invocable script with editor context', async () => {
     // Open a markdown file to ensure an active editor exists
     await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, invocablesFolder: INVOCABLES_FOLDER, modulesRoot: MODULES_ROOT, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, invocablesFolder, lib: { waitUntil }, modulesRoot, obsidianModule, timeoutMs }) {
+      async callback({ app, intervalMs, invocablesFolder, lib: { waitUntil }, modulesRoot, obsidianModule, timeoutMs }) {
         await app.workspace.openLinkText(`${modulesRoot}/${invocablesFolder}/scratch`, '', false);
 
         await waitUntil({
@@ -250,14 +231,12 @@ describe('ScriptRegistry integration', () => {
           timeoutInMilliseconds: timeoutMs
         });
       },
+      input: { intervalMs: POLL_INTERVAL_MS, invocablesFolder: INVOCABLES_FOLDER, modulesRoot: MODULES_ROOT, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, pluginId: PLUGIN_ID, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, pluginId, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, pluginId, timeoutMs }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-callback'));
 
@@ -285,6 +264,7 @@ describe('ScriptRegistry integration', () => {
         const isEditorExists = Reflect.get(window, '__editorExists') === true;
         return { editorExists: isEditorExists, executed: isExecuted };
       },
+      input: { intervalMs: POLL_INTERVAL_MS, pluginId: PLUGIN_ID, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -295,10 +275,7 @@ describe('ScriptRegistry integration', () => {
   it('should execute editorCheckCallback invocable script with condition check and editor', async () => {
     // The previous test already opened a markdown file — editor should still be active
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { intervalMs: POLL_INTERVAL_MS, pluginId: PLUGIN_ID, timeoutMs: POLL_TIMEOUT_MS },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, intervalMs, lib: { waitUntil }, obsidianModule, pluginId, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, pluginId, timeoutMs }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-check-callback'));
 
@@ -326,6 +303,7 @@ describe('ScriptRegistry integration', () => {
         const isEditorHasEditor = Reflect.get(window, '__editorCheckHasEditor') === true;
         return { editorHasEditor: isEditorHasEditor, executed: isExecuted };
       },
+      input: { intervalMs: POLL_INTERVAL_MS, pluginId: PLUGIN_ID, timeoutMs: POLL_TIMEOUT_MS },
       vaultPath: vaultPath()
     });
 
@@ -335,10 +313,7 @@ describe('ScriptRegistry integration', () => {
 
   it('should register command with hotkey and execute it', async () => {
     const result = await evalInObsidian({
-      // eslint-disable-next-line unicorn/name-replacements -- `args` is an `obsidian-integration-testing` parameter name.
-      args: { pluginId: PLUGIN_ID },
-      // eslint-disable-next-line unicorn/name-replacements -- `fn` is an `obsidian-integration-testing` parameter name.
-      async fn({ app, pluginId }) {
+      async callback({ app, pluginId }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('hotkey-invoke'));
 
@@ -357,6 +332,7 @@ describe('ScriptRegistry integration', () => {
         const isExecuted = Reflect.get(window, '__hotkeyInvoked') === true;
         return { executed: isExecuted, hasHotkey };
       },
+      input: { pluginId: PLUGIN_ID },
       vaultPath: vaultPath()
     });
 
