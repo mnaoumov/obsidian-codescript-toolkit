@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 13.6.0
+
+- test: run the demo-vault project in the integration aggregate
+- docs: describe the android integration project and its emulator DNS trap
+- feat: show a code button's source, and make the demo vault the documentation
+
 ## 13.5.3
 
 - chore: update libs and adopt obsidian-integration-testing 10
