@@ -1,12 +1,20 @@
 {
-  // Scoped markdownlint config for the demo vault. The notes are an Obsidian
-  // vault, so two default rules are inherently incompatible and disabled here;
-  // every other rule still applies so the notes stay clean.
+  // Scoped markdownlint config for the demo vault. The notes are the plugin's
+  // documentation, so they are linted like documentation; only the fixtures
+  // under `_assets/` are exempt.
   "config": {
-    // Notes intentionally open with a `[Docs](...)` link, not a heading.
-    "MD041": false,
     // `[[wikilinks]]` are Obsidian's native link syntax; markdownlint parses
-    // them as undefined shortcut reference links.
+    // them as undefined shortcut reference links. Notes link each other with
+    // `[Text](<./NN Name.md>)` (wikilinks do not render on GitHub), so the only
+    // remaining `[[...]]` are inside the code fences of `13 Wikilinks.md`,
+    // which markdownlint already ignores. Kept off so that note can keep
+    // demonstrating the syntax without a suppression comment.
     "MD052": false
-  }
+  },
+  // `_assets/` holds code fixtures, not documentation: `code-script` modules,
+  // Templater templates, and a vendored `node_modules`. They are notes only by
+  // file extension and have no headings, so `MD041` does not apply to them.
+  "ignores": [
+    "_assets/**"
+  ]
 }

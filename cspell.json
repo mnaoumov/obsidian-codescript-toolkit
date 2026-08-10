@@ -49,6 +49,8 @@
     "quickadd",
     "preversion",
     "Promisable",
+    "requirable",
+    "requireasync",
     "rangeset",
     "riscv",
     "Templater",

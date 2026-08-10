@@ -1,53 +1,57 @@
 # AGENTS.md
 
-## What's done
+## The demo vault IS the documentation
 
-- Bug fix: ScriptFolderWatcher missed initial loadSettings event (component load ordering)
-- Bug fix: broken relative links in docs/code-button-config.md and docs/code-button-context.md
-- Workaround: afterAll detaches markdown leaves to avoid CLI eval interference
-- Added dedent dependency for multiline strings
-- Added strictProxy rule to global TypeScript rules
+There is no separate prose documentation. `demo-vault/` is the plugin's documentation, read either
+in Obsidian (where the buttons run) or on GitHub (where it is plain markdown). `docs/` still exists,
+but every page there is a one-line redirect stub — kept permanently so no `blob/main/docs/*.md` link
+from an old issue, forum post, or release ever 404s. **Never add new content under `docs/`.**
 
-## Integration test coverage (142 tests)
+Why: the notes used to be a `[Docs](url)` line plus code fences, with all the prose in `docs/`.
+Neither surface was complete on its own, the two feature lists drifted, and a first-time reader in
+Reading mode saw only a purple button. ClareMacrae reviewed it cold and could learn nothing from it;
+issue #58 is an unrelated user reporting the same thing.
 
-| Feature                                                                                        | Tests |
-|------------------------------------------------------------------------------------------------|-------|
-| Module formats (CJS, ESM, CTS, MTS, JSON, MD)                                                  | 6     |
-| Path resolution (relative, transitive)                                                         | 2     |
-| Built-in modules (obsidian, @codemirror)                                                       | 2     |
-| Async (top-level await, dynamic import, requireAsyncWrapper)                                   | 3     |
-| NPM modules from vault node_modules                                                            | 1     |
-| Smart caching (cacheInvalidationMode: always)                                                  | 1     |
-| Special modules (obsidian/app, obsidian-dev-utils, specialModuleNames, node:path)              | 4     |
-| Desktop modules (electron, @electron/remote)                                                   | 2     |
-| Module type override (load .txt as JS, load .dat as JSON)                                      | 2     |
-| Source maps (TS module transformation)                                                         | 1     |
-| Clear cache command (never mode + clear-cache)                                                 | 1     |
-| WASM modules (requireAsync desktop, sync throw, mobile, Android)                               | 4     |
-| ASAR archives (sync + async from .asar file)                                                   | 2     |
-| Node binaries (async + sync error, mobile throw, Android throw)                                | 4     |
-| Invocable scripts (register, execute, TS, buildInvokeCommand + async, deprecated, editor)      | 10    |
-| Code buttons (render, autoRun, isRaw, import transform)                                        | 4     |
-| Code-button context (renderMarkdown, insertBefore/After, remove, replace)                      | 5     |
-| Code-button config (shouldAutoOutput, shouldWrapConsole, removeAfterExecution)                 | 3     |
-| Startup script (invoke, shouldExecuteOnLoad, cleanup+reload)                                   | 3     |
-| Protocol handler (module via code, inline code)                                                | 2     |
-| Temp plugin registry (API access, register+unregister, getTempPlugin)                          | 3     |
-| File URLs (file:/// async + sync)                                                              | 2     |
-| Resource URLs (resource prefix async + sync)                                                   | 2     |
-| HTTP URLs (requireAsync from CDN)                                                              | 1     |
-| TFile instances (requireAsync + sync require + options forwarding desktop, mobile, Android)    | 8     |
-| Wikilinks and markdown links (async + sync, alias, desktop, mobile, Android)                   | 9     |
-| Synchronous require (all desktop-supported modules)                                            | 16    |
-| Emulate-mobile (all mobile features, file/resource/HTTP URLs, WASM, sync/electron/node throw)  | 21    |
-| Android (all mobile features, file/resource/HTTP URLs, WASM, sync/electron/node throw)         | 20    |
-| Skip transpilation (.cjs raw, shouldTranspile override, .js package.json type auto-detect)     | 4     |
-| Smoke test                                                                                     | 2     |
+### Note conventions
 
-## Coverage status
+- Every note opens with an `# H1`, then one to three sentences of **what the feature does and why
+  you would want it** — behavior, not technical nouns.
+- Then the runnable ` ```code-button ` example(s), then `## Options` / `## Caveats` as needed, then
+  `## Platform support` with the Desktop/Mobile table.
+- Links between notes are `[Text](<./NN Name.md>)`, **never `[[wikilinks]]`** — wikilinks do not
+  render on GitHub, which is now a primary reading surface. The only `[[…]]` left in the vault are
+  inside the code fences of `13 Wikilinks.md`, where they are the subject.
+- Platform tables use reference links (`[require]: <./40 Core functions.md#require>`) so the table
+  columns stay narrow enough to align.
+- `00 Start.md` is a getting-started guide — what the vault is, a concrete first success, then an
+  index grouped by intent with a one-line description per entry. Every note must be reachable from
+  it.
+- `_assets/` holds code fixtures, not documentation; it is excluded from the vault's markdownlint
+  config.
 
-All features are now fully covered across code, docs, demo vault, and integration tests (142 tests).
+### Gotcha: table alignment with emoji
 
-- ~~Integration test gaps (WASM, ASAR, node binaries)~~ — **Done**
-- ~~Demo vault gap (`requireAsyncWrapper()`)~~ — **Done**
-- ~~Docs gap (plugin integrations)~~ — **Done** (added demo vault link to `docs/usage.md`; dedicated guide pages intentionally out of scope)
+`MD060` aligns on **display width**, and the `✅` / `❌` in every platform table are two columns wide
+while a naive `.Length` says one. A script that re-pads tables must use a display-width function, or
+every table in the vault comes out one column short.
+
+## Testing layout
+
+Four vitest projects:
+
+| Project                        | Script                        | What it covers                                                         |
+| ------------------------------ | ----------------------------- | ---------------------------------------------------------------------- |
+| `unit-tests`                   | `npm test`                    | Everything mockable, against `obsidian-test-mocks`                     |
+| `integration-tests:no-app`     | `test:integration:no-app`     | Demo-vault coverage: every public API member is demonstrated in a note |
+| `integration-tests:desktop`    | `test:integration:desktop`    | Real Obsidian over CDP                                                 |
+| `integration-tests:demo-vault` | `test:integration` (included) | Clicks **every button in every root note** and asserts none errors     |
+
+The demo-vault execution project has no dedicated npm script — it runs as part of
+`npm run test:integration`. It is what stops a rewritten note from shipping a broken example.
+
+Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before
+running them**, or the suite silently exercises a stale build.
+
+`scripts/demo-vault-global-setup.ts` mirrors the CodeScript Toolkit settings that
+`obsidian-dev-utils`' `demo-vault-helper` writes, including the `defaultCodeButtonConfig` that turns
+the code-button source panel on. Two copies of one contract — keep them in sync.

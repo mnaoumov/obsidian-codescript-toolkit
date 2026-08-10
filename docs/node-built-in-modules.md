@@ -1,16 +1,5 @@
 # Node built-in modules
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ❌     |
+Moved to [18 Node built-in modules](<../demo-vault/18 Node built-in modules.md>).
 
-You can require Node built-in modules such as `fs` with an optional prefix `node:`.
-
-```js
-require('fs');
-require('node:fs');
-```
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

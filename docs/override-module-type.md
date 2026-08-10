@@ -1,23 +1,5 @@
 # Override module type
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ✅     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [24 Override module type](<../demo-vault/24 Override module type.md>).
 
-Module type is determined via file extension. You can override it if needed.
-
-```js
-require('./actual-js-file.some-unknown-extension', { moduleType: 'jsTs' });
-```
-
-Possible values:
-
-- `json` - [JSON files](./json.md).
-- `jsTs` - JavaScript/TypeScript files: `.js`/`.cjs`/`.mjs`/`.ts`/`.cts`/`.mts`.
-- `md` - [Markdown files](./markdown.md).
-- `node` - [Node binaries](./node-binaries.md).
-- `wasm` - [WebAssembly (WASM)](./wasm.md).
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

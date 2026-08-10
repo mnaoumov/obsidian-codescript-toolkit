@@ -1,16 +1,5 @@
 # Wikilinks
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ✅     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [13 Wikilinks](<../demo-vault/13 Wikilinks.md>).
 
-Adds support for Wikilinks:
-
-```js
-require('[[Script.js]]');
-require('[[Script.js|Alias]]');
-```
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

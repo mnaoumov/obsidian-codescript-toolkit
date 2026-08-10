@@ -17,12 +17,12 @@ await module.foo('bar');
 
 ## Options
 
-| Parameter      | Meaning                                                                    |
-| -------------- | --------------------------------------------------------------------------- |
-| `module`       | the script to load                                                          |
+| Parameter      | Meaning                                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| `module`       | the script to load                                                                                   |
 | `functionName` | the export to call — defaults to `invoke`, matching [Invocable scripts](<./35 Invocable scripts.md>) |
-| `args`         | comma-separated arguments — omit for none                                   |
-| `code`         | code to run directly, instead of `module`                                   |
+| `args`         | comma-separated arguments — omit for none                                                            |
+| `code`         | code to run directly, instead of `module`                                                            |
 
 Arguments are evaluated, so they can be literals, expressions, or objects: `'arg1','arg%20with%20space2',42,app.vault,%7Bbaz%3A'qux'%7D`.
 

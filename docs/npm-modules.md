@@ -1,17 +1,5 @@
 # NPM modules
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [17 NPM modules](<../demo-vault/17 NPM modules.md>).
 
-You can require NPM modules installed into your configured scripts root folder.
-
-```js
-require('npm-package-name');
-```
-
-See [Tips](./usage.md#tips) how to avoid performance issues.
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

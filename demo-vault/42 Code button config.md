@@ -171,11 +171,11 @@ sourceVisibility: collapsed
 'hello';
 ```
 
-| Value       | Behavior                                          |
-| ----------- | -------------------------------------------------- |
-| `hidden`    | no toggle, no source panel (default)               |
-| `collapsed` | toggle shown, panel starts closed                  |
-| `expanded`  | toggle shown, panel starts open                    |
+| Value       | Behavior                             |
+| ----------- | ------------------------------------ |
+| `hidden`    | no toggle, no source panel (default) |
+| `collapsed` | toggle shown, panel starts closed    |
+| `expanded`  | toggle shown, panel starts open      |
 
 Right-clicking a button offers **Copy source** and **Reveal in note**, whatever this is set to.
 

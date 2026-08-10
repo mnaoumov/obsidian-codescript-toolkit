@@ -12,13 +12,13 @@ overrideModuleType();
 
 ## Options
 
-| Value  | Loads as                                                        |
-| ------ | --------------------------------------------------------------- |
-| `json` | [JSON files](<./19 JSON files.md>)                               |
-| `jsTs` | JavaScript/TypeScript: `.js`/`.cjs`/`.mjs`/`.ts`/`.cts`/`.mts`   |
-| `md`   | [Markdown files](<./23 Markdown files.md>)                       |
-| `node` | [Node binaries](<./20 Node binaries.md>)                         |
-| `wasm` | [WebAssembly](<./21 WebAssembly.md>)                             |
+| Value  | Loads as                                                       |
+| ------ | -------------------------------------------------------------- |
+| `json` | [JSON files](<./19 JSON files.md>)                             |
+| `jsTs` | JavaScript/TypeScript: `.js`/`.cjs`/`.mjs`/`.ts`/`.cts`/`.mts` |
+| `md`   | [Markdown files](<./23 Markdown files.md>)                     |
+| `node` | [Node binaries](<./20 Node binaries.md>)                       |
+| `wasm` | [WebAssembly](<./21 WebAssembly.md>)                           |
 
 The same option is useful for [URLs](<./26 URLs.md>), where the server's `Content-Type` header is often missing or too generic to trust.
 

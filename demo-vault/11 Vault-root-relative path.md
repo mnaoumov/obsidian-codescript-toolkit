@@ -14,11 +14,11 @@ vaultRootRelativePath();
 
 Three roots, three prefixes, easy to mix up:
 
-| Prefix | Resolves against                                              |
-| ------ | ------------------------------------------------------------- |
-| `./`   | the current script or note — [Relative path](<./08 Relative path.md>) |
+| Prefix | Resolves against                                                                 |
+| ------ | -------------------------------------------------------------------------------- |
+| `./`   | the current script or note — [Relative path](<./08 Relative path.md>)            |
 | `/`    | the configured modules root — [Root-relative path](<./09 Root-relative path.md>) |
-| `//`   | the vault root — this note                                    |
+| `//`   | the vault root — this note                                                       |
 
 ## Platform support
 

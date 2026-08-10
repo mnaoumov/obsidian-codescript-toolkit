@@ -1,17 +1,5 @@
 # System root path (Linux, MacOS)
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [10 System root path](<../demo-vault/10 System root path.md>).
 
-On Linux and MacOS, the system root path is `/path/from/system/root.js`.
-
-In order to distinguish them from [root-relative path](./root-relative-path.md), you need to prepend `~` to the path.
-
-```js
-require('~/path/from/system/root.js');
-```
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

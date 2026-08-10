@@ -11,6 +11,6 @@ Each note shows both directions: running CodeScript Toolkit from that plugin, an
 - [01-03 `dataviewjs` scripts](<./01-03 Dataview.md>) — the most widely used scripting surface in Obsidian
 - [01-04 `DevTools Console` within `Obsidian`](<./01-04 DevTools Console.md>) — the console is a scripting surface too
 - [01-05 `JS Engine` scripts](<./01-05 JS Engine.md>) — render JS output into a note
-- [01-06 `Modules` scripts](<./01-06 Modules.md>) — another module loader, interoperating with this one
+- [01-06 `Modules` scripts](<./01-06 Modules.md>) — another module loader, working alongside this one
 - [01-07 `QuickAdd` scripts](<./01-07 QuickAdd.md>) — scripted capture and template choices
 - [01-08 `Templater` scripts](<./01-08 Templater.md>) — scripts inside templates

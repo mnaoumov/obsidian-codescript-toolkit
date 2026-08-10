@@ -1,15 +1,5 @@
 # Vault-root-relative path
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [11 Vault-root-relative path](<../demo-vault/11 Vault-root-relative path.md>).
 
-Adds support for vault-root-relative paths:
-
-```js
-require('//path/from/vault/root.js');
-```
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

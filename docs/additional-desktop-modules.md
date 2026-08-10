@@ -1,24 +1,5 @@
 # Additional desktop modules
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ❌     |
+Moved to [07 Additional desktop modules](<../demo-vault/07 Additional desktop modules.md>).
 
-[`Obsidian`][Obsidian] on desktop is shipped with some additional modules that you can [`require()`](./core-functions.md#require).
-
-```js
-// bundled with Electron app
-require('electron');
-require('electron/common');
-require('electron/renderer');
-
-// packed in `app.asar`
-require('@electron/remote');
-require('btime');
-require('get-fonts');
-```
-
-[Obsidian]: https://obsidian.md/
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

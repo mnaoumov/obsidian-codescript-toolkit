@@ -48,11 +48,11 @@ codeScriptToolkit:
 ---
 ````
 
-| Key                       | Meaning                                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------------------- |
-| `defaultCodeScriptName`   | which block to use when `?codeScriptName=...` is omitted                                        |
-| `invocableCodeScriptName` | which block to run via [Invoke scripts](<./41 Invoke scripts.md>)                                |
-| `isInvocable`             | whether this note appears in the [Invoke scripts](<./41 Invoke scripts.md>) command list         |
+| Key                       | Meaning                                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| `defaultCodeScriptName`   | which block to use when `?codeScriptName=...` is omitted                                 |
+| `invocableCodeScriptName` | which block to run via [Invoke scripts](<./41 Invoke scripts.md>)                        |
+| `isInvocable`             | whether this note appears in the [Invoke scripts](<./41 Invoke scripts.md>) command list |
 
 ```code-button
 ---

@@ -1,6 +1,6 @@
 # Wikilinks
 
-Require a script through Obsidian's own link syntax. Because it is a real link, Obsidian keeps it pointing at the right file when you rename or move the script — and the usual link affordances work, so you can follow it from the note.
+Require a script through Obsidian's own link syntax. Because it is a real link, Obsidian keeps it pointing at the right file when you rename or move the script — and it behaves like any other link, so you can follow it straight from the note.
 
 ```code-button
 ---

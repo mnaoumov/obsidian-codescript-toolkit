@@ -126,6 +126,8 @@ export async function buildInvokeCommand(app: App): Promise<Partial<Command>> {
 >
 > A script that exports none of the above still gets a command registered. The missing export is reported to the console and shown as a notice when the script is registered, and again whenever the command is invoked — so a broken script stays visible instead of silently disappearing.
 
+A script whose `buildInvokeCommand()` fails behaves the same way:
+
 > [!WARNING]
 >
 > If `buildInvokeCommand()` throws, the error is reported right away, when the script is registered. Its command is still registered and stays in the [`Command Palette`](https://help.obsidian.md/Plugins/Command+palette), but invoking it only repeats that error.

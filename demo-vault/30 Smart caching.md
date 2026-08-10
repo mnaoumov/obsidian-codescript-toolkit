@@ -36,11 +36,11 @@ cacheInvalidationModeWhenPossibleWithQueryString();
 
 ## Options
 
-| `cacheInvalidationMode` | Behavior                                                                    |
-| ----------------------- | --------------------------------------------------------------------------- |
-| `always`                | always fetch the latest version, ignoring the cache                         |
-| `never`                 | always use the cached version, ignoring any changes to the module           |
-| `whenPossible`          | fetch the latest version when that is possible, otherwise use the cache     |
+| `cacheInvalidationMode` | Behavior                                                                |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `always`                | always fetch the latest version, ignoring the cache                     |
+| `never`                 | always use the cached version, ignoring any changes to the module       |
+| `whenPossible`          | fetch the latest version when that is possible, otherwise use the cache |
 
 A query string has the same effect as `never` (except for URLs, where it is part of the address):
 

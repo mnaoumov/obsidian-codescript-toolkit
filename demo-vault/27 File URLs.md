@@ -15,7 +15,7 @@ fileUrl();
 
 ## Caveats
 
-A `file:///` URL names an absolute location on one machine, so hard-coding one makes the script unportable — build it at runtime as the button does. On mobile there is no filesystem to address this way with `require()`.
+A `file:///` URL names an absolute location on one machine, so hard-coding one stops the script working anywhere else — build it at runtime as the button does. On mobile there is no filesystem to address this way with `require()`.
 
 ## Platform support
 

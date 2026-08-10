@@ -40,13 +40,17 @@ This plugin aims to erase the line between the [`Obsidian`][Obsidian] world and 
 
 ## Usage
 
-See [docs](./docs/usage.md).
+**The documentation is a demo vault.** Every feature has a note that explains what it does and why you would want it, followed by a button that runs it for real — so you can read the explanation and execute the example in the same place.
 
-A demo vault with usage examples ships with every release. You can access it via any of the following:
+**[Start reading here](<./demo-vault/00 Start.md>)** — it works as plain markdown on GitHub, no installation needed.
+
+To open it in Obsidian and actually click the buttons, use any of:
 
 1. Running the **CodeScript Toolkit: Open demo vault** command.
 2. Downloading `fix-require-modules-demo-vault-<version>.zip` (`<version>` is the release version) from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases).
-3. Browsing its source in [`demo-vault/`](./demo-vault/README.md) in this repository.
+3. Cloning this repository and opening [`demo-vault/`](./demo-vault/README.md) as a vault.
+
+If you are not sure where to start, three notes cover most of it: [Core functions](<./demo-vault/40 Core functions.md>) (which of `require()` / `requireAsync()` / `requireAsyncWrapper()` to use), [Code buttons](<./demo-vault/38 Code buttons.md>) (runnable snippets inside a note), and [Invocable scripts](<./demo-vault/35 Invocable scripts.md>) (turning a script into an Obsidian command).
 
 ## Installation
 
@@ -70,7 +74,7 @@ To show them, run the following command:
 window.DEBUG.enable('fix-require-modules');
 ```
 
-For more details, refer to the [documentation](https://mnaoumov.dev/obsidian-dev-utils/guides/debugging/).
+For more details, refer to the [Obsidian Dev Utils debugging guide](https://mnaoumov.dev/obsidian-dev-utils/guides/debugging/).
 
 ## Rebranding
 
