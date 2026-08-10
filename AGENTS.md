@@ -37,12 +37,13 @@ every table in the vault comes out one column short.
 
 ## Testing layout
 
-Four vitest projects:
+Five vitest projects:
 
 | Project                        | Script                        | What it covers                                                         |
 | ------------------------------ | ----------------------------- | ---------------------------------------------------------------------- |
 | `unit-tests`                   | `npm test`                    | Everything mockable, against `obsidian-test-mocks`                     |
 | `integration-tests:no-app`     | `test:integration:no-app`     | Demo-vault coverage: every public API member is demonstrated in a note |
+| `integration-tests:android`    | `test:integration:android`    | Real Obsidian on an Android emulator over Appium                       |
 | `integration-tests:desktop`    | `test:integration:desktop`    | Real Obsidian over CDP                                                 |
 | `integration-tests:demo-vault` | `test:integration` (included) | Clicks **every button in every root note** and asserts none errors     |
 
@@ -51,6 +52,20 @@ The demo-vault execution project has no dedicated npm script — it runs as part
 
 Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before
 running them**, or the suite silently exercises a stale build.
+
+### Gotcha: a hand-started Android emulator has no DNS
+
+`obsidian-integration-testing` starts the emulator itself with
+`-avd obsidian_test -no-snapshot-save -dns-server 8.8.8.8 [-no-window]`, but if the AVD is **already
+running** it reuses that device as-is. An emulator started by hand (`emulator -avd obsidian_test`)
+therefore has no `-dns-server`, and on Windows it inherits a host DNS it cannot reach: IP routing
+works (`adb shell ping 8.8.8.8` succeeds) while **every hostname fails**
+(`adb shell ping cdn.jsdelivr.net` → `unknown host`).
+
+The only android test that touches the network is the HTTP-URL `requireAsync` case
+(`cdn.jsdelivr.net/npm/is-number`), so the symptom is a single confusing failure —
+`Request Failed. UnknownHostException Unable to resolve host` — in an otherwise green suite. Fix:
+`adb emu kill`, then let the harness boot the emulator itself. Do not "fix" the test.
 
 `scripts/demo-vault-global-setup.ts` mirrors the CodeScript Toolkit settings that
 `obsidian-dev-utils`' `demo-vault-helper` writes, including the `defaultCodeButtonConfig` that turns
