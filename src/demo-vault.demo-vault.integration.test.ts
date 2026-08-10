@@ -172,4 +172,47 @@ describe('demo vault execution', () => {
     );
     expect(broken, `"${noteName}" (renderOk=${String(result.renderOk)}, buttons=${String(result.buttonCount)}):\n${JSON.stringify(broken, null, 2)}`).toEqual([]);
   });
+
+  // The vault opts every button into showing its source through the plugin's vault-wide
+  // Default-code-button-config setting, so no note carries a per-block `sourceVisibility`.
+  // This asserts that vault-wide opt-in actually reaches a real note — the whole point of
+  // The setting, and the thing a reader of the demo vault sees first.
+  it('shows the source toggle on a real note without any per-note config', async () => {
+    const result = await evalInObsidian({
+      async callback({ app, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }) {
+        await app.workspace.openLinkText(path.replace(/\.md$/, ''), '', false);
+        const leaf = app.workspace.getLeaf(false);
+        await leaf.setViewState({
+          state: { file: path, mode: 'preview' },
+          type: 'markdown'
+        });
+
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          message: 'code button source toggle to render',
+          predicate: (): boolean => query('.code-button-source-toggle') !== null,
+          timeoutInMilliseconds: renderTimeoutMs
+        });
+
+        const sourceEl = query('.code-button-source-container');
+        return {
+          isCollapsed: sourceEl?.classList.contains('is-collapsed') ?? false,
+          toggleCount: activeView()?.containerEl.querySelectorAll('.code-button-source-toggle').length ?? 0
+        };
+
+        function activeView(): InstanceType<typeof obsidianModule.MarkdownView> | null {
+          return app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
+        }
+
+        function query(selector: string): HTMLElement | null {
+          return activeView()?.containerEl.querySelector<HTMLElement>(selector) ?? null;
+        }
+      },
+      input: { intervalMs: POLL_INTERVAL_MS, notePath: '08 Relative path.md', renderTimeoutMs: RENDER_TIMEOUT_MS },
+      vaultPath: getTemporaryVault().path
+    });
+
+    expect(result.toggleCount).toBeGreaterThan(0);
+    expect(result.isCollapsed).toBe(true);
+  });
 });
