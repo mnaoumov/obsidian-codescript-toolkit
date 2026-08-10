@@ -1,4 +1,24 @@
 /**
+ * Whether a code button shows its own source code next to it, and whether that panel starts open.
+ */
+export enum SourceVisibility {
+  /**
+   * Show a toggle next to the button, with the source panel initially closed.
+   */
+  Collapsed = 'collapsed',
+
+  /**
+   * Show a toggle next to the button, with the source panel initially open.
+   */
+  Expanded = 'expanded',
+
+  /**
+   * Show no toggle and no source panel.
+   */
+  Hidden = 'hidden'
+}
+
+/**
  * The config for the code button block.
  */
 export interface CodeButtonBlockConfig {
@@ -36,6 +56,13 @@ export interface CodeButtonBlockConfig {
    * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#shouldwrapconsole---console-messages) in the results panel.
    */
   shouldWrapConsole: boolean;
+
+  /**
+   * Whether the button shows [its own source code](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#sourcevisibility---source-visibility) next to it, and whether that panel starts open.
+   *
+   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#israw---raw-mode) buttons, which own their whole rendered element and clear it on every run.
+   */
+  sourceVisibility: SourceVisibility;
 }
 
 /**

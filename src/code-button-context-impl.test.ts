@@ -20,6 +20,7 @@ import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from '
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
+import { SourceVisibility } from './code-button-block-config.ts';
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 
 const mockGetFile = vi.fn();
@@ -134,6 +135,7 @@ function createMockConfig(overrides: Partial<CodeButtonBlockConfig> = {}): CodeB
     shouldAutoRun: false,
     shouldShowSystemMessages: true,
     shouldWrapConsole: true,
+    sourceVisibility: SourceVisibility.Hidden,
     ...overrides
   };
 }
