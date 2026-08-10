@@ -27,6 +27,7 @@
     "dataviewjs",
     "deopt",
     "deoptimised",
+    "ECONNREFUSED",
     "Eruda",
     "evaled",
     "frontmatter",

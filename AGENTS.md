@@ -47,8 +47,22 @@ Five vitest projects:
 | `integration-tests:desktop`    | `test:integration:desktop`    | Real Obsidian over CDP                                                 |
 | `integration-tests:demo-vault` | `test:integration` (included) | Clicks **every button in every root note** and asserts none errors     |
 
-The demo-vault execution project has no dedicated npm script — it runs as part of
-`npm run test:integration`. It is what stops a rewritten note from shipping a broken example.
+The demo-vault execution project has no dedicated npm script — it runs as the last of the four
+`test()` calls in `scripts/test-integration.ts`. It is what stops a rewritten note from shipping a
+broken example.
+
+**Every project that should run must be named explicitly in `scripts/test-integration.ts`.** `test`'s
+`projects` option expands each name to `--project=<name>` and `--project=<name>:*` only — there is no
+prefix or wildcard match, so `integration-tests:desktop` does NOT pull in
+`integration-tests:demo-vault`. Adding a fifth project means adding a fifth `test()` call; forget it
+and the suite silently never runs. (That is exactly what happened to the demo-vault project: it was
+absent from the runner and sat inert until 2026-08-09, despite this file claiming it ran.)
+
+Known flake: on 2026-08-09 one demo-vault run failed 3 of 43 with CDP `ECONNREFUSED` against the
+owned instance's port, then passed 43/43 twice in a row (standalone and in the aggregate). It is the
+only failure seen in that suite, cause not established. Re-run once before investigating — but if it
+recurs, chase it rather than retrying forever, because this project is now part of
+`npm run test:integration` and a flake here reddens the whole aggregate.
 
 Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before
 running them**, or the suite silently exercises a stale build.
