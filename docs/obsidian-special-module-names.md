@@ -1,16 +1,5 @@
 # `obsidian/specialModuleNames` module
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ✅     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [04 obsidian-specialModuleNames](<../demo-vault/04 obsidian-specialModuleNames.md>).
 
-You can access the list of all special [`Obsidian`][Obsidian] module names that are made available by this plugin. This includes module names like `obsidian`, `@codemirror/view`, etc.
-
-```js
-require('obsidian/specialModuleNames');
-```
-
-[Obsidian]: https://obsidian.md/
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

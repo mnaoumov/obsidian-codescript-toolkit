@@ -4,6 +4,7 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
+import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 import type { Promisable } from 'type-fest';
@@ -11,7 +12,12 @@ import type { Promisable } from 'type-fest';
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import {
   getFrontMatterInfo,
+  MarkdownRenderer,
+  MarkdownView,
+  Menu,
+  Notice,
   parseYaml,
+  setIcon,
   stringifyYaml
 } from 'obsidian';
 import { convertAsyncToSync } from 'obsidian-dev-utils/async';
@@ -43,10 +49,11 @@ import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
 import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
 import { ReplaceDynamicImportBabelPlugin } from './babel/replace-dynamic-import-babel-plugin.ts';
 import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-plugin.ts';
+import { SourceVisibility } from './code-button-block-config.ts';
 import { CODE_BUTTON_BLOCK_LANGUAGE } from './code-button-code-highlighter-component.ts';
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 interface CodeButtonBlockComponentHandleClickParams {
@@ -68,7 +75,8 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   shouldAutoOutput: true,
   shouldAutoRun: false,
   shouldShowSystemMessages: true,
-  shouldWrapConsole: true
+  shouldWrapConsole: true,
+  sourceVisibility: SourceVisibility.Hidden
 };
 
 let lastButtonIndex = 0;
@@ -79,7 +87,7 @@ interface CodeButtonBlockComponentConstructorParams {
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   readonly resourceLockComponent: null | ResourceLockComponent;
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
@@ -87,6 +95,19 @@ interface CodeButtonBlockComponentProcessCodeButtonBlockParams {
   readonly context: MarkdownPostProcessorContext;
   readonly el: HTMLElement;
   readonly source: string;
+}
+
+interface CodeButtonBlockComponentRenderSourcePanelParams {
+  readonly code: string;
+  readonly el: HTMLElement;
+  readonly sourceFile: TFile;
+  readonly sourceVisibility: SourceVisibility;
+}
+
+interface CodeButtonBlockComponentShowButtonMenuParams {
+  readonly code: string;
+  readonly event: MouseEvent;
+  readonly markdownInfo: CodeBlockMarkdownInformation | null;
 }
 
 interface MakeWrapperScriptParams {
@@ -102,7 +123,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   private readonly resourceLockComponent: null | ResourceLockComponent;
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
@@ -112,7 +133,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
@@ -281,14 +302,30 @@ export class CodeButtonBlockComponent extends ComponentEx {
 
     const thisWrapper = ValueWrapper.of(this);
 
+    // Rendered before the button so the button's `prepend` puts it above the toggle and the panel.
+    // Never for `isRaw` blocks: their code button context container IS `params.el`, and every run
+    // Empties it, so a panel added here would vanish on the first click.
+    if (!fullConfig.isRaw && fullConfig.sourceVisibility !== SourceVisibility.Hidden) {
+      await this.renderSourcePanel({
+        code,
+        el: params.el,
+        sourceFile,
+        sourceVisibility: fullConfig.sourceVisibility
+      });
+    }
+
     if (!fullConfig.isRaw) {
-      params.el.createEl('button', {
-        cls: 'mod-cta',
+      const buttonEl = params.el.createEl('button', {
+        cls: 'mod-cta fix-require-modules-run-button',
         async onclick(): Promise<void> {
           await thisWrapper.value.handleClick(createHandleClickParams());
         },
         prepend: true,
         text: fullConfig.caption
+      });
+
+      buttonEl.addEventListener('contextmenu', (event: MouseEvent) => {
+        thisWrapper.value.showButtonMenu({ code, event, markdownInfo });
       });
     }
 
@@ -309,12 +346,65 @@ export class CodeButtonBlockComponent extends ComponentEx {
           resourceLockComponent: thisWrapper.value.resourceLockComponent,
           resultEl,
           source: params.source,
-          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
           tempPluginRegistry: thisWrapper.value.tempPluginRegistry
         }),
         escapedCaption: escapeForFileName(fullConfig.caption)
       };
     }
+  }
+
+  private async renderSourcePanel(params: CodeButtonBlockComponentRenderSourcePanelParams): Promise<void> {
+    const sourceEl = params.el.createDiv({ cls: 'fix-require-modules code-button-source-container', prepend: true });
+    sourceEl.classList.toggle('is-collapsed', params.sourceVisibility === SourceVisibility.Collapsed);
+    await MarkdownRenderer.render(this.app, `\`\`\`ts\n${params.code.trim()}\n\`\`\``, sourceEl, params.sourceFile.path, this);
+
+    const toggleEl = params.el.createDiv({ cls: 'fix-require-modules code-button-source-toggle clickable-icon', prepend: true });
+    setIcon(toggleEl, 'code');
+    toggleEl.setAttribute('aria-label', 'Toggle source code');
+    toggleEl.addEventListener('click', () => {
+      sourceEl.classList.toggle('is-collapsed');
+    });
+  }
+
+  private async revealInNote(markdownInfo: CodeBlockMarkdownInformation): Promise<void> {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view) {
+      new Notice('Cannot reveal the code button block: there is no active note.');
+      return;
+    }
+
+    const state = view.getState();
+    state['mode'] = 'source';
+    await view.setState(state, { history: false });
+    view.editor.setCursor({ ch: 0, line: markdownInfo.sectionInfo.lineStart });
+  }
+
+  private showButtonMenu(params: CodeButtonBlockComponentShowButtonMenuParams): void {
+    const menu = new Menu();
+    const code = params.code.trim();
+
+    menu.addItem((item) => {
+      item.setIcon('copy')
+        .setTitle('Copy source')
+        .onClick(convertAsyncToSync(async () => {
+          await activeWindow.navigator.clipboard.writeText(code);
+          new Notice('Code button source copied to the clipboard.');
+        }));
+    });
+
+    const markdownInfo = params.markdownInfo;
+    if (markdownInfo) {
+      menu.addItem((item) => {
+        item.setIcon('text-cursor-input')
+          .setTitle('Reveal in note')
+          .onClick(convertAsyncToSync(async () => {
+            await this.revealInNote(markdownInfo);
+          }));
+      });
+    }
+
+    menu.showAtMouseEvent(params.event);
   }
 }
 
@@ -340,7 +430,7 @@ ${config}---
 
 function addLinkToDocs(f: DocumentFragment): void {
   f.appendText(' See ');
-  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-buttons.md', text: 'docs' });
+  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/38%20Code%20buttons.md', text: 'docs' });
   f.appendText(' for more details.');
   f.createEl('br');
 }

@@ -1,15 +1,5 @@
 # ASAR Archives
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ❌     |
+Moved to [22 ASAR](<../demo-vault/22 ASAR.md>).
 
-You can require content of `.asar` files like if they were folders.
-
-```js
-require('./foo.asar/bar.js');
-```
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

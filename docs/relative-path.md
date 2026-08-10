@@ -1,23 +1,5 @@
 # Relative path
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [08 Relative path](<../demo-vault/08 Relative path.md>).
 
-Fixes `Cannot find module` errors for relative paths:
-
-```js
-require('./some/relative/path.js');
-require('../some/other/relative/path.js');
-```
-
-Optionally provide the path to the current script/note if detection fails. Submit an [issue](https://github.com/mnaoumov/obsidian-codescript-toolkit/issues) if needed:
-
-```js
-require('./some/relative/path.js', { parentPath: 'path/to/current/script.js' });
-require('./some/relative/path.js', { parentPath: 'path/to/current/note.md' });
-```
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

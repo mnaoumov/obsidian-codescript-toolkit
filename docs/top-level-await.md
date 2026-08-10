@@ -1,18 +1,5 @@
 # Top-level await
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ❌      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [29 Top-level await](<../demo-vault/29 Top-level await.md>).
 
-```js
-// topLevelAwait.js
-await Promise.resolve(); // top-level await
-export const dep = 42;
-
-// script.js
-await requireAsync('./topLevelAwait.js');
-```
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

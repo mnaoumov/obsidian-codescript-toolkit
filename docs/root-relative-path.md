@@ -1,17 +1,5 @@
 # Root-relative path
 
-|                                      | Desktop | Mobile |
-| ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅      | ❌     |
-| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+Moved to [09 Root-relative path](<../demo-vault/09 Root-relative path.md>).
 
-Adds support for root-relative paths:
-
-```js
-require('/path/from/root.js');
-```
-
-The root `/` folder is configurable via settings.
-
-[require]: ./core-functions.md#require
-[requireAsync]: ./core-functions.md#requireasync
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

@@ -1,5 +1,7 @@
 # [`dataviewjs`](https://blacksmithgu.github.io/obsidian-dataview/api/intro/) scripts
 
+A `dataviewjs` block can `require()` your own modules, so query logic you keep repeating across notes can live in one `.ts` file instead. And a code button can call Dataview's API back, which is handy for inspecting what a query actually returns.
+
 ## Prerequisite
 
 `Dataview` is not bundled with this demo vault. Install and enable it first:
@@ -27,7 +29,7 @@ button.addEventListener('click', () => {
 >
 > E.g., `require('/integrateWithOtherPlugins.js')` from the example above, will just return `undefined`, leading to the hard-to-detect errors.
 >
-> See [docs](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/core-functions.md#migrate-to-async) to adjust the code examples to work on Mobile.
+> See [Migrate to async](<../40 Core functions.md#migrate-to-async>) to adjust the code examples to work on Mobile.
 
 ## Run `Dataview` from `CodeScript Toolkit`
 

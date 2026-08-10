@@ -1,4 +1,24 @@
 /**
+ * Whether a code button shows its own source code next to it, and whether that panel starts open.
+ */
+export enum SourceVisibility {
+  /**
+   * Show a toggle next to the button, with the source panel initially closed.
+   */
+  Collapsed = 'collapsed',
+
+  /**
+   * Show a toggle next to the button, with the source panel initially open.
+   */
+  Expanded = 'expanded',
+
+  /**
+   * Show no toggle and no source panel.
+   */
+  Hidden = 'hidden'
+}
+
+/**
  * The config for the code button block.
  */
 export interface CodeButtonBlockConfig {
@@ -8,7 +28,7 @@ export interface CodeButtonBlockConfig {
   caption: string;
 
   /**
-   * Whether the button should work in [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#israw---raw-mode) mode.
+   * Whether the button should work in [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20config.md#israw---raw-mode) mode.
    */
   isRaw: boolean;
 
@@ -18,12 +38,12 @@ export interface CodeButtonBlockConfig {
   removeAfterExecution: RemoveAfterExecutionConfig;
 
   /**
-   * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#shouldautooutput---auto-output-mode) the last evaluated expression.
+   * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20config.md#shouldautooutput---auto-output-mode) the last evaluated expression.
    */
   shouldAutoOutput: boolean;
 
   /**
-   * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#shouldautorun---auto-running-code-blocks-mode) without pressing the button.
+   * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20config.md#shouldautorun---auto-running-code-blocks-mode) without pressing the button.
    */
   shouldAutoRun: boolean;
 
@@ -33,9 +53,16 @@ export interface CodeButtonBlockConfig {
   shouldShowSystemMessages: boolean;
 
   /**
-   * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-button-config.md#shouldwrapconsole---console-messages) in the results panel.
+   * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20config.md#shouldwrapconsole---console-messages) in the results panel.
    */
   shouldWrapConsole: boolean;
+
+  /**
+   * Whether the button shows [its own source code](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20config.md#sourcevisibility---source-visibility) next to it, and whether that panel starts open.
+   *
+   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20config.md#israw---raw-mode) buttons, which own their whole rendered element and clear it on every run.
+   */
+  sourceVisibility: SourceVisibility;
 }
 
 /**

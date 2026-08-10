@@ -9,8 +9,13 @@ const DATA_JSON_INDENT = 2;
 // Mirrors the demo-vault-helper's CST configuration (src/obsidian/demo-vault-helper.ts in that
 // Plugin). Written before Obsidian opens so CST loads with the right modulesRoot — otherwise every
 // Root-relative `/foo.js` require in the notes resolves to the vault root and fails.
+// Keep in sync with that helper: these are two copies of one contract, and only this one is
+// Exercised here, so a change made only there would go unnoticed until a real demo vault is opened.
 const CODE_SCRIPT_TOOLKIT_DATA_JSON_PATH = '.obsidian/plugins/fix-require-modules/data.json';
 const CODE_SCRIPT_TOOLKIT_SETTINGS = {
+  // Every demo vault opts into the source panel globally, so no note carries a per-block
+  // `sourceVisibility` — which is the whole point of the setting (23 vaults, zero note edits).
+  defaultCodeButtonConfig: '---\nsourceVisibility: collapsed\n---',
   invocableScriptsFolder: 'Invocables',
   modulesRoot: '_assets/CodeScriptToolkit',
   shouldHandleProtocolUrls: true,

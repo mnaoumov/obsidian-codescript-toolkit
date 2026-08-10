@@ -8,6 +8,7 @@ import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/c
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
+import { Menu } from 'obsidian';
 import { waitForAllAsyncOperations } from 'obsidian-dev-utils/async';
 import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
@@ -26,9 +27,10 @@ import type {
 import type { CodeButtonContext } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
+import { SourceVisibility } from './code-button-block-config.ts';
 import {
   CodeButtonBlockComponent,
   DEFAULT_CODE_BUTTON_BLOCK_CONFIG,
@@ -153,7 +155,7 @@ vi.mock('./code-button-context-impl.ts', () => ({
 }));
 
 vi.mock('./temp-plugin-registry.ts', () => ({
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistry: vi.fn()
 }));
 
@@ -180,6 +182,10 @@ describe('DEFAULT_CODE_BUTTON_BLOCK_CONFIG', () => {
 
   it('should have shouldWrapConsole true', () => {
     expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.shouldWrapConsole).toBe(true);
+  });
+
+  it('should have sourceVisibility Hidden', () => {
+    expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.sourceVisibility).toBe(SourceVisibility.Hidden);
   });
 
   it('should have removeAfterExecution.when "never"', () => {
@@ -240,6 +246,22 @@ describe('insertSampleCodeButton', () => {
   });
 });
 
+// `mockApp` is built without a workspace; the reveal-in-note tests attach a stub one.
+interface AppWithWorkspace {
+  workspace: unknown;
+}
+
+// The obsidian-test-mocks `Menu` / `MenuItem` record what production code added to them under
+// `__`-suffixed members. Reading them is how a unit test inspects a menu that is never really shown.
+interface MockMenu {
+  readonly menuItems__: MockMenuItem[];
+}
+
+interface MockMenuItem {
+  readonly onClick__: ((event: MouseEvent) => unknown) | null;
+  readonly title__: string;
+}
+
 describe('CodeButtonBlockComponent', () => {
   let component: CodeButtonBlockComponent;
   let mockApp: App;
@@ -278,7 +300,7 @@ describe('CodeButtonBlockComponent', () => {
       pluginSettingsComponent: mockPluginSettingsComponent,
       RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent,
       resourceLockComponent: mockResourceLockComponent,
-      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+      // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
       tempPluginRegistry: mockTemporaryPluginRegistry
     });
   });
@@ -372,11 +394,239 @@ describe('CodeButtonBlockComponent', () => {
       expect(el.createEl).toHaveBeenCalledWith(
         'button',
         expect.objectContaining({
-          cls: 'mod-cta',
+          cls: 'mod-cta fix-require-modules-run-button',
           prepend: true,
           text: '(no caption)'
         })
       );
+    });
+
+    it('should show a context menu with Copy source when the run button is right-clicked', async () => {
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const shownMenus: MockMenu[] = [];
+      vi.spyOn(Menu.prototype, 'showAtMouseEvent').mockImplementation(function mockShowAtMouseEvent(this: Menu): Menu {
+        shownMenus.push(castTo<MockMenu>(this));
+        return this;
+      });
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      buttonEl.dispatchEvent(new MouseEvent('contextmenu'));
+
+      expect(shownMenus[0]?.menuItems__.map((item) => item.title__)).toEqual(['Copy source']);
+    });
+
+    it('should copy the trimmed source to the clipboard from the context menu', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      vi.stubGlobal('activeWindow', { navigator: { clipboard: { writeText } } });
+
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const shownMenus: MockMenu[] = [];
+      vi.spyOn(Menu.prototype, 'showAtMouseEvent').mockImplementation(function mockShowAtMouseEvent(this: Menu): Menu {
+        shownMenus.push(castTo<MockMenu>(this));
+        return this;
+      });
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      buttonEl.dispatchEvent(new MouseEvent('contextmenu'));
+      shownMenus[0]?.menuItems__[0]?.onClick__?.(new MouseEvent('click'));
+      await waitForAllAsyncOperations();
+
+      expect(writeText).toHaveBeenCalledWith('console.log("test")');
+
+      vi.unstubAllGlobals();
+    });
+
+    it('should reveal the block in the note from the context menu', async () => {
+      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ $arguments: [], sectionInfo: { lineStart: 7 } });
+
+      const setCursor = vi.fn();
+      const setState = vi.fn().mockResolvedValue(undefined);
+      const getActiveViewOfType = vi.fn().mockReturnValue({
+        editor: { setCursor },
+        getState: vi.fn().mockReturnValue({ file: 'notes/test.md', mode: 'preview' }),
+        setState
+      });
+      castTo<AppWithWorkspace>(mockApp).workspace = { getActiveViewOfType };
+
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const shownMenus: MockMenu[] = [];
+      vi.spyOn(Menu.prototype, 'showAtMouseEvent').mockImplementation(function mockShowAtMouseEvent(this: Menu): Menu {
+        shownMenus.push(castTo<MockMenu>(this));
+        return this;
+      });
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      buttonEl.dispatchEvent(new MouseEvent('contextmenu'));
+
+      const revealItem = shownMenus[0]?.menuItems__[1];
+      expect(revealItem?.title__).toBe('Reveal in note');
+
+      revealItem?.onClick__?.(new MouseEvent('click'));
+      await waitForAllAsyncOperations();
+
+      expect(setState).toHaveBeenCalledWith({ file: 'notes/test.md', mode: 'source' }, { history: false });
+      expect(setCursor).toHaveBeenCalledWith({ ch: 0, line: 7 });
+    });
+
+    it('should notice instead of revealing when there is no active note', async () => {
+      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ $arguments: [], sectionInfo: { lineStart: 7 } });
+
+      const getActiveViewOfType = vi.fn().mockReturnValue(null);
+      castTo<AppWithWorkspace>(mockApp).workspace = { getActiveViewOfType };
+
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const shownMenus: MockMenu[] = [];
+      vi.spyOn(Menu.prototype, 'showAtMouseEvent').mockImplementation(function mockShowAtMouseEvent(this: Menu): Menu {
+        shownMenus.push(castTo<MockMenu>(this));
+        return this;
+      });
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      buttonEl.dispatchEvent(new MouseEvent('contextmenu'));
+      shownMenus[0]?.menuItems__[1]?.onClick__?.(new MouseEvent('click'));
+      await waitForAllAsyncOperations();
+
+      expect(getActiveViewOfType).toHaveBeenCalled();
+    });
+
+    it('should not create a source panel when sourceVisibility is hidden', async () => {
+      const el = createDiv();
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(createEl('button'));
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      expect(el.createDiv).not.toHaveBeenCalledWith(expect.objectContaining({ cls: 'fix-require-modules code-button-source-container' }));
+    });
+
+    it('should create a source panel and a toggle when sourceVisibility is collapsed', async () => {
+      const el = createDiv();
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(createEl('button'));
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const source = '---\nsourceVisibility: collapsed\n---\nconsole.log("test")';
+
+      await component['processCodeButtonBlock']({ context, el, source });
+
+      expect(el.createDiv).toHaveBeenCalledWith({ cls: 'fix-require-modules code-button-source-container', prepend: true });
+      expect(el.createDiv).toHaveBeenCalledWith({ cls: 'fix-require-modules code-button-source-toggle clickable-icon', prepend: true });
+    });
+
+    it('should not create a source panel for a raw button even when sourceVisibility is expanded', async () => {
+      const el = createDiv();
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(createEl('button'));
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const source = '---\nisRaw: true\nsourceVisibility: expanded\n---\nconsole.log("test")';
+
+      vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
+
+      await component['processCodeButtonBlock']({ context, el, source });
+      await waitForAllAsyncOperations();
+
+      expect(el.createDiv).not.toHaveBeenCalledWith(expect.objectContaining({ cls: 'fix-require-modules code-button-source-container' }));
+    });
+
+    it('should start collapsed and expand the source panel when the toggle is clicked', async () => {
+      const el = createDiv();
+      const sourceEl = createDiv();
+      const toggleEl = createDiv();
+      el.createDiv = vi.fn()
+        .mockReturnValueOnce(createDiv())
+        .mockReturnValueOnce(sourceEl)
+        .mockReturnValueOnce(toggleEl);
+      el.createEl = vi.fn().mockReturnValue(createEl('button'));
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const source = '---\nsourceVisibility: collapsed\n---\nconsole.log("test")';
+
+      await component['processCodeButtonBlock']({ context, el, source });
+
+      expect(sourceEl.classList.contains('is-collapsed')).toBe(true);
+
+      toggleEl.click();
+
+      expect(sourceEl.classList.contains('is-collapsed')).toBe(false);
+    });
+
+    it('should start expanded when sourceVisibility is expanded', async () => {
+      const el = createDiv();
+      const sourceEl = createDiv();
+      el.createDiv = vi.fn()
+        .mockReturnValueOnce(createDiv())
+        .mockReturnValueOnce(sourceEl)
+        .mockReturnValueOnce(createDiv());
+      el.createEl = vi.fn().mockReturnValue(createEl('button'));
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const source = '---\nsourceVisibility: expanded\n---\nconsole.log("test")';
+
+      await component['processCodeButtonBlock']({ context, el, source });
+
+      expect(sourceEl.classList.contains('is-collapsed')).toBe(false);
     });
 
     it('should set isRaw config overrides when isRaw is true', async () => {

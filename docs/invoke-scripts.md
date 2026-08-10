@@ -1,13 +1,5 @@
 # Invoke scripts
 
-| Desktop | Mobile |
-| ------- | ------ |
-| ✅      | ✅     |
+Moved to [41 Invoke scripts](<../demo-vault/41 Invoke scripts.md>).
 
-Configure a script folder so every script in it can be invoked using the [`Command Palette`][Command Palette]. Use `CodeScript Toolkit: Invoke script: <<Choose>>` for more predictable lists:
-
-![Command Palette](./images/commmand-palette.png)
-
-![Chooser](./images/chooser.png)
-
-[Command Palette]: https://help.obsidian.md/Plugins/Command+palette
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

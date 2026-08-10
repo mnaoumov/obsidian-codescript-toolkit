@@ -1,4 +1,4 @@
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { Plugin as ObsidianPlugin } from 'obsidian';
 
 import { evalInObsidian } from 'obsidian-integration-testing';
@@ -12,11 +12,11 @@ import {
 import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from './code-button-context.ts';
 
 interface CodeScriptToolkitModule {
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   getTempPlugin(tempPluginClass: string): null | ObsidianPlugin;
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   registerTempPlugin(params: RegisterTemporaryPluginParams): Promise<null | ObsidianPlugin>;
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   unregisterTempPlugin(tempPluginClass: string): void;
 }
 
@@ -32,7 +32,7 @@ describe('TempPluginRegistry integration', () => {
         const cstModule = await requireAsync('codescript-toolkit');
 
         return {
-          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
           hasGetTempPlugin: typeof cstModule['getTempPlugin'] === 'function',
           hasRegister: typeof cstModule['registerTempPlugin'] === 'function',
           hasUnregister: typeof cstModule['unregisterTempPlugin'] === 'function'
@@ -61,7 +61,7 @@ describe('TempPluginRegistry integration', () => {
         };
         Object.defineProperty(TestPlugin, 'name', { value: TEMP_PLUGIN_NAME });
 
-        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
         const plugin = await cstModule.registerTempPlugin({ tempPluginClass: TestPlugin });
         const isLoaded = Reflect.get(window, '__tempPluginLoaded') === true;
         const hasPlugin = plugin !== null;
@@ -94,7 +94,7 @@ describe('TempPluginRegistry integration', () => {
 
         const isBeforeRegister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
 
-        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (docs/code-button-context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
         await cstModule.registerTempPlugin({ tempPluginClass: TestPlugin });
         const isAfterRegister = cstModule.getTempPlugin(TEMP_PLUGIN_NAME) !== null;
 

@@ -1,4 +1,6 @@
-[Docs](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/system-root-path.md)
+# System root path
+
+Require a file by its absolute path on Linux or macOS — a shared script library outside the vault, something checked out in `~/code`. A bare leading `/` already means [Root-relative path](<./09 Root-relative path.md>), so prefix the path with `~` to say "the real filesystem root" instead.
 
 ```code-button
 ---
@@ -17,3 +19,17 @@ console.warn(`Correct vault path prefix should be: ${correctVaultPathPrefix}`);
 const { systemRootPath } = require('~/path/to/vault/obsidian-codescript-toolkit-demo-vault/_assets/CodeScriptToolkit/systemRootPath.js');
 systemRootPath();
 ```
+
+## Caveats
+
+The path above is somebody else's; the button prints the prefix that is correct for *your* vault, so edit the require to match before expecting it to load anything. On Windows this form does not apply — use [File URLs](<./27 File URLs.md>) to reach outside the vault.
+
+## Platform support
+
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
+| **[`require()`][require]**           | ✅      | ❌     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+
+[require]: <./40 Core functions.md#require>
+[requireAsync]: <./40 Core functions.md#requireasync>

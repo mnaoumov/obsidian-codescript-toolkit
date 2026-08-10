@@ -57,6 +57,15 @@ beforeAll(() => {
       window.__rawResult = "raw-executed";
       \`\`\`
     `,
+    '_int-test-buttons/source-visibility.md': dedent`
+      \`\`\`code-button
+      ---
+      caption: With source
+      sourceVisibility: collapsed
+      ---
+      window.__sourceVisibilityResult = "source-visibility";
+      \`\`\`
+    `,
     '_int-test-buttons/with-import.md': dedent`
       \`\`\`code-button
       ---
@@ -199,6 +208,54 @@ describe('CodeButtonBlock integration', () => {
 
     expect(result.rawResult).toBe('raw-executed');
     expect(result.buttonCount).toBe(0);
+  });
+
+  it('should render a source toggle that reveals the button source', async () => {
+    const result = await evalInObsidian({
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
+        await app.workspace.openLinkText('_int-test-buttons/source-visibility', '', false);
+        const leaf = app.workspace.getLeaf(false);
+        await leaf.setViewState({
+          state: { file: '_int-test-buttons/source-visibility.md', mode: 'preview' },
+          type: 'markdown'
+        });
+
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => query('.code-button-source-toggle') !== null,
+          timeoutInMilliseconds: timeoutMs
+        });
+
+        const toggleEl = query('.code-button-source-toggle');
+        const sourceEl = query('.code-button-source-container');
+
+        const wasCollapsed = sourceEl?.classList.contains('is-collapsed') ?? false;
+        toggleEl?.click();
+        const isCollapsed = sourceEl?.classList.contains('is-collapsed') ?? true;
+
+        return {
+          isCollapsed,
+          runButtonCount: activeView()?.containerEl.querySelectorAll('button.fix-require-modules-run-button').length ?? 0,
+          sourceText: sourceEl?.textContent ?? '',
+          wasCollapsed
+        };
+
+        function activeView(): InstanceType<typeof obsidianModule.MarkdownView> | null {
+          return app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
+        }
+
+        function query(selector: string): HTMLElement | null {
+          return activeView()?.containerEl.querySelector<HTMLElement>(selector) ?? null;
+        }
+      },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.wasCollapsed).toBe(true);
+    expect(result.isCollapsed).toBe(false);
+    expect(result.runButtonCount).toBeGreaterThan(0);
+    expect(result.sourceText).toContain('__sourceVisibilityResult');
   });
 
   it('should transform import statements in code buttons', async () => {

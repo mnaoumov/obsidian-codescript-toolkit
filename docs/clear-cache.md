@@ -1,7 +1,5 @@
 # Clear cache
 
-| Desktop | Mobile |
-| ------- | ------ |
-| ✅      | ✅     |
+Moved to [33 Clear cache](<../demo-vault/33 Clear cache.md>).
 
-If you need to clear the `require` cache, you can invoke the `CodeScript Toolkit: Clear cache` command.
+The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.
