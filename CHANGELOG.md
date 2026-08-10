@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.6.1
+
+- test: fix
+- chore: update libs
+
 ## 13.6.0
 
 - test: run the demo-vault project in the integration aggregate

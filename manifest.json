@@ -1,8 +1,8 @@
 {
   "id": "fix-require-modules",
   "name": "CodeScript Toolkit",
-  "version": "13.6.0",
-  "minAppVersion": "1.13.4",
+  "version": "13.6.1",
+  "minAppVersion": "1.13.6",
   "description": "Allows to do a lot of things with JavaScript/TypeScript scripts from inside the app.",
   "author": "mnaoumov",
   "authorUrl": "https://github.com/mnaoumov/",
