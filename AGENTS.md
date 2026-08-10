@@ -67,6 +67,21 @@ recurs, chase it rather than retrying forever, because this project is now part 
 Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before
 running them**, or the suite silently exercises a stale build.
 
+### Gotcha: the authoring checks see `_assets/` as notes
+
+`obsidian-dev-utils` 92 added always-on authoring checks to `registerDemoVaultCoverageSuite` — every
+note must open with an `# H1`, carry intro prose before its first code fence, and be reachable from
+`00 Start.md`. They apply to **every** `*.md` under `demo-vault/` (bar a vendored `node_modules`), so
+the fixtures under `_assets/` — `code-script` modules, Templater templates — failed all three the
+moment the library was bumped. `src/demo-vault.no-app.integration.test.ts` therefore derives their
+paths and passes them as `authoring.excludedNotes`, mirroring the `_assets/**` ignore the vault's own
+`.markdownlint-cli2.jsonc` already carries.
+
+Two traps in that option: it matches **exact relative paths, not globs** (hence the run-time walk, so
+a new fixture cannot redden the suite), and it **replaces** the checker's default rather than adding
+to it — drop `README.md` from the list and the vault's own readme starts failing the checks it was
+exempt from.
+
 ### Gotcha: a hand-started Android emulator has no DNS
 
 `obsidian-integration-testing` starts the emulator itself with
