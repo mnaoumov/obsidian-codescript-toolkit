@@ -1,6 +1,8 @@
-[Docs](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/code-script-toolkit.md)
+# `codescript-toolkit` module
 
-## registerTempPlugin
+This plugin's own API, requirable from any script. Its main job is temporary plugins: a class you write in a note gets loaded as a real Obsidian plugin — commands, ribbon icons, event handlers and all — and unloaded again without ever leaving Obsidian. That is the fastest way to prototype a plugin idea, or to add a command you only need for the next ten minutes.
+
+The same functions are available inside a code button as [`codeButtonContext`](<./43 Code button context.md>); this module is how you reach them from a `.js`/`.ts` file instead.
 
 ```code-button
 ---
@@ -20,7 +22,11 @@ const cssText = '* { color: red; }';
 await registerTempPlugin({ tempPluginClass: RequireCodescriptToolkitModulePlugin, cssText });
 ```
 
-## getTempPlugin
+`registerTempPlugin()` returns the loaded plugin instance, or `null` if loading failed. The optional `cssText` is loaded and unloaded together with the plugin.
+
+## `getTempPlugin()`
+
+Looks a registered temp plugin back up, by class or by class name — so a second button can talk to the plugin the first one registered.
 
 ```code-button
 ---
@@ -32,7 +38,9 @@ const plugin = getTempPlugin('RequireCodescriptToolkitModulePlugin');
 new Notice(`Temp plugin: ${plugin ? 'found' : 'not found'}`);
 ```
 
-## unregisterTempPlugin
+## `unregisterTempPlugin()`
+
+Unloads it again. Temp plugins are also unloaded automatically when CodeScript Toolkit itself unloads, so nothing survives a restart.
 
 ```code-button
 ---
@@ -42,3 +50,13 @@ const { unregisterTempPlugin } = require('codescript-toolkit');
 
 unregisterTempPlugin('RequireCodescriptToolkitModulePlugin');
 ```
+
+## Platform support
+
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
+| **[`require()`][require]**           | ✅      | ✅     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+
+[require]: <./40 Core functions.md#require>
+[requireAsync]: <./40 Core functions.md#requireasync>

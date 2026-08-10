@@ -1,6 +1,6 @@
-# `obsidian/specialModuleNames` module
+# `obsidian/specialModuleNames` module
 
-[Docs](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/obsidian-special-module-names.md)
+Returns the list of module names this plugin makes requirable — `obsidian`, `@codemirror/view`, and the rest of [Built-in modules](<./02 Built-in modules.md>). Useful when your script decides at runtime whether a name is a vault file or one of Obsidian's own modules, so you do not have to hard-code a list that goes stale with each Obsidian release.
 
 ```code-button
 ---
@@ -8,3 +8,13 @@ caption: 'Require obsidian/specialModuleNames module'
 ---
 require('obsidian/specialModuleNames');
 ```
+
+## Platform support
+
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
+| **[`require()`][require]**           | ✅      | ✅     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+
+[require]: <./40 Core functions.md#require>
+[requireAsync]: <./40 Core functions.md#requireasync>

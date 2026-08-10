@@ -1,5 +1,7 @@
 # [`Templater`](https://silentvoid13.github.io/Templater/) scripts
 
+`Templater` scripts live inside templates, where long inline code is hard to maintain. Requiring a module instead keeps the template readable, and a code button can render a template on demand.
+
 ## Prerequisite
 
 `Templater` is not bundled with this demo vault. Install and enable it first:

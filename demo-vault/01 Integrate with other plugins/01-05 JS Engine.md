@@ -1,5 +1,7 @@
 # [`JS Engine`](https://www.moritzjung.dev/obsidian-js-engine-plugin-docs/) scripts
 
+`JS Engine` renders the result of a script into the note. Its blocks can `require()` your modules, so the rendering logic can live in a file you edit with a real editor rather than inside a fence.
+
 ## Prerequisite
 
 `JS Engine` is not bundled with this demo vault. Install and enable it first:

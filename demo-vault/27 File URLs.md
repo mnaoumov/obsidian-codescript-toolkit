@@ -1,4 +1,6 @@
-[Docs](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/file-urls.md)
+# File URLs
+
+Load a script by `file:///` URL — the way to reach a file outside the vault on any desktop OS, including Windows, where the `~` form of [System root path](<./10 System root path.md>) does not apply. Useful for a shared script library you keep in version control next to the rest of your code.
 
 ```code-button
 ---
@@ -10,3 +12,17 @@ const vaultPathPrefix = 'file:///' + app.vault.adapter.basePath.replaceAll('\\',
 const { fileUrl } = require(`${vaultPathPrefix}/_assets/CodeScriptToolkit/fileUrl.js`);
 fileUrl();
 ```
+
+## Caveats
+
+A `file:///` URL names an absolute location on one machine, so hard-coding one makes the script unportable — build it at runtime as the button does. On mobile there is no filesystem to address this way with `require()`.
+
+## Platform support
+
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
+| **[`require()`][require]**           | ✅      | ❌     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+
+[require]: <./40 Core functions.md#require>
+[requireAsync]: <./40 Core functions.md#requireasync>

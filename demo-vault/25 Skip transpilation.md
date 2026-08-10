@@ -1,6 +1,8 @@
-[Docs](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/skip-transpilation.md)
+# Skip transpilation
 
-CodeScript Toolkit runs imported JS/TS through Babel by default. Large prebuilt CommonJS bundles don't need that — you can skip it with `shouldTranspile: false` (or just rely on auto-detection for plain `.cjs` files). The buttons below load the same bundle and print how long it took.
+Every JavaScript/TypeScript module normally goes through [Babel](https://babeljs.io/) first — that is what strips TypeScript, converts [ES modules](<./15 ECMAScript modules.md>), rewrites [dynamic `import()`](<./31 Dynamic import.md>) and enables [top-level await](<./29 Top-level await.md>). For a large prebuilt CommonJS bundle that is pure overhead: the file is already runnable JavaScript, and transpiling it can add seconds and log warnings like `[BABEL] Note: The code generator has deoptimised the styling of ... as it exceeds the max of 500KB`. Such a module can run as-is.
+
+The three buttons below load the same bundle and print how long each took.
 
 > [!TIP] Bigger difference
 >
@@ -33,3 +35,41 @@ const start = performance.now();
 await requireAsync('/module.cjs', { cacheInvalidationMode: 'always' });
 console.log(`Auto-detected:         ${Math.round(performance.now() - start)} ms`);
 ```
+
+## Options
+
+You usually need no option at all. A module runs raw automatically when it is unambiguously plain CommonJS:
+
+- a `.cjs` file with no `import`/`export`, dynamic `import()`, or `import.meta` syntax;
+- a `.js` file whose nearest [`package.json`](https://docs.npmjs.com/cli/configuring-npm/package-json) does **not** declare `"type": "module"`, and which likewise has none of that syntax.
+
+Everything else is transpiled — `.mjs`, `.ts`/`.cts`/`.mts`, ES modules, files under a `"type": "module"` package, [URLs](<./26 URLs.md>), and any `.js` with no `package.json` nearby. Detection deliberately errs toward transpiling: a wrongly-transpiled module is merely slower, whereas a wrongly-skipped ES module would break.
+
+`shouldTranspile` overrides the decision:
+
+| Value                 | Behavior                               |
+| --------------------- | -------------------------------------- |
+| `false`               | Never transpile. Run the module as-is. |
+| `true`                | Always transpile through `Babel`.      |
+| `undefined` (default) | Auto-detect, as described above.       |
+
+## Caveats
+
+A module that runs without transpilation is treated as already-runnable CommonJS and executes **synchronously**, so it cannot use anything the transpilation pipeline provides:
+
+- [ES module](<./15 ECMAScript modules.md>) `import`/`export` syntax;
+- TypeScript syntax;
+- [Top-level await](<./29 Top-level await.md>);
+- [Dynamic `import()`](<./31 Dynamic import.md>) rewriting to [`requireAsync()`](<./40 Core functions.md#requireasync>).
+
+Passing `shouldTranspile: false` to a file that needs any of these makes it fail to load. Auto-detection never chooses the raw path for such files — the risk only exists when you set the option yourself.
+
+## Platform support
+
+|                                      | Desktop | Mobile |
+| ------------------------------------ | ------- | ------ |
+| **[`require()`][require]**           | ✅      | ✅     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
+
+[require]: <./40 Core functions.md#require>
+[requireAsync]: <./40 Core functions.md#requireasync>

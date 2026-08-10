@@ -1,5 +1,7 @@
 # [`datacorejs` / `datacorejsx` / `datacorets` / `datacoretsx`](https://blacksmithgu.github.io/datacore/code-views) scripts
 
+Datacore has four code-view flavours, JSX included. All of them can `require()` your vault modules, so the component you built for one view can be shared across all of them instead of copy-pasted.
+
 ## Prerequisite
 
 `Datacore` is not bundled with this demo vault. Install and enable it first:
