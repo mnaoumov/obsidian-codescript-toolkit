@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.6.3
+
+- chore: update libs
+
 ## 13.6.2
 
 - docs: explain the source toggle and raw code buttons
