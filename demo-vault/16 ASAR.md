@@ -21,5 +21,5 @@ Reading an archive relies on Node's filesystem support for it, so this is deskto
 | **[`require()`][require]**           | ✅      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ❌     |
 
-[require]: <./01 Core functions.md#require>
-[requireAsync]: <./01 Core functions.md#requireasync>
+[require]: <./02 Core functions.md#require>
+[requireAsync]: <./02 Core functions.md#requireasync>

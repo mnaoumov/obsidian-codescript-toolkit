@@ -35,8 +35,8 @@ interface ExpectedNonOk {
 // Buttons that legitimately do not report success: by-design error demos, and buttons
 // That suppress system messages (so no ✅/❌ banner appears for the classifier to read).
 const EXPECTED_NON_OK: ExpectedNonOk[] = [
-  { captionIncludes: 'on error only', note: '02 Code buttons.md', status: 'error' },
-  { captionIncludes: 'shouldShowSystemMessages=false', note: '02 Code buttons.md', status: 'timeout' }
+  { captionIncludes: 'on error only', note: '01 Code buttons.md', status: 'error' },
+  { captionIncludes: 'shouldShowSystemMessages=false', note: '01 Code buttons.md', status: 'timeout' }
 ];
 
 interface ButtonResult {

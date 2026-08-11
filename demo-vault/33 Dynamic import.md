@@ -1,6 +1,6 @@
 # Dynamic import
 
-`import()` as an expression — load a module only when a branch is actually taken, or with a path computed at runtime. Inside scripts and code buttons it is rewired to [`requireAsync()`](<./01 Core functions.md#requireasync>), so everything else in this vault works through it too: vault paths, wikilinks, URLs, WebAssembly.
+`import()` as an expression — load a module only when a branch is actually taken, or with a path computed at runtime. Inside scripts and code buttons it is rewired to [`requireAsync()`](<./02 Core functions.md#requireasync>), so everything else in this vault works through it too: vault paths, wikilinks, URLs, WebAssembly.
 
 ```code-button
 ---
@@ -15,7 +15,7 @@ dynamicImport();
 The rewiring cannot be applied everywhere. It is **fully in effect** in:
 
 - external script files: `js`, `cjs`, `mjs`, `ts`, `cts`, `mts`, `md`;
-- [code button](<./02 Code buttons.md>) blocks.
+- [code button](<./01 Code buttons.md>) blocks.
 
 It keeps its **original, unextended** behavior in:
 
@@ -28,7 +28,7 @@ It keeps its **original, unextended** behavior in:
 - [`QuickAdd`](https://quickadd.obsidian.guide/) scripts;
 - [`Templater`](https://silentvoid13.github.io/Templater/) scripts.
 
-In those contexts, call [`requireAsync()`](<./01 Core functions.md#requireasync>) directly — it is never restricted.
+In those contexts, call [`requireAsync()`](<./02 Core functions.md#requireasync>) directly — it is never restricted.
 
 ## Platform support
 

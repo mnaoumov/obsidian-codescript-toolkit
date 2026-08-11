@@ -38,5 +38,5 @@ The script this note requires lives one folder down and requires a file of its o
 | **[`require()`][require]**           | ✅      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./01 Core functions.md#require>
-[requireAsync]: <./01 Core functions.md#requireasync>
+[require]: <./02 Core functions.md#require>
+[requireAsync]: <./02 Core functions.md#requireasync>

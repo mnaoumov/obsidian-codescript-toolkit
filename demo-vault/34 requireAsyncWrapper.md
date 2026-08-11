@@ -54,7 +54,7 @@ await requireAsyncWrapper(async (require) => {
 > foo.bar();
 > ```
 
-This is one of two ways to make desktop-only examples work on mobile; see [Migrate to async](<./01 Core functions.md#migrate-to-async>) for the other, and for when to prefer each.
+This is one of two ways to make desktop-only examples work on mobile; see [Migrate to async](<./02 Core functions.md#migrate-to-async>) for the other, and for when to prefer each.
 
 ## Platform support
 

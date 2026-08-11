@@ -430,7 +430,7 @@ ${config}---
 
 function addLinkToDocs(f: DocumentFragment): void {
   f.appendText(' See ');
-  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/02%20Code%20buttons.md', text: 'docs' });
+  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/01%20Code%20buttons.md', text: 'docs' });
   f.appendText(' for more details.');
   f.createEl('br');
 }

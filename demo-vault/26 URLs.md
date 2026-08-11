@@ -24,7 +24,7 @@ await requireAsync('https://some-site.com/some-script.js', {
 
 ## Caveats
 
-Fetching is asynchronous, so URLs need [`requireAsync()`](<./01 Core functions.md#requireasync>) — plain `require()` cannot load them on either platform.
+Fetching is asynchronous, so URLs need [`requireAsync()`](<./02 Core functions.md#requireasync>) — plain `require()` cannot load them on either platform.
 
 Remote code runs with the same access as any other script here: your vault, your files, and on desktop your machine. Read what you are about to run, and prefer URLs you control or trust.
 
@@ -35,5 +35,5 @@ Remote code runs with the same access as any other script here: your vault, your
 | **[`require()`][require]**           | ❌      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./01 Core functions.md#require>
-[requireAsync]: <./01 Core functions.md#requireasync>
+[require]: <./02 Core functions.md#require>
+[requireAsync]: <./02 Core functions.md#requireasync>

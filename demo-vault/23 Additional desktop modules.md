@@ -28,5 +28,5 @@ These modules exist only in the desktop app. A script that requires them will fa
 | **[`require()`][require]**           | ✅      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ❌     |
 
-[require]: <./01 Core functions.md#require>
-[requireAsync]: <./01 Core functions.md#requireasync>
+[require]: <./02 Core functions.md#require>
+[requireAsync]: <./02 Core functions.md#requireasync>

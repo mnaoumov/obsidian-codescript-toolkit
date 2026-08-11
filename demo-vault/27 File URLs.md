@@ -24,5 +24,5 @@ A `file:///` URL names an absolute location on one machine, so hard-coding one s
 | **[`require()`][require]**           | ✅      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./01 Core functions.md#require>
-[requireAsync]: <./01 Core functions.md#requireasync>
+[require]: <./02 Core functions.md#require>
+[requireAsync]: <./02 Core functions.md#requireasync>

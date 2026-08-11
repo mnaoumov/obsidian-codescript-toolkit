@@ -12,7 +12,7 @@ console.log(answer());
 
 ## Caveats
 
-Instantiating a WebAssembly module is asynchronous, so this needs [`requireAsync()`](<./01 Core functions.md#requireasync>) — plain `require()` cannot load it. To use one from synchronous-looking code, pre-load it with [`requireAsyncWrapper()`](<./34 requireAsyncWrapper.md>).
+Instantiating a WebAssembly module is asynchronous, so this needs [`requireAsync()`](<./02 Core functions.md#requireasync>) — plain `require()` cannot load it. To use one from synchronous-looking code, pre-load it with [`requireAsyncWrapper()`](<./34 requireAsyncWrapper.md>).
 
 ## Platform support
 
@@ -21,5 +21,5 @@ Instantiating a WebAssembly module is asynchronous, so this needs [`requireAsync
 | **[`require()`][require]**           | ❌      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./01 Core functions.md#require>
-[requireAsync]: <./01 Core functions.md#requireasync>
+[require]: <./02 Core functions.md#require>
+[requireAsync]: <./02 Core functions.md#requireasync>

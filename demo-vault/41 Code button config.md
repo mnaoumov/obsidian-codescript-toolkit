@@ -1,6 +1,6 @@
 # Code button config
 
-Every [code button](<./02 Code buttons.md>) can be configured by a YAML block at the top of its source. That is how a button gets a caption, runs itself, cleans itself up afterwards, or shows you the code behind it. All keys are optional, and every key omitted falls back to its default.
+Every [code button](<./01 Code buttons.md>) can be configured by a YAML block at the top of its source. That is how a button gets a caption, runs itself, cleans itself up afterwards, or shows you the code behind it. All keys are optional, and every key omitted falls back to its default.
 
 Here is the full config, with the defaults it would have anyway:
 

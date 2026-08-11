@@ -545,7 +545,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   protected getRequireAsyncAdvice(id: string): string {
-    return `You cannot use synchronous require('${id}'), as it is not supported on Mobile for most features and on Desktop for some features as well. In order to use it with desired feature, you need to slightly modify your code. See https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/01%20Core%20functions.md#migrate-to-async to adjust your code to work for the desired feature.`;
+    return `You cannot use synchronous require('${id}'), as it is not supported on Mobile for most features and on Desktop for some features as well. In order to use it with desired feature, you need to slightly modify your code. See https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/02%20Core%20functions.md#migrate-to-async to adjust your code to work for the desired feature.`;
   }
 
   protected abstract getTimestampAsync(path: string): Promise<number>;

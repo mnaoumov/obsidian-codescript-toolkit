@@ -1,6 +1,6 @@
 # Code button context
 
-While a [code button](<./02 Code buttons.md>) runs, a variable called `codeButtonContext` is in scope. It is the button's handle on itself and on Obsidian: where to draw, how to render markdown, how to edit the note the button lives in, and how to load a temporary plugin. This is what turns a code button from "runs a script" into "builds a small piece of UI inside a note".
+While a [code button](<./01 Code buttons.md>) runs, a variable called `codeButtonContext` is in scope. It is the button's handle on itself and on Obsidian: where to draw, how to render markdown, how to edit the note the button lives in, and how to load a temporary plugin. This is what turns a code button from "runs a script" into "builds a small piece of UI inside a note".
 
 ## `codeButtonContext.container`
 

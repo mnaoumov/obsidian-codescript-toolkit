@@ -29,7 +29,7 @@ button.addEventListener('click', () => {
 >
 > E.g., `require('/integrateWithOtherPlugins.js')` from the example above, will just return `undefined`, leading to the hard-to-detect errors.
 >
-> See [Migrate to async](<../01 Core functions.md#migrate-to-async>) to adjust the code examples to work on Mobile.
+> See [Migrate to async](<../02 Core functions.md#migrate-to-async>) to adjust the code examples to work on Mobile.
 
 ## Run `Dataview` from `CodeScript Toolkit`
 

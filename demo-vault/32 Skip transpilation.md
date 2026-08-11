@@ -60,7 +60,7 @@ A module that runs without transpilation is treated as already-runnable CommonJS
 - [ES module](<./10 ECMAScript modules.md>) `import`/`export` syntax;
 - TypeScript syntax;
 - [Top-level await](<./29 Top-level await.md>);
-- [Dynamic `import()`](<./33 Dynamic import.md>) rewriting to [`requireAsync()`](<./01 Core functions.md#requireasync>).
+- [Dynamic `import()`](<./33 Dynamic import.md>) rewriting to [`requireAsync()`](<./02 Core functions.md#requireasync>).
 
 Passing `shouldTranspile: false` to a file that needs any of these makes it fail to load. Auto-detection never chooses the raw path for such files — the risk only exists when you set the option yourself.
 
@@ -71,5 +71,5 @@ Passing `shouldTranspile: false` to a file that needs any of these makes it fail
 | **[`require()`][require]**           | ✅      | ✅     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./01 Core functions.md#require>
-[requireAsync]: <./01 Core functions.md#requireasync>
+[require]: <./02 Core functions.md#require>
+[requireAsync]: <./02 Core functions.md#requireasync>

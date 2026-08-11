@@ -19,14 +19,14 @@ That is the whole model: code lives in the note, runs on click, and shows you it
 
 > [!WARNING] Mobile support
 >
-> The examples here are written for Desktop, and most features do **not** work with `require()` on mobile. Almost all of them work anyway once the call is asynchronous — see [Migrate to async](<./01 Core functions.md#migrate-to-async>), and the platform table at the bottom of each note.
+> The examples here are written for Desktop, and most features do **not** work with `require()` on mobile. Almost all of them work anyway once the call is asynchronous — see [Migrate to async](<./02 Core functions.md#migrate-to-async>), and the platform table at the bottom of each note.
 
 ## Start here
 
 | Note                                          | What it covers                                                                                                               |
 | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| [01 Core functions](<./01 Core functions.md>) | `require()`, `requireAsync()`, `requireAsyncWrapper()` — which to use, and why it decides whether your script runs on mobile |
-| [02 Code buttons](<./02 Code buttons.md>)     | Runnable snippets inside a note: the thing every other note is built out of                                                  |
+| [01 Code buttons](<./01 Code buttons.md>)     | Runnable snippets inside a note: the thing every other note is built out of                                                  |
+| [02 Core functions](<./02 Core functions.md>) | `require()`, `requireAsync()`, `requireAsyncWrapper()` — which to use, and why it decides whether your script runs on mobile |
 
 ## Where your code lives
 

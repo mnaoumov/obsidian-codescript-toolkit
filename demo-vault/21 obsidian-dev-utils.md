@@ -35,5 +35,5 @@ require('obsidian-dev-utils/obsidian/modals/alert');
 | **[`require()`][require]**           | ✅      | ✅     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./01 Core functions.md#require>
-[requireAsync]: <./01 Core functions.md#requireasync>
+[require]: <./02 Core functions.md#require>
+[requireAsync]: <./02 Core functions.md#requireasync>

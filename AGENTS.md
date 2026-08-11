@@ -21,7 +21,7 @@ issue #58 is an unrelated user reporting the same thing.
 - Links between notes are `[Text](<./NN Name.md>)`, **never `[[wikilinks]]`** — wikilinks do not
   render on GitHub, which is now a primary reading surface. The only `[[…]]` left in the vault are
   inside the code fences of `08 Wikilinks.md`, where they are the subject.
-- Platform tables use reference links (`[require]: <./01 Core functions.md#require>`) so the table
+- Platform tables use reference links (`[require]: <./02 Core functions.md#require>`) so the table
   columns stay narrow enough to align.
 - `00 Start.md` is a getting-started guide — what the vault is, a concrete first success, then an
   index grouped by intent with a one-line description per entry. Every note must be reachable from
