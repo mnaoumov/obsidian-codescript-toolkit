@@ -3853,7 +3853,7 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
         modulesRoot: ''
       }
     }),
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     tempPluginRegistry: castTo<RequireHandlerConstructorParams['tempPluginRegistry']>({})
   };
   return partial as RequireHandlerConstructorParams;

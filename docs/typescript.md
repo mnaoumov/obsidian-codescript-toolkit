@@ -1,5 +1,5 @@
 # `TypeScript` modules
 
-Moved to [16 TypeScript modules](<../demo-vault/16 TypeScript modules.md>).
+Moved to [11 TypeScript modules](<../demo-vault/11 TypeScript modules.md>).
 
 The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

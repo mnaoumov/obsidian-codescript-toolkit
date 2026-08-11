@@ -53,7 +53,7 @@ import { SourceVisibility } from './code-button-block-config.ts';
 import { CODE_BUTTON_BLOCK_LANGUAGE } from './code-button-code-highlighter-component.ts';
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 interface CodeButtonBlockComponentHandleClickParams {
@@ -87,7 +87,7 @@ interface CodeButtonBlockComponentConstructorParams {
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   readonly resourceLockComponent: null | ResourceLockComponent;
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
@@ -123,7 +123,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   private readonly resourceLockComponent: null | ResourceLockComponent;
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: CodeButtonBlockComponentConstructorParams) {
@@ -133,7 +133,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     this.tempPluginRegistry = params.tempPluginRegistry;
   }
 
@@ -346,7 +346,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
           resourceLockComponent: thisWrapper.value.resourceLockComponent,
           resultEl,
           source: params.source,
-          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+          // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
           tempPluginRegistry: thisWrapper.value.tempPluginRegistry
         }),
         escapedCaption: escapeForFileName(fullConfig.caption)
@@ -430,7 +430,7 @@ ${config}---
 
 function addLinkToDocs(f: DocumentFragment): void {
   f.appendText(' See ');
-  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/38%20Code%20buttons.md', text: 'docs' });
+  f.createEl('a', { href: 'https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/02%20Code%20buttons.md', text: 'docs' });
   f.appendText(' for more details.');
   f.createEl('br');
 }

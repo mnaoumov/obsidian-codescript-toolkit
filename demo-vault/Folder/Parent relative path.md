@@ -1,6 +1,6 @@
 # Parent relative path
 
-A fixture for [08 Relative path](<../08 Relative path.md>). This note sits one folder down, so its requires have to climb back out with `../` — which is the case that breaks without the plugin, and the case `parentPath` exists to disambiguate.
+A fixture for [03 Relative path](<../03 Relative path.md>). This note sits one folder down, so its requires have to climb back out with `../` — which is the case that breaks without the plugin, and the case `parentPath` exists to disambiguate.
 
 ```code-button
 ---

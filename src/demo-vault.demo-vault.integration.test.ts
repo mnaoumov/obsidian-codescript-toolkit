@@ -35,8 +35,8 @@ interface ExpectedNonOk {
 // Buttons that legitimately do not report success: by-design error demos, and buttons
 // That suppress system messages (so no ✅/❌ banner appears for the classifier to read).
 const EXPECTED_NON_OK: ExpectedNonOk[] = [
-  { captionIncludes: 'on error only', note: '38 Code buttons.md', status: 'error' },
-  { captionIncludes: 'shouldShowSystemMessages=false', note: '38 Code buttons.md', status: 'timeout' }
+  { captionIncludes: 'on error only', note: '02 Code buttons.md', status: 'error' },
+  { captionIncludes: 'shouldShowSystemMessages=false', note: '02 Code buttons.md', status: 'timeout' }
 ];
 
 interface ButtonResult {
@@ -208,7 +208,7 @@ describe('demo vault execution', () => {
           return activeView()?.containerEl.querySelector<HTMLElement>(selector) ?? null;
         }
       },
-      input: { intervalMs: POLL_INTERVAL_MS, notePath: '08 Relative path.md', renderTimeoutMs: RENDER_TIMEOUT_MS },
+      input: { intervalMs: POLL_INTERVAL_MS, notePath: '03 Relative path.md', renderTimeoutMs: RENDER_TIMEOUT_MS },
       vaultPath: getTemporaryVault().path
     });
 

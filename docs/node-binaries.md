@@ -1,5 +1,5 @@
 # Node binaries
 
-Moved to [20 Node binaries](<../demo-vault/20 Node binaries.md>).
+Moved to [14 Node binaries](<../demo-vault/14 Node binaries.md>).
 
 The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

@@ -24,5 +24,5 @@ The prefix contains a per-session host hash, so it changes between runs — read
 | **[`require()`][require]**           | ✅      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./40 Core functions.md#require>
-[requireAsync]: <./40 Core functions.md#requireasync>
+[require]: <./01 Core functions.md#require>
+[requireAsync]: <./01 Core functions.md#requireasync>

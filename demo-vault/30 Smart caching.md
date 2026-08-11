@@ -49,7 +49,7 @@ require('./someScript.js?someQuery'); // cacheInvalidationMode: 'never'
 require('https://some-site.com/some-script.js?someQuery'); // cacheInvalidationMode: 'whenPossible'
 ```
 
-`never` is also the performance lever: for code that runs many times — in a `dataviewjs` block that re-renders constantly, say — skipping the freshness check is the single biggest saving. [Clear cache](<./33 Clear cache.md>) is how you drop a `never`-cached module when you do finally change it.
+`never` is also the performance lever: for code that runs many times — in a `dataviewjs` block that re-renders constantly, say — skipping the freshness check is the single biggest saving. [Clear cache](<./31 Clear cache.md>) is how you drop a `never`-cached module when you do finally change it.
 
 ## Platform support
 
@@ -58,5 +58,5 @@ require('https://some-site.com/some-script.js?someQuery'); // cacheInvalidationM
 | **[`require()`][require]**           | ✅      | ✅     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./40 Core functions.md#require>
-[requireAsync]: <./40 Core functions.md#requireasync>
+[require]: <./01 Core functions.md#require>
+[requireAsync]: <./01 Core functions.md#requireasync>

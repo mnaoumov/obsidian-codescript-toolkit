@@ -17,7 +17,7 @@ import {
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from './code-button-context.ts';
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 import { SourceVisibility } from './code-button-block-config.ts';
@@ -62,14 +62,14 @@ vi.mock('./console-wrapper.ts', () => ({
 }));
 
 vi.mock('./temp-plugin-registry.ts', () => ({
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistry: class MockTemporaryPluginRegistry {
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     public getTempPlugin(...$arguments: unknown[]): unknown {
       return mockGetTemporaryPlugin(...$arguments);
     }
 
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     public registerTempPlugin(...$arguments: unknown[]): void {
       mockRegisterTemporaryPlugin(...$arguments);
     }
@@ -106,9 +106,9 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImplC
   const context = partialContext as MarkdownPostProcessorContext;
 
   const mockTemporaryPluginRegistry: Partial<TempPluginRegistryComponent> = {
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     getTempPlugin: mockGetTemporaryPlugin,
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     registerTempPlugin: mockRegisterTemporaryPlugin
   };
 
@@ -121,7 +121,7 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImplC
     resourceLockComponent: mockResourceLockComponent,
     resultEl,
     source: params.source ?? 'console.log("hello")',
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     tempPluginRegistry: mockTemporaryPluginRegistry as TempPluginRegistryComponent
   });
 }
@@ -370,7 +370,7 @@ describe('CodeButtonContextImplComponent', () => {
     it('should delegate to tempPluginRegistry.registerTempPlugin', async () => {
       const context = createContext();
       const params: RegisterTemporaryPluginParams = {
-        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+        // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
         tempPluginClass: vi.fn()
       };
       await context.registerTempPlugin(params);

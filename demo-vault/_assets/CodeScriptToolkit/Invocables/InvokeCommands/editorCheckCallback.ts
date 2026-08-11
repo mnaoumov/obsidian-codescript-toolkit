@@ -9,7 +9,7 @@ import {
 export function buildInvokeCommand(): Partial<Command> {
   return {
     editorCheckCallback: (checking: boolean, editor: Editor, ctx: MarkdownView | MarkdownFileInfo): boolean => {
-      if (ctx.file?.basename !== '35 Invocable scripts') {
+      if (ctx.file?.basename !== '36 Invocable scripts') {
         return false;
       }
 

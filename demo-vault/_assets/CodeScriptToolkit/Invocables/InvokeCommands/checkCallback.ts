@@ -11,7 +11,7 @@ export function buildInvokeCommand(app: App): Partial<Command> {
       if (!file) {
         return false;
       }
-      if (file.basename !== '35 Invocable scripts') {
+      if (file.basename !== '36 Invocable scripts') {
         return false;
       }
 

@@ -6,7 +6,7 @@
     // `[[wikilinks]]` are Obsidian's native link syntax; markdownlint parses
     // them as undefined shortcut reference links. Notes link each other with
     // `[Text](<./NN Name.md>)` (wikilinks do not render on GitHub), so the only
-    // remaining `[[...]]` are inside the code fences of `13 Wikilinks.md`,
+    // remaining `[[...]]` are inside the code fences of `08 Wikilinks.md`,
     // which markdownlint already ignores. Kept off so that note can keep
     // demonstrating the syntax without a suppression comment.
     "MD052": false

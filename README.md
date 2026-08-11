@@ -50,7 +50,7 @@ To open it in Obsidian and actually click the buttons, use any of:
 2. Downloading `fix-require-modules-demo-vault-<version>.zip` (`<version>` is the release version) from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases).
 3. Cloning this repository and opening [`demo-vault/`](./demo-vault/README.md) as a vault.
 
-If you are not sure where to start, three notes cover most of it: [Core functions](<./demo-vault/40 Core functions.md>) (which of `require()` / `requireAsync()` / `requireAsyncWrapper()` to use), [Code buttons](<./demo-vault/38 Code buttons.md>) (runnable snippets inside a note), and [Invocable scripts](<./demo-vault/35 Invocable scripts.md>) (turning a script into an Obsidian command).
+If you are not sure where to start, three notes cover most of it: [Core functions](<./demo-vault/01 Core functions.md>) (which of `require()` / `requireAsync()` / `requireAsyncWrapper()` to use), [Code buttons](<./demo-vault/02 Code buttons.md>) (runnable snippets inside a note), and [Invocable scripts](<./demo-vault/36 Invocable scripts.md>) (turning a script into an Obsidian command).
 
 ## Installation
 

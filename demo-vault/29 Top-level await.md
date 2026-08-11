@@ -19,7 +19,7 @@ export const dep = 42;
 
 ## Caveats
 
-A module that awaits at the top level cannot finish loading synchronously, so `require()` cannot load it on any platform — use [`requireAsync()`](<./40 Core functions.md#requireasync>), or pre-load it with [`requireAsyncWrapper()`](<./32 requireAsyncWrapper.md>) if the surrounding code has to stay synchronous.
+A module that awaits at the top level cannot finish loading synchronously, so `require()` cannot load it on any platform — use [`requireAsync()`](<./01 Core functions.md#requireasync>), or pre-load it with [`requireAsyncWrapper()`](<./34 requireAsyncWrapper.md>) if the surrounding code has to stay synchronous.
 
 ## Platform support
 
@@ -28,5 +28,5 @@ A module that awaits at the top level cannot finish loading synchronously, so `r
 | **[`require()`][require]**           | ❌      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./40 Core functions.md#require>
-[requireAsync]: <./40 Core functions.md#requireasync>
+[require]: <./01 Core functions.md#require>
+[requireAsync]: <./01 Core functions.md#requireasync>

@@ -1,6 +1,6 @@
 # File URLs
 
-Load a script by `file:///` URL — the way to reach a file outside the vault on any desktop OS, including Windows, where the `~` form of [System root path](<./10 System root path.md>) does not apply. Useful for a shared script library you keep in version control next to the rest of your code.
+Load a script by `file:///` URL — the way to reach a file outside the vault on any desktop OS, including Windows, where the `~` form of [System root path](<./05 System root path.md>) does not apply. Useful for a shared script library you keep in version control next to the rest of your code.
 
 ```code-button
 ---
@@ -24,5 +24,5 @@ A `file:///` URL names an absolute location on one machine, so hard-coding one s
 | **[`require()`][require]**           | ✅      | ❌     |
 | **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
-[require]: <./40 Core functions.md#require>
-[requireAsync]: <./40 Core functions.md#requireasync>
+[require]: <./01 Core functions.md#require>
+[requireAsync]: <./01 Core functions.md#requireasync>
