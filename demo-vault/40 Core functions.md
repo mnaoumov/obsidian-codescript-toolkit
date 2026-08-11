@@ -83,7 +83,7 @@ await requireAsyncWrapper((require) => {
 
 For large prebuilt CommonJS bundles you can also [skip transpilation](<./25 Skip transpilation.md>) and avoid the Babel overhead entirely.
 
-## Migrate to async
+## Migrate-to-async
 
 Most features do not work with `require()` on mobile, and a few do not work with it on desktop either. Every one of them works once the call is asynchronous — so "make it work on mobile" almost always means "migrate to async".
 

@@ -29,6 +29,25 @@ issue #58 is an unrelated user reporting the same thing.
 - `_assets/` holds code fixtures, not documentation; it is excluded from the vault's markdownlint
   config.
 
+### Gotcha: a heading that is a link target must be kebab-case
+
+Obsidian and GitHub resolve `#fragment` differently, and the vault is read on both. Obsidian's
+`resolveSubpath` compares `stripHeading(heading).toLowerCase()` against the same of the fragment,
+where `stripHeading` replaces `` !"#$%&()*+,.:;<=>?@^`{|}~/[]\ `` (and newlines) with a space and
+collapses runs of whitespace. GitHub instead builds a slug: lowercase, **spaces → hyphens**,
+punctuation dropped. So a heading is linkable from both surfaces only when its GitHub slug already
+equals its Obsidian-normalized form:
+
+- `` ## `require()` `` → `#require` works on both — backticks and parens are in Obsidian's strip set
+  and GitHub drops them too. This is why the platform tables have always worked.
+- `## Migrate to async` cannot: GitHub wants `#migrate-to-async`, Obsidian wants `#Migrate to async`,
+  and **hyphens are not in the strip set**, so neither fragment satisfies the other.
+
+Hence: any heading that something links to is written kebab-case (`## Migrate-to-async`) and linked
+with the lowercase slug. Case is free — both sides fold it — but word separators are not. Prose
+headings nothing links to (`## Platform support`) stay prose. `markdownlint`'s `relative-links` rule
+enforces the GitHub half of this; the Obsidian half has no linter, so it is on you.
+
 ### Gotcha: table alignment with emoji
 
 `MD060` aligns on **display width**, and the `✅` / `❌` in every platform table are two columns wide
