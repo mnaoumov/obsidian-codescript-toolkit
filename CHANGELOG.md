@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 13.6.2
+
+- docs: explain the source toggle and raw code buttons
+- docs: read code buttons before core functions
+- docs: simplify README
+- docs: renumber demo vault notes to follow the reading order in 00 Start
+- docs: make the migrate-to-async heading resolve in Obsidian and on GitHub
+- docs: fix link
+- chore: update libs
+
 ## 13.6.1
 
 - test: fix
