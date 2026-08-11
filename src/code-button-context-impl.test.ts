@@ -29,6 +29,7 @@ const mockInsertBeforeCodeBlock = vi.fn();
 const mockRemoveCodeBlock = vi.fn();
 const mockReplaceCodeBlock = vi.fn();
 const mockGetConsoleInstance = vi.fn();
+const mockConsoleWrapperConstructor = vi.fn();
 const mockGetTemporaryPlugin = vi.fn();
 const mockRegisterTemporaryPlugin = vi.fn();
 const mockMarkdownRendererRender = vi.fn();
@@ -55,6 +56,10 @@ vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor', () => ({
 
 vi.mock('./console-wrapper.ts', () => ({
   ConsoleWrapper: class MockConsoleWrapper {
+    public constructor(...$arguments: unknown[]) {
+      mockConsoleWrapperConstructor(...$arguments);
+    }
+
     public getConsoleInstance(...$arguments: unknown[]): unknown {
       return mockGetConsoleInstance(...$arguments);
     }
@@ -77,6 +82,7 @@ vi.mock('./temp-plugin-registry.ts', () => ({
 }));
 
 interface CreateContextParams {
+  readonly buttonEl?: HTMLButtonElement | null;
   readonly config?: Partial<CodeButtonBlockConfig>;
   readonly markdownInfo?: CodeBlockMarkdownInformation | null;
   readonly source?: string;
@@ -114,6 +120,7 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImplC
 
   return new CodeButtonContextImplComponent({
     app: mockApp,
+    buttonEl: params.buttonEl ?? null,
     config,
     markdownInfo: params.markdownInfo ?? null,
     markdownPostProcessorContext: context,
@@ -129,10 +136,13 @@ function createContext(params: CreateContextParams = {}): CodeButtonContextImplC
 function createMockConfig(overrides: Partial<CodeButtonBlockConfig> = {}): CodeButtonBlockConfig {
   return {
     caption: 'Run',
+    css: '',
+    cssClasses: '',
     isRaw: false,
     removeAfterExecution: { shouldKeepGap: false, when: 'never' },
     shouldAutoOutput: true,
     shouldAutoRun: false,
+    shouldAutoScrollToConsoleMessages: true,
     shouldShowSystemMessages: true,
     shouldWrapConsole: true,
     sourceVisibility: SourceVisibility.Hidden,
@@ -182,6 +192,24 @@ describe('CodeButtonContextImplComponent', () => {
     it('should assign source from params', () => {
       const context = createContext({ source: 'my source code' });
       expect(context.source).toBe('my source code');
+    });
+
+    it('should assign buttonEl from params', () => {
+      const buttonEl = createEl('button');
+      const context = createContext({ buttonEl });
+      expect(context.buttonEl).toBe(buttonEl);
+    });
+
+    it('should assign a null buttonEl when there is no button', () => {
+      const context = createContext({ buttonEl: null });
+      expect(context.buttonEl).toBeNull();
+    });
+
+    it('should pass shouldAutoScrollToConsoleMessages to the console wrapper', () => {
+      createContext({ config: { shouldAutoScrollToConsoleMessages: false } });
+      expect(mockConsoleWrapperConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({ shouldAutoScrollToConsoleMessages: false })
+      );
     });
 
     it('should assign markdownInfo from params', () => {

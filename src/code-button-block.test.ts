@@ -117,6 +117,7 @@ vi.mock('./console-wrapper.ts', () => ({
 
 interface MockConstructorParams {
   readonly app: unknown;
+  readonly buttonEl: HTMLButtonElement | null;
   readonly config: CodeButtonBlockConfig;
   readonly markdownInfo: unknown;
   readonly markdownPostProcessorContext: unknown;
@@ -124,13 +125,20 @@ interface MockConstructorParams {
   readonly source: string;
 }
 
+interface MockCreateElOptions {
+  onclick(): Promise<void>;
+}
+
 interface MockSourceFile {
   path: string;
 }
 
+const mockCodeButtonContextConstructor = vi.fn();
+
 vi.mock('./code-button-context-impl.ts', () => ({
   CodeButtonContextImplComponent: class MockCodeButtonContextImplComponent {
     public readonly app: unknown;
+    public readonly buttonEl: HTMLButtonElement | null;
     public readonly config: CodeButtonBlockConfig;
     public readonly container: HTMLElement;
     public readonly markdownInfo: unknown;
@@ -141,7 +149,9 @@ vi.mock('./code-button-context-impl.ts', () => ({
     public readonly sourceFile: MockSourceFile;
 
     public constructor(params: MockConstructorParams) {
+      mockCodeButtonContextConstructor(params);
       this.app = params.app;
+      this.buttonEl = params.buttonEl;
       this.config = params.config;
       this.markdownInfo = params.markdownInfo;
       this.markdownPostProcessorContext = params.markdownPostProcessorContext;
@@ -164,6 +174,14 @@ describe('DEFAULT_CODE_BUTTON_BLOCK_CONFIG', () => {
     expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.caption).toBe('(no caption)');
   });
 
+  it('should have css empty', () => {
+    expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.css).toBe('');
+  });
+
+  it('should have cssClasses empty', () => {
+    expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.cssClasses).toBe('');
+  });
+
   it('should have isRaw false', () => {
     expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.isRaw).toBe(false);
   });
@@ -174,6 +192,10 @@ describe('DEFAULT_CODE_BUTTON_BLOCK_CONFIG', () => {
 
   it('should have shouldAutoRun false', () => {
     expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.shouldAutoRun).toBe(false);
+  });
+
+  it('should have shouldAutoScrollToConsoleMessages true', () => {
+    expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.shouldAutoScrollToConsoleMessages).toBe(true);
   });
 
   it('should have shouldShowSystemMessages true', () => {
@@ -398,6 +420,138 @@ describe('CodeButtonBlockComponent', () => {
           prepend: true,
           text: '(no caption)'
         })
+      );
+    });
+
+    it('should apply css to the button element', async () => {
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const source = '---\ncss: "color: red; margin-top: 10px"\n---\nconsole.log("test")';
+
+      await component['processCodeButtonBlock']({ context, el, source });
+
+      expect(buttonEl.style.color).toBe('red');
+      expect(buttonEl.style.marginTop).toBe('10px');
+    });
+
+    it('should leave the button style untouched when css is omitted', async () => {
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      expect(buttonEl.style.cssText).toBe('');
+    });
+
+    it('should add cssClasses given as a space-separated string to the button element', async () => {
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const source = '---\ncssClasses: my-button my-other-button\n---\nconsole.log("test")';
+
+      await component['processCodeButtonBlock']({ context, el, source });
+
+      expect(buttonEl.classList.contains('my-button')).toBe(true);
+      expect(buttonEl.classList.contains('my-other-button')).toBe(true);
+    });
+
+    it('should add cssClasses given as a list to the button element', async () => {
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      const source = '---\ncssClasses:\n  - my-button\n  - my-other-button\n---\nconsole.log("test")';
+
+      await component['processCodeButtonBlock']({ context, el, source });
+
+      expect(buttonEl.classList.contains('my-button')).toBe(true);
+      expect(buttonEl.classList.contains('my-other-button')).toBe(true);
+    });
+
+    it('should add no classes beyond the built-in ones when cssClasses is omitted', async () => {
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      expect([...buttonEl.classList]).toEqual([]);
+    });
+
+    it('should pass the button element to the code button context', async () => {
+      const el = createDiv();
+      const buttonEl = createEl('button');
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(buttonEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      const createElOptions = vi.mocked(el.createEl).mock.calls[0]?.[1] as MockCreateElOptions | undefined;
+      await createElOptions?.onclick();
+
+      expect(mockCodeButtonContextConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({ buttonEl })
+      );
+    });
+
+    it('should pass a null button element to the code button context for a raw button', async () => {
+      const el = createDiv();
+      el.createDiv = vi.fn().mockReturnValue(createDiv());
+      el.createEl = vi.fn().mockReturnValue(createEl('button'));
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      vi.spyOn(castTo<CodeButtonBlockComponentPrivateApi>(component), 'handleClick').mockResolvedValue(undefined);
+
+      await component['processCodeButtonBlock']({ context, el, source: '---\nisRaw: true\n---\nconsole.log("test")' });
+      await waitForAllAsyncOperations();
+
+      expect(mockCodeButtonContextConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({ buttonEl: null })
       );
     });
 

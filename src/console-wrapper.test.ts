@@ -39,8 +39,7 @@ describe('ConsoleWrapper', () => {
 
   beforeEach(() => {
     resultEl = createMockElement();
-    const partialResultEl: Partial<HTMLElement> = resultEl as Partial<HTMLElement>;
-    wrapper = new ConsoleWrapper({ resultEl: partialResultEl as HTMLElement });
+    wrapper = createWrapper(resultEl, true);
   });
 
   describe('appendToResultEl', () => {
@@ -225,4 +224,43 @@ describe('ConsoleWrapper', () => {
       });
     });
   });
+
+  describe('shouldAutoScrollToConsoleMessages', () => {
+    it('should not scroll the system message into view when disabled', () => {
+      const el = createMockElement();
+      createWrapper(el, false).writeSystemMessage('no scroll');
+
+      expect(el.createDiv).toHaveBeenCalledWith({ cls: 'system-message', text: 'no scroll' });
+      expect(el.scrollIntoView).not.toHaveBeenCalled();
+    });
+
+    it('should not scroll the log entry into view when disabled', () => {
+      const el = createMockElement();
+      createWrapper(el, false).appendToResultEl(['no scroll'], 'log');
+
+      expect(el.createDiv).toHaveBeenCalledWith({ cls: 'console-log-entry console-log-entry-log', text: 'no scroll' });
+      expect(el.scrollIntoView).not.toHaveBeenCalled();
+    });
+
+    it('should not scroll wrapped console output into view when disabled', () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {
+        // Intentional noop for test mock.
+      });
+
+      try {
+        const el = createMockElement();
+        createWrapper(el, false).getConsoleInstance(true).log('no scroll');
+
+        expect(logSpy).toHaveBeenCalledWith('no scroll');
+        expect(el.scrollIntoView).not.toHaveBeenCalled();
+      } finally {
+        logSpy.mockRestore();
+      }
+    });
+  });
+
+  function createWrapper(el: MockElement, shouldAutoScrollToConsoleMessages: boolean): ConsoleWrapper {
+    const partialResultEl: Partial<HTMLElement> = el as Partial<HTMLElement>;
+    return new ConsoleWrapper({ resultEl: partialResultEl as HTMLElement, shouldAutoScrollToConsoleMessages });
+  }
 });

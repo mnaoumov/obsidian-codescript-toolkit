@@ -182,6 +182,23 @@ describe('Plugin', () => {
     expect(commandHandlerFactory?.()).toHaveLength(EXPECTED_COMMAND_HANDLER_COUNT);
   });
 
+  it('should expose the settings component it added as a child', async () => {
+    const plugin = createPlugin();
+    const addChildSpy = vi.spyOn(plugin, 'addChild');
+
+    await castTo<PluginPrivateApi>(plugin).onloadImpl();
+
+    // The settings component is the first child added, and the exposed member has to be that very
+    // Instance — a copy would not be the one the running plugin reads its settings from.
+    expect(plugin.pluginSettingsComponent).toBe(addChildSpy.mock.calls[0]?.[0]);
+    expect(plugin.pluginSettingsComponent).toBeDefined();
+  });
+
+  it('should not expose a settings component before onloadImpl', () => {
+    const plugin = new Plugin(app, manifest);
+    expect(plugin.pluginSettingsComponent).toBeUndefined();
+  });
+
   it('should assign app from constructor argument', () => {
     const plugin = new Plugin(app, manifest);
     expect(plugin.app).toBe(app);

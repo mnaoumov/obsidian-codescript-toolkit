@@ -35,6 +35,7 @@ import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 interface CodeButtonContextImplComponentConstructorParams {
   readonly app: App;
+  readonly buttonEl: HTMLButtonElement | null;
   readonly config: CodeButtonBlockConfig;
   readonly markdownInfo: CodeBlockMarkdownInformation | null;
   readonly markdownPostProcessorContext: MarkdownPostProcessorContext;
@@ -51,6 +52,7 @@ type CodeButtonContextImplComponentRegisterTempPluginParams<TPlugin extends Obsi
 
 export class CodeButtonContextImplComponent extends ComponentEx implements CodeButtonContext {
   public readonly app: App;
+  public readonly buttonEl: HTMLButtonElement | null;
   public readonly config: CodeButtonBlockConfig;
   public readonly console: Console;
   public readonly container: HTMLElement;
@@ -67,6 +69,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
   public constructor(params: CodeButtonContextImplComponentConstructorParams) {
     super();
     this.app = params.app;
+    this.buttonEl = params.buttonEl;
     this.config = params.config;
     this.resourceLockComponent = params.resourceLockComponent;
     this.markdownInfo = params.markdownInfo;
@@ -76,7 +79,10 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
 
     this.sourceFile = getFile({ app: this.app, pathOrFile: params.markdownPostProcessorContext.sourcePath });
     this.container = params.config.isRaw ? this.parentEl : params.resultEl;
-    const wrappedConsole = new ConsoleWrapper({ resultEl: this.container });
+    const wrappedConsole = new ConsoleWrapper({
+      resultEl: this.container,
+      shouldAutoScrollToConsoleMessages: this.config.shouldAutoScrollToConsoleMessages
+    });
     this.console = wrappedConsole.getConsoleInstance(this.config.shouldWrapConsole);
     // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     this.tempPluginRegistry = params.tempPluginRegistry;

@@ -119,6 +119,8 @@ throw new Error('Failed on purpose - this button removes itself on error');
 
 `shouldAutoRun` runs the block as soon as the note is rendered — for a note that should show live data the moment you open it.
 
+Such a button also wants `shouldAutoScrollToConsoleMessages: false`. The results panel normally scrolls itself into view as output arrives — right after a click, wrong on render, where nobody clicked anything and the note would jump down to the button the moment you opened it. Like `sourceVisibility`, this vault sets it once for every button rather than per block, which is why you will not find it in the source below. [Code button config](<./41 Code button config.md>) covers it.
+
 ```code-button
 ---
 caption: Button in shouldAutoRun=true mode

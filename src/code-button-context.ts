@@ -19,6 +19,15 @@ export interface CodeButtonContext {
   app: App;
 
   /**
+   * The button element the running code belongs to.
+   *
+   * `null` when {@link CodeButtonBlockConfig.isRaw} is `true`, because a raw block renders no button.
+   *
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20context.md#codebuttoncontextbuttonel}
+   */
+  buttonEl: HTMLButtonElement | null;
+
+  /**
    * A config for the code button block.
    */
   config: CodeButtonBlockConfig;

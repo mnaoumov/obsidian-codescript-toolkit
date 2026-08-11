@@ -28,6 +28,24 @@ export interface CodeButtonBlockConfig {
   caption: string;
 
   /**
+   * The [inline CSS](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#css---inline-button-styles) applied to the button element, in the same syntax as an HTML `style` attribute.
+   *
+   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#israw---raw-mode) buttons, which render no button element.
+   *
+   * @default `''`
+   */
+  css: string;
+
+  /**
+   * The [CSS classes](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#cssclasses---button-css-classes) added to the button element, as a single space-separated string or a list of strings.
+   *
+   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#israw---raw-mode) buttons, which render no button element.
+   *
+   * @default `''`
+   */
+  cssClasses: string | string[];
+
+  /**
    * Whether the button should work in [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#israw---raw-mode) mode.
    */
   isRaw: boolean;
@@ -46,6 +64,17 @@ export interface CodeButtonBlockConfig {
    * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#shouldautorun---auto-running-code-blocks-mode) without pressing the button.
    */
   shouldAutoRun: boolean;
+
+  /**
+   * Whether the results panel [scrolls itself into view](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#shouldautoscrolltoconsolemessages---auto-scrolling) as messages are appended to it.
+   *
+   * Covers everything the panel shows: the system messages gated by {@link CodeButtonBlockConfig.shouldShowSystemMessages} and the console messages gated by {@link CodeButtonBlockConfig.shouldWrapConsole}.
+   *
+   * Set it to `false` for a button that runs itself, so opening the note does not scroll away from the top.
+   *
+   * @default `true`
+   */
+  shouldAutoScrollToConsoleMessages: boolean;
 
   /**
    * Whether to show system messages such as `Executing...`, `Executed successfully`, etc.

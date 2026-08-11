@@ -67,6 +67,8 @@ type CodeButtonBlockScriptWrapper = (context: CodeButtonContext) => Promisable<v
 
 export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   caption: '(no caption)',
+  css: '',
+  cssClasses: '',
   isRaw: false,
   removeAfterExecution: {
     shouldKeepGap: false,
@@ -74,6 +76,7 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   },
   shouldAutoOutput: true,
   shouldAutoRun: false,
+  shouldAutoScrollToConsoleMessages: true,
   shouldShowSystemMessages: true,
   shouldWrapConsole: true,
   sourceVisibility: SourceVisibility.Hidden
@@ -152,7 +155,10 @@ export class CodeButtonBlockComponent extends ComponentEx {
 
   private async handleClick(params: CodeButtonBlockComponentHandleClickParams): Promise<void> {
     params.codeButtonContext.container.empty();
-    const wrappedConsole = new ConsoleWrapper({ resultEl: params.codeButtonContext.container });
+    const wrappedConsole = new ConsoleWrapper({
+      resultEl: params.codeButtonContext.container,
+      shouldAutoScrollToConsoleMessages: params.codeButtonContext.config.shouldAutoScrollToConsoleMessages
+    });
     if (params.codeButtonContext.config.shouldShowSystemMessages) {
       wrappedConsole.writeSystemMessage('⏳ Executing...');
     }
@@ -237,7 +243,9 @@ export class CodeButtonBlockComponent extends ComponentEx {
     const code = params.source.slice(frontMatterInfo.contentStart);
 
     if (markdownInfo && markdownInfo.$arguments.length > 0) {
-      new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
+      // Written while the note is rendering and before any config is known, so it must not
+      // Auto-scroll — that would drag the note away from the top just to show an error banner.
+      new ConsoleWrapper({ resultEl, shouldAutoScrollToConsoleMessages: false }).writeSystemMessage(createFragment((f) => {
         f.appendText('❌ Error!\nYour code block uses legacy button config.');
         addLinkToDocs(f);
         f.createEl('button', {
@@ -281,7 +289,8 @@ export class CodeButtonBlockComponent extends ComponentEx {
       config = parseYaml(frontMatterInfo.frontmatter) as (Partial<CodeButtonBlockConfig> | undefined) ?? {};
     } catch (error) {
       console.error(error);
-      new ConsoleWrapper({ resultEl }).writeSystemMessage(createFragment((f) => {
+      // Same as above: the config that would have answered this is the one that failed to parse.
+      new ConsoleWrapper({ resultEl, shouldAutoScrollToConsoleMessages: false }).writeSystemMessage(createFragment((f) => {
         f.appendText('❌ Error!\nYour code block config is not a valid YAML.');
         addLinkToDocs(f);
         f.appendText('See the YAML parsing error in the console.');
@@ -314,8 +323,12 @@ export class CodeButtonBlockComponent extends ComponentEx {
       });
     }
 
+    // Declared out here so both `shouldAutoRun` below and every later click hand the same element to
+    // The code button context. Stays `null` for `isRaw` blocks, which render no button at all.
+    let buttonEl: HTMLButtonElement | null = null;
+
     if (!fullConfig.isRaw) {
-      const buttonEl = params.el.createEl('button', {
+      buttonEl = params.el.createEl('button', {
         cls: 'mod-cta fix-require-modules-run-button',
         async onclick(): Promise<void> {
           await thisWrapper.value.handleClick(createHandleClickParams());
@@ -323,6 +336,12 @@ export class CodeButtonBlockComponent extends ComponentEx {
         prepend: true,
         text: fullConfig.caption
       });
+
+      if (fullConfig.css) {
+        buttonEl.style.cssText = fullConfig.css;
+      }
+
+      buttonEl.addClasses(splitCssClasses(fullConfig.cssClasses));
 
       buttonEl.addEventListener('contextmenu', (event: MouseEvent) => {
         thisWrapper.value.showButtonMenu({ code, event, markdownInfo });
@@ -339,6 +358,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
         code,
         codeButtonContext: new CodeButtonContextImplComponent({
           app: thisWrapper.value.app,
+          buttonEl,
           config: fullConfig,
           markdownInfo,
           markdownPostProcessorContext: updateSourcePath(params.context, sourceFile),
@@ -471,6 +491,11 @@ function makeWrapperScript(params: MakeWrapperScriptParams): string {
   }
 
   return result.transformedCode;
+}
+
+function splitCssClasses(cssClasses: string | string[]): string[] {
+  const entries = typeof cssClasses === 'string' ? [cssClasses] : cssClasses;
+  return entries.flatMap((entry) => entry.split(/\s+/)).filter((cssClass) => cssClass !== '');
 }
 
 function updateSourcePath(context: MarkdownPostProcessorContext, sourceFile: TFile): MarkdownPostProcessorContext {

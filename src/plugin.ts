@@ -27,6 +27,17 @@ import { StartupScriptComponent } from './startup-script.ts';
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 export class Plugin extends PluginBase {
+  /**
+   * The settings component, exposed so anything holding this plugin instance -- a script, another plugin,
+   * `obsidian-dev-utils`' `configureCommunityPlugin` -- can read and change the settings of the RUNNING
+   * plugin through {@link PluginSettingsComponent.editAndSave}, which both applies them immediately and
+   * persists them. Writing `data.json` directly would need a reload to take effect.
+   *
+   * `undefined` until `onloadImpl` has run, so a caller reaching it early gets nothing rather than a
+   * half-built component.
+   */
+  public pluginSettingsComponent?: PluginSettingsComponent;
+
   protected override async onloadImpl(): Promise<void> {
     const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);
 
@@ -37,6 +48,7 @@ export class Plugin extends PluginBase {
         pluginEventSource: new PluginEventSourceImpl(this)
       })
     );
+    this.pluginSettingsComponent = pluginSettingsComponent;
 
     // Since obsidian-dev-utils 90 a child is loaded as it is added, so the settings' async load tail runs
     // In parallel with the components added below instead of before them. Every one of them reads the

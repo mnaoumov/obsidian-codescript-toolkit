@@ -8,13 +8,16 @@ type ConsoleMethod = 'debug' | 'error' | 'info' | 'log' | 'warn';
 
 interface ConsoleWrapperConstructorParams {
   readonly resultEl: HTMLElement;
+  readonly shouldAutoScrollToConsoleMessages: boolean;
 }
 
 export class ConsoleWrapper {
   private readonly resultEl: HTMLElement;
+  private readonly shouldAutoScrollToConsoleMessages: boolean;
 
   public constructor(params: ConsoleWrapperConstructorParams) {
     this.resultEl = params.resultEl;
+    this.shouldAutoScrollToConsoleMessages = params.shouldAutoScrollToConsoleMessages;
   }
 
   public appendToResultEl($arguments: unknown[], method: ConsoleMethod): void {
@@ -42,12 +45,22 @@ export class ConsoleWrapper {
 
   public writeSystemMessage(message: DocumentFragment | string): void {
     const systemMessage = this.resultEl.createDiv({ cls: 'system-message', text: message });
-    systemMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    this.scrollIntoViewIfEnabled(systemMessage);
   }
 
   private appendToLog(message: string, method: ConsoleMethod): void {
     const logEntry = this.resultEl.createDiv({ cls: `console-log-entry console-log-entry-${method}`, text: message });
-    logEntry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    this.scrollIntoViewIfEnabled(logEntry);
+  }
+
+  private scrollIntoViewIfEnabled(el: HTMLElement): void {
+    if (!this.shouldAutoScrollToConsoleMessages) {
+      return;
+    }
+
+    // The results panel is not its own scroll container, so this walks up to the note's scroller
+    // And moves the whole page. That is wanted after a click, but not while the note is rendering.
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
 

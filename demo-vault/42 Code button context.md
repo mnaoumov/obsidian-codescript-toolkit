@@ -2,6 +2,27 @@
 
 While a [code button](<./01 Code buttons.md>) runs, a variable called `codeButtonContext` is in scope. It is the button's handle on itself and on Obsidian: where to draw, how to render markdown, how to edit the note the button lives in, and how to load a temporary plugin. This is what turns a code button from "runs a script" into "builds a small piece of UI inside a note".
 
+## `codeButtonContext.buttonEl`
+
+The button element itself, so running code can change the button that started it: relabel it, disable it while the work is in flight, or style it by what just happened. [`css` and `cssClasses`](<./41 Code button config.md>) set its appearance up front; this changes it afterwards.
+
+```code-button
+---
+caption: Click me
+---
+import { Notice } from 'obsidian';
+
+const buttonEl = codeButtonContext.buttonEl;
+if (buttonEl) {
+  buttonEl.setText('Clicked!');
+  buttonEl.style.backgroundColor = 'green';
+}
+
+new Notice('The button relabelled itself');
+```
+
+It is `null` for an [`isRaw`](<./41 Code button config.md>) button, which renders no button at all — so check before using it, as above.
+
 ## `codeButtonContext.container`
 
 The element wrapping the results panel — yours to draw into. Build a form, a table, a set of buttons.

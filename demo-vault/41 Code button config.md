@@ -8,12 +8,15 @@ Here is the full config, with the defaults it would have anyway:
 ```code-button
 ---
 caption: (no caption)
+css: ""
+cssClasses: ""
 isRaw: false
 removeAfterExecution:
   shouldKeepGap: false
   when: never
 shouldAutoOutput: true
 shouldAutoRun: false
+shouldAutoScrollToConsoleMessages: true
 shouldShowSystemMessages: true
 shouldWrapConsole: true
 sourceVisibility: hidden
@@ -26,11 +29,62 @@ Rather than typing that, run **CodeScript Toolkit: Insert sample code button** t
 
 ## Override default button config
 
-Repeating the same three keys on every button gets old. The plugin's settings tab has a **Default code button config** field taking the same YAML, applied to every button in the vault. Individual buttons still override it — which is exactly how this demo vault turns `sourceVisibility` on everywhere without touching a single note.
+Repeating the same three keys on every button gets old. The plugin's settings tab has a **Default code button config** field taking the same YAML, applied to every button in the vault. Individual buttons still override it — which is exactly how this demo vault turns `sourceVisibility` on, and `shouldAutoScrollToConsoleMessages` off, everywhere without touching a single note.
 
 ## `caption` - Button text
 
 What the button says. Without it, the button reads `(no caption)`.
+
+## `css` - Inline button styles
+
+Styles the button itself, before anyone clicks it — same syntax as an HTML `style` attribute. Useful for making one button in a note stand out, or toning a destructive one down.
+
+````markdown
+```code-button
+---
+caption: Click me
+css: "color: red; margin-top: 10px"
+---
+new Notice('Clicked');
+```
+````
+
+```code-button
+---
+caption: Click me
+css: "color: red; margin-top: 10px"
+---
+import { Notice } from 'obsidian';
+new Notice('Clicked');
+```
+
+## `cssClasses` - Button CSS classes
+
+Adds your own CSS classes to the button, so a [CSS snippet](https://help.obsidian.md/snippets) can style every button of a kind at once instead of repeating `css` on each. Takes one space-separated string or a list.
+
+````markdown
+```code-button
+---
+caption: Click me
+cssClasses: my-button my-other-button
+---
+new Notice('Clicked');
+```
+````
+
+The list form reads better past a class or two:
+
+````markdown
+```code-button
+---
+caption: Click me
+cssClasses:
+  - my-button
+  - my-other-button
+---
+new Notice('Clicked');
+```
+````
 
 ## `isRaw` - Raw mode
 
@@ -113,6 +167,27 @@ shouldAutoRun: true
 ```
 ````
 
+## `shouldAutoScrollToConsoleMessages` - Auto scrolling
+
+As messages land in the results panel, the panel scrolls itself into view so the newest line stays visible. That is what you want after clicking a button, and what you do not want from a [`shouldAutoRun`](#shouldautorun---auto-running-code-blocks-mode) button: the note is still rendering, nobody clicked anything, and the page jumps down to a button you had not scrolled to yet.
+
+Set it to `false` on any button that runs itself, and opening the note leaves you at the top.
+
+````markdown
+```code-button
+---
+caption: Button that runs itself quietly
+shouldAutoRun: true
+shouldAutoScrollToConsoleMessages: false
+---
+console.log('Ran on render, without dragging the note down here.');
+```
+````
+
+It covers everything the panel shows — both the [system messages](#shouldshowsystemmessages---system-messages) and the [console messages](#shouldwrapconsole---console-messages). Turning either of those off removes its messages, and therefore its scrolling, on its own.
+
+Like `sourceVisibility`, this is usually a per-vault decision rather than a per-button one, so it is best set once in **Default code button config** — as this demo vault does, from its [startup script](<./38 Startup script.md>).
+
 ## `shouldShowSystemMessages` - System messages
 
 Whether the *⏳ Executing…* / *✅ Executed successfully* banners appear in the results panel. Turn them off for a button whose own output is the point.
@@ -184,6 +259,8 @@ This is a per-vault decision more than a per-button one, so it is usually best s
 ## Caveats
 
 `sourceVisibility` has no effect on `isRaw` buttons. A raw button owns its whole rendered element and clears it on every run, so there is nowhere for a panel to survive.
+
+`css` and `cssClasses` have no effect on `isRaw` buttons either, for the simpler reason that a raw button renders no button element to style.
 
 ## Full spec
 
