@@ -19,7 +19,7 @@ That is the whole model: code lives in the note, runs on click, and shows you it
 
 > [!WARNING] Mobile support
 >
-> The examples here are written for Desktop, and most features do **not** work with `require()` on mobile. Almost all of them work anyway once the call is asynchronous — see [Migrate to async](<./40 Core functions.md#migrate-to-async>), and the platform table at the bottom of each note.
+> The examples here are written for Desktop, and most features do **not** work with `require()` on mobile. Almost all of them work anyway once the call is asynchronous — see [Migrate to async](<./40 Core functions.md#Migrate to async>), and the platform table at the bottom of each note.
 
 ## Start here
 
