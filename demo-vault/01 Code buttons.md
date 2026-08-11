@@ -14,6 +14,12 @@ new Notice('Hello from a code button');
 
 ![Code Button](./_assets/attachments/code-button.png)
 
+## The `</>` toggle beside the button
+
+Click it and the button's own source unfolds underneath, syntax-highlighted, so nothing in this vault is a black box — the code you are reading about is the code that just ran. Click it again to fold it away. Right-click the button instead and choose **Copy source** to take that code with you.
+
+You will not see the toggle in your own vault until you ask for it: a button renders alone by default, and `sourceVisibility` turns the toggle on — per button, or for every button at once through **Default code button config** in the plugin's settings, which is what this vault does. [Code button config](<./41 Code button config.md>) covers both.
+
 Everything the rest of this vault demonstrates works inside a button: `require()`, `import`, top-level `await`, and TypeScript syntax.
 
 ```code-button
@@ -124,17 +130,28 @@ new Notice(message);
 console.log(message);
 ```
 
-`isRaw` goes further: the block renders *only* what your code puts on the page — no button, no console output, no status messages — so a code button can generate part of the note itself.
+`isRaw` goes further: the block renders *only* what your code puts on the page — no button, no console output, no status messages — so a code button can generate part of the note itself. The sentence right below this one is not written in the note; a raw button prints it every time the note is rendered, through the `codeButtonContext` API that [Code button context](<./42 Code button context.md>) documents.
+
+```code-button
+---
+isRaw: true
+---
+await codeButtonContext.renderMarkdown(`*Rendered by a raw code button at ${new Date().toLocaleTimeString()}.*`);
+```
+
+A raw block whose code renders nothing therefore shows nothing at all. The next one runs on every render and its only trace is the notice it pops:
 
 ```code-button
 ---
 isRaw: true
 ---
 import { Notice } from 'obsidian';
-const message = 'Button in raw mode: auto-executing, with nothing of its own rendered';
+const message = 'Raw button that renders nothing - this notice is its only trace';
 new Notice(message);
 console.log(message);
 ```
+
+That is the thing to know about raw blocks: in Reading view an invisible one cannot be clicked, read or deleted, because there is nothing on the page to aim at. Switch to Editing view — `Ctrl` + `E`, or `Cmd` + `E` on macOS — and the ` ```code-button ` block is there in the markdown, where you can edit it or remove it.
 
 ## Buttons with less noise
 
