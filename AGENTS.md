@@ -24,7 +24,10 @@ issue #58 is an unrelated user reporting the same thing.
   `01 Where your code lives/09 Wikilinks.md`, where they are the subject.
 - Platform tables use reference links (`[require]: <../02 Core functions.md#require>`) so the table
   columns stay narrow enough to align. There are two per grouped note, and they re-base with
-  everything else.
+  everything else. **Never re-align a platform table programmatically by code-point width:**
+  markdownlint's `MD060/table-column-style` counts `✅`/`❌` as **two** columns, so a padder that
+  measures `[...cell].length` adds one stray space per emoji cell and reddens `lint:md`. The rule is
+  not auto-fixable — leave those tables exactly as they are.
 - **The notes are grouped into numbered folders, one per `00 Start.md` section (G95).** Each group
   folder carries a `README.md` folder note — `# <section heading>` + the section's intro + that
   section's table, which lives there and NOT in `00 Start.md`. `README.md` is not a free choice of
