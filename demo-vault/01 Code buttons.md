@@ -18,7 +18,7 @@ new Notice('Hello from a code button');
 
 Click it and the button's own source unfolds underneath, syntax-highlighted, so nothing in this vault is a black box — the code you are reading about is the code that just ran. Click it again to fold it away. Right-click the button instead and choose **Copy source** to take that code with you.
 
-You will not see the toggle in your own vault until you ask for it: a button renders alone by default, and `sourceVisibility` turns the toggle on — per button, or for every button at once through **Default code button config** in the plugin's settings, which is what this vault does. [Code button config](<./41 Code button config.md>) covers both.
+You will not see the toggle in your own vault until you ask for it: a button renders alone by default, and `sourceVisibility` turns the toggle on — per button, or for every button at once through **Default code button config** in the plugin's settings, which is what this vault does. [Code button config](<./07 Code buttons in depth/42 Code button config.md>) covers both.
 
 Everything the rest of this vault demonstrates works inside a button: `require()`, `import`, top-level `await`, and TypeScript syntax.
 
@@ -43,7 +43,7 @@ function describe(value: number): string {
 new Notice(describe(answer));
 ```
 
-Two companion notes cover the details: [Code button config](<./41 Code button config.md>) for every option a button accepts, and [Code button context](<./42 Code button context.md>) for the API a running button can call.
+Two companion notes cover the details: [Code button config](<./07 Code buttons in depth/42 Code button config.md>) for every option a button accepts, and [Code button context](<./07 Code buttons in depth/43 Code button context.md>) for the API a running button can call.
 
 ## Buttons with no caption
 
@@ -119,7 +119,7 @@ throw new Error('Failed on purpose - this button removes itself on error');
 
 `shouldAutoRun` runs the block as soon as the note is rendered — for a note that should show live data the moment you open it.
 
-Such a button also wants `shouldAutoScrollToConsoleMessages: false`. The results panel normally scrolls itself into view as output arrives — right after a click, wrong on render, where nobody clicked anything and the note would jump down to the button the moment you opened it. Like `sourceVisibility`, this vault sets it once for every button rather than per block, which is why you will not find it in the source below. [Code button config](<./41 Code button config.md>) covers it.
+Such a button also wants `shouldAutoScrollToConsoleMessages: false`. The results panel normally scrolls itself into view as output arrives — right after a click, wrong on render, where nobody clicked anything and the note would jump down to the button the moment you opened it. Like `sourceVisibility`, this vault sets it once for every button rather than per block, which is why you will not find it in the source below. [Code button config](<./07 Code buttons in depth/42 Code button config.md>) covers it.
 
 ```code-button
 ---
@@ -132,7 +132,7 @@ new Notice(message);
 console.log(message);
 ```
 
-`isRaw` goes further: the block renders *only* what your code puts on the page — no button, no console output, no status messages — so a code button can generate part of the note itself. The sentence right below this one is not written in the note; a raw button prints it every time the note is rendered, through the `codeButtonContext` API that [Code button context](<./42 Code button context.md>) documents.
+`isRaw` goes further: the block renders *only* what your code puts on the page — no button, no console output, no status messages — so a code button can generate part of the note itself. The sentence right below this one is not written in the note; a raw button prints it every time the note is rendered, through the `codeButtonContext` API that [Code button context](<./07 Code buttons in depth/43 Code button context.md>) documents.
 
 ```code-button
 ---

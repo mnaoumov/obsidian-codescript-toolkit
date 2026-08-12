@@ -24,10 +24,6 @@ export function runFromDataviewjs() {
   runFrom('dataviewjs');
 }
 
-export function runFromDevToolsConsole() {
-  runFrom('DevTools Console');
-}
-
 export function runFromJSEngine() {
   runFrom('JS Engine');
 }

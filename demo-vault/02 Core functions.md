@@ -52,7 +52,7 @@ Combines everything `require()` can do with everything dynamic [`import()`](http
 
 ## `requireAsyncWrapper()`
 
-Wraps synchronous `require()` calls in an asynchronous one, so code written in the synchronous style can still use features that only work asynchronously. See [requireAsyncWrapper](<./34 requireAsyncWrapper.md>) for a runnable example and the scope pitfall.
+Wraps synchronous `require()` calls in an asynchronous one, so code written in the synchronous style can still use features that only work asynchronously. See [requireAsyncWrapper](<./05 Behavior and performance/35 requireAsyncWrapper.md>) for a runnable example and the scope pitfall.
 
 ```js
 await requireAsyncWrapper((require) => {
@@ -71,7 +71,7 @@ await requireAsyncWrapper(async (require) => {
 
 ## Performance tip
 
-[Smart caching](<./30 Smart caching.md>) is on by default. For code that runs many times, disabling cache invalidation avoids the freshness check each time:
+[Smart caching](<./05 Behavior and performance/31 Smart caching.md>) is on by default. For code that runs many times, disabling cache invalidation avoids the freshness check each time:
 
 ```js
 require('/someScript.js', { cacheInvalidationMode: 'never' });
@@ -81,7 +81,7 @@ await requireAsyncWrapper((require) => {
 });
 ```
 
-For large prebuilt CommonJS bundles you can also [skip transpilation](<./32 Skip transpilation.md>) and avoid the Babel overhead entirely.
+For large prebuilt CommonJS bundles you can also [skip transpilation](<./05 Behavior and performance/33 Skip transpilation.md>) and avoid the Babel overhead entirely.
 
 ## Migrate-to-async
 

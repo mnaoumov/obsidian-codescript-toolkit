@@ -41,7 +41,7 @@ import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import type { TempPluginRegistryComponent } from '../temp-plugin-registry.ts';
 import type {
   ParentPathOptions,
@@ -260,7 +260,7 @@ export interface RequireHandlerConstructorParams {
   readonly consoleDebugComponent: ConsoleDebugComponent;
   readonly pluginRequire: PluginRequireFunction;
   readonly pluginSettingsComponent: PluginSettingsComponent;
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly tempPluginRegistry: TempPluginRegistryComponent;
 }
 
@@ -321,7 +321,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   private readonly pluginRequire: PluginRequireFunction;
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
 
   public constructor(params: RequireHandlerComponentBaseConstructorParams) {
@@ -329,7 +329,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     this.tempPluginRegistry = params.tempPluginRegistry;
     this.pluginRequire = params.pluginRequire;
   }

@@ -23,7 +23,7 @@ import { ScriptFolderWatcherFactoryComponent } from './script-folder-watchers/sc
 import { ScriptRegistryComponent } from './script-registry.ts';
 import { ScriptManager } from './script.ts';
 import { StartupScriptComponent } from './startup-script.ts';
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
 
 export class Plugin extends PluginBase {
@@ -56,7 +56,7 @@ export class Plugin extends PluginBase {
     // And silently does nothing when it reads the empty default, so a configured startup script never ran.
     await pluginSettingsComponent.loadWithPromises();
 
-    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/42 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+    // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     const tempPluginRegistry = this.addChild(
       new TempPluginRegistryComponent({
         app: this.app,

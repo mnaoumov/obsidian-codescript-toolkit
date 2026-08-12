@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
 import { getRootFolder } from 'obsidian-dev-utils/script-utils/root';
+import { EMPTY } from 'obsidian-dev-utils/string';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
@@ -24,7 +25,15 @@ const POLL_INTERVAL_MS = 100;
 const DEMO_VAULT_DIR = join(getRootFolder() ?? process.cwd(), 'demo-vault');
 const REPORT_PATH = join(tmpdir(), 'demo-vault-execution-report.json');
 
-const EXCLUDED_TOP_LEVEL = new Set(['00 Start.md', 'README.md']);
+// Matched by BASENAME at every depth, not just the vault root: the notes are grouped into folders, and
+// Every group folder carries a `README.md` folder note. `00 Start.md` and the READMEs are navigation —
+// They hold no code buttons, so running them would assert nothing.
+const EXCLUDED_NOTE_NAMES = new Set(['00 Start.md', 'README.md']);
+
+// The plugin-integration notes each install a third-party plugin from the community store before their
+// Buttons can do anything, so they are read rather than clicked — the same exclusion as before the notes
+// Were grouped, when this folder was skipped merely because the walk did not recurse into it.
+const EXCLUDED_FOLDERS = new Set(['08 Working with other plugins']);
 
 interface ExpectedNonOk {
   captionIncludes: string;
@@ -64,10 +73,27 @@ function listSelfContainedNotes(): string[] {
     return filter.split(',').map((name) => name.trim()).filter(Boolean);
   }
 
-  return readdirSync(DEMO_VAULT_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.md') && !EXCLUDED_TOP_LEVEL.has(entry.name))
-    .map((entry) => entry.name)
-    .sort();
+  return collectNotes(DEMO_VAULT_DIR, EMPTY).sort();
+}
+
+// Recurses, because the notes live in group folders: a top-level-only walk would find just the handful of
+// Notes left at the vault root and still pass every assertion, silently clicking almost nothing.
+function collectNotes(folder: string, relativeFolder: string): string[] {
+  const notePaths: string[] = [];
+
+  for (const entry of readdirSync(folder, { withFileTypes: true })) {
+    const relativePath = relativeFolder === EMPTY ? entry.name : `${relativeFolder}/${entry.name}`;
+    if (entry.isDirectory()) {
+      // `_assets` holds code fixtures and `.obsidian` holds vault config; neither contains demo notes.
+      if (!entry.name.startsWith('_') && !entry.name.startsWith('.') && !EXCLUDED_FOLDERS.has(entry.name)) {
+        notePaths.push(...collectNotes(join(folder, entry.name), relativePath));
+      }
+    } else if (entry.name.endsWith('.md') && !EXCLUDED_NOTE_NAMES.has(entry.name)) {
+      notePaths.push(relativePath);
+    }
+  }
+
+  return notePaths;
 }
 
 const NOTES = listSelfContainedNotes();
@@ -208,7 +234,7 @@ describe('demo vault execution', () => {
           return activeView()?.containerEl.querySelector<HTMLElement>(selector) ?? null;
         }
       },
-      input: { intervalMs: POLL_INTERVAL_MS, notePath: '03 Relative path.md', renderTimeoutMs: RENDER_TIMEOUT_MS },
+      input: { intervalMs: POLL_INTERVAL_MS, notePath: '01 Where your code lives/04 Relative path.md', renderTimeoutMs: RENDER_TIMEOUT_MS },
       vaultPath: getTemporaryVault().path
     });
 
