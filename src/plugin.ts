@@ -1,3 +1,4 @@
+import { castTo } from 'obsidian-dev-utils/object-utils';
 import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
 import { OpenSettingsCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler';
 import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
@@ -33,10 +34,23 @@ export class Plugin extends PluginBase {
    * plugin through {@link PluginSettingsComponent.editAndSave}, which both applies them immediately and
    * persists them. Writing `data.json` directly would need a reload to take effect.
    *
-   * `undefined` until `onloadImpl` has run, so a caller reaching it early gets nothing rather than a
-   * half-built component.
+   * `PluginBase` owns the storage as a `protected` accessor; this override widens it back to `public` and
+   * narrows the type to this plugin's own component, which is what those external callers need.
+   *
+   * @returns The settings component.
    */
-  public pluginSettingsComponent?: PluginSettingsComponent;
+  public override get pluginSettingsComponent(): PluginSettingsComponent {
+    return castTo<PluginSettingsComponent>(super.pluginSettingsComponent);
+  }
+
+  /**
+   * Sets the settings component.
+   *
+   * @param value - The settings component.
+   */
+  public override set pluginSettingsComponent(value: PluginSettingsComponent) {
+    super.pluginSettingsComponent = value;
+  }
 
   protected override async onloadImpl(): Promise<void> {
     const markdownCodeBlockProcessorRegistrar = new PluginMarkdownCodeBlockProcessorRegistrar(this);

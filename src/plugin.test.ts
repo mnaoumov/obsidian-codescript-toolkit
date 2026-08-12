@@ -116,7 +116,7 @@ vi.mock('./temp-plugin-registry.ts', () => ({
 }));
 
 interface PluginPrivateApi {
-  _commandHandlerComponent: CommandHandlerComponent;
+  commandHandlerComponent: CommandHandlerComponent;
   consoleDebugComponent: ConsoleDebugComponent;
   onloadImpl(): Promise<void>;
   pluginNoticeComponent: PluginNoticeComponent;
@@ -153,9 +153,10 @@ describe('Plugin', () => {
     castTo<PluginPrivateApi>(plugin).resourceLockComponent = strictProxy<ResourceLockComponent>({});
     /*
      * The command handler component is normally wired by the base `onload()` before `onloadImpl` runs.
-     * Seed it so `onloadImpl` can register its commands on the shared component in isolation.
+     * Seed it through the base accessor -- since obsidian-dev-utils 93.2 the components live in a bag
+     * behind it, so writing a backing field no longer feeds the getter, which throws when unset.
      */
-    castTo<PluginPrivateApi>(plugin)._commandHandlerComponent = strictProxy<CommandHandlerComponent>({
+    castTo<PluginPrivateApi>(plugin).commandHandlerComponent = strictProxy<CommandHandlerComponent>({
       registerCommandHandlers: vi.fn()
     });
     return plugin;
@@ -175,7 +176,7 @@ describe('Plugin', () => {
 
     await castTo<PluginPrivateApi>(plugin).onloadImpl();
 
-    const { registerCommandHandlers } = castTo<PluginPrivateApi>(plugin)._commandHandlerComponent;
+    const { registerCommandHandlers } = castTo<PluginPrivateApi>(plugin).commandHandlerComponent;
     expect(registerCommandHandlers).toHaveBeenCalledOnce();
     // Since obsidian-dev-utils 89.0.0 the handlers are built lazily by a factory, so build them here.
     const commandHandlerFactory = vi.mocked(registerCommandHandlers).mock.calls[0]?.[0];
@@ -192,11 +193,6 @@ describe('Plugin', () => {
     // Instance — a copy would not be the one the running plugin reads its settings from.
     expect(plugin.pluginSettingsComponent).toBe(addChildSpy.mock.calls[0]?.[0]);
     expect(plugin.pluginSettingsComponent).toBeDefined();
-  });
-
-  it('should not expose a settings component before onloadImpl', () => {
-    const plugin = new Plugin(app, manifest);
-    expect(plugin.pluginSettingsComponent).toBeUndefined();
   });
 
   it('should assign app from constructor argument', () => {
