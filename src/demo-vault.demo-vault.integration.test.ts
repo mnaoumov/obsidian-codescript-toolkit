@@ -66,16 +66,6 @@ interface NoteReport extends NoteExecutionResult {
 
 const report: NoteReport[] = [];
 
-function listSelfContainedNotes(): string[] {
-  // DEMO_NOTES="a.md,Sub/b.md" runs exactly those notes (subfolder paths allowed) for fast iteration.
-  const filter = process.env['DEMO_NOTES'];
-  if (filter) {
-    return filter.split(',').map((name) => name.trim()).filter(Boolean);
-  }
-
-  return collectNotes(DEMO_VAULT_DIR, EMPTY).sort();
-}
-
 // Recurses, because the notes live in group folders: a top-level-only walk would find just the handful of
 // Notes left at the vault root and still pass every assertion, silently clicking almost nothing.
 function collectNotes(folder: string, relativeFolder: string): string[] {
@@ -94,6 +84,16 @@ function collectNotes(folder: string, relativeFolder: string): string[] {
   }
 
   return notePaths;
+}
+
+function listSelfContainedNotes(): string[] {
+  // DEMO_NOTES="a.md,Sub/b.md" runs exactly those notes (subfolder paths allowed) for fast iteration.
+  const filter = process.env['DEMO_NOTES'];
+  if (filter) {
+    return filter.split(',').map((name) => name.trim()).filter(Boolean);
+  }
+
+  return collectNotes(DEMO_VAULT_DIR, EMPTY).sort();
 }
 
 const NOTES = listSelfContainedNotes();

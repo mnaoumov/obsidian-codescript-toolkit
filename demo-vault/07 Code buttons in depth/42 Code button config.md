@@ -209,7 +209,7 @@ console.warn('warn message');
 ```
 ````
 
-![Console messages](./_assets/attachments/console-messages.png)
+![Console messages](../_assets/attachments/console-messages.png)
 
 Set it to `false` to leave `console` alone and send output back to DevTools.
 

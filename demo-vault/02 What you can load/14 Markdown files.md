@@ -73,8 +73,8 @@ Two notes in this vault set `isInvocable: true`, so they show up as commands you
 
 |                                      | Desktop | Mobile |
 | ------------------------------------ | ------- | ------ |
-| **[`require()`][require]**           | ✅       | ✅      |
-| **[`requireAsync()`][requireAsync]** | ✅       | ✅      |
+| **[`require()`][require]**           | ✅      | ✅     |
+| **[`requireAsync()`][requireAsync]** | ✅      | ✅     |
 
 [require]: <../02 Core functions.md#require>
 [requireAsync]: <../02 Core functions.md#requireasync>
