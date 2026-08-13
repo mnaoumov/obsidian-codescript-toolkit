@@ -237,6 +237,7 @@ describe('CodeButtonBlock integration', () => {
           isCollapsed,
           runButtonCount: activeView()?.containerEl.querySelectorAll('button.fix-require-modules-run-button').length ?? 0,
           sourceText: sourceEl?.textContent ?? '',
+          toggleIconClass: toggleEl?.querySelector('svg')?.getAttribute('class') ?? '',
           wasCollapsed
         };
 
@@ -256,6 +257,8 @@ describe('CodeButtonBlock integration', () => {
     expect(result.isCollapsed).toBe(false);
     expect(result.runButtonCount).toBeGreaterThan(0);
     expect(result.sourceText).toContain('__sourceVisibilityResult');
+    // The docs call the toggle `</>`, which is Lucide's `code-xml`; plain `code` has no slash.
+    expect(result.toggleIconClass).toContain('lucide-code-xml');
   });
 
   it('should transform import statements in code buttons', async () => {

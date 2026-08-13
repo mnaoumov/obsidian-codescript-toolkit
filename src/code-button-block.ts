@@ -380,7 +380,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     await MarkdownRenderer.render(this.app, `\`\`\`ts\n${params.code.trim()}\n\`\`\``, sourceEl, params.sourceFile.path, this);
 
     const toggleEl = params.el.createDiv({ cls: 'fix-require-modules code-button-source-toggle clickable-icon', prepend: true });
-    setIcon(toggleEl, 'code');
+    setIcon(toggleEl, 'code-xml');
     toggleEl.setAttribute('aria-label', 'Toggle source code');
     toggleEl.addEventListener('click', () => {
       sourceEl.classList.toggle('is-collapsed');
