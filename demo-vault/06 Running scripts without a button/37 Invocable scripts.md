@@ -18,7 +18,6 @@ Every script below lives in this vault's invocable-scripts folder. Open the `Com
 - `CodeScript Toolkit: Invoke script: InvokeCommands/editorCheckCallback.ts`
 - `CodeScript Toolkit: Custom name`
 - `CodeScript Toolkit: Async built command`
-- `CodeScript Toolkit: Invoke script: InvokeCommands/deprecatedInvokeCommand.ts`
 
 ## Options
 
@@ -132,7 +131,46 @@ A script whose `buildInvokeCommand()` fails behaves the same way:
 >
 > If `buildInvokeCommand()` throws, the error is reported right away, when the script is registered. Its command is still registered and stays in the [`Command Palette`](https://help.obsidian.md/Plugins/Command+palette), but invoking it only repeats that error.
 
-`InvokeCommands/deprecatedInvokeCommand.ts` in this vault fails on purpose: it exports the removed `invokeCommand` object instead of a `buildInvokeCommand()` function, so a notice about it appears when this vault loads, and invoking its command only repeats that notice.
+`Deprecated/deprecatedInvokeCommand.ts` in this vault fails on purpose: it exports the removed `invokeCommand` object instead of a `buildInvokeCommand()` function. It is kept outside the invocable scripts folder, so nothing registers it — and nothing fails — while you are reading. Copy it in and the plugin registers it like any other script, which is the moment the deprecation is reported:
+
+```code-button
+---
+caption: 'Add the deliberately broken script'
+---
+const { waitForInvocableCommand } = require('/demoSetup.ts');
+
+const RELATIVE_SCRIPT_PATH = 'InvokeCommands/deprecatedInvokeCommand.ts';
+const PARKED_PATH = '_assets/CodeScriptToolkit/Deprecated/deprecatedInvokeCommand.ts';
+const INVOCABLE_PATH = `_assets/CodeScriptToolkit/Invocables/${RELATIVE_SCRIPT_PATH}`;
+
+await app.vault.adapter.write(INVOCABLE_PATH, await app.vault.adapter.read(PARKED_PATH));
+await waitForInvocableCommand(app, RELATIVE_SCRIPT_PATH, true);
+
+'the deprecation has just been reported — as a notice, and as a full stack in the DevTools console';
+```
+
+That is the registration half. For the other half, open the [`Command Palette`](https://help.obsidian.md/Plugins/Command+palette) and run `CodeScript Toolkit: Invoke script: InvokeCommands/deprecatedInvokeCommand.ts`: the command is there like any other, but invoking it only repeats the same error, and the `callback` the script exports never runs. [DevTools Console](<../03 DevTools Console.md>) shows you where to read the stack.
+
+When you have seen enough, take it back out:
+
+```code-button
+---
+caption: 'Remove the deliberately broken script'
+---
+const { waitForInvocableCommand } = require('/demoSetup.ts');
+
+const RELATIVE_SCRIPT_PATH = 'InvokeCommands/deprecatedInvokeCommand.ts';
+const INVOCABLE_PATH = `_assets/CodeScriptToolkit/Invocables/${RELATIVE_SCRIPT_PATH}`;
+
+await app.vault.adapter.remove(INVOCABLE_PATH);
+await waitForInvocableCommand(app, RELATIVE_SCRIPT_PATH, false);
+
+'the command is gone, and the script is back to being inert';
+```
+
+> [!WARNING]
+>
+> Until you remove it, the script really is in the invocable scripts folder — so this vault reports that same error on every load, before you have clicked anything.
 
 ## Migrating from `invokeCommand`
 
