@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.6.5
+
+- chore: reword a test comment cspell does not know
+- fix(demo-vault): show the deprecated invokeCommand failure on demand only
+
 ## 13.6.4
 
 - fix: use the slashed `</>` icon for the code-button source toggle
