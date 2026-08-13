@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.6.4
+
+- fix: use the slashed `</>` icon for the code-button source toggle
+- docs: group the demo notes into numbered folders
+
 ## 13.6.3
 
 - chore: update libs
