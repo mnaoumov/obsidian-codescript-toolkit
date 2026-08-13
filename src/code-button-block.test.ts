@@ -8,7 +8,10 @@ import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/c
 import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
 import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
-import { Menu } from 'obsidian';
+import {
+  Menu,
+  setIcon
+} from 'obsidian';
 import { waitForAllAsyncOperations } from 'obsidian-dev-utils/async';
 import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
@@ -67,6 +70,14 @@ vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor', () => ({
   getCodeBlockMarkdownInfo: (...$arguments: unknown[]): unknown => mockGetCodeBlockMarkdownInfo(...$arguments),
   replaceCodeBlock: (...$arguments: unknown[]): unknown => mockReplaceCodeBlock(...$arguments)
 }));
+
+vi.mock('obsidian', async (importOriginal) => {
+  const original = await importOriginal<typeof import('obsidian')>();
+  return {
+    ...original,
+    setIcon: vi.fn(original.setIcon)
+  };
+});
 
 vi.mock('obsidian-dev-utils/obsidian/validation', () => ({
   getOsAndObsidianUnsafePathCharsRegExp: (...$arguments: unknown[]): unknown => mockGetOsAndObsidianUnsafePathCharsRegExp(...$arguments)
@@ -714,6 +725,8 @@ describe('CodeButtonBlockComponent', () => {
 
       expect(el.createDiv).toHaveBeenCalledWith({ cls: 'fix-require-modules code-button-source-container', prepend: true });
       expect(el.createDiv).toHaveBeenCalledWith({ cls: 'fix-require-modules code-button-source-toggle clickable-icon', prepend: true });
+      // The docs call the toggle `</>`, which is Lucide's `code-xml`; plain `code` has no slash.
+      expect(vi.mocked(setIcon)).toHaveBeenCalledWith(expect.anything(), 'code-xml');
     });
 
     it('should not create a source panel for a raw button even when sourceVisibility is expanded', async () => {
