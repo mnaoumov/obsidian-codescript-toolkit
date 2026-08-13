@@ -9,6 +9,20 @@
 
 An [Obsidian](https://obsidian.md/) plugin that lets you write and run modern JavaScript and TypeScript inside Obsidian — in a note, as a command, on a hotkey, at startup — with a rich module system, bringing you the best practices from the modern development ecosystem.
 
+## Demo vault
+
+**The documentation is an interactive demo vault.** Every feature has a note that explains what it does and why you would want it, followed by a button that runs it for real — so you can read the explanation and execute the example in the same place.
+
+**[Start reading here](<./demo-vault/00 Start.md>)** — it works as plain markdown on GitHub, no installation needed.
+
+A copy of the vault ships with every release. You can access it via any of the following:
+
+1. Running the **CodeScript Toolkit: Open demo vault** command.
+2. Downloading `fix-require-modules-demo-vault-<version>.zip` (`<version>` is the release version) from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases).
+3. Browsing its source in [`demo-vault/`](./demo-vault/README.md) in this repository.
+
+If you are not sure where to start, three notes cover most of it: [Core functions](<./demo-vault/02 Core functions.md>) (which of `require()` / `requireAsync()` / `requireAsyncWrapper()` to use), [Code buttons](<./demo-vault/01 Code buttons.md>) (runnable snippets inside a note), and [Invocable scripts](<./demo-vault/06 Running scripts without a button/37 Invocable scripts.md>) (turning a script into an Obsidian command).
+
 ## What it does
 
 - Loads CJS/ES modules, TypeScript, JSON, npm packages, Node built-ins, WebAssembly, ASAR archives and URLs with `require()` — or `await requireAsync()`, which also works on mobile.
@@ -24,19 +38,6 @@ An [Obsidian](https://obsidian.md/) plugin that lets you write and run modern Ja
   - [`QuickAdd`](https://quickadd.obsidian.guide/)
   - [`Templater`](https://silentvoid13.github.io/Templater/)
   - `My favorite scripting plugin not listed above` — most likely, this plugin can enrich it too.
-
-## Documentation
-
-**The documentation is an interactive demo vault.** Every feature has a note that explains what it does and why you would want it, followed by a button that runs it for real — so you can read the explanation and execute the example in the same place.
-
-**[Start reading here](<./demo-vault/00 Start.md>)** — it works as plain markdown on GitHub, no installation needed.
-
-To have a rich interactive experience with the demo vault within Obsidian, use any of:
-
-1. Running the **CodeScript Toolkit: Open demo vault** command.
-2. Downloading `fix-require-modules-demo-vault-<release version>.zip` from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases).
-
-If you are not sure where to start, three notes cover most of it: [Core functions](<./demo-vault/02 Core functions.md>) (which of `require()` / `requireAsync()` / `requireAsyncWrapper()` to use), [Code buttons](<./demo-vault/01 Code buttons.md>) (runnable snippets inside a note), and [Invocable scripts](<./demo-vault/06 Running scripts without a button/37 Invocable scripts.md>) (turning a script into an Obsidian command).
 
 ## Installation
 
@@ -73,6 +74,14 @@ However, for the backward compatibility, the previous id `fix-require-modules` i
 - in plugin folder name;
 - in plugin URL;
 - in [Debugging](#debugging) section;
+
+## Changelog
+
+All notable changes to this project will be documented in the [CHANGELOG](./CHANGELOG.md).
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING](./CONTRIBUTING.md) to get set up.
 
 ## Support
 
