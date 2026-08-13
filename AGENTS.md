@@ -9,7 +9,7 @@ from an old issue, forum post, or release ever 404s. **Never add new content und
 
 Why: the notes used to be a `[Docs](url)` line plus code fences, with all the prose in `docs/`.
 Neither surface was complete on its own, the two feature lists drifted, and a first-time reader in
-Reading mode saw only a purple button. ClareMacrae reviewed it cold and could learn nothing from it;
+Reading mode saw only a purple button. A reviewer read it cold and could learn nothing from it;
 issue #58 is an unrelated user reporting the same thing.
 
 ### Note conventions
