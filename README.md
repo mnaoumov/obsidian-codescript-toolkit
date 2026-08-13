@@ -36,7 +36,7 @@ To have a rich interactive experience with the demo vault within Obsidian, use a
 1. Running the **CodeScript Toolkit: Open demo vault** command.
 2. Downloading `fix-require-modules-demo-vault-<release version>.zip` from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases).
 
-If you are not sure where to start, three notes cover most of it: [Core functions](<./demo-vault/02 Core functions.md>) (which of `require()` / `requireAsync()` / `requireAsyncWrapper()` to use), [Code buttons](<./demo-vault/01 Code buttons.md>) (runnable snippets inside a note), and [Invocable scripts](<./demo-vault/36 Invocable scripts.md>) (turning a script into an Obsidian command).
+If you are not sure where to start, three notes cover most of it: [Core functions](<./demo-vault/02 Core functions.md>) (which of `require()` / `requireAsync()` / `requireAsyncWrapper()` to use), [Code buttons](<./demo-vault/01 Code buttons.md>) (runnable snippets inside a note), and [Invocable scripts](<./demo-vault/06 Running scripts without a button/37 Invocable scripts.md>) (turning a script into an Obsidian command).
 
 ## Installation
 

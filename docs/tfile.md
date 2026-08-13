@@ -1,5 +1,5 @@
 # TFile
 
-Moved to [07 TFile](<../demo-vault/07 TFile.md>).
+Moved to [08 TFile](<../demo-vault/01 Where your code lives/08 TFile.md>).
 
 The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

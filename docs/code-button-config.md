@@ -1,5 +1,5 @@
 # Code button config
 
-Moved to [41 Code button config](<../demo-vault/41 Code button config.md>).
+Moved to [42 Code button config](<../demo-vault/07 Code buttons in depth/42 Code button config.md>).
 
 The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

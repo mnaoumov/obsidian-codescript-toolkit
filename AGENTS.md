@@ -18,21 +18,38 @@ issue #58 is an unrelated user reporting the same thing.
   you would want it** — behavior, not technical nouns.
 - Then the runnable ` ```code-button ` example(s), then `## Options` / `## Caveats` as needed, then
   `## Platform support` with the Desktop/Mobile table.
-- Links between notes are `[Text](<./NN Name.md>)`, **never `[[wikilinks]]`** — wikilinks do not
-  render on GitHub, which is now a primary reading surface. The only `[[…]]` left in the vault are
-  inside the code fences of `08 Wikilinks.md`, where they are the subject.
-- Platform tables use reference links (`[require]: <./02 Core functions.md#require>`) so the table
-  columns stay narrow enough to align.
-- `00 Start.md` is a getting-started guide — what the vault is, a concrete first success, then an
-  index grouped by intent with a one-line description per entry. Every note must be reachable from
-  it.
-- The `NN` prefixes encode **reading order, not creation order**: they run `01`…`43` in exactly the
-  order the notes appear in `00 Start.md`'s index, so the file explorer and the index agree. Insert a
-  note in the middle of the index and every following note is renumbered — cheap to do with a
-  scripted rename plus a repo-wide replace of the old `NN Name` stems (they appear in `docs/` stubs,
-  `README.md`, this file, and JSDoc URLs in `src/`, where they are `%20`-encoded).
+- Links between notes are `[Text](<./NN Name.md>)` — or `<../NN Name.md>` / `<../0X Group/NN Name.md>`
+  now the notes sit in folders — **never `[[wikilinks]]`**: wikilinks do not render on GitHub, which is
+  now a primary reading surface. The only `[[…]]` left in the vault are inside the code fences of
+  `01 Where your code lives/09 Wikilinks.md`, where they are the subject.
+- Platform tables use reference links (`[require]: <../02 Core functions.md#require>`) so the table
+  columns stay narrow enough to align. There are two per grouped note, and they re-base with
+  everything else. **Never re-align a platform table programmatically by code-point width:**
+  markdownlint's `MD060/table-column-style` counts `✅`/`❌` as **two** columns, so any alignment pass
+  measuring `[...cell].length` adds one stray space per emoji cell and reddens `lint:md`. The rule is
+  not auto-fixable — leave those tables exactly as they are.
+- **The notes are grouped into numbered folders, one per `00 Start.md` section (G95).** Each group
+  folder carries a `README.md` folder note — `# <section heading>` + the section's intro + that
+  section's table, which lives there and NOT in `00 Start.md`. `README.md` is not a free choice of
+  name: GitHub renders it under the file list when the folder is browsed as a repository, and the
+  Folder Notes plugin (installed for every demo vault by ODU's `bootstrapDemoVault`) is configured to
+  look for the same name, so one file serves both surfaces.
+- `00 Start.md` is a getting-started guide — what the vault is, a concrete first success, the
+  introductory root notes, then a table linking the eight group READMEs. Every note must still be
+  reachable from it, now via its folder note.
+- The `NN` prefixes encode **reading order, not creation order**: they run `01`…`50` in exactly the
+  order the notes appear when the folders are read in order, so the file explorer and the index agree.
+  **Numbers are globally unique and do not restart per folder** — a note keeps one stable id wherever
+  it sits. Insert a note in the middle and every following note is renumbered — cheap to do with a
+  scripted rename plus a link rewrite that resolves each target against the note's OLD folder and
+  re-relativizes it from the new one. Do NOT pattern-match `./` prefixes: the stems also appear in
+  `docs/` stubs, `README.md`, this file, and JSDoc URLs in `src/`, where they are `%20`-encoded.
 - `_assets/` holds code fixtures, not documentation; it is excluded from the vault's markdownlint
-  config.
+  config. `Folder/` is a fixture too — it exists so `04 Relative path.md` has a second folder to
+  demonstrate the `../` hop from.
+- **A note-relative `require('./_assets/…')` breaks silently when its note moves.** It resolves against
+  the NOTE, not the vault root, so a moved note's buttons fail at click time. The demo-vault execution
+  project is what catches it — provided the note is still in its walk.
 
 ### Gotcha: a heading that is a link target must be kebab-case
 
@@ -69,11 +86,19 @@ Five vitest projects:
 | `integration-tests:no-app`     | `test:integration:no-app`     | Demo-vault coverage: every public API member is demonstrated in a note |
 | `integration-tests:android`    | `test:integration:android`    | Real Obsidian on an Android emulator over Appium                       |
 | `integration-tests:desktop`    | `test:integration:desktop`    | Real Obsidian over CDP                                                 |
-| `integration-tests:demo-vault` | `test:integration` (included) | Clicks **every button in every root note** and asserts none errors     |
+| `integration-tests:demo-vault` | `test:integration` (included) | Clicks **every button in every note** and asserts none errors          |
 
 The demo-vault execution project has no dedicated npm script — it runs as the last of the four
 `test()` calls in `scripts/test-integration.ts`. It is what stops a rewritten note from shipping a
 broken example.
+
+**Its walk must recurse, and must exclude by basename.** The notes live in numbered group folders, so
+a top-level-only `readdirSync(...).filter((entry) => entry.isFile())` would find the three notes left
+at the vault root, click those, and pass — the coverage loss is invisible, because an empty note list
+makes every assertion vacuous. `collectNotes` therefore recurses, skips `_`- and `.`-prefixed folders
+plus `08 Working with other plugins/` (whose notes each install a third-party plugin first), and
+excludes `00 Start.md` / `README.md` at **every** depth rather than only at the top. If a change to
+this suite drops the note count, that is the defect — check the count, not just the green tick.
 
 **Every project that should run must be named explicitly in `scripts/test-integration.ts`.** `test`'s
 `projects` option expands each name to `--project=<name>` and `--project=<name>:*` only — there is no

@@ -1,5 +1,5 @@
 # Additional desktop modules
 
-Moved to [23 Additional desktop modules](<../demo-vault/23 Additional desktop modules.md>).
+Moved to [24 Additional desktop modules](<../demo-vault/03 Modules you did not write/24 Additional desktop modules.md>).
 
 The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

@@ -1,5 +1,5 @@
 # File URLs
 
-Moved to [27 File URLs](<../demo-vault/27 File URLs.md>).
+Moved to [28 File URLs](<../demo-vault/04 Loading from somewhere else/28 File URLs.md>).
 
 The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.

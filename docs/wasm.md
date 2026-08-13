@@ -1,5 +1,5 @@
 # WebAssembly (WASM)
 
-Moved to [15 WebAssembly](<../demo-vault/15 WebAssembly.md>).
+Moved to [16 WebAssembly](<../demo-vault/02 What you can load/16 WebAssembly.md>).
 
 The plugin's documentation is now its demo vault: every feature has a note that explains it and a button that runs it. Read it [on GitHub](<../demo-vault/00 Start.md>), or open it in Obsidian with the **CodeScript Toolkit: Open demo vault** command.
