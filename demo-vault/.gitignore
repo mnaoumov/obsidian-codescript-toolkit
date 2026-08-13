@@ -14,3 +14,8 @@
 # rule would otherwise drop (the "NPM modules" note does `require('uuid')`).
 !_assets/CodeScriptToolkit/node_modules/
 !_assets/CodeScriptToolkit/node_modules/**
+
+# The copy the "Invocable scripts" note's buttons add to and remove from the
+# invocables folder on demand. Committing it would register the deliberately
+# broken script at every vault load again — the bug that moved it out.
+_assets/CodeScriptToolkit/Invocables/InvokeCommands/deprecatedInvokeCommand.ts
