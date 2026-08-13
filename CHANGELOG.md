@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.6.6
+
+- docs: bring the README to the standard skeleton
+
 ## 13.6.5
 
 - chore: reword a test comment cspell does not know
