@@ -122,7 +122,7 @@ describe('deprecated invokeCommand demo', () => {
           await app.workspace.revealLeaf(leaf);
 
           // Reading view renders lazily and both buttons are far below the fold, so the predicate scrolls
-          // On every poll until they have materialized rather than waiting for a screenful that never grows.
+          // On every poll until they have materialized rather than waiting for a view that never grows.
           await waitUntil({
             intervalInMilliseconds: intervalMs,
             message: 'both code buttons to render',
