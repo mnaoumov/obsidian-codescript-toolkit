@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.6.7
+
+- docs(demo-vault): use NATO placeholders instead of foo, bar and baz
+
 ## 13.6.6
 
 - docs: bring the README to the standard skeleton
