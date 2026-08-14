@@ -95,7 +95,7 @@ A raw button renders only what your code puts on the page — no button, no cons
 ---
 isRaw: true
 ---
-await codeButtonContext.renderMarkdown('**foo**');
+await codeButtonContext.renderMarkdown('**alpha**');
 ```
 ````
 

@@ -26,13 +26,13 @@ The note this loads looks like:
 
 ````markdown
 ```code-script
-export function baz(): void {
+export function charlie(): void {
 }
 ```
 
 ```code-script
-// codeScriptName: bar
-export function qux(): void {
+// codeScriptName: bravo
+export function delta(): void {
 }
 ```
 ````
@@ -42,8 +42,8 @@ Frontmatter changes which block is the default and whether the note is invocable
 ````markdown
 ---
 codeScriptToolkit:
-  defaultCodeScriptName: foo
-  invocableCodeScriptName: bar
+  defaultCodeScriptName: alpha
+  invocableCodeScriptName: bravo
   isInvocable: true
 ---
 ````

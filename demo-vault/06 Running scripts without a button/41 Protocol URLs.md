@@ -2,17 +2,17 @@
 
 Run a vault script from outside Obsidian, by opening an `obsidian://` URL. That makes your scripts reachable from anywhere the operating system can open a link: a browser bookmark, a desktop shortcut, a shell script, an automation tool, another app's "open URL" action.
 
-This vault has protocol handling enabled already. Paste this into your browser's address bar:
+This vault has protocol handling enabled already. Paste this into your browser's address bravo:
 
 ```text
-obsidian://CodeScriptToolkit?module=/protocolUrl.js&functionName=foo&args='bar'
+obsidian://CodeScriptToolkit?module=/protocolUrl.js&functionName=alpha&args='bravo'
 ```
 
 which is equivalent to running:
 
 ```js
 const module = await requireAsync('/protocolUrl.js');
-await module.foo('bar');
+await module.alpha('bravo');
 ```
 
 ## Options
@@ -24,7 +24,7 @@ await module.foo('bar');
 | `args`         | comma-separated arguments — omit for none                                                            |
 | `code`         | code to run directly, instead of `module`                                                            |
 
-Arguments are evaluated, so they can be literals, expressions, or objects: `'arg1','arg%20with%20space2',42,app.vault,%7Bbaz%3A'qux'%7D`.
+Arguments are evaluated, so they can be literals, expressions, or objects: `'arg1','arg%20with%20space2',42,app.vault,%7Bbaz%3A'delta'%7D`.
 
 The `code` form skips the file entirely:
 

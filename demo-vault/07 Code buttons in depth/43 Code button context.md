@@ -103,14 +103,14 @@ Four functions let a button rewrite its own surroundings — which is how a butt
 ---
 caption: insertBeforeCodeButtonBlock
 ---
-await codeButtonContext.insertBeforeCodeButtonBlock({ markdown: '**bar**' });
+await codeButtonContext.insertBeforeCodeButtonBlock({ markdown: '**bravo**' });
 ```
 
 ```code-button
 ---
 caption: insertAfterCodeButtonBlock
 ---
-await codeButtonContext.insertAfterCodeButtonBlock({ markdown: '**foo**' });
+await codeButtonContext.insertAfterCodeButtonBlock({ markdown: '**alpha**' });
 ```
 
 ```code-button
@@ -124,7 +124,7 @@ await codeButtonContext.removeCodeButtonBlock();
 ---
 caption: replaceCodeButtonBlock
 ---
-await codeButtonContext.replaceCodeButtonBlock({ markdown: '**baz**' });
+await codeButtonContext.replaceCodeButtonBlock({ markdown: '**charlie**' });
 ```
 
 The same functions are available to plain scripts through the [`codescript-toolkit` module](<../03 Modules you did not write/23 codescript-toolkit.md>).
