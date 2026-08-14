@@ -45,24 +45,24 @@ tsAsMts();
 > So a module that would not compile can still load here, and fail at runtime instead:
 >
 > ```ts
-> interface Foo {
->   bar: string;
+> interface Alpha {
+>   bravo: string;
 > }
 >
-> export function printFoo(foo: Foo): void {
->   console.log(foo.barWithTypo); // a real compiler would reject this line
+> export function printFoo(alpha: Alpha): void {
+>   console.log(alpha.barWithTypo); // a real compiler would reject this line
 > }
 > ```
 >
 > After stripping, that is simply:
 >
 > ```js
-> export function printFoo(foo) {
->   console.log(foo.barWithTypo);
+> export function printFoo(alpha) {
+>   console.log(alpha.barWithTypo);
 > }
 > ```
 >
-> so `require('/FooModule.ts').printFoo({ bar: 'baz' })` logs `undefined` rather than `baz`. Validate TypeScript modules with an IDE or compiler; treat this as a runtime, not a build.
+> so `require('/FooModule.ts').printFoo({ bravo: 'charlie' })` logs `undefined` rather than `charlie`. Validate TypeScript modules with an IDE or compiler; treat this as a runtime, not a build.
 
 ## Platform support
 

@@ -36,22 +36,22 @@ await requireAsyncWrapper(async (require) => {
 >
 > ```js
 > await requireAsyncWrapper(async (require) => {
->   const foo = require('/foo.js');
+>   const alpha = require('/alpha.js');
 > });
 >
-> foo.bar(); // ReferenceError — `foo` does not exist out here
+> alpha.bravo(); // ReferenceError — `alpha` does not exist out here
 > ```
 >
 > Declare it outside and assign within:
 >
 > ```js
-> let foo;
+> let alpha;
 >
 > await requireAsyncWrapper(async (require) => {
->   foo = require('/foo.js');
+>   alpha = require('/alpha.js');
 > });
 >
-> foo.bar();
+> alpha.bravo();
 > ```
 
 This is one of two ways to make desktop-only examples work on mobile; see [Migrate to async](<../02 Core functions.md#migrate-to-async>) for the other, and for when to prefer each.

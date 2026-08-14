@@ -29,12 +29,12 @@ Its single-argument form can equally be written as an `import`:
 
 ```js
 // cjs
-const foo = require('foo');
-const { bar, baz } = require('qux');
+const alpha = require('alpha');
+const { bravo, charlie } = require('delta');
 
 // esm
-import foo from 'foo';
-import { bar, baz } from 'qux';
+import alpha from 'alpha';
+import { bravo, charlie } from 'delta';
 ```
 
 The `import` spelling works almost everywhere, except in:
@@ -90,19 +90,19 @@ Most features do not work with `require()` on mobile, and a few do not work with
 To migrate these calls:
 
 ```js
-const foo = require('/foo.js');
-const bar = require('/foo.js').bar;
-const baz = require('/foo.js').baz();
-const foo2 = require('/foo.js', { cacheInvalidationMode: 'never' });
+const alpha = require('/alpha.js');
+const bravo = require('/alpha.js').bravo;
+const charlie = require('/alpha.js').charlie();
+const alpha2 = require('/alpha.js', { cacheInvalidationMode: 'never' });
 ```
 
 write:
 
 ```js
-const foo = await requireAsync('/foo.js');
-const bar = (await requireAsync('/foo.js')).bar;
-const baz = (await requireAsync('/foo.js')).baz();
-const foo2 = await requireAsync('/foo.js', { cacheInvalidationMode: 'never' });
+const alpha = await requireAsync('/alpha.js');
+const bravo = (await requireAsync('/alpha.js')).bravo;
+const charlie = (await requireAsync('/alpha.js')).charlie();
+const alpha2 = await requireAsync('/alpha.js', { cacheInvalidationMode: 'never' });
 ```
 
 > [!WARNING]
@@ -110,25 +110,25 @@ const foo2 = await requireAsync('/foo.js', { cacheInvalidationMode: 'never' });
 > Mind the parentheses. It is a common mistake to omit them:
 >
 > ```js
-> const bar = await requireAsync('/foo.js').bar;
+> const bravo = await requireAsync('/alpha.js').bravo;
 > ```
 >
 > which means:
 >
 > ```js
-> const bar = await (requireAsync('/foo.js').bar);
+> const bravo = await (requireAsync('/alpha.js').bravo);
 > ```
 >
-> `requireAsync('/foo.js')` returns a `Promise`, so `.bar` on it is `undefined` — and `bar` is silently assigned `undefined` instead of the module's `bar`.
+> `requireAsync('/alpha.js')` returns a `Promise`, so `.bravo` on it is `undefined` — and `bravo` is silently assigned `undefined` instead of the module's `bravo`.
 
 Or wrap the whole block instead, leaving the calls untouched:
 
 ```js
 await requireAsyncWrapper((require) => {
-  const foo = require('/foo.js');
-  const bar = require('/foo.js').bar;
-  const baz = require('/foo.js').baz();
-  const foo2 = require('/foo.js', { cacheInvalidationMode: 'never' });
+  const alpha = require('/alpha.js');
+  const bravo = require('/alpha.js').bravo;
+  const charlie = require('/alpha.js').charlie();
+  const alpha2 = require('/alpha.js', { cacheInvalidationMode: 'never' });
 });
 ```
 
@@ -136,36 +136,36 @@ or
 
 ```js
 await requireAsyncWrapper(async (require) => {
-  const foo = require('/foo.js');
-  const bar = require('/foo.js').bar;
-  const baz = require('/foo.js').baz();
-  const foo2 = require('/foo.js', { cacheInvalidationMode: 'never' });
+  const alpha = require('/alpha.js');
+  const bravo = require('/alpha.js').bravo;
+  const charlie = require('/alpha.js').charlie();
+  const alpha2 = require('/alpha.js', { cacheInvalidationMode: 'never' });
   await someAsyncFn();
 });
 ```
 
 > [!WARNING]
 >
-> When wrapping, mind variable scope. This is wrong — `foo` only exists inside the callback:
+> When wrapping, mind variable scope. This is wrong — `alpha` only exists inside the callback:
 >
 > ```js
 > await requireAsyncWrapper(async (require) => {
->   const foo = require('/foo.js');
+>   const alpha = require('/alpha.js');
 > });
 >
-> foo.bar();
+> alpha.bravo();
 > ```
 >
 > This is right:
 >
 > ```js
-> let foo;
+> let alpha;
 >
 > await requireAsyncWrapper(async (require) => {
->   foo = require('/foo.js');
+>   alpha = require('/alpha.js');
 > });
 >
-> foo.bar();
+> alpha.bravo();
 > ```
 
 ## Platform support
