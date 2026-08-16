@@ -64,6 +64,8 @@
     "tsbuildinfo",
     "Unixlike",
     "unstub",
+    "unvalidated",
+    "wdio",
     "Wikilink",
     "Wikilinks"
   ],
