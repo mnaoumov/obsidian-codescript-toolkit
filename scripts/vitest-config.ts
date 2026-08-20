@@ -38,6 +38,25 @@ const APPIUM_URL = 'http://localhost:4723';
  */
 const LAYOUT_READY_TIMEOUT_IN_MILLISECONDS = 240_000;
 
+/**
+ * The demo-vault suites. They drive a real desktop Obsidian like the desktop project, but against a
+ * populated copy of the in-repo `demo-vault/` rather than an empty vault — hence their own
+ * `globalSetup` — and need their own suffix so the desktop project does not also collect them and open
+ * them against a vault with no notes in it.
+ *
+ * `test-integration.ts` has always asked for this project by name. Until it was declared here it
+ * matched nothing, so `vitest` failed the run with `No projects matched the filter` and both
+ * `*.demo-vault.integration.test.ts` files were collected by nothing at all — the same shape of
+ * silent gap as [[T518-P17]], from the opposite direction.
+ */
+const DEMO_VAULT_TEST_FILES = 'src/**/*.demo-vault.integration.test.ts';
+
+/**
+ * One `it` per note clicks every button in that note, and this vault's notes carry more buttons than
+ * any other — the desktop project's 30s default is nowhere near enough.
+ */
+const DEMO_VAULT_TIMEOUT_IN_MILLISECONDS = 600_000;
+
 export const config = defineObsidianPluginVitestConfig({
   customProjects(context: ObsidianPluginVitestConfigContext): TestProjectConfiguration[] {
     return [
@@ -61,6 +80,15 @@ export const config = defineObsidianPluginVitestConfig({
           },
           include: [ANDROID_CAPTURE_TEST_FILES],
           name: 'capture-screenshots:android'
+        }
+      },
+      {
+        test: {
+          ...context.desktop,
+          globalSetup: ['./scripts/demo-vault-global-setup.ts'],
+          include: [DEMO_VAULT_TEST_FILES],
+          name: 'integration-tests:demo-vault',
+          testTimeout: DEMO_VAULT_TIMEOUT_IN_MILLISECONDS
         }
       }
     ];
