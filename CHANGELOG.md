@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 13.6.8
+
+- chore: update obsidian-dev-utils to 94.6.1
+- chore: update obsidian-dev-utils to 94.6.0
+- fix: override deepmerge-ts to clear GHSA-ggr8-5vv4-36mx
+- fix(test): declare the demo-vault vitest project it already runs
+- chore: teach cspell the advisory wording
+- chore: update libs
+- docs: add store screenshots and surface them in the README
+
 ## 13.6.7
 
 - docs(demo-vault): use NATO placeholders instead of foo, bar and baz
