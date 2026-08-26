@@ -2,29 +2,28 @@
 
 > formerly known as `Fix Require Modules`, see [Rebranding](#rebranding) section for more details
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mnaoumov)
-[![GitHub release](https://img.shields.io/github/v/release/mnaoumov/obsidian-codescript-toolkit)](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases)
-[![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/obsidian-codescript-toolkit/total)](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases)
-[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/mnaoumov/obsidian-codescript-toolkit)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mnaoumov) [![GitHub release](https://img.shields.io/github/v/release/mnaoumov/obsidian-codescript-toolkit)](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases) [![GitHub downloads](https://img.shields.io/github/downloads/mnaoumov/obsidian-codescript-toolkit/total)](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases) [![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/mnaoumov/obsidian-codescript-toolkit)
 
 An [Obsidian](https://obsidian.md/) plugin that lets you write and run modern JavaScript and TypeScript inside Obsidian — in a note, as a command, on a hotkey, at startup — with a rich module system, bringing you the best practices from the modern development ecosystem.
 
 <!-- markdownlint-disable MD033 -->
 
-<a href="images/screenshots/screenshot-desktop-1.png"><img src="images/screenshots/screenshot-desktop-1.png" alt="Runnable JavaScript and TypeScript, right in the note" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-desktop-1.png"><img src="images/screenshots/screenshot-desktop-1.png" alt="Runnable JavaScript and TypeScript, right in the note" width="600"></a>
 
 <details>
 <summary>More screenshots</summary>
 
-<a href="images/screenshots/screenshot-desktop-2.png"><img src="images/screenshots/screenshot-desktop-2.png" alt="Click it and the result appears underneath" width="600"></a>
-<a href="images/screenshots/screenshot-desktop-3.png"><img src="images/screenshots/screenshot-desktop-3.png" alt="Written as a fenced block, versioned with the note" width="600"></a>
-<a href="images/screenshots/screenshot-desktop-4.png"><img src="images/screenshots/screenshot-desktop-4.png" alt="Every script in your folder becomes a command, hotkey and all" width="600"></a>
-<a href="images/screenshots/screenshot-desktop-5.png"><img src="images/screenshots/screenshot-desktop-5.png" alt="A note can import a TypeScript module living in your vault" width="600"></a>
-<a href="images/screenshots/screenshot-mobile-1.png"><img src="images/screenshots/screenshot-mobile-1.png" alt="Runnable JavaScript and TypeScript, on your phone" width="270"></a>
-<a href="images/screenshots/screenshot-mobile-2.png"><img src="images/screenshots/screenshot-mobile-2.png" alt="Tap it and the result appears underneath" width="270"></a>
-<a href="images/screenshots/screenshot-mobile-3.png"><img src="images/screenshots/screenshot-mobile-3.png" alt="Written as a fenced block, versioned with the note" width="270"></a>
-<a href="images/screenshots/screenshot-mobile-4.png"><img src="images/screenshots/screenshot-mobile-4.png" alt="Every script in your folder becomes a command" width="270"></a>
-<a href="images/screenshots/screenshot-mobile-5.png"><img src="images/screenshots/screenshot-mobile-5.png" alt="A note can import a TypeScript module living in your vault" width="270"></a>
+<div>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-desktop-2.png"><img src="images/screenshots/screenshot-desktop-2.png" alt="Click it and the result appears underneath" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-desktop-3.png"><img src="images/screenshots/screenshot-desktop-3.png" alt="Written as a fenced block, versioned with the note" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-desktop-4.png"><img src="images/screenshots/screenshot-desktop-4.png" alt="Every script in your folder becomes a command, hotkey and all" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-desktop-5.png"><img src="images/screenshots/screenshot-desktop-5.png" alt="A note can import a TypeScript module living in your vault" width="600"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-mobile-1.png"><img src="images/screenshots/screenshot-mobile-1.png" alt="Runnable JavaScript and TypeScript, on your phone" width="270"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-mobile-2.png"><img src="images/screenshots/screenshot-mobile-2.png" alt="Tap it and the result appears underneath" width="270"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-mobile-3.png"><img src="images/screenshots/screenshot-mobile-3.png" alt="Written as a fenced block, versioned with the note" width="270"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-mobile-4.png"><img src="images/screenshots/screenshot-mobile-4.png" alt="Every script in your folder becomes a command" width="270"></a>
+<a href="https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/HEAD/images/screenshots/screenshot-mobile-5.png"><img src="images/screenshots/screenshot-mobile-5.png" alt="A note can import a TypeScript module living in your vault" width="270"></a>
+</div>
 
 </details>
 
