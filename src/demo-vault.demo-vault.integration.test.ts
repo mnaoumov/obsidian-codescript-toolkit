@@ -106,12 +106,21 @@ afterAll(() => {
 describe('demo vault execution', () => {
   it.each(NOTES)('runs every code button in "%s" without error', async (noteName) => {
     const result = await evalInObsidian({
-      async callback({ app, buttonTimeoutMs, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }): Promise<NoteExecutionResult> {
+      async callback({ app, buttonTimeoutMs, intervalMs, lib: { pressKey, waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }): Promise<NoteExecutionResult> {
         function dismissModals(): void {
           for (const closeButton of document.querySelectorAll<HTMLElement>('.modal-container .modal-close-button')) {
             closeButton.click();
           }
-          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+          /*
+           * A trusted Escape — the key press a user makes — but only while something is actually open.
+           * This runs on EVERY poll iteration, and unlike the dispatched event it replaces, a trusted key
+           * press is one the app genuinely acts on: fired unconditionally it would rain real Escapes into
+           * whatever the demo-vault buttons are doing between modals.
+           */
+          if (document.querySelector('.modal-container, .prompt')) {
+            pressKey({ key: 'Escape' });
+          }
         }
 
         function activeView(): InstanceType<typeof obsidianModule.MarkdownView> | null {
