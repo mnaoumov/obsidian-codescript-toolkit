@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.6.9
+
+- fix(versions): correct the stale 1.13.8 minAppVersion row for 13.6.8
+- chore: update libs
+
 ## 13.6.8
 
 - chore: update obsidian-dev-utils to 94.6.1
