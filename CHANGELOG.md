@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.6.10
+
+- docs(demo-vault): unwrap the notes so Obsidian stops rendering a break per line
+- docs(readme): render the same in Obsidian's plugin page as on GitHub
+
 ## 13.6.9
 
 - fix(versions): correct the stale 1.13.8 minAppVersion row for 13.6.8
