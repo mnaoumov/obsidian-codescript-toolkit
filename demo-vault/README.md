@@ -12,11 +12,9 @@ You can read it right here on GitHub â€” start at [00 Start](<./00 Start.md>) â€
 When plugins prompt on first open, enable them using one of these methods:
 
 - **Trust author**
-  - to enable plugins immediately.
-    ![Trust author dialog](./_assets/attachments/trust-author.png)
+  - to enable plugins immediately. ![Trust author dialog](./_assets/attachments/trust-author.png)
 - **Enable manually**
-  - turn on Community plugins.
-    ![Turn on Community plugins](./_assets/attachments/turn-on.png)
+  - turn on Community plugins. ![Turn on Community plugins](./_assets/attachments/turn-on.png)
 
 Then open [00 Start](<./00 Start.md>).
 
