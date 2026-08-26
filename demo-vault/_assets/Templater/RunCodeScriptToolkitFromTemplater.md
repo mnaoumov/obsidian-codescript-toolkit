@@ -1,4 +1,1 @@
-<%*
-  const { runFromTemplater } = require('/integrateWithOtherPlugins.js');
-  runFromTemplater();
-%>
+<%* const { runFromTemplater } = require('/integrateWithOtherPlugins.js'); runFromTemplater(); %>
