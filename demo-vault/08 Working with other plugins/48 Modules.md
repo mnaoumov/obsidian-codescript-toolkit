@@ -1,4 +1,4 @@
-# [`Modules`](https://github.com/polyipseity/obsidian-modules) scripts
+# [`Modules`](https://community.obsidian.md/plugins/modules) scripts
 
 `Modules` is another module loader for Obsidian, and the two work together: a `Modules` module can `require()` through CodeScript Toolkit, and a code button can import a `Modules` module. Useful if you already have scripts written for it and do not want to port them.
 
