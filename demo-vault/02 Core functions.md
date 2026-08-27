@@ -40,7 +40,7 @@ import { bravo, charlie } from 'delta';
 The `import` spelling works almost everywhere, except in:
 
 - [`DevTools Console`](https://developer.chrome.com/docs/devtools/console) within Obsidian;
-- [`CustomJS`](https://github.com/saml-dev/obsidian-custom-js) scripts;
+- [`CustomJS`](https://community.obsidian.md/plugins/customjs) scripts;
 - [`datacorejs` / `datacorejsx` / `datacorets` / `datacoretsx`](https://blacksmithgu.github.io/datacore/code-views) scripts;
 - [`dataviewjs`](https://blacksmithgu.github.io/obsidian-dataview/api/intro/) scripts;
 - [`QuickAdd`](https://quickadd.obsidian.guide/) scripts;

@@ -50,11 +50,11 @@ If you are not sure where to start, three notes cover most of it: [Core function
 - Lets you prototype a plugin, and explore the Obsidian API — public and internal — at runtime.
 - Enriches scripting capabilities of [DevTools console](https://developer.chrome.com/docs/devtools/console).
 - Enriches the scripting plugins you already use:
-  - [`CustomJS`](https://github.com/saml-dev/obsidian-custom-js)
+  - [`CustomJS`](https://community.obsidian.md/plugins/customjs)
   - [`Datacore`](https://blacksmithgu.github.io/datacore/code-views)
   - [`Dataview`](https://blacksmithgu.github.io/obsidian-dataview/api/intro/)
   - [`JS Engine`](https://www.moritzjung.dev/obsidian-js-engine-plugin-docs/)
-  - [`Modules`](https://github.com/polyipseity/obsidian-modules)
+  - [`Modules`](https://community.obsidian.md/plugins/modules)
   - [`QuickAdd`](https://quickadd.obsidian.guide/)
   - [`Templater`](https://silentvoid13.github.io/Templater/)
   - `My favorite scripting plugin not listed above` — most likely, this plugin can enrich it too.
