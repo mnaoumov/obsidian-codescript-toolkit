@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.6.11
+
+- test(codescript-toolkit): dismiss demo-vault modals with a trusted Escape
+
 ## 13.6.10
 
 - docs(demo-vault): unwrap the notes so Obsidian stops rendering a break per line
