@@ -131,6 +131,26 @@ a new fixture cannot redden the suite), and it **replaces** the checker's defaul
 to it — drop `README.md` from the list and the vault's own readme starts failing the checks it was
 exempt from.
 
+### Gotcha: verifying a `08 Working with other plugins/` note by hand
+
+Those notes are excluded from the demo-vault walk (they install a third-party plugin first), so nothing
+automated ever clicks them — a broken button there ships green. Drive them with a throwaway
+`*.demo-vault.integration.test.ts` against `getTemporaryVault()`, and delete it after. Three things cost
+time when doing that:
+
+- **`evalInObsidian`'s callback is serialized into Obsidian**, so module-scope constants are not in scope
+  there — pass them through `input`. And one `Runtime.evaluate` is capped at **30 s**: a callback that
+  installs a plugin *and* renders two notes blows it, so split the work across several `evalInObsidian`
+  calls (state persists — it is the same instance).
+- **Reading view renders lazily, and keeps only the sections near the viewport.** A block below the fold
+  never runs until scrolled to, and
+  once scrolled past, its section is evicted from the DOM again — so "scroll to the bottom, then query"
+  finds nothing and reads as a broken block. Creep down in increments and accumulate what you see.
+- **A `.block-language-dataviewjs` element that never updates is the Live Preview copy, not a bug.** In
+  preview mode a markdown leaf holds both renderings; only the one under `.markdown-reading-view` is live
+  (`checkVisibility()` tells them apart). Dataview also repaints on its own **2.5 s** `refreshInterval`, so
+  an already-open note lags a frontmatter change unless something triggers `dataview:refresh-views`.
+
 ### Gotcha: a hand-started Android emulator has no DNS
 
 `obsidian-integration-testing` starts the emulator itself with
