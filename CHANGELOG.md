@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 13.7.0
+
+- docs(demo-vault): document the TS-module-as-parameterized-query pattern
+- docs: point other plugins at their community.obsidian.md pages
+
 ## 13.6.11
 
 - test(codescript-toolkit): dismiss demo-vault modals with a trusted Escape
