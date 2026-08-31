@@ -44,3 +44,9 @@ console.log(message);
 const page = DataviewAPI.page(app.workspace.getActiveFile().path);
 console.log(page);
 ```
+
+## One view, many questions
+
+Once a `dataviewjs` block can load your modules, the query itself no longer has to be written into the note: put it in the note's frontmatter and the block becomes a dispatcher that runs whichever module the frontmatter names.
+
+See [Parameterized Dataview queries](<./47 Parameterized Dataview queries.md>) for the pattern, running.

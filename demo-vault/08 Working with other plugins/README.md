@@ -4,16 +4,17 @@ Several Obsidian plugins already let you run JavaScript. CodeScript Toolkit is n
 
 **None of this is required.** CodeScript Toolkit is self-sufficient and needs no other plugin. These notes are for when you already use one of the below and want the two to cooperate.
 
-Each note shows both directions: running CodeScript Toolkit from that plugin, and running that plugin from a code button. None of these plugins ships with this demo vault, so each note starts with a button that installs and enables it for you.
+Most of these notes show both directions: running CodeScript Toolkit from that plugin, and running that plugin from a code button. [47 Parameterized Dataview queries](<./47 Parameterized Dataview queries.md>) is different — it is a recipe built on top of one of them. None of these plugins ships with this demo vault, so every note here starts with a button that installs and enables what it needs.
 
-| Note                                | What it covers                                                   |
-| ----------------------------------- | ---------------------------------------------------------------- |
-| [44 CustomJS](<./44 CustomJS.md>)   | Class-based scripts, callable from anywhere                      |
-| [45 Datacore](<./45 Datacore.md>)   | Datacore's four code-view flavours, including JSX                |
-| [46 Dataview](<./46 Dataview.md>)   | `dataviewjs`, the most widely used scripting surface in Obsidian |
-| [47 JS Engine](<./47 JS Engine.md>) | Render JS output into a note                                     |
-| [48 Modules](<./48 Modules.md>)     | Another module loader, working alongside this one                |
-| [49 QuickAdd](<./49 QuickAdd.md>)   | Scripted capture and template choices                            |
-| [50 Templater](<./50 Templater.md>) | Scripts inside templates                                         |
+| Note                                                                          | What it covers                                                   |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [44 CustomJS](<./44 CustomJS.md>)                                             | Class-based scripts, callable from anywhere                      |
+| [45 Datacore](<./45 Datacore.md>)                                             | Datacore's four code-view flavours, including JSX                |
+| [46 Dataview](<./46 Dataview.md>)                                             | `dataviewjs`, the most widely used scripting surface in Obsidian |
+| [47 Parameterized Dataview queries](<./47 Parameterized Dataview queries.md>) | Frontmatter-driven queries, and `dv.view()` over a real module   |
+| [48 JS Engine](<./48 JS Engine.md>)                                           | Render JS output into a note                                     |
+| [49 Modules](<./49 Modules.md>)                                               | Another module loader, working alongside this one                |
+| [50 QuickAdd](<./50 QuickAdd.md>)                                             | Scripted capture and template choices                            |
+| [51 Templater](<./51 Templater.md>)                                           | Scripts inside templates                                         |
 
 The [DevTools Console](<../03 DevTools Console.md>) is a scripting surface too, but it is part of Obsidian rather than a plugin, so it is covered at the root of this vault instead.
