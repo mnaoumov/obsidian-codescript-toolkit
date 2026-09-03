@@ -20,10 +20,10 @@ export class ScriptFolderWatcherFactoryComponent extends ComponentEx {
 
   public override async onloadAsync(): Promise<void> {
     if (document.body.hasClass('emulate-mobile') || Platform.isMobile) {
-      const mobileModule = await import('./script-folder-watcher-mobile.ts');
+      const mobileModule = await import('./mobile-script-folder-watcher.ts');
       this._platformScriptFolderWatcher = new mobileModule.ScriptFolderWatcherMobileComponent(this.params);
     } else {
-      const desktopModule = await import('./script-folder-watcher-desktop.ts');
+      const desktopModule = await import('./desktop-script-folder-watcher.ts');
       this._platformScriptFolderWatcher = new desktopModule.ScriptFolderWatcherDesktopComponent(this.params);
     }
 

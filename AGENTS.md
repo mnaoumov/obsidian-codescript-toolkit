@@ -116,6 +116,32 @@ recurs, chase it rather than retrying forever, because this project is now part 
 Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before
 running them**, or the suite silently exercises a stale build.
 
+### Gotcha: under vitest 5 every project collects every test file
+
+Measured 2026-09-03 on vitest `5.0.0`. `npm run test:integration:desktop` collected all **63**
+`src/**/*.test.ts` in the repo, not the **9** its project's `include` names — every one labelled
+`|integration-tests:desktop|`. `obsidian-dev-utils`' shared config declares a root-level
+`include: ['src/**/*.test.ts']` as well as a per-project one; vitest 4 let the project glob replace it,
+vitest 5 does not, and the root glob is a superset of every project glob. The library owns the fix.
+
+Three things this does, in order of how much damage they do:
+
+- **It rewrites the five checked-in `images/screenshots/screenshot-desktop-*.png`,** because the
+  capture suites get collected too. That is precisely what naming them `*.desktop-capture.` was meant to
+  prevent (see `scripts/vitest-config.ts`). **Check `git status` after any integration run** and revert
+  those PNGs unless you actually ran `npm run capture:screenshots` — a release cut straight afterwards
+  would otherwise ship them.
+- It fails ~21 unit suites on `Failed to resolve entry for package "obsidian"`. That error is correct and
+  not a bug in the test: `obsidian` is types-only (`"main": ""`), so only the `unit-tests` project's alias
+  to `obsidian-test-mocks` makes it importable at runtime.
+- It runs the Android and demo-vault suites under the desktop transport, which both slows the run by
+  minutes and reports failures that are pure mis-routing.
+
+**So a red `test:integration:desktop` currently proves nothing on its own.** Until the library is fixed,
+get a real verdict by naming the files:
+`npx vitest run --project=integration-tests:desktop ".desktop.integration.test.ts"` — 9 files, 123 tests,
+and it leaves the screenshots alone.
+
 ### Gotcha: the authoring checks see `_assets/` as notes
 
 `obsidian-dev-utils` 92 added always-on authoring checks to `registerDemoVaultCoverageSuite` — every

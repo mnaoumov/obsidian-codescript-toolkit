@@ -26,7 +26,7 @@ import {
   CacheInvalidationMode,
   ModuleType
 } from '../types.ts';
-import { RequireHandlerDesktopComponent } from './require-handler-desktop.ts';
+import { RequireHandlerDesktopComponent } from './desktop-require-handler.ts';
 import {
   MODULE_NAME_SEPARATOR,
   PATH_SUFFIXES,

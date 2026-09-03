@@ -107,7 +107,7 @@ describe('demo vault execution', () => {
   it.each(NOTES)('runs every code button in "%s" without error', async (noteName) => {
     const result = await evalInObsidian({
       async callback({ app, buttonTimeoutMs, intervalMs, lib: { pressKey, waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }): Promise<NoteExecutionResult> {
-        function dismissModals(): void {
+        async function dismissModals(): Promise<void> {
           for (const closeButton of document.querySelectorAll<HTMLElement>('.modal-container .modal-close-button')) {
             closeButton.click();
           }
@@ -119,7 +119,7 @@ describe('demo vault execution', () => {
            * whatever the demo-vault buttons are doing between modals.
            */
           if (document.querySelector('.modal-container, .prompt')) {
-            pressKey({ key: 'Escape' });
+            await pressKey({ key: 'Escape' });
           }
         }
 
@@ -162,10 +162,10 @@ describe('demo vault execution', () => {
             try {
               await waitUntil({
                 intervalInMilliseconds: intervalMs,
-                predicate: (): boolean => {
+                predicate: async (): Promise<boolean> => {
                   // A button may open a modal (alert/confirm/prompt) and await it; dismiss it so the
                   // Awaited call resolves and the ✅/❌ banner appears for classification.
-                  dismissModals();
+                  await dismissModals();
                   return /Executed (?:successfully|with error)/.test(block?.textContent ?? '');
                 },
                 timeoutInMilliseconds: buttonTimeoutMs
@@ -188,7 +188,7 @@ describe('demo vault execution', () => {
           return { buttonCount: buttons.length, renderOk: isRenderOk, results };
         } finally {
           // Dismiss any modal/suggester a button opened so it cannot block the next note.
-          dismissModals();
+          await dismissModals();
         }
       },
       input: { buttonTimeoutMs: BUTTON_TIMEOUT_MS, intervalMs: POLL_INTERVAL_MS, notePath: noteName, renderTimeoutMs: RENDER_TIMEOUT_MS },
