@@ -65,6 +65,8 @@
     "Unixlike",
     "unstub",
     "unvalidated",
+    "WABT",
+    "WASI",
     "wdio",
     "Wikilink",
     "Wikilinks"
