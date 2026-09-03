@@ -401,7 +401,7 @@ async function openNote(mode: string, notePath: string): Promise<number> {
 
       // A previous shot may have left the command palette on top of the note.
       if (document.querySelector('.prompt')) {
-        pressKey({ key: 'Escape' });
+        await pressKey({ key: 'Escape' });
         await sleep(SETTLE_DELAY_IN_MILLISECONDS);
       }
 
