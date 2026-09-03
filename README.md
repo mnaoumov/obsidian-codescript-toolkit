@@ -33,7 +33,7 @@ An [Obsidian](https://obsidian.md/) plugin that lets you write and run modern Ja
 
 **The documentation is an interactive demo vault.** Every feature has a note that explains what it does and why you would want it, followed by a button that runs it for real — so you can read the explanation and execute the example in the same place.
 
-**[Start reading here](<./demo-vault/00 Start.md>)** — it works as plain markdown on GitHub, no installation needed.
+**[Start reading here](<./demo-vault/00 Start.md>)** — it is plain markdown, so it works on GitHub with nothing installed.
 
 A copy of the vault ships with every release. You can access it via any of the following:
 
