@@ -116,31 +116,35 @@ recurs, chase it rather than retrying forever, because this project is now part 
 Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before
 running them**, or the suite silently exercises a stale build.
 
-### Gotcha: under vitest 5 every project collects every test file
+### Gotcha: under vitest 5 every project collects every test file — worked around locally
 
 Measured 2026-09-03 on vitest `5.0.0`. `npm run test:integration:desktop` collected all **63**
 `src/**/*.test.ts` in the repo, not the **9** its project's `include` names — every one labelled
 `|integration-tests:desktop|`. `obsidian-dev-utils`' shared config declares a root-level
 `include: ['src/**/*.test.ts']` as well as a per-project one; vitest 4 let the project glob replace it,
-vitest 5 does not, and the root glob is a superset of every project glob. The library owns the fix.
+vitest 5 does not, and the root glob is a superset of every project glob.
 
-Three things this does, in order of how much damage they do:
+Three things that did, in order of how much damage they do:
 
 - **It rewrites the five checked-in `images/screenshots/screenshot-desktop-*.png`,** because the
   capture suites get collected too. That is precisely what naming them `*.desktop-capture.` was meant to
-  prevent (see `scripts/vitest-config.ts`). **Check `git status` after any integration run** and revert
-  those PNGs unless you actually ran `npm run capture:screenshots` — a release cut straight afterwards
-  would otherwise ship them.
+  prevent (see `scripts/vitest-config.ts`).
 - It fails ~21 unit suites on `Failed to resolve entry for package "obsidian"`. That error is correct and
   not a bug in the test: `obsidian` is types-only (`"main": ""`), so only the `unit-tests` project's alias
   to `obsidian-test-mocks` makes it importable at runtime.
 - It runs the Android and demo-vault suites under the desktop transport, which both slows the run by
   minutes and reports failures that are pure mis-routing.
 
-**So a red `test:integration:desktop` currently proves nothing on its own.** Until the library is fixed,
-get a real verdict by naming the files:
-`npx vitest run --project=integration-tests:desktop ".desktop.integration.test.ts"` — 9 files, 123 tests,
-and it leaves the screenshots alone.
+**The library still owns the real fix — it is filed against `obsidian-dev-utils` — but this repo no
+longer waits on it.**
+`scripts/vitest-config.ts` wraps the factory in `dropRootInclude`, which deletes the root-level
+`include` from the returned config; the per-project globs then apply as they did under vitest 4. Verified
+by `npx vitest list --filesOnly --project=<name>`: the seven projects partition the 63 files exactly —
+47 `unit-tests`, 1 `no-app`, 9 `desktop`, 0 `desktop-performance`, 2 `demo-vault`, 1 each capture. Delete
+the wrapper once the library stops declaring the root-level `include`; the runs stay correct either way.
+
+**Still check `git status` after an integration run.** The screenshots no longer move (measured: a full
+desktop + demo-vault pass left the tree clean bar the config edit), but that habit is what caught this.
 
 ### Gotcha: the authoring checks see `_assets/` as notes
 
@@ -190,6 +194,23 @@ The only android test that touches the network is the HTTP-URL `requireAsync` ca
 (`cdn.jsdelivr.net/npm/is-number`), so the symptom is a single confusing failure —
 `Request Failed. UnknownHostException Unable to resolve host` — in an otherwise green suite. Fix:
 `adb emu kill`, then let the harness boot the emulator itself. Do not "fix" the test.
+
+### Gotcha: the Android project can fail before a single test runs, and that is not this repo
+
+Observed 2026-09-03, twice in a row on a clean machine (no leftover `qemu`/`emulator`/`appium`
+processes, `adb devices` showing only a physical phone). The harness auto-started Appium, booted
+`obsidian_test`, reported "boot completed" and "device is idle" — and then `POST /session` failed:
+once with the device dropping out of adb's list mid-handshake (`device offline` →
+`Device emulator-5554 was not in the list of connected devices`), once with
+`adb shell getprop ro.build.version.sdk` timing out at 20 s twice before the session creation aborted.
+
+That is a wedged emulator during Appium session creation — the transport's problem, not the suite's
+(filed against `obsidian-integration-testing`, along with the teardown half that can leave a zombie
+emulator behind). The tell is that **no test ever
+ran**: `Tests 1 failed | 24 skipped`, every failure an `IntegrationSetupFailedError` with the same
+`Original error`. Do not read it as an Android regression in this plugin, and do not go editing the
+android suites. Re-run once; if it wedges again, check whether something else on the machine is driving
+adb (a second AVD, a concurrent Android session), then leave it for the harness.
 
 `scripts/demo-vault-global-setup.ts` mirrors the CodeScript Toolkit settings that
 `obsidian-dev-utils`' `demo-vault-helper` writes, including the `defaultCodeButtonConfig` that turns

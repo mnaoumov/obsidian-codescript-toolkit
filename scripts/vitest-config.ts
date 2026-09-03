@@ -1,5 +1,8 @@
 import type { ObsidianPluginVitestConfigContext } from 'obsidian-dev-utils/script-utils/test-runners/vitest-config';
-import type { TestProjectConfiguration } from 'vitest/config';
+import type {
+  TestProjectConfiguration,
+  ViteUserConfig
+} from 'vitest/config';
 
 import { defineObsidianPluginVitestConfig } from 'obsidian-dev-utils/script-utils/test-runners/vitest-config';
 
@@ -57,7 +60,39 @@ const DEMO_VAULT_TEST_FILES = 'src/**/*.demo-vault.integration.test.ts';
  */
 const DEMO_VAULT_TIMEOUT_IN_MILLISECONDS = 600_000;
 
-export const config = defineObsidianPluginVitestConfig({
+/**
+ * Drops the root-level `test.include` the shared config declares, so every project collects only what
+ * its own `include` names.
+ *
+ * `defineObsidianPluginVitestConfig` sets a root-level `include: ['src/**\/*.test.ts']` as well as a
+ * per-project one. Under vitest 4 the project glob replaced the root glob; under vitest 5 it no longer
+ * does, and the root glob is a superset of every project glob — so on vitest `5.0.0` EVERY project
+ * collected ALL 63 `src/**\/*.test.ts` files in this repo rather than the 0-9 its own `include` names.
+ * That is not a cosmetic widening:
+ *
+ * - the capture suites ran and rewrote the five checked-in `images/screenshots/screenshot-desktop-*.png`,
+ *   which is precisely what naming them `*.desktop-capture.` was meant to prevent;
+ * - ~21 unit suites failed to import on `Failed to resolve entry for package "obsidian"`, correctly —
+ *   `obsidian` is types-only, and only the `unit-tests` project aliases it to `obsidian-test-mocks`;
+ * - the Android and demo-vault suites ran under the desktop transport, reporting failures that were pure
+ *   mis-routing.
+ *
+ * With the root glob gone the seven projects partition the 63 files exactly (47 + 1 + 9 + 0 + 2 + 1 + 1).
+ *
+ * This is a REPO-LOCAL workaround for a defect `obsidian-dev-utils` owns: its root `test` block only
+ * needs `coverage`, `exclude`, `globals` and `passWithNoTests`, and the `unit-tests` project already
+ * declares the same glob for itself. Drop this wrapper once the library stops declaring the root-level
+ * `include`; until then it is what makes an integration run readable here.
+ *
+ * @param vitestConfig - The configuration the shared factory returned.
+ * @returns The same configuration, with its root-level `include` removed.
+ */
+function dropRootInclude(vitestConfig: ViteUserConfig): ViteUserConfig {
+  delete vitestConfig.test?.include;
+  return vitestConfig;
+}
+
+export const config = dropRootInclude(defineObsidianPluginVitestConfig({
   customProjects(context: ObsidianPluginVitestConfigContext): TestProjectConfiguration[] {
     return [
       {
@@ -93,4 +128,4 @@ export const config = defineObsidianPluginVitestConfig({
       }
     ];
   }
-});
+}));
