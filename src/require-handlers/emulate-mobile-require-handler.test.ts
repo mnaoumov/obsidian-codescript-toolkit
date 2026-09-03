@@ -14,7 +14,7 @@ import type {
   ResolvedType
 } from './require-handler.ts';
 
-import { RequireHandlerEmulateMobileComponent } from './require-handler-emulate-mobile.ts';
+import { RequireHandlerEmulateMobileComponent } from './emulate-mobile-require-handler.ts';
 
 const mockDesktopExistsFileAsync = vi.fn();
 const mockDesktopExistsFolderAsync = vi.fn();
@@ -28,7 +28,7 @@ const mockMobileRequireNodeBinaryAsync = vi.fn();
 const mockMobileRequireNodeBuiltInModule = vi.fn();
 const mockMobileRequireNonCached = vi.fn();
 
-vi.mock('./require-handler-desktop.ts', () => ({
+vi.mock('./desktop-require-handler.ts', () => ({
   RequireHandlerDesktopComponent: class MockDesktop {
     public existsFileAsync = mockDesktopExistsFileAsync;
     public existsFolderAsync = mockDesktopExistsFolderAsync;
@@ -38,7 +38,7 @@ vi.mock('./require-handler-desktop.ts', () => ({
   }
 }));
 
-vi.mock('./require-handler-mobile.ts', () => ({
+vi.mock('./mobile-require-handler.ts', () => ({
   RequireHandlerMobileComponent: class MockMobile {
     public canRequireNonCached = mockMobileCanRequireNonCached;
     public requireAsarPackedModule = mockMobileRequireAsarPackedModule;

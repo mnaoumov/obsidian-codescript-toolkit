@@ -6,7 +6,7 @@ import {
 } from 'obsidian-dev-utils/object-utils';
 import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/monkey-around-component';
 
-import type { RequireHandlerDesktopComponent } from '../require-handlers/require-handler-desktop.ts';
+import type { RequireHandlerDesktopComponent } from '../require-handlers/desktop-require-handler.ts';
 import type { RequireFunction } from '../require-handlers/require-handler.ts';
 
 export class ModuleRequirePatchComponent extends MonkeyAroundComponent {

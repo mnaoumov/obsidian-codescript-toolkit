@@ -16,7 +16,7 @@ import {
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { ScriptManager } from '../script.ts';
 
-import { ScriptFolderWatcherDesktopComponent } from './script-folder-watcher-desktop.ts';
+import { ScriptFolderWatcherDesktopComponent } from './desktop-script-folder-watcher.ts';
 
 const mockWatch = vi.fn();
 

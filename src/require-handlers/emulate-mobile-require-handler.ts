@@ -4,8 +4,8 @@ import type {
   RequireHandlerConstructorParams
 } from './require-handler.ts';
 
-import { RequireHandlerDesktopComponent } from './require-handler-desktop.ts';
-import { RequireHandlerMobileComponent } from './require-handler-mobile.ts';
+import { RequireHandlerDesktopComponent } from './desktop-require-handler.ts';
+import { RequireHandlerMobileComponent } from './mobile-require-handler.ts';
 import { RequireHandlerComponentBase } from './require-handler.ts';
 
 type RequireHandlerEmulateMobileComponentConstructorParams = RequireHandlerConstructorParams;

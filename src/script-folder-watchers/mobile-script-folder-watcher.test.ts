@@ -17,7 +17,7 @@ import {
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { ScriptManager } from '../script.ts';
 
-import { ScriptFolderWatcherMobileComponent } from './script-folder-watcher-mobile.ts';
+import { ScriptFolderWatcherMobileComponent } from './mobile-script-folder-watcher.ts';
 
 const CHECKING_INTERVAL_IN_SECONDS = 10;
 

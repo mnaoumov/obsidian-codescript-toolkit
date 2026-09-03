@@ -9,7 +9,7 @@ import {
 
 import type { RequireHandlerConstructorParams } from './require-handler.ts';
 
-import { RequireHandlerMobileComponent } from './require-handler-mobile.ts';
+import { RequireHandlerMobileComponent } from './mobile-require-handler.ts';
 import { ResolvedType } from './require-handler.ts';
 
 const { MockCapacitorAdapterClass, mockCapacitorFs } = vi.hoisted(() => {

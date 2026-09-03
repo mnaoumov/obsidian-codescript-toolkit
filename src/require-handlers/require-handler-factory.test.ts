@@ -35,15 +35,15 @@ class MockRequireHandlerComponent extends Component {
   public requireVaultScriptAsync = mockRequireVaultScriptAsync;
 }
 
-vi.mock('./require-handler-emulate-mobile.ts', () => ({
+vi.mock('./emulate-mobile-require-handler.ts', () => ({
   RequireHandlerEmulateMobileComponent: MockRequireHandlerComponent
 }));
 
-vi.mock('./require-handler-mobile.ts', () => ({
+vi.mock('./mobile-require-handler.ts', () => ({
   RequireHandlerMobileComponent: MockRequireHandlerComponent
 }));
 
-vi.mock('./require-handler-desktop.ts', () => ({
+vi.mock('./desktop-require-handler.ts', () => ({
   RequireHandlerDesktopComponent: MockRequireHandlerComponent
 }));
 

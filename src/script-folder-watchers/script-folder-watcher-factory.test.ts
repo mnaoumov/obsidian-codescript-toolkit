@@ -30,11 +30,11 @@ class MockWatcher {
 class MockDesktopWatcher extends MockWatcher {}
 class MockMobileWatcher extends MockWatcher {}
 
-vi.mock('./script-folder-watcher-desktop.ts', () => ({
+vi.mock('./desktop-script-folder-watcher.ts', () => ({
   ScriptFolderWatcherDesktopComponent: MockDesktopWatcher
 }));
 
-vi.mock('./script-folder-watcher-mobile.ts', () => ({
+vi.mock('./mobile-script-folder-watcher.ts', () => ({
   ScriptFolderWatcherMobileComponent: MockMobileWatcher
 }));
 
