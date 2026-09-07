@@ -38,7 +38,7 @@ An [Obsidian](https://obsidian.md/) plugin that lets you write and run modern Ja
 A copy of the vault ships with every release. You can access it via any of the following:
 
 1. Running the **CodeScript Toolkit: Open demo vault** command.
-2. Downloading `fix-require-modules-demo-vault-<version>.zip` (`<version>` is the release version) from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases).
+2. Downloading `fix-require-modules-demo-vault.zip` from the [Releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases). It unzips into a single `fix-require-modules-demo-vault-<version>` folder.
 3. Browsing its source in [`demo-vault/`](./demo-vault/README.md) in this repository.
 
 If you are not sure where to start, three notes cover most of it: [Core functions](<./demo-vault/02 Core functions.md>) (which of `require()` / `requireAsync()` / `requireAsyncWrapper()` to use), [Code buttons](<./demo-vault/01 Code buttons.md>) (runnable snippets inside a note), and [Invocable scripts](<./demo-vault/06 Running scripts without a button/37 Invocable scripts.md>) (turning a script into an Obsidian command).
