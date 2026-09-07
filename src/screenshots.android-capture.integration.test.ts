@@ -353,14 +353,13 @@ async function openCommandPalette(query: string): Promise<string[]> {
  */
 async function openNote(mode: string, notePath: string): Promise<number> {
   return await evalInObsidian({
-    async callback({ app, lib: { waitUntil }, mode: viewMode, notePath: path }) {
+    async callback({ app, lib: { pressKey, waitUntil }, mode: viewMode, notePath: path }) {
       const RENDER_TIMEOUT_IN_MILLISECONDS = 20_000;
       const SETTLE_DELAY_IN_MILLISECONDS = 1500;
 
       // A previous shot may have left the command palette on top of the note.
-      // `pressKey` is Electron-only, so a phone gets a synthetic key event.
       if (document.querySelector('.prompt')) {
-        document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+        await pressKey({ key: 'Escape' });
         await sleep(SETTLE_DELAY_IN_MILLISECONDS);
       }
 
@@ -454,7 +453,7 @@ async function shoot(index: number, caption: string): Promise<void> {
  */
 async function tapFirstButton(expectedResultFragment: string): Promise<string> {
   return await evalInObsidian({
-    async callback({ expectedFragment, lib: { waitUntil } }) {
+    async callback({ expectedFragment, lib: { clickElement, waitUntil } }) {
       const RUN_TIMEOUT_IN_MILLISECONDS = 20_000;
       const SETTLE_DELAY_IN_MILLISECONDS = 1500;
 
@@ -473,7 +472,7 @@ async function tapFirstButton(expectedResultFragment: string): Promise<string> {
           .map((panel) => panel.textContent);
       }
 
-      button.click();
+      await clickElement({ element: button });
 
       await waitUntil({
         message: 'the visible results panel to show what the script returned',
