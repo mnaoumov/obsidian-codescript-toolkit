@@ -11,7 +11,15 @@ const MODULES_ROOT = '_int-test-invocables';
 const INVOCABLES_FOLDER = 'scripts';
 const PLUGIN_ID = 'fix-require-modules';
 // The first script execution in a fresh Obsidian session loads babel-standalone and primes the require pipeline — a one-time cost far larger than a warm run. The poll timeout is generous enough to absorb that cold start.
-const POLL_TIMEOUT_MS = 20_000;
+/*
+ * Under the transport's ~30s per-closure cap, not at it.
+ * Two of the closures spend this ceiling twice over, so at 20_000 each of them declared 40s.
+ * The eval is killed at the cap first and reported as a bare transport timeout.
+ * That names the harness rather than the wait that overran.
+ * A script registering or unregistering lands in well under a second, so the smaller ceiling costs nothing.
+ * The constant feeds nothing but closure input, so no Node-side wait sees the change.
+ */
+const POLL_TIMEOUT_MS = 12_000;
 const POLL_INTERVAL_MS = 100;
 
 beforeAll(async () => {

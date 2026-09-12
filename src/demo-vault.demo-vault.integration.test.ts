@@ -18,8 +18,16 @@ import {
 } from 'vitest';
 
 // The first code-button execution in a fresh Obsidian session loads babel-standalone and primes the require pipeline, a one-time cost far larger than a warm run.
-const RENDER_TIMEOUT_MS = 15_000;
-const BUTTON_TIMEOUT_MS = 20_000;
+/*
+ * Under the transport's ~30s per-closure cap, not at it.
+ * The button test's closure spends both of these ceilings, so at 15_000 + 20_000 it declared 35s.
+ * The eval is killed at the cap first and reported as a bare transport timeout.
+ * That names the harness rather than the wait that overran.
+ * A note rendering and a code button reporting its result both land in well under a second.
+ * Both constants feed nothing but closure input, so no Node-side wait sees the change.
+ */
+const RENDER_TIMEOUT_MS = 10_000;
+const BUTTON_TIMEOUT_MS = 12_000;
 const POLL_INTERVAL_MS = 100;
 
 const DEMO_VAULT_DIR = join(getRootFolder() ?? process.cwd(), 'demo-vault');
