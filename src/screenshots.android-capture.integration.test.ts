@@ -1,8 +1,8 @@
 /**
  * @file
  *
- * Produces the five mobile screenshots the community-store listing needs
- * (T461-P21), driving a staged vault in Obsidian Mobile on a real Android
+ * Produces the five mobile screenshots the community-store listing needs,
+ * driving a staged vault in Obsidian Mobile on a real Android
  * emulator and writing `images/screenshots/screenshot-mobile-N.png`.
  *
  * The mobile counterpart of the desktop capture suite, showing the same five
