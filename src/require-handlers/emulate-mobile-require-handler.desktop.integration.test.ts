@@ -20,7 +20,7 @@ const SCRIPTS_DIR = '_int-test-emulate-mobile';
 const PLUGIN_ID = 'fix-require-modules';
 
 // EmulateMobile reloads the app. Wait for the reload to settle before re-attaching — an
-// EvalInObsidian that attaches mid-reload can poison the shared CDP connection (T116).
+// EvalInObsidian that attaches mid-reload can poison the shared CDP connection.
 const RELOAD_SETTLE_IN_MILLISECONDS = 30_000;
 const RELOAD_HOOK_TIMEOUT_IN_MILLISECONDS = 120_000;
 
