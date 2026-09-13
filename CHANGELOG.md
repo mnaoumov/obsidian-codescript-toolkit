@@ -94,7 +94,7 @@
 - chore: update libs
 - refactor!: buildInvokeCommand
 - chore(vitest): adopt the shared Obsidian plugin vitest configuration
-- refactor: consume ODU's SyntaxHighlightingComponent for fence highlighting
+- refactor: consume obsidian-dev-utils' SyntaxHighlightingComponent for fence highlighting
 - chore: update libs
 
 ## 13.5.0
