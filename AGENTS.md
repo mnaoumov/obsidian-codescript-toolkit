@@ -28,7 +28,7 @@ issue #58 is an unrelated user reporting the same thing.
   markdownlint's `MD060/table-column-style` counts `✅`/`❌` as **two** columns, so any alignment pass
   measuring `[...cell].length` adds one stray space per emoji cell and reddens `lint:md`. The rule is
   not auto-fixable — leave those tables exactly as they are.
-- **The notes are grouped into numbered folders, one per `00 Start.md` section (G95).** Each group
+- **The notes are grouped into numbered folders, one per `00 Start.md` section.** Each group
   folder carries a `README.md` folder note — `# <section heading>` + the section's intro + that
   section's table, which lives there and NOT in `00 Start.md`. `README.md` is not a free choice of
   name: GitHub renders it under the file list when the folder is browsed as a repository, and the
