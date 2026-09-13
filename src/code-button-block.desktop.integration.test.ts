@@ -30,7 +30,7 @@ beforeAll(() => {
       window.__codeButtonResult = 42;
       \`\`\`
     `,
-    // Regression fixture for GitHub issue #56: a code-button block near an empty code block followed by trailing unclosed text used to freeze Obsidian (catastrophic regex backtracking in ODU's getCodeBlockMarkdownInfo, fixed in obsidian-dev-utils 87.0.3). Faithful reproduction, with console.log swapped for an auto-run flag the test can assert on.
+    // Regression fixture for GitHub issue #56: a code-button block near an empty code block followed by trailing unclosed text used to freeze Obsidian (catastrophic regex backtracking in obsidian-dev-utils' getCodeBlockMarkdownInfo, fixed in 87.0.3). Faithful reproduction, with console.log swapped for an auto-run flag the test can assert on.
     '_int-test-buttons/issue-56.md': dedent`
       \`\`\`code-button
       ---
@@ -147,7 +147,7 @@ describe('CodeButtonBlock integration', () => {
     expect(result.autoRunResult).toBe('auto-ran');
   });
 
-  // Regression test for GitHub issue #56: rendering this note used to hang the main thread (catastrophic regex backtracking in ODU's getCodeBlockMarkdownInfo). Pre-fix the poll below would time out; post-fix the render completes and sets the flag.
+  // Regression test for GitHub issue #56: rendering this note used to hang the main thread (catastrophic regex backtracking in obsidian-dev-utils' getCodeBlockMarkdownInfo). Pre-fix the poll below would time out; post-fix the render completes and sets the flag.
   it('should render issue-56 note without freezing', async () => {
     const result = await evalInObsidian({
       async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {

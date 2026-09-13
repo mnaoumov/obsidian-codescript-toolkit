@@ -32,7 +32,7 @@ issue #58 is an unrelated user reporting the same thing.
   folder carries a `README.md` folder note — `# <section heading>` + the section's intro + that
   section's table, which lives there and NOT in `00 Start.md`. `README.md` is not a free choice of
   name: GitHub renders it under the file list when the folder is browsed as a repository, and the
-  Folder Notes plugin (installed for every demo vault by ODU's `bootstrapDemoVault`) is configured to
+  Folder Notes plugin (installed for every demo vault by obsidian-dev-utils' `bootstrapDemoVault`) is configured to
   look for the same name, so one file serves both surfaces.
 - `00 Start.md` is a getting-started guide — what the vault is, a concrete first success, the
   introductory root notes, then a table linking the eight group READMEs. Every note must still be
