@@ -59,7 +59,7 @@ export class ConsoleWrapper {
     }
 
     // The results panel is not its own scroll container, so this walks up to the note's scroller
-    // And moves the whole page. That is wanted after a click, but not while the note is rendering.
+    // and moves the whole page. That is wanted after a click, but not while the note is rendering.
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }

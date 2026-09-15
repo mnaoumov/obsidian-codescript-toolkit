@@ -14,11 +14,11 @@ const ADD_BUTTON_CAPTION = 'Add the deliberately broken script';
 const REMOVE_BUTTON_CAPTION = 'Remove the deliberately broken script';
 const EXPECTED_BUTTON_COUNT = 2;
 // The buttons sit roughly here in the note. Reading view renders lazily, so the view is scrolled to
-// Them before they can be clicked; an approximate line is enough to bring their section into view.
+// them before they can be clicked; an approximate line is enough to bring their section into view.
 const BUTTONS_LINE = 140;
 // Each `evalInObsidian` is one `Runtime.evaluate`, which the CDP transport caps at 30 s — so every wait
-// Inside a closure has to leave room for the round trip. The first code-button execution in a fresh
-// Session also loads babel-standalone, which is far slower than any warm run.
+// inside a closure has to leave room for the round trip. The first code-button execution in a fresh
+// session also loads babel-standalone, which is far slower than any warm run.
 const WAIT_TIMEOUT_MS = 15_000;
 const POLL_INTERVAL_MS = 100;
 
@@ -47,7 +47,7 @@ async function clickButton(caption: string): Promise<ClickButtonResult> {
       button.click();
 
       // Captured inside the predicate rather than re-read afterwards: writing the script into the vault
-      // Re-renders the reading view, which replaces the block and takes its results panel with it.
+      // re-renders the reading view, which replaces the block and takes its results panel with it.
       let output = '';
 
       await waitUntil({
@@ -70,7 +70,7 @@ async function clickButton(caption: string): Promise<ClickButtonResult> {
         isRegistered: Object.hasOwn(app.commands.commands, commandId),
         isSuccess: output.includes('Executed successfully'),
         // The block's text starts with the caption and the whole source panel, so only its tail — where
-        // The results panel is — is worth reporting when an assertion fails.
+        // the results panel is — is worth reporting when an assertion fails.
         output: output.slice(-RESULT_TAIL_LENGTH)
       };
     },
@@ -85,9 +85,9 @@ function vaultPath(): string {
 
 // The deliberately-broken script demonstrates what the plugin does when a script exports the removed
 // `invokeCommand` object: it reports the deprecation when the script is REGISTERED, and again on every
-// Invocation. Registering it at vault load meant four error stacks greeted every first-time visitor, so
-// The script now lives outside the invocable scripts folder and the note's two buttons put it there on
-// Demand and take it back out. This asserts both halves: nothing at load, everything on demand.
+// invocation. Registering it at vault load meant four error stacks greeted every first-time visitor, so
+// the script now lives outside the invocable scripts folder and the note's two buttons put it there on
+// demand and take it back out. This asserts both halves: nothing at load, everything on demand.
 describe('deprecated invokeCommand demo', () => {
   it('registers no command for the deliberately broken script when the vault loads', async () => {
     const result = await evalInObsidian({
@@ -122,7 +122,7 @@ describe('deprecated invokeCommand demo', () => {
           await app.workspace.revealLeaf(leaf);
 
           // Reading view renders lazily and both buttons are far below the fold, so the predicate scrolls
-          // On every poll until they have materialized rather than waiting for a view that never grows.
+          // on every poll until they have materialized rather than waiting for a view that never grows.
           await waitUntil({
             intervalInMilliseconds: intervalMs,
             message: 'both code buttons to render',

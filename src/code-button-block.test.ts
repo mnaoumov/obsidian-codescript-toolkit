@@ -814,7 +814,7 @@ describe('CodeButtonBlockComponent', () => {
       await component['processCodeButtonBlock']({ context, el, source });
 
       // When isRaw is true, shouldAutoRun is set to true, so handleClick is scheduled via the real
-      // Fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
+      // fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
       await waitForAllAsyncOperations();
       expect(handleClickSpy).toHaveBeenCalled();
     });
@@ -960,7 +960,7 @@ describe('CodeButtonBlockComponent', () => {
       await component['processCodeButtonBlock']({ context, el, source });
 
       // Auto-run schedules handleClick (which uses the updated sourcePath) via the real
-      // Fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
+      // fire-and-forget invokeAsyncSafely. Drain the tracked operation before asserting.
       await waitForAllAsyncOperations();
       expect(handleClickSpy).toHaveBeenCalled();
     });

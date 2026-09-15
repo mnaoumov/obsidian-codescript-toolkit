@@ -34,7 +34,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
 
   protected override getSettingDefinitionItems(): SettingDefinitionItem[] {
     // Scoped to this build so the cross-row subscriptions the `render` callbacks make are discarded
-    // Together with the definitions they belong to, exactly as they were per `displayLegacy()` call.
+    // together with the definitions they belong to, exactly as they were per `displayLegacy()` call.
     const events = new Events();
     const thisWrapper = ValueWrapper.of(this);
 

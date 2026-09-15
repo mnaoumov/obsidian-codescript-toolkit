@@ -93,7 +93,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
 
     let styleEl: HTMLStyleElement | null = null;
     // A fresh instance per call, because `CommandHandlerComponent` invokes the factory once per menu
-    // Surface and registering one instance twice throws.
+    // surface and registering one instance twice throws.
     const unloadTemporaryPluginCommandHandlerDisposable = await this.commandHandlerComponent.registerCommandHandlers(() => [
       new UnloadTemporaryPluginCommandHandler({
         tempPlugin,

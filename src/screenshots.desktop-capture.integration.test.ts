@@ -88,8 +88,8 @@ beforeAll(async () => {
 
   vault.populate({
     // Points the plugin at the staged scripts folder, so shots 4 and 5 have
-    // Something real to show. Written before the reload below, which is what
-    // Makes the plugin read it.
+    // something real to show. Written before the reload below, which is what
+    // makes the plugin read it.
     [`.obsidian/plugins/${PLUGIN_ID}/data.json`]: JSON.stringify({
       invocableScriptsFolder: SCRIPTS_FOLDER,
       modulesRoot: '',
@@ -98,7 +98,7 @@ beforeAll(async () => {
     [`${SCRIPTS_FOLDER}/Count words.ts`]: 'export function invoke(): void {\n  console.log(app.workspace.getActiveFile()?.basename);\n}\n',
     [`${SCRIPTS_FOLDER}/Insert date.ts`]: 'export function invoke(): void {\n  console.log(new Date().toISOString());\n}\n',
     // `buildInvokeCommand` is how a script asks for its own hotkey — the palette
-    // Then shows the chip, which is the point of shot 4.
+    // then shows the chip, which is the point of shot 4.
     [`${SCRIPTS_FOLDER}/Rebuild reading queue.ts`]: 'export function buildInvokeCommand(): unknown {\n  return {\n    callback: (): void => {\n      console.log(\'Rebuilt.\');\n    },\n    hotkeys: [{ key: \'F9\', modifiers: [\'Ctrl\', \'Shift\'] }]\n  };\n}\n',
     [`${SCRIPTS_FOLDER}/Warm up.ts`]: 'export function invoke(): void {\n  console.log(\'Ready.\');\n}\n',
     [MODULE_NOTE_PATH]: buildModuleNote(),
@@ -124,7 +124,7 @@ beforeAll(async () => {
       });
 
       // The note is the subject; the file explorer and an empty right dock would
-      // Otherwise take a third of a 1200x800 frame.
+      // otherwise take a third of a 1200x800 frame.
       app.workspace.leftSplit.collapse();
       const rightSplit: unknown = app.workspace.rightSplit;
       (rightSplit as ResizableSideDock).setSize(0);
@@ -142,14 +142,14 @@ beforeAll(async () => {
 
   // A SEPARATE closure, because one `evalInObsidian` call is one CDP
   // `Runtime.evaluate`, which the transport caps at 30 seconds — and a plugin
-  // Reload that has to compile the staged scripts can eat most of that on its
-  // Own. Folded into the closure above, the whole setup times out.
+  // reload that has to compile the staged scripts can eat most of that on its
+  // own. Folded into the closure above, the whole setup times out.
   await evalInObsidian({
     async callback({ app, lib: { waitUntil }, pluginId }) {
       const SCRIPT_REGISTRATION_TIMEOUT_IN_MILLISECONDS = 20_000;
 
       // The plugin reads the settings and scans the scripts folder on load, so
-      // The staged `data.json` only takes effect after a reload.
+      // the staged `data.json` only takes effect after a reload.
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
 
@@ -184,7 +184,7 @@ describe('desktop store screenshots', () => {
 
   it('4 - scripts turned into commands', async () => {
     // Obsidian prefixes a plugin's commands with the plugin name, so the names
-    // Are matched as substrings rather than compared whole.
+    // are matched as substrings rather than compared whole.
     const registeredNames = await openCommandPalette('Invoke script');
     const commandNames = registeredNames.join('\n');
     expect(commandNames).toContain('Invoke script: Insert date.ts');
@@ -234,7 +234,7 @@ function buildModuleNote(): string {
     '---',
     'const { greet } = require(\'./greeting.ts\');',
     // Not `app.vault.getName()`: the capture runs in a throwaway vault, and its
-    // Generated name would be the most prominent word in the frame.
+    // generated name would be the most prominent word in the frame.
     'greet(\'Obsidian\');',
     '```',
     ''
@@ -302,10 +302,10 @@ async function clickFirstButton(expectedResultFragment: string): Promise<string>
       const SETTLE_DELAY_IN_MILLISECONDS = 1500;
 
       // Obsidian keeps the note's PREVIOUS render in the document, detached: half
-      // The buttons and results panels on the page are leftovers that occupy no
-      // Space. Clicking one of those fills a panel nobody can see, which is what
-      // This shot did until it started filtering by on-screen size — the panel in
-      // The frame stayed empty while the assertion happily read the hidden one.
+      // the buttons and results panels on the page are leftovers that occupy no
+      // space. Clicking one of those fills a panel nobody can see, which is what
+      // this shot did until it started filtering by on-screen size — the panel in
+      // the frame stayed empty while the assertion happily read the hidden one.
       function isOnScreen(element: Element): boolean {
         return element.getBoundingClientRect().width > 0;
       }
@@ -368,7 +368,7 @@ async function openCommandPalette(query: string): Promise<string[]> {
 
       input.value = text;
       // The palette filters from its own input handler, so setting the value
-      // Alone would leave every command in the vault on screen.
+      // alone would leave every command in the vault on screen.
       input.dispatchEvent(new Event('input'));
 
       await sleep(SETTLE_DELAY_IN_MILLISECONDS);
@@ -403,7 +403,7 @@ async function openNote(mode: string, notePath: string): Promise<number> {
       const RESIZE_SETTLE_DELAY_IN_MILLISECONDS = 2000;
 
       // Let the previous shot's capture settle: the device-metrics override it
-      // Sets and clears disturbs anything driven too soon afterwards.
+      // sets and clears disturbs anything driven too soon afterwards.
       await sleep(RESIZE_SETTLE_DELAY_IN_MILLISECONDS);
 
       // A previous shot may have left the command palette on top of the note.
@@ -413,7 +413,7 @@ async function openNote(mode: string, notePath: string): Promise<number> {
       }
 
       // Only the on-screen copies count — Obsidian leaves the note's previous
-      // Render in the document, detached and zero-sized.
+      // render in the document, detached and zero-sized.
       function countVisibleButtons(): number {
         return [...document.querySelectorAll('.fix-require-modules-run-button')]
           .filter((element) => element.getBoundingClientRect().width > 0).length;

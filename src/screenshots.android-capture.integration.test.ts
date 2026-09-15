@@ -149,8 +149,8 @@ beforeAll(async () => {
   setupDiagnostics = await evalInObsidian({
     async callback({ app, fontSizeInPixels, lib: { waitUntil }, subjectNotePath }) {
       // A closure runs inside ONE Appium `execute/sync` call, which WebDriver
-      // Caps around 30s. A longer wait in here dies as an opaque `script
-      // Timeout` rather than a readable failure, so keep every wait under it.
+      // caps around 30s. A longer wait in here dies as an opaque `script
+      // timeout` rather than a readable failure, so keep every wait under it.
       const SETTLE_TIMEOUT_IN_MILLISECONDS = 20_000;
       const SETTLE_DELAY_IN_MILLISECONDS = 1500;
 
@@ -182,23 +182,23 @@ beforeAll(async () => {
   });
 
   // No plugin reload here, unlike the desktop suite: on the device the harness
-  // Enables the plugin AFTER the vault is synced, so the staged `data.json` is
-  // Already in force and the scripts register on their own. Reloading anyway is
-  // Worse than redundant — a disable/enable pair mid-session leaves the scripts
-  // Unregistered for the rest of the run.
+  // enables the plugin AFTER the vault is synced, so the staged `data.json` is
+  // already in force and the scripts register on their own. Reloading anyway is
+  // worse than redundant — a disable/enable pair mid-session leaves the scripts
+  // unregistered for the rest of the run.
   //
   // Polled from HERE rather than with an in-closure `waitUntil`: registering a
-  // Script requires it, which compiles it through babel, and the first one in a
-  // Fresh session also loads babel itself. On a phone that runs past the Appium
-  // Per-call cap, so the wait has to live outside any single call.
+  // script requires it, which compiles it through babel, and the first one in a
+  // fresh session also loads babel itself. On a phone that runs past the Appium
+  // per-call cap, so the wait has to live outside any single call.
   await waitForScriptCommands();
 });
 
 describe('mobile store screenshots', () => {
   it('stages the fixtures the shots are framed on', () => {
     // Surfaced as an assertion because vitest swallows console output from an
-    // Integration worker, and a silently-wrong layout produces five bad images
-    // Without a single failure.
+    // integration worker, and a silently-wrong layout produces five bad images
+    // without a single failure.
     expect(setupDiagnostics).toMatchObject({ isVaultReady: true });
   });
 
@@ -221,7 +221,7 @@ describe('mobile store screenshots', () => {
 
   it('4 - scripts turned into commands', async () => {
     // Obsidian prefixes a plugin's commands with the plugin name, so the names
-    // Are matched as substrings rather than compared whole.
+    // are matched as substrings rather than compared whole.
     const registeredNames = await openCommandPalette('Invoke script');
     const commandNames = registeredNames.join('\n');
     expect(commandNames).toContain('Invoke script: Insert date.ts');
@@ -352,7 +352,7 @@ async function openCommandPalette(query: string): Promise<string[]> {
 
       input.value = text;
       // The palette filters from its own input handler, so setting the value
-      // Alone would leave every command in the vault on screen.
+      // alone would leave every command in the vault on screen.
       input.dispatchEvent(new Event('input'));
 
       await sleep(SETTLE_DELAY_IN_MILLISECONDS);
@@ -393,7 +393,7 @@ async function openNote(mode: string, notePath: string): Promise<number> {
       }
 
       // Only the on-screen copies count — Obsidian leaves the note's previous
-      // Render in the document, detached and zero-sized.
+      // render in the document, detached and zero-sized.
       function countVisibleButtons(): number {
         return [...document.querySelectorAll('.fix-require-modules-run-button')]
           .filter((element) => element.getBoundingClientRect().width > 0).length;
@@ -585,15 +585,15 @@ async function waitForScriptCommands(): Promise<void> {
  */
 async function writeFrame(index: number, caption: string, captured: Uint8Array): Promise<void> {
   // The AVD is 900x1600, so the device frame IS the store's size. Asserting it
-  // Here is what keeps that true: run this against any other AVD and it fails
-  // Loudly instead of quietly shipping an off-spec image.
+  // here is what keeps that true: run this against any other AVD and it fails
+  // loudly instead of quietly shipping an off-spec image.
   expect(readPngDimensions(captured)).toStrictEqual({
     heightInPixels: HEIGHT_IN_PIXELS,
     widthInPixels: WIDTH_IN_PIXELS
   });
 
   // Captioned AFTER capture, so the frame stays an untouched device screenshot
-  // And rewording a label needs no re-shoot.
+  // and rewording a label needs no re-shoot.
   const labeled = await labelScreenshot(captured, { text: caption });
 
   mkdirSync(IMAGES_DIRECTORY, { recursive: true });

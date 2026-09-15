@@ -40,8 +40,8 @@ function getObsidianDocumentHead(): ObsidianDocumentHead {
 }
 
 // Only `printError` is stubbed (a thin return-value passthrough so the test can assert which error
-// Was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
-// The real `invokeAsyncSafely`) are preserved via `importOriginal`. No dev-utils logic is reimplemented.
+// was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
+// the real `invokeAsyncSafely`) are preserved via `importOriginal`. No dev-utils logic is reimplemented.
 vi.mock('obsidian-dev-utils/error', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian-dev-utils/error')>(),
   printError: (...$arguments: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...$arguments)

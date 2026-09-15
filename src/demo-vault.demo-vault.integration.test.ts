@@ -34,13 +34,13 @@ const DEMO_VAULT_DIR = join(getRootFolder() ?? process.cwd(), 'demo-vault');
 const REPORT_PATH = join(tmpdir(), 'demo-vault-execution-report.json');
 
 // Matched by BASENAME at every depth, not just the vault root: the notes are grouped into folders, and
-// Every group folder carries a `README.md` folder note. `00 Start.md` and the READMEs are navigation —
-// They hold no code buttons, so running them would assert nothing.
+// every group folder carries a `README.md` folder note. `00 Start.md` and the READMEs are navigation —
+// they hold no code buttons, so running them would assert nothing.
 const EXCLUDED_NOTE_NAMES = new Set(['00 Start.md', 'README.md']);
 
 // The plugin-integration notes each install a third-party plugin from the community store before their
-// Buttons can do anything, so they are read rather than clicked — the same exclusion as before the notes
-// Were grouped, when this folder was skipped merely because the walk did not recurse into it.
+// buttons can do anything, so they are read rather than clicked — the same exclusion as before the notes
+// were grouped, when this folder was skipped merely because the walk did not recurse into it.
 const EXCLUDED_FOLDERS = new Set(['08 Working with other plugins']);
 
 interface ExpectedNonOk {
@@ -50,7 +50,7 @@ interface ExpectedNonOk {
 }
 
 // Buttons that legitimately do not report success: by-design error demos, and buttons
-// That suppress system messages (so no ✅/❌ banner appears for the classifier to read).
+// that suppress system messages (so no ✅/❌ banner appears for the classifier to read).
 const EXPECTED_NON_OK: ExpectedNonOk[] = [
   { captionIncludes: 'on error only', note: '01 Code buttons.md', status: 'error' },
   { captionIncludes: 'shouldShowSystemMessages=false', note: '01 Code buttons.md', status: 'timeout' }
@@ -75,7 +75,7 @@ interface NoteReport extends NoteExecutionResult {
 const report: NoteReport[] = [];
 
 // Recurses, because the notes live in group folders: a top-level-only walk would find just the handful of
-// Notes left at the vault root and still pass every assertion, silently clicking almost nothing.
+// notes left at the vault root and still pass every assertion, silently clicking almost nothing.
 function collectNotes(folder: string, relativeFolder: string): string[] {
   const notePaths: string[] = [];
 
@@ -172,7 +172,7 @@ describe('demo vault execution', () => {
                 intervalInMilliseconds: intervalMs,
                 predicate: async (): Promise<boolean> => {
                   // A button may open a modal (alert/confirm/prompt) and await it; dismiss it so the
-                  // Awaited call resolves and the ✅/❌ banner appears for classification.
+                  // awaited call resolves and the ✅/❌ banner appears for classification.
                   await dismissModals();
                   return /Executed (?:successfully|with error)/.test(block?.textContent ?? '');
                 },
@@ -217,9 +217,9 @@ describe('demo vault execution', () => {
   });
 
   // The vault opts every button into showing its source through the plugin's vault-wide
-  // Default-code-button-config setting, so no note carries a per-block `sourceVisibility`.
+  // default-code-button-config setting, so no note carries a per-block `sourceVisibility`.
   // This asserts that vault-wide opt-in actually reaches a real note — the whole point of
-  // The setting, and the thing a reader of the demo vault sees first.
+  // the setting, and the thing a reader of the demo vault sees first.
   it('shows the source toggle on a real note without any per-note config', async () => {
     const result = await evalInObsidian({
       async callback({ app, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }) {

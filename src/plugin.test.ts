@@ -190,7 +190,7 @@ describe('Plugin', () => {
     await castTo<PluginPrivateApi>(plugin).onloadImpl();
 
     // The settings component is the first child added, and the exposed member has to be that very
-    // Instance — a copy would not be the one the running plugin reads its settings from.
+    // instance — a copy would not be the one the running plugin reads its settings from.
     expect(plugin.pluginSettingsComponent).toBe(addChildSpy.mock.calls[0]?.[0]);
     expect(plugin.pluginSettingsComponent).toBeDefined();
   });

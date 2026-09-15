@@ -244,7 +244,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
 
     if (markdownInfo && markdownInfo.$arguments.length > 0) {
       // Written while the note is rendering and before any config is known, so it must not
-      // Auto-scroll — that would drag the note away from the top just to show an error banner.
+      // auto-scroll — that would drag the note away from the top just to show an error banner.
       new ConsoleWrapper({ resultEl, shouldAutoScrollToConsoleMessages: false }).writeSystemMessage(createFragment((f) => {
         f.appendText('❌ Error!\nYour code block uses legacy button config.');
         addLinkToDocs(f);
@@ -313,7 +313,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
 
     // Rendered before the button so the button's `prepend` puts it above the toggle and the panel.
     // Never for `isRaw` blocks: their code button context container IS `params.el`, and every run
-    // Empties it, so a panel added here would vanish on the first click.
+    // empties it, so a panel added here would vanish on the first click.
     if (!fullConfig.isRaw && fullConfig.sourceVisibility !== SourceVisibility.Hidden) {
       await this.renderSourcePanel({
         code,
@@ -324,7 +324,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     }
 
     // Declared out here so both `shouldAutoRun` below and every later click hand the same element to
-    // The code button context. Stays `null` for `isRaw` blocks, which render no button at all.
+    // the code button context. Stays `null` for `isRaw` blocks, which render no button at all.
     let buttonEl: HTMLButtonElement | null = null;
 
     if (!fullConfig.isRaw) {
