@@ -20,7 +20,7 @@ const SCRIPTS_DIR = '_int-test-emulate-mobile';
 const PLUGIN_ID = 'fix-require-modules';
 
 // EmulateMobile reloads the app. Wait for the reload to settle before re-attaching — an
-// EvalInObsidian that attaches mid-reload can poison the shared CDP connection.
+// evalInObsidian that attaches mid-reload can poison the shared CDP connection.
 const RELOAD_SETTLE_IN_MILLISECONDS = 30_000;
 const RELOAD_HOOK_TIMEOUT_IN_MILLISECONDS = 120_000;
 
@@ -87,9 +87,9 @@ async function emulateMobileAndWaitForRequireAsync(targetVaultPath: string, shou
     .catch(noop);
 
   // Wait for the reload to settle, then re-enable the plugin. The reload restores the
-  // Persisted enabled state, which a prior test file leaves "disabled" (disablePlugin
-  // Persists; the following enablePlugin is in-memory only), so the plugin comes back up
-  // Disabled and window.requireAsync is never re-registered until we re-enable it here.
+  // persisted enabled state, which a prior test file leaves "disabled" (disablePlugin
+  // persists; the following enablePlugin is in-memory only), so the plugin comes back up
+  // disabled and window.requireAsync is never re-registered until we re-enable it here.
   await sleep({ milliseconds: RELOAD_SETTLE_IN_MILLISECONDS });
   await evalInObsidian({
     async callback({ app, pluginId }) {

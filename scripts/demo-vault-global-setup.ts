@@ -7,10 +7,10 @@ import { readDemoVaultTree } from './helpers/read-demo-vault-tree.ts';
 const DATA_JSON_INDENT = 2;
 
 // Mirrors the demo-vault-helper's CST configuration (src/obsidian/demo-vault-helper.ts in that
-// Plugin). Written before Obsidian opens so CST loads with the right modulesRoot — otherwise every
-// Root-relative `/foo.js` require in the notes resolves to the vault root and fails.
+// plugin). Written before Obsidian opens so CST loads with the right modulesRoot — otherwise every
+// root-relative `/foo.js` require in the notes resolves to the vault root and fails.
 // Keep in sync with that helper: these are two copies of one contract, and only this one is
-// Exercised here, so a change made only there would go unnoticed until a real demo vault is opened.
+// exercised here, so a change made only there would go unnoticed until a real demo vault is opened.
 const CODE_SCRIPT_TOOLKIT_DATA_JSON_PATH = '.obsidian/plugins/fix-require-modules/data.json';
 const CODE_SCRIPT_TOOLKIT_SETTINGS = {
   // Every demo vault opts into the source panel globally, so no note carries a per-block
@@ -29,7 +29,7 @@ function populate(): PopulateFilesParams {
 }
 
 // Pre-populates the whole `demo-vault/` tree (plus CST config) before Obsidian opens, so its startup
-// Scan indexes every note and CST is configured on first load. Used by `integration-tests:demo-vault`.
+// scan indexes every note and CST is configured on first load. Used by `integration-tests:demo-vault`.
 const { setup, teardown } = createSetup({ populate });
 
 export {

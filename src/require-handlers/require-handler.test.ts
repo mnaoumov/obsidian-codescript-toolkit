@@ -2618,9 +2618,9 @@ describe('RequireHandlerComponentBase', () => {
       });
 
       // HandleCodeWithTopLevelAwait is called via requireStringImpl
-      // Which is a protected method, not exposed via the spy above
-      // But the code path through requireStringImpl -> hasTopLevelAwait -> handleCodeWithTopLevelAwait
-      // Should be exercised if the babel plugin detects top-level await
+      // which is a protected method, not exposed via the spy above
+      // but the code path through requireStringImpl -> hasTopLevelAwait -> handleCodeWithTopLevelAwait
+      // should be exercised if the babel plugin detects top-level await
       expect(handleSpy).toBeDefined();
     });
   });
@@ -2635,10 +2635,10 @@ describe('RequireHandlerComponentBase', () => {
       handler.exposeInitModuleAndAddToCache('init-cache-test', () => ({ first: true }));
 
       // Now call initModuleAndAddToCache again where the initializer returns the
-      // Empty module proxy (which would be detected as empty).
+      // empty module proxy (which would be detected as empty).
       // The getCachedModule check happens after moduleInitializer runs.
       // If during init the cache already has a loaded module for the same id,
-      // GetCachedModule returns it.
+      // getCachedModule returns it.
       const cachedModule = handler.exposeModulesCache()['init-cache-test'];
       expect(cachedModule?.loaded).toBe(true);
 
@@ -2677,8 +2677,8 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve a file:/// URL as a Path via resolveUrl before isAbsolute', () => {
       // The isAbsolute branch (line 539) is only reachable on Windows with native
-      // Paths like C:\foo. In POSIX/jsdom test env, all absolute paths start with /
-      // Which matches MODULES_ROOT_PATH_PREFIX. This test verifies the file:/// URL path.
+      // paths like C:\foo. In POSIX/jsdom test env, all absolute paths start with /
+      // which matches MODULES_ROOT_PATH_PREFIX. This test verifies the file:/// URL path.
       const result = handler.exposeResolve('file:///C:/absolute/path.js');
       expect(result.resolvedType).toBe(ResolvedType.Path);
       expect(result.resolvedId).toBe('C:/absolute/path.js');
@@ -2792,8 +2792,8 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(200);
 
       // Second load - circular-a depends on circular-b, circular-b depends on circular-a
-      // When checking circular-a's dependency circular-b, and circular-b's dependency circular-a,
-      // Circular-a is already in the chain, so line 630 is hit
+      // when checking circular-a's dependency circular-b, and circular-b's dependency circular-a,
+      // circular-a is already in the chain, so line 630 is hit
       const result = await handler.requireAsync('//circular-a.js', {
         cacheInvalidationMode: CacheInvalidationMode.Always
       });
@@ -3005,7 +3005,7 @@ describe('RequireHandlerComponentBase', () => {
       expect(requireWindow.requireAsyncWrapper).toBeDefined();
 
       // The requireAsyncWrapper parses the function body to extract require calls
-      // We pass a simple function with no require calls
+      // we pass a simple function with no require calls
       const result = await requireWindow.requireAsyncWrapper?.((_r) => {
         return { wrapped: true };
       });
@@ -3031,8 +3031,8 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockExistsFile.mockResolvedValue(false);
 
       // The function body contains a require for a module that won't resolve
-      // RequireAsyncWrapper pre-loads it, catches the error, then when the
-      // Function calls require synchronously, it re-throws
+      // requireAsyncWrapper pre-loads it, catches the error, then when the
+      // function calls require synchronously, it re-throws
       await expect(
         requireWindow.requireAsyncWrapper?.((require) => {
           const module_ = require('../../../../../nonexistent-async-wrapper.js');
@@ -3055,8 +3055,8 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should throw for unknown resolved type in requireNonCachedAsync', () => {
       // This is hard to trigger directly since resolve always returns known types
-      // The default case in requireNonCachedAsync throws
-      // Already covered by the module type dispatch test
+      // the default case in requireNonCachedAsync throws
+      // already covered by the module type dispatch test
       expect(true).toBe(true);
     });
   });
@@ -3222,7 +3222,7 @@ describe('RequireHandlerComponentBase', () => {
       await testHandler.loadWithPromises();
 
       // Onload captured undefined as originalRequire
-      // Capture the current window.require (set by onload to handler's requireEx)
+      // capture the current window.require (set by onload to handler's requireEx)
       const handlerRequire = window.require;
 
       // Manually invoke all registered cleanups
@@ -3322,7 +3322,7 @@ describe('RequireHandlerComponentBase', () => {
         }
         if (path === '/vault/node_modules/sort-pkg/package.json') {
           // Multiple non-standard conditions to ensure the sort comparator
-          // Is called with key2 being non-standard (hitting line 725).
+          // is called with key2 being non-standard (hitting line 725).
           return JSON.stringify({
             exports: {
               '.': {
@@ -3489,7 +3489,7 @@ describe('RequireHandlerComponentBase', () => {
       customHandler.mockExistsFile.mockImplementation((path: string) => {
         if (path === '/vault/scripts/package.json') {
           // First call from getRootFolderAsync: return true so this becomes a root
-          // Second call from getDependenciesTimestamp: return false to hit line 651
+          // second call from getDependenciesTimestamp: return false to hit line 651
           packageJsonCheckCount++;
           return packageJsonCheckCount <= 1;
         }

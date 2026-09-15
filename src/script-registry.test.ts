@@ -26,9 +26,9 @@ const mockPrintError = vi.fn();
 const INVOCABLE_SCRIPTS_FOLDER = 'scripts';
 
 // Only `printError` is stubbed (a thin return-value passthrough so the test can assert which error
-// Was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
-// The real command-handler infrastructure) are preserved via `importOriginal`. No dev-utils logic is
-// Reimplemented (printError only logs to console).
+// was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
+// the real command-handler infrastructure) are preserved via `importOriginal`. No dev-utils logic is
+// reimplemented (printError only logs to console).
 vi.mock('obsidian-dev-utils/error', async (importOriginal) => ({
   ...await importOriginal<typeof import('obsidian-dev-utils/error')>(),
   printError: (...$arguments: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...$arguments)
@@ -83,7 +83,7 @@ function createRegistry(overrides?: CreateRegistryOverrides): ScriptRegistryComp
     app: overrides?.app ?? createApp(),
     commandHandlerComponent: strictProxy<CommandHandlerComponent>({
       // The real component invokes the factory (once per menu surface). The stub does the same, so the
-      // Handlers are actually built here rather than the factory being captured and dropped.
+      // handlers are actually built here rather than the factory being captured and dropped.
       registerCommandHandlers: vi.fn<CommandHandlerComponent['registerCommandHandlers']>((buildCommandHandlers) => {
         buildCommandHandlers();
         return Promise.resolve({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() });
@@ -658,7 +658,7 @@ describe('ScriptRegistry', () => {
       requireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({});
 
       // `ComponentEx` swallows an `onloadAsync()` rejection into its load errors, so the failure is
-      // Reported eagerly instead of thrown, and registration of the remaining scripts keeps going.
+      // reported eagerly instead of thrown, and registration of the remaining scripts keeps going.
       await registry.registerScript(SCRIPT_PATH);
 
       expect(mockPrintError).toHaveBeenCalledWith(

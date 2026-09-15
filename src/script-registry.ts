@@ -271,12 +271,12 @@ class WrapperCommandHandlerComponent extends ComponentEx {
     }
 
     // `forceInvoke()` drives the script programmatically rather than through a command or a menu, so it
-    // Gets an instance of its own: a registered instance cannot be reused, and `forceInvoke` reads only
-    // Constructor state, never the registration context.
+    // gets an instance of its own: a registered instance cannot be reused, and `forceInvoke` reads only
+    // constructor state, never the registration context.
     this._wrapperCommandHandler = createWrapperCommandHandler();
 
     // A fresh instance per call, because `CommandHandlerComponent` invokes the factory once per menu
-    // Surface and registering one instance twice throws.
+    // surface and registering one instance twice throws.
     const disposable = await this.commandHandlerComponent.registerCommandHandlers(() => [createWrapperCommandHandler()]);
     this.registerDisposable(disposable);
   }

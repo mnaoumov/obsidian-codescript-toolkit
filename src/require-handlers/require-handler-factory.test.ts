@@ -26,8 +26,8 @@ interface MockIsMobile {
 }
 
 // Stub for the plugin's own sibling platform-handler modules. Extends the real
-// Test-mock `Component` so the real `ComponentEx.addChild` can eager-load it
-// Through the genuine load lifecycle (no hand-rolled `load`).
+// test-mock `Component` so the real `ComponentEx.addChild` can eager-load it
+// through the genuine load lifecycle (no hand-rolled `load`).
 class MockRequireHandlerComponent extends Component {
   public clearCache = mockClearCache;
   public requireAsync = mockRequireAsync;
