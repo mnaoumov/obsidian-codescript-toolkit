@@ -44,7 +44,6 @@
     "deepmerge-ts": "^8.0.2",
     "eslint": "$eslint",
     "eslint-plugin-import": "npm:eslint-plugin-import-x@^4.17.1",
-    "markdown-it": "^15.0.1",
     "smol-toml": "^1.8.0"
   },
   "devDependencies": {
