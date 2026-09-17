@@ -32,7 +32,7 @@ const mockPrintError = vi.fn();
 let showNoticeMock: Mock<PluginNoticeComponent['showNotice']>;
 
 interface ObsidianDocumentHead {
-  createEl: (...$arguments: unknown[]) => HTMLElement;
+  createEl: (...$arguments: never[]) => HTMLElement;
 }
 
 function getObsidianDocumentHead(): ObsidianDocumentHead {
