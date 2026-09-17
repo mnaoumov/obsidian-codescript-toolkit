@@ -58,7 +58,7 @@ vi.mock('./require-handler.ts', () => ({
 }));
 
 interface CanRequireNonCachedAccessor {
-  canRequireNonCached(): boolean;
+  canRequireNonCached: () => boolean;
 }
 
 interface CanRequireSyncAccessor {
@@ -66,43 +66,43 @@ interface CanRequireSyncAccessor {
 }
 
 interface ExistsFileAsyncAccessor {
-  existsFileAsync(path: string): Promise<boolean>;
+  existsFileAsync: (path: string) => Promise<boolean>;
 }
 
 interface ExistsFolderAsyncAccessor {
-  existsFolderAsync(path: string): Promise<boolean>;
+  existsFolderAsync: (path: string) => Promise<boolean>;
 }
 
 interface GetTimestampAsyncAccessor {
-  getTimestampAsync(path: string): Promise<number>;
+  getTimestampAsync: (path: string) => Promise<number>;
 }
 
 interface ReadFileAsyncAccessor {
-  readFileAsync(path: string): Promise<string>;
+  readFileAsync: (path: string) => Promise<string>;
 }
 
 interface ReadFileBinaryAsyncAccessor {
-  readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
+  readFileBinaryAsync: (path: string) => Promise<ArrayBuffer>;
 }
 
 interface RequireAsarPackedModuleAccessor {
-  requireAsarPackedModule(id: string): unknown;
+  requireAsarPackedModule: (id: string) => unknown;
 }
 
 interface RequireElectronModuleAccessor {
-  requireElectronModule(id: string): unknown;
+  requireElectronModule: (id: string) => unknown;
 }
 
 interface RequireNodeBinaryAsyncAccessor {
-  requireNodeBinaryAsync(params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams): Promise<unknown>;
+  requireNodeBinaryAsync: (params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams) => Promise<unknown>;
 }
 
 interface RequireNodeBuiltInModuleAccessor {
-  requireNodeBuiltInModule(id: string): unknown;
+  requireNodeBuiltInModule: (id: string) => unknown;
 }
 
 interface RequireNonCachedAccessor {
-  requireNonCached(params: RequireHandlerComponentBaseRequireNonCachedParams): unknown;
+  requireNonCached: (params: RequireHandlerComponentBaseRequireNonCachedParams) => unknown;
 }
 
 function asCanRequireNonCached(object: RequireHandlerEmulateMobileComponent): CanRequireNonCachedAccessor {

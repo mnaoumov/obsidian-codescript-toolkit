@@ -61,7 +61,7 @@ export interface CodeButtonContext {
    * @returns The temp plugin.
    */
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin;
+  getTempPlugin: (tempPluginClass: string | TempPluginClass) => null | ObsidianPlugin;
 
   /**
    * Insert markdown after the code button block.
@@ -70,7 +70,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
-  insertAfterCodeButtonBlock(params: CodeButtonContextInsertAfterCodeButtonBlockParams): Promise<void>;
+  insertAfterCodeButtonBlock: (params: CodeButtonContextInsertAfterCodeButtonBlockParams) => Promise<void>;
 
   /**
    * Insert markdown before the code button block.
@@ -79,7 +79,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
-  insertBeforeCodeButtonBlock(params: CodeButtonContextInsertBeforeCodeButtonBlockParams): Promise<void>;
+  insertBeforeCodeButtonBlock: (params: CodeButtonContextInsertBeforeCodeButtonBlockParams) => Promise<void>;
 
   /**
    * Information about a code block in a markdown file
@@ -106,7 +106,7 @@ export interface CodeButtonContext {
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20context.md#codebuttoncontextregistertempplugin}
    */
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>): Promise<null | TPlugin>;
+  registerTempPlugin: <TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>) => Promise<null | TPlugin>;
 
   /**
    * Remove the code button block.
@@ -115,7 +115,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
-  removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void>;
+  removeCodeButtonBlock: (shouldKeepGap?: boolean) => Promise<void>;
 
   /**
    * Render markdown inside the {@link container}.
@@ -124,7 +124,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20context.md#codebuttoncontextrendermarkdown}
    */
-  renderMarkdown(markdown: string): Promise<void>;
+  renderMarkdown: (markdown: string) => Promise<void>;
 
   /**
    * Replace the code button block with the given markdown.
@@ -133,7 +133,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/42%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
-  replaceCodeButtonBlock(params: CodeButtonContextReplaceCodeButtonBlockParams): Promise<void>;
+  replaceCodeButtonBlock: (params: CodeButtonContextReplaceCodeButtonBlockParams) => Promise<void>;
 
   /**
    * The source code of the code button block.

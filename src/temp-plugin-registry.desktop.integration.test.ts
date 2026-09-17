@@ -13,11 +13,11 @@ import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from '
 
 interface CodeScriptToolkitModule {
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  getTempPlugin(tempPluginClass: string): null | ObsidianPlugin;
+  getTempPlugin: (tempPluginClass: string) => null | ObsidianPlugin;
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  registerTempPlugin(params: RegisterTemporaryPluginParams): Promise<null | ObsidianPlugin>;
+  registerTempPlugin: (params: RegisterTemporaryPluginParams) => Promise<null | ObsidianPlugin>;
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  unregisterTempPlugin(tempPluginClass: string): void;
+  unregisterTempPlugin: (tempPluginClass: string) => void;
 }
 
 function vaultPath(): string {

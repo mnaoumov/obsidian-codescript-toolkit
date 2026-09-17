@@ -26,7 +26,7 @@ import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
 interface LegacyConverter {
-  converter(record: GenericObject): void;
+  converter: (record: GenericObject) => void;
   legacySettingsClass: new () => LegacySettingsInstance;
 }
 
@@ -35,8 +35,8 @@ interface LegacySettingsInstance {
 }
 
 interface PluginSettingsComponentPrivateApi {
-  registerLegacySettingsConverters(): void;
-  registerValidators(): void;
+  registerLegacySettingsConverters: () => void;
+  registerValidators: () => void;
 }
 
 interface RegisteredValidator {

@@ -20,7 +20,7 @@ type PathEntryType = 'file' | 'folder';
 
 interface PathSuggestConstructorParams {
   readonly app: App;
-  getRootPath(): string;
+  readonly getRootPath: () => string;
   readonly textInputEl: HTMLInputElement;
   readonly type: PathEntryType;
 }

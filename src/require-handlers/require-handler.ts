@@ -166,7 +166,7 @@ interface RequireHandlerComponentBaseResolveRelativeOrModuleParams {
 }
 
 interface RequireHandlerComponentBaseWrapRequireParams {
-  beforeRequire?(id: string): void;
+  readonly beforeRequire?: (id: string) => void;
   readonly optionsToAppend?: Partial<RequireOptions>;
   readonly optionsToPrepend?: Partial<RequireOptions>;
   readonly require: RequireExFunction;
@@ -182,7 +182,7 @@ interface RequireStringImplParams {
 }
 
 interface RequireStringImplResult {
-  exportsFunction(): unknown;
+  readonly exportsFunction: () => unknown;
   readonly promisable: Promisable<void>;
 }
 
@@ -237,10 +237,10 @@ const JS_EXTENSION = '.js';
 const ESM_PACKAGE_TYPE = 'module';
 
 export interface RequireHandler extends ComponentEx {
-  clearCache(): void;
-  requireAsync(id: string, options?: Partial<RequireOptions>): Promise<unknown>;
-  requireStringAsync(params: RequireStringAsyncParams): Promise<unknown>;
-  requireVaultScriptAsync(id: string): Promise<unknown>;
+  clearCache: () => void;
+  requireAsync: (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
+  requireStringAsync: (params: RequireStringAsyncParams) => Promise<unknown>;
+  requireVaultScriptAsync: (id: string) => Promise<unknown>;
 }
 
 export interface RequireHandlerComponentBaseRequireNodeBinaryAsyncParams {
