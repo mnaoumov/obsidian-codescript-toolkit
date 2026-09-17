@@ -196,7 +196,7 @@ describe('CodeButtonBlock integration', () => {
 
         const rawResult = Reflect.get(window, '__rawResult') as string | undefined;
 
-        // IsRaw should NOT show a button
+        // isRaw should NOT show a button
         const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
         const buttons = view?.containerEl.querySelectorAll('button.fix-require-modules-run-button') ?? [];
 

@@ -19,7 +19,7 @@ const SCRIPTS_DIR = '_int-test-emulate-mobile';
 
 const PLUGIN_ID = 'fix-require-modules';
 
-// EmulateMobile reloads the app. Wait for the reload to settle before re-attaching — an
+// emulateMobile reloads the app. Wait for the reload to settle before re-attaching — an
 // evalInObsidian that attaches mid-reload can poison the shared CDP connection.
 const RELOAD_SETTLE_IN_MILLISECONDS = 30_000;
 const RELOAD_HOOK_TIMEOUT_IN_MILLISECONDS = 120_000;
@@ -76,7 +76,7 @@ function createMinimalWasm(): Uint8Array {
 }
 
 async function emulateMobileAndWaitForRequireAsync(targetVaultPath: string, shouldEmulateMobile: boolean): Promise<void> {
-  // EmulateMobile reloads the app, so the eval never returns — fire and forget.
+  // emulateMobile reloads the app, so the eval never returns — fire and forget.
   evalInObsidian({
     callback({ app, shouldEmulate }) {
       app.emulateMobile(shouldEmulate);

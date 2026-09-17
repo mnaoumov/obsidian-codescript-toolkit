@@ -117,7 +117,7 @@ describe('ScriptFolderWatcherMobile', () => {
       const onChange = vi.fn().mockResolvedValue(undefined);
       await watcher['startWatcher'](onChange);
 
-      // OnChange should NOT be called since watch() returns early when interval is 0
+      // onChange should NOT be called since watch() returns early when interval is 0
       expect(onChange).not.toHaveBeenCalled();
     });
   });
