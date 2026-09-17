@@ -556,7 +556,7 @@ describe('ScriptRegistry', () => {
       await registry.registerScript(SCRIPT_PATH);
       await registry.invokeScriptPath(SCRIPT_PATH);
 
-      // CheckCallback should be called twice: once with true (check), once with false (execute)
+      // checkCallback should be called twice: once with true (check), once with false (execute)
       expect(mockCheckCallback).toHaveBeenCalledTimes(2);
       expect(mockCheckCallback).toHaveBeenCalledWith(true);
       expect(mockCheckCallback).toHaveBeenCalledWith(false);
@@ -771,7 +771,7 @@ describe('ScriptRegistry', () => {
 
       await registry.registerScript(SCRIPT_PATH);
 
-      // ForceInvoke with no callback/checkCallback should just complete without error.
+      // forceInvoke with no callback/checkCallback should just complete without error.
       await registry.invokeScriptPath(SCRIPT_PATH);
 
       expect(consoleDebug).toHaveBeenCalledWith(

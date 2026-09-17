@@ -2617,7 +2617,7 @@ describe('RequireHandlerComponentBase', () => {
         path: '/test/top-level-await-verify.js'
       });
 
-      // HandleCodeWithTopLevelAwait is called via requireStringImpl
+      // handleCodeWithTopLevelAwait is called via requireStringImpl
       // which is a protected method, not exposed via the spy above
       // but the code path through requireStringImpl -> hasTopLevelAwait -> handleCodeWithTopLevelAwait
       // should be exercised if the babel plugin detects top-level await
@@ -3269,7 +3269,7 @@ describe('RequireHandlerComponentBase', () => {
         }
         if (path === '/vault/node_modules/cond-pkg/package.json') {
           // The condition './other' starts with '.' but doesn't match '.' (entry point).
-          // ApplyCondition returns [] for this condition (line 602).
+          // applyCondition returns [] for this condition (line 602).
           // The main field provides the fallback.
           return JSON.stringify({
             exports: { './other': './lib/other.js' },

@@ -372,7 +372,7 @@ describe('TempPluginRegistry', () => {
       await registry.registerTempPlugin({ tempPluginClass });
 
       // After registration the tempPlugin.unload has been wrapped.
-      // UnloadTempPlugins calls the wrapped unload on each plugin.
+      // unloadTempPlugins calls the wrapped unload on each plugin.
       registry.unloadTempPlugins();
 
       // After unload, the plugin should be removed from the map.

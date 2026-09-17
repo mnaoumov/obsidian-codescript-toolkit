@@ -172,7 +172,7 @@ describe('PathSuggest', () => {
   describe('refresh', () => {
     it('should handle being called when no timeout is active', () => {
       suggest.refresh();
-      // RefreshTimeoutId is null, so clearTimeout should not be called
+      // refreshTimeoutId is null, so clearTimeout should not be called
       expect(true).toBe(true);
     });
   });

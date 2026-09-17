@@ -238,7 +238,7 @@ describe('RequireHandlerMobileComponent', () => {
       // Access via a method that uses the capacitorAdapter getter
       mockCapacitorFs.exists.mockResolvedValue(true);
       mockCapacitorFs.stat.mockResolvedValue({ type: 'file' });
-      // ExistsFileAsync calls capacitorAdapter internally
+      // existsFileAsync calls capacitorAdapter internally
       const accessor = asExistsFileAsync(handler);
       await expect(accessor.existsFileAsync('test.js')).resolves.toBe(true);
     });
