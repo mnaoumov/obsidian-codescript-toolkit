@@ -89,7 +89,7 @@ vi.mock('../code-script-toolkit-module-impl.ts', () => ({
 }));
 
 interface CustomRequireWindow {
-  require(id: string, options?: Partial<RequireOptions>): unknown;
+  require: (id: string, options?: Partial<RequireOptions>) => unknown;
 }
 
 interface MockAppAccessor {
@@ -138,11 +138,11 @@ interface RequireAsyncWindow {
 }
 
 interface RequireAsyncWrapperTypedWindow {
-  requireAsyncWrapper?($function: (r: (id: string) => unknown) => unknown, r?: unknown): Promise<unknown>;
+  requireAsyncWrapper?: ($function: (r: (id: string) => unknown) => unknown, r?: unknown) => Promise<unknown>;
 }
 
 interface RequireAsyncWrapperWindow {
-  requireAsyncWrapper?($function: (r: unknown) => unknown, r?: unknown): Promise<unknown>;
+  requireAsyncWrapper?: ($function: (r: unknown) => unknown, r?: unknown) => Promise<unknown>;
 }
 
 interface RequireWindowFull {
@@ -156,11 +156,11 @@ interface ResolveResult {
 }
 
 interface WebAssemblyInstantiateSpy {
-  mockRestore(): void;
+  mockRestore: () => void;
 }
 
 interface WebAssemblyInstantiateSpyFactory {
-  mockResolvedValue(value: WebAssembly.WebAssemblyInstantiatedSource): WebAssemblyInstantiateSpy;
+  mockResolvedValue: (value: WebAssembly.WebAssemblyInstantiatedSource) => WebAssemblyInstantiateSpy;
 }
 
 function windowCustomRequire(id: string, options?: Partial<RequireOptions>): unknown {

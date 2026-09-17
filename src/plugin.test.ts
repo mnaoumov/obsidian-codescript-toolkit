@@ -118,7 +118,7 @@ vi.mock('./temp-plugin-registry.ts', () => ({
 interface PluginPrivateApi {
   commandHandlerComponent: CommandHandlerComponent;
   consoleDebugComponent: ConsoleDebugComponent;
-  onloadImpl(): Promise<void>;
+  onloadImpl: () => Promise<void>;
   pluginNoticeComponent: PluginNoticeComponent;
   resourceLockComponent: ResourceLockComponent;
 }

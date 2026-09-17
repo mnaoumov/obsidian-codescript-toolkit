@@ -44,7 +44,7 @@ interface FunctionWrapperCommandHandlerConstructorParams {
   readonly defaultCommandIcon: IconName;
   readonly defaultCommandId: string;
   readonly defaultName: string;
-  invoke(this: void, app: App): Promisable<void>;
+  readonly invoke: (this: void, app: App) => Promisable<void>;
   readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly relativeScriptPath: string;
 }
@@ -59,7 +59,7 @@ interface ScriptComponentConstructorParams {
 }
 
 interface ScriptOrCommand extends Partial<Script> {
-  buildInvokeCommand?(app: App): Promisable<Partial<Command>>;
+  buildInvokeCommand?: (app: App) => Promisable<Partial<Command>>;
   // Deprecated for script authors, who should export `buildInvokeCommand()` instead. Declared here only so legacy
   // Scripts still exporting it can be detected and reported. Not a `@deprecated` tag: this interface is module-private,
   // So the tag would reach no consumer while making its own detection below fail `@typescript-eslint/no-deprecated`.
@@ -76,7 +76,7 @@ interface ScriptRegistryComponentConstructorParams {
 }
 
 interface WrapperCommandHandler extends CommandHandler {
-  forceInvoke(): Promise<void>;
+  forceInvoke: () => Promise<void>;
 }
 
 class CommandWrapperCommandHandler extends CommandHandler implements WrapperCommandHandler {

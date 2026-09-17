@@ -41,22 +41,22 @@ interface BindTarget {
 }
 
 interface MockBindOptions {
-  onChanged(): void;
+  readonly onChanged: () => void;
 }
 
 interface MockBindParams {
-  onChanged?(): void;
+  readonly onChanged?: () => void;
   readonly propertyName: string;
   readonly valueComponent: unknown;
 }
 
 interface MockPathSuggestInstance {
-  getRootPath(): string;
+  getRootPath: () => string;
   refresh: ReturnType<typeof vi.fn>;
 }
 
 interface MockPathSuggestParams {
-  getRootPath(): string;
+  readonly getRootPath: () => string;
 }
 
 interface MockTextInstance {

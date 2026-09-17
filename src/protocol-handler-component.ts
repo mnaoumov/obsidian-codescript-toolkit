@@ -35,7 +35,7 @@ interface Query {
 }
 
 interface WindowWithRequireAsync {
-  requireAsync(id: string): Promise<Record<string, unknown>>;
+  requireAsync: (id: string) => Promise<Record<string, unknown>>;
 }
 
 export class ProtocolHandlerComponent extends ComponentEx {

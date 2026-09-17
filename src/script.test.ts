@@ -20,7 +20,7 @@ import { ScriptRegistryComponent } from './script-registry.ts';
 import { ScriptManager } from './script.ts';
 
 interface SelectItemArguments {
-  itemTextFunction(s: string): string;
+  itemTextFunction: (s: string) => string;
 }
 
 const mockSelectItem = vi.fn();

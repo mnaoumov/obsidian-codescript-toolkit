@@ -9,8 +9,8 @@ import type { RequireHandlerFactoryComponent } from './require-handlers/require-
 import type { Script } from './script.ts';
 
 interface StartupScript extends Script {
-  cleanup?(app: App): Promisable<void>;
-  shouldExecuteOnLoad?(app: App): Promisable<boolean>;
+  cleanup?: (app: App) => Promisable<void>;
+  shouldExecuteOnLoad?: (app: App) => Promisable<boolean>;
 }
 
 interface StartupScriptComponentConstructorParams {

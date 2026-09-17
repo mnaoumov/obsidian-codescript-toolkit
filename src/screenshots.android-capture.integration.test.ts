@@ -55,14 +55,14 @@ import {
  * declare. Setting `baseFontSize` alone changes nothing on screen.
  */
 interface FontSizeApp {
-  updateFontSize(this: void): void;
+  updateFontSize: (this: void) => void;
 }
 
 /**
  * `App`, reduced to the inline-title applier, likewise undeclared.
  */
 interface InlineTitleApp {
-  updateInlineTitleDisplay(this: void): void;
+  updateInlineTitleDisplay: (this: void) => void;
 }
 
 const WIDTH_IN_PIXELS = 900;

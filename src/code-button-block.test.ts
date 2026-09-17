@@ -54,8 +54,8 @@ interface BabelTransformResult {
 }
 
 interface CodeButtonBlockComponentPrivateApi {
-  handleClick(...$arguments: never[]): Promise<void>;
-  processCodeButtonBlock(...$arguments: never[]): Promise<void>;
+  handleClick: (...$arguments: never[]) => Promise<void>;
+  processCodeButtonBlock: (...$arguments: never[]) => Promise<void>;
 }
 
 vi.mock('obsidian-dev-utils/error', () => ({
@@ -137,7 +137,7 @@ interface MockConstructorParams {
 }
 
 interface MockCreateElOptions {
-  onclick(): Promise<void>;
+  readonly onclick: () => Promise<void>;
 }
 
 interface MockSourceFile {
@@ -231,7 +231,7 @@ describe('DEFAULT_CODE_BUTTON_BLOCK_CONFIG', () => {
 });
 
 interface ButtonCreateElOptions {
-  onclick?(): Promise<void>;
+  readonly onclick?: () => Promise<void>;
 }
 
 describe('insertSampleCodeButton', () => {

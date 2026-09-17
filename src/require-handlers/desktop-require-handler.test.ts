@@ -85,7 +85,7 @@ interface FileSystemAdapterFsPromisesAccessor {
 }
 
 interface FindExistingFilePathAccessor {
-  findExistingFilePath(path: string): null | string;
+  findExistingFilePath: (path: string) => null | string;
 }
 
 interface FsAccessor {
@@ -97,31 +97,31 @@ interface FsPromisesAccessor {
 }
 
 interface GetCachedModuleAccessor {
-  getCachedModule(id: string): unknown;
+  getCachedModule: (id: string) => unknown;
 }
 
 interface GetDependenciesTimestampAccessor {
-  getDependenciesTimestampChangedAndReloadIfNeeded(path: string, options?: Partial<RequireOptions>): number;
+  getDependenciesTimestampChangedAndReloadIfNeeded: (path: string, options?: Partial<RequireOptions>) => number;
 }
 
 interface GetParentPathFromCallStackAccessor {
-  getParentPathFromCallStack(callerLineIndex: number): null | string;
+  getParentPathFromCallStack: (callerLineIndex: number) => null | string;
 }
 
 interface GetRootFolderAccessor {
-  getRootFolder(cwd: string): null | string;
+  getRootFolder: (cwd: string) => null | string;
 }
 
 interface GetRootFoldersAccessor {
-  getRootFolders(folder: string): string[];
+  getRootFolders: (folder: string) => string[];
 }
 
 interface GetTimestampAccessor {
-  getTimestamp(path: string): number;
+  getTimestamp: (path: string) => number;
 }
 
 interface GetUrlDependencyErrorMessageAccessor {
-  getUrlDependencyErrorMessage(params: GetUrlDependencyErrorMessageParams): string;
+  getUrlDependencyErrorMessage: (params: GetUrlDependencyErrorMessageParams) => string;
 }
 
 interface GetUrlDependencyErrorMessageParams {
@@ -131,7 +131,7 @@ interface GetUrlDependencyErrorMessageParams {
 }
 
 interface InitModuleAndAddToCacheAccessor {
-  initModuleAndAddToCache(id: string, moduleInitializer: () => unknown): unknown;
+  initModuleAndAddToCache: (id: string, moduleInitializer: () => unknown) => unknown;
 }
 
 interface MockFileSystemAdapterFs {
@@ -169,11 +169,11 @@ interface MockVaultAbsolutePathUndefinedAccessor {
 }
 
 interface ModulePrototypeRequireAccessor {
-  modulePrototypeRequire(id: string, module: NodeJS.Module): unknown;
+  modulePrototypeRequire: (id: string, module: NodeJS.Module) => unknown;
 }
 
 interface ModuleRequirePrototype {
-  require(id: string): unknown;
+  require: (id: string) => unknown;
 }
 
 interface ModulesRootSetting {
@@ -189,7 +189,7 @@ interface OriginalModulePrototypeRequireAccessor {
 }
 
 interface OriginalModulePrototypeRequireWrappedAccessor {
-  originalModulePrototypeRequireWrapped(id: string, options: Partial<RequireOptions>): unknown;
+  originalModulePrototypeRequireWrapped: (id: string, options: Partial<RequireOptions>) => unknown;
 }
 
 interface PluginSettingsModulesRootAccessor {
@@ -209,27 +209,27 @@ interface PluginSettingsWithSyncFallback {
 }
 
 interface ReadFileAccessor {
-  readFile(path: string): string;
+  readFile: (path: string) => string;
 }
 
 interface ReadPackageJsonAccessor {
-  readPackageJson(path: string): unknown;
+  readPackageJson: (path: string) => unknown;
 }
 
 interface RequireJsonAccessor {
-  requireJson(path: string): unknown;
+  requireJson: (path: string) => unknown;
 }
 
 interface RequireJsTsAccessor {
-  requireJsTs(path: string): unknown;
+  requireJsTs: (path: string) => unknown;
 }
 
 interface RequireMdAccessor {
-  requireMd(path: string): unknown;
+  requireMd: (path: string) => unknown;
 }
 
 interface RequireModuleAccessor {
-  requireModule(params: RequireModuleParams): unknown;
+  requireModule: (params: RequireModuleParams) => unknown;
 }
 
 interface RequireModuleParams {
@@ -239,27 +239,27 @@ interface RequireModuleParams {
 }
 
 interface RequirePathAccessor {
-  requirePath(path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType): unknown;
+  requirePath: (path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType) => unknown;
 }
 
 interface RequirePathImplAccessor {
-  requirePathImpl(path: string, options?: Partial<RequireOptions>): unknown;
+  requirePathImpl: (path: string, options?: Partial<RequireOptions>) => unknown;
 }
 
 interface RequireSpecialModuleAccessor {
-  requireSpecialModule(id: string, options: Partial<RequireOptions>): unknown;
+  requireSpecialModule: (id: string, options: Partial<RequireOptions>) => unknown;
 }
 
 interface RequireStringAccessor {
-  requireString(params: RequireStringParams): unknown;
+  requireString: (params: RequireStringParams) => unknown;
 }
 
 interface RequireStringImplAccessor {
-  requireStringImpl(options: unknown): RequireStringImplResult;
+  requireStringImpl: (options: unknown) => RequireStringImplResult;
 }
 
 interface RequireStringImplResult {
-  exportsFunction(): unknown;
+  readonly exportsFunction: () => unknown;
   readonly promisable: unknown;
 }
 
@@ -269,11 +269,11 @@ interface RequireStringParams {
 }
 
 interface RequireWasmAccessor {
-  requireWasm(path: string): unknown;
+  requireWasm: (path: string) => unknown;
 }
 
 interface ResolveAccessor {
-  resolve(params: ResolveParams): ResolveResult;
+  resolve: (params: ResolveParams) => ResolveResult;
 }
 
 interface ResolveParams {
@@ -291,7 +291,7 @@ interface SyncFallbackSetting {
 }
 
 interface WriteFileBinaryAsyncAccessor {
-  writeFileBinaryAsync(path: string, arrayBuffer: ArrayBuffer): Promise<void>;
+  writeFileBinaryAsync: (path: string, arrayBuffer: ArrayBuffer) => Promise<void>;
 }
 
 let mockFs: MockFs;

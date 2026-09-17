@@ -17,7 +17,7 @@ export interface CodeScriptToolkitModule {
    * @returns The temp plugin.
    */
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  getTempPlugin(tempPluginClass: string | TempPluginClass): null | ObsidianPlugin;
+  getTempPlugin: (tempPluginClass: string | TempPluginClass) => null | ObsidianPlugin;
 
   /**
    * Register a temporary plugin.
@@ -25,12 +25,12 @@ export interface CodeScriptToolkitModule {
    * @param cssText - The CSS text of the temporary plugin (optional).
    */
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTemporaryPluginParams<TPlugin>): Promise<null | TPlugin>;
+  registerTempPlugin: <TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTemporaryPluginParams<TPlugin>) => Promise<null | TPlugin>;
 
   /**
    * Unregister a temporary plugin.
    * @param tempPluginClass - The class name or class itself of the temporary plugin.
    */
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  unregisterTempPlugin(tempPluginClass: string | TempPluginClass): void;
+  unregisterTempPlugin: (tempPluginClass: string | TempPluginClass) => void;
 }

@@ -67,23 +67,23 @@ interface CanRequireSyncAccessor {
 }
 
 interface ExistsFileAsyncAccessor {
-  existsFileAsync(path: string): Promise<boolean>;
+  existsFileAsync: (path: string) => Promise<boolean>;
 }
 
 interface ExistsFolderAsyncAccessor {
-  existsFolderAsync(path: string): Promise<boolean>;
+  existsFolderAsync: (path: string) => Promise<boolean>;
 }
 
 interface GetTimestampAsyncAccessor {
-  getTimestampAsync(path: string): Promise<number>;
+  getTimestampAsync: (path: string) => Promise<number>;
 }
 
 interface ReadFileAsyncAccessor {
-  readFileAsync(path: string): Promise<string>;
+  readFileAsync: (path: string) => Promise<string>;
 }
 
 interface ReadFileBinaryAsyncAccessor {
-  readFileBinaryAsync(path: string): Promise<ArrayBuffer>;
+  readFileBinaryAsync: (path: string) => Promise<ArrayBuffer>;
 }
 
 function asCanRequireSync(object: RequireHandlerMobileComponent): CanRequireSyncAccessor {

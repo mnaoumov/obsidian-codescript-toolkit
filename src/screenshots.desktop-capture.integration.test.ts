@@ -47,14 +47,14 @@ import {
  * declare. Setting the config alone changes nothing on screen.
  */
 interface InlineTitleApp {
-  updateInlineTitleDisplay(this: void): void;
+  updateInlineTitleDisplay: (this: void) => void;
 }
 
 /**
  * The desktop side dock, reduced to the resize call.
  */
 interface ResizableSideDock {
-  setSize(this: void, size: number): void;
+  setSize: (this: void, size: number) => void;
 }
 
 const WIDTH_IN_PIXELS = 1200;

@@ -26,7 +26,7 @@ vi.mock('@babel/standalone', async (importOriginal) => {
 const TEST_FILENAME = 'test.ts';
 
 interface GetInheritsExposed {
-  getInherits(): PluginObject['inherits'];
+  getInherits: () => PluginObject['inherits'];
 }
 
 class MinimalBabelPlugin extends BabelPluginBase<Record<string, never>> {
