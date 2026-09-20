@@ -69,6 +69,14 @@ Three things it did, in order of how much damage they do:
 
 **Still check `git status` after an integration run.** The screenshots no longer move (measured: a full desktop + demo-vault pass left the tree clean bar the config edit), but that habit is what caught this.
 
+### Gotcha: `demonstrates every CodeButtonContext methods` fails on `expected 0 to be greater than 0`
+
+Currently red on `main`, and the cause is in the library rather than here — do not go looking for a missing demo note. `registerDemoVaultCoverageSuite` splits an interface's members into methods and properties by regex: a method signature (`foo(bar: string): void`) counts as a method, a property signature (`foo: (bar: string) => void`) counts as a property, even when the property's type is a function type. `obsidian-dev-utils` 105.0.0 returned the shared ESLint `method-signature-style` entry to the rule's `property` default, so `lint:fix` rewrote all eight of `CodeButtonContext`'s callables into property signatures in the same commit as the bump. The checker then sees zero methods and its non-empty guard fires.
+
+The sibling `keeps the reflected surface non-trivial` test still passes, because it reads the union of both kinds — so the members are found, merely filed under the wrong one. That asymmetry is the fingerprint.
+
+`npm run gate` does not run the integration suites, so this surfaces only at a release preflight, which it will abort. The fix belongs in the library's classifier, not in this repo's interface — do **not** revert `CodeButtonContext` to method signatures, because the shared lint rule would convert it straight back.
+
 ### Gotcha: the authoring checks see `_assets/` as notes
 
 `obsidian-dev-utils` 92 added always-on authoring checks to `registerDemoVaultCoverageSuite` — every note must open with an `# H1`, carry intro prose before its first code fence, and be reachable from `00 Start.md`. They apply to **every** `*.md` under `demo-vault/` (bar a vendored `node_modules`), so the fixtures under `_assets/` — `code-script` modules, Templater templates — failed all three the moment the library was bumped. `src/demo-vault.no-app.integration.test.ts` therefore derives their paths and passes them as `authoring.excludedNotes`, mirroring the `_assets/**` ignore the vault's own `.markdownlint-cli2.jsonc` already carries.
