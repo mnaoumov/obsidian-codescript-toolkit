@@ -53,19 +53,29 @@ Known flake: on 2026-08-09 one demo-vault run failed 3 of 43 with CDP `ECONNREFU
 
 Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before running them**, or the suite silently exercises a stale build.
 
-### Gotcha: under vitest 5 every project collects every test file — worked around locally
+### Gotcha: a root-level `include` makes every project collect every test file
 
-Measured 2026-09-03 on vitest `5.0.0`. `npm run test:integration:desktop` collected all **63** `src/**/*.test.ts` in the repo, not the **9** its project's `include` names — every one labelled `|integration-tests:desktop|`. `obsidian-dev-utils`' shared config declares a root-level `include: ['src/**/*.test.ts']` as well as a per-project one; vitest 4 let the project glob replace it, vitest 5 does not, and the root glob is a superset of every project glob.
+Measured 2026-09-03 on vitest `5.0.0`, and **fixed in the library since — this section is here so the symptom is recognizable if it ever comes back, not because anything needs doing.** `npm run test:integration:desktop` collected all **63** `src/**/*.test.ts` in the repo, not the **9** its project's `include` names — every one labelled `|integration-tests:desktop|`. `obsidian-dev-utils`' shared config then declared a root-level `include: ['src/**/*.test.ts']` as well as a per-project one; vitest 4 let the project glob replace it, vitest 5 does not, and the root glob is a superset of every project glob.
 
-Three things that did, in order of how much damage they do:
+Three things it did, in order of how much damage they do:
 
 - **It rewrites the five checked-in `images/screenshots/screenshot-desktop-*.png`,** because the capture suites get collected too. That is precisely what naming them `*.desktop-capture.` was meant to prevent (see `scripts/vitest-config.ts`).
 - It fails ~21 unit suites on `Failed to resolve entry for package "obsidian"`. That error is correct and not a bug in the test: `obsidian` is types-only (`"main": ""`), so only the `unit-tests` project's alias to `obsidian-test-mocks` makes it importable at runtime.
 - It runs the Android and demo-vault suites under the desktop transport, which both slows the run by minutes and reports failures that are pure mis-routing.
 
-**The library still owns the real fix — it is filed against `obsidian-dev-utils` — but this repo no longer waits on it.** `scripts/vitest-config.ts` wraps the factory in `dropRootInclude`, which deletes the root-level `include` from the returned config; the per-project globs then apply as they did under vitest 4. Verified by `npx vitest list --filesOnly --project=<name>`: the seven projects partition the 63 files exactly — 47 `unit-tests`, 1 `no-app`, 9 `desktop`, 0 `desktop-performance`, 2 `demo-vault`, 1 each capture. Delete the wrapper once the library stops declaring the root-level `include`; the runs stay correct either way.
+**The library owns this and has fixed it.** `defineObsidianPluginVitestConfig` declares no root-level `include` at all — its `test` block carries a comment saying so and saying that restoring one breaks every project — so `scripts/vitest-config.ts` calls the factory directly, with no local wrapper. A repo-local `dropRootInclude` wrapper covered the gap from 2026-09-03 until the library fix landed; it was deleted on 2026-09-20 once it had become a delete of an already-absent key.
+
+**How to check it, if a future vitest or shared-config bump makes you suspect it again:** `npx vitest list --filesOnly --project=<name>` per project. The eight projects must partition the 63 `src/**/*.test.ts` files exactly — 47 `unit-tests`, 1 `no-app`, 9 `desktop`, 0 `desktop-performance`, 2 `android`, 2 `demo-vault`, 1 each capture. Any project reporting 63 is this gotcha.
 
 **Still check `git status` after an integration run.** The screenshots no longer move (measured: a full desktop + demo-vault pass left the tree clean bar the config edit), but that habit is what caught this.
+
+### Gotcha: `demonstrates every CodeButtonContext methods` fails on `expected 0 to be greater than 0`
+
+Currently red on `main`, and the cause is in the library rather than here — do not go looking for a missing demo note. `registerDemoVaultCoverageSuite` splits an interface's members into methods and properties by regex: a method signature (`foo(bar: string): void`) counts as a method, a property signature (`foo: (bar: string) => void`) counts as a property, even when the property's type is a function type. `obsidian-dev-utils` 105.0.0 returned the shared ESLint `method-signature-style` entry to the rule's `property` default, so `lint:fix` rewrote all eight of `CodeButtonContext`'s callables into property signatures in the same commit as the bump. The checker then sees zero methods and its non-empty guard fires.
+
+The sibling `keeps the reflected surface non-trivial` test still passes, because it reads the union of both kinds — so the members are found, merely filed under the wrong one. That asymmetry is the fingerprint.
+
+`npm run gate` does not run the integration suites, so this surfaces only at a release preflight, which it will abort. The fix belongs in the library's classifier, not in this repo's interface — do **not** revert `CodeButtonContext` to method signatures, because the shared lint rule would convert it straight back.
 
 ### Gotcha: the authoring checks see `_assets/` as notes
 
