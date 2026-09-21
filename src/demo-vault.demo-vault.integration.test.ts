@@ -1,11 +1,16 @@
 import {
   mkdirSync,
   readdirSync,
+  readFileSync,
   writeFileSync
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
+import {
+  assertClickBudgetsFitTransportCap,
+  formatFailures
+} from 'obsidian-dev-utils/script-utils/demo-vault-buttons';
 import { getRootFolder } from 'obsidian-dev-utils/script-utils/root';
 import { EMPTY } from 'obsidian-dev-utils/string';
 import { evalInObsidian } from 'obsidian-integration-testing';
@@ -19,32 +24,42 @@ import {
 
 // The first code-button execution in a fresh Obsidian session loads babel-standalone and primes the require pipeline, a one-time cost far larger than a warm run.
 /*
- * Under the transport's ~30s per-closure cap, and now ONE of them per closure rather than a sum.
- * Sizing alone could never make that true: the note's buttons are clicked in a loop whose length is a
- * runtime DOM fact, so a single closure holding the loop declared RENDER + BUTTON x buttonCount — 34s
+ * Under the transport's ~30s per-closure cap, and now ONE BUTTON per closure rather than a whole note.
+ * Sizing alone could never make that true: a note's buttons are clicked in a loop whose length is a
+ * runtime DOM fact, so a single closure holding the loop declared SETTLE + RESULT x buttonCount — 34s
  * for a two-button note, 70s for a five-button one. The eval is killed at the cap first and reported as
  * a bare transport timeout naming only `AppiumTransport.evaluate`, i.e. the harness rather than the wait
- * that overran. Hence the split below: `openNoteAndStashButtons` spends RENDER once, `clickStashedButton`
- * spends BUTTON once, and nothing accumulates inside a transport call. A note rendering and a code button
- * reporting its result both land in well under a second, so the ceilings are headroom, not budget.
- * Both constants feed nothing but closure input, so no Node-side wait sees the change.
+ * that overran. Hence the split below: the note is opened and enumerated once, and each button is then
+ * found and clicked in a call of its own. `clickButtonByCaption` spends BOTH budgets — it re-finds the
+ * button before clicking it — so it is their SUM the cap bounds, which is what the assert below enforces.
+ * A note rendering and a code button reporting its result both land in well under a second, so the
+ * ceilings are headroom, not budget. Both constants feed nothing but closure input, so no Node-side wait
+ * sees the change.
  */
-const RENDER_TIMEOUT_MS = 10_000;
-const BUTTON_TIMEOUT_MS = 12_000;
+const SETTLE_TIMEOUT_MS = 10_000;
+const BUTTON_RESULT_TIMEOUT_MS = 12_000;
 const POLL_INTERVAL_MS = 100;
+
+// The pair a single `clickButtonByCaption` call spends, refused here rather than at the transport: a sum
+// at or over the cap dies as a bare `script timeout` naming neither budget. Borrowed from the shared
+// suite this file is the specialized copy of, so the two cannot drift apart on what the cap is.
+assertClickBudgetsFitTransportCap({
+  buttonResultTimeoutInMilliseconds: BUTTON_RESULT_TIMEOUT_MS,
+  settleTimeoutInMilliseconds: SETTLE_TIMEOUT_MS
+});
 
 const DEMO_VAULT_DIR = join(getRootFolder() ?? process.cwd(), 'demo-vault');
 const REPORT_PATH = join(tmpdir(), 'demo-vault-execution-report.json');
-
-// Matched by BASENAME at every depth, not just the vault root: the notes are grouped into folders, and
-// every group folder carries a `README.md` folder note. `00 Start.md` and the READMEs are navigation —
-// they hold no code buttons, so running them would assert nothing.
-const EXCLUDED_NOTE_NAMES = new Set(['00 Start.md', 'README.md']);
 
 // The plugin-integration notes each install a third-party plugin from the community store before their
 // buttons can do anything, so they are read rather than clicked — the same exclusion as before the notes
 // were grouped, when this folder was skipped merely because the walk did not recurse into it.
 const EXCLUDED_FOLDERS = new Set(['08 Working with other plugins']);
+
+const FENCE_REG_EXP = /^\s*(?<fence>`{3,})(?<info>.*)$/;
+const CODE_BUTTON_FENCE_INFO = 'code-button';
+const FRONT_MATTER_DELIMITER = '---';
+const RAW_MODE_CONFIG_REG_EXP = /^isRaw:\s*true\s*$/m;
 
 interface ExpectedNonOk {
   captionIncludes: string;
@@ -66,67 +81,161 @@ interface ButtonResult {
 }
 
 /**
- * Where a note's enumerated buttons are parked between transport calls.
- *
- * A DOM element cannot cross the transport — only JSON does — so the buttons are captured ONCE on the
- * renderer's `window` and addressed by index afterwards. Re-querying per click instead would change what
- * is clicked: a `removeAfterExecution` button rewrites its note and re-renders it, so the element list a
- * later call finds is no longer the one the note started with. Holding the original references keeps the
- * walk identical to the single-closure version it replaces — CodeScript Toolkit writes a button's result
- * into its own block element even once that element is detached.
+ * One demo-vault note and how many buttons its source declares.
  */
-interface DemoVaultButtonStash {
-  codeScriptToolkitDemoVaultButtons?: HTMLButtonElement[];
-}
-
-interface NoteExecutionResult {
+interface DemoVaultNote {
+  /**
+   * How many buttons the note's source declares — top-level `code-button` fences that are not `isRaw`.
+   */
   readonly buttonCount: number;
-  readonly renderOk: boolean;
-  readonly results: ButtonResult[];
+
+  /**
+   * The note's path relative to the demo vault root.
+   */
+  readonly name: string;
 }
 
-/**
- * What opening a note reports: how many buttons mounted, and whether any did within the render budget.
- */
-interface NoteRenderResult {
-  readonly buttonCount: number;
-  readonly renderOk: boolean;
-}
-
-interface NoteReport extends NoteExecutionResult {
+interface NoteReport {
+  readonly captions: string[];
+  readonly expectedButtonCount: number;
   readonly note: string;
+  readonly results: ButtonResult[];
 }
 
 const report: NoteReport[] = [];
 
-// Recurses, because the notes live in group folders: a top-level-only walk would find just the handful of
-// notes left at the vault root and still pass every assertion, silently clicking almost nothing.
-function collectNotes(folder: string, relativeFolder: string): string[] {
-  const notePaths: string[] = [];
+/**
+ * Lists the demo-vault notes that declare at least one button, walking the group folders too.
+ *
+ * Recurses, because the notes live in group folders: a top-level-only walk would find just the handful of
+ * notes left at the vault root and still pass every assertion, silently clicking almost nothing.
+ *
+ * A note declaring NO button is dropped rather than walked. That is what retires the former
+ * `00 Start.md` / `README.md` name list: a note with no buttons is excluded by what it contains instead of
+ * by what they are called, which cannot go stale, and a README that one day gains a button gets clicked
+ * rather than skipped. It also reclaims the render budget each of those notes used to spend timing out.
+ *
+ * @param folder - The folder to walk.
+ * @param relativeFolder - Its path relative to the demo vault root.
+ * @returns The notes, unsorted.
+ */
+function collectNotes(folder: string, relativeFolder: string): DemoVaultNote[] {
+  const notes: DemoVaultNote[] = [];
 
   for (const entry of readdirSync(folder, { withFileTypes: true })) {
     const relativePath = relativeFolder === EMPTY ? entry.name : `${relativeFolder}/${entry.name}`;
     if (entry.isDirectory()) {
       // `_assets` holds code fixtures and `.obsidian` holds vault config; neither contains demo notes.
       if (!entry.name.startsWith('_') && !entry.name.startsWith('.') && !EXCLUDED_FOLDERS.has(entry.name)) {
-        notePaths.push(...collectNotes(join(folder, entry.name), relativePath));
+        notes.push(...collectNotes(join(folder, entry.name), relativePath));
       }
-    } else if (entry.name.endsWith('.md') && !EXCLUDED_NOTE_NAMES.has(entry.name)) {
-      notePaths.push(relativePath);
+    } else if (entry.name.endsWith('.md')) {
+      const buttonCount = countRenderedButtons(readFileSync(join(folder, entry.name), 'utf-8'));
+      if (buttonCount > 0) {
+        notes.push({ buttonCount, name: relativePath });
+      }
     }
   }
 
-  return notePaths;
+  return notes;
 }
 
-function listSelfContainedNotes(): string[] {
+/**
+ * Counts the buttons a note's source will actually render.
+ *
+ * Two kinds of ` ```code-button ` fence render no button, and both are common in THIS vault because it
+ * documents code buttons with code buttons:
+ *
+ * - A fence nested inside a longer (````) fence is a markdown SAMPLE being shown to the reader. A bare
+ *   `/^\s*```code-button/gm` count — which is what the shared suite in `obsidian-dev-utils` uses — reads
+ *   `07 Code buttons in depth/42 Code button config.md` as declaring 15 buttons where it renders 2.
+ * - An `isRaw` fence renders its own output directly and no button element at all
+ *   (`code-button-block.ts`: `buttonEl` stays `null`), so it can never be clicked or enumerated.
+ *
+ * Counting either of them would make the shortfall assertion unsatisfiable, which is the same failure as
+ * not asserting at all.
+ *
+ * @param source - The note's markdown.
+ * @returns How many buttons it renders.
+ */
+function countRenderedButtons(source: string): number {
+  let count = 0;
+  let openFenceLength = 0;
+  let isInsideCodeButtonFence = false;
+  let fenceBody: string[] = [];
+
+  for (const line of source.split(/\r?\n/)) {
+    const match = FENCE_REG_EXP.exec(line);
+    if (!match) {
+      if (isInsideCodeButtonFence) {
+        fenceBody.push(line);
+      }
+      continue;
+    }
+
+    const fenceLength = (match.groups?.['fence'] ?? EMPTY).length;
+    const info = (match.groups?.['info'] ?? EMPTY).trim();
+
+    if (openFenceLength === 0) {
+      openFenceLength = fenceLength;
+      isInsideCodeButtonFence = info === CODE_BUTTON_FENCE_INFO;
+      fenceBody = [];
+      continue;
+    }
+
+    // A closing fence is at least as long as the one that opened it and carries no info string; anything
+    // else is an inner fence, which is exactly how a ````markdown sample holds a ```code-button.
+    if (fenceLength >= openFenceLength && info === EMPTY) {
+      if (isInsideCodeButtonFence && !isRawFence(fenceBody)) {
+        count++;
+      }
+      openFenceLength = 0;
+      isInsideCodeButtonFence = false;
+      continue;
+    }
+
+    if (isInsideCodeButtonFence) {
+      fenceBody.push(line);
+    }
+  }
+
+  return count;
+}
+
+/**
+ * Whether a `code-button` fence's own YAML config asks for raw mode.
+ *
+ * Read from the leading `---` block rather than from the whole body, so a `isRaw: true` written inside a
+ * button's CODE — a button that demonstrates the key, which this vault has — is not mistaken for the
+ * button's own config.
+ *
+ * @param fenceBody - The fence's lines, without the fence markers.
+ * @returns Whether the fence renders no button.
+ */
+function isRawFence(fenceBody: string[]): boolean {
+  if (fenceBody[0]?.trim() !== FRONT_MATTER_DELIMITER) {
+    return false;
+  }
+
+  const endIndex = fenceBody.findIndex((line, index) => index > 0 && line.trim() === FRONT_MATTER_DELIMITER);
+  if (endIndex === -1) {
+    return false;
+  }
+
+  return RAW_MODE_CONFIG_REG_EXP.test(fenceBody.slice(1, endIndex).join('\n'));
+}
+
+function listSelfContainedNotes(): DemoVaultNote[] {
   // DEMO_NOTES="a.md,Sub/b.md" runs exactly those notes (subfolder paths allowed) for fast iteration.
   const filter = process.env['DEMO_NOTES'];
   if (filter) {
-    return filter.split(',').map((name) => name.trim()).filter(Boolean);
+    return filter.split(',').map((name) => name.trim()).filter(Boolean).map((name) => ({
+      buttonCount: countRenderedButtons(readFileSync(join(DEMO_VAULT_DIR, name), 'utf-8')),
+      name
+    }));
   }
 
-  return collectNotes(DEMO_VAULT_DIR, EMPTY).sort();
+  return collectNotes(DEMO_VAULT_DIR, EMPTY).sort((a, b) => a.name.localeCompare(b.name, 'en'));
 }
 
 const NOTES = listSelfContainedNotes();
@@ -137,17 +246,64 @@ afterAll(() => {
 });
 
 /**
- * Clicks one stashed button and classifies what it reported.
+ * Finds one button by its caption and clicks it, then classifies what it reported.
  *
- * One transport call per button is the whole point: this closure spends `BUTTON_TIMEOUT_MS` once,
- * whatever the note's button count, so no note can declare a budget the transport cannot honour.
+ * One transport call per button is the whole point: this closure spends its two budgets once, whatever the
+ * note's button count, so no note can declare a budget the transport cannot honour.
  *
- * @param buttonIndex - The button's index in the {@link DemoVaultButtonStash} the note's open call parked.
+ * The button is addressed by CAPTION and re-found here rather than handed over from the enumeration call.
+ * A DOM element cannot cross the transport, and the obvious alternative — parking the enumerated elements
+ * on the renderer's `window` and clicking them by index — cannot work once the enumeration has to scroll:
+ * reading view evicts the sections it scrolls past, so the stashed references are to elements that have
+ * been unmounted by the time they are clicked. Re-finding also survives a `removeAfterExecution` button
+ * rewriting and re-rendering its note, which invalidates any element captured before it ran.
+ *
+ * @param notePath - The note holding the button.
+ * @param buttonCaption - The button's rendered caption.
  * @returns The {@link ButtonResult}.
  */
-async function clickStashedButton(buttonIndex: number): Promise<ButtonResult> {
+async function clickButtonByCaption(notePath: string, buttonCaption: string): Promise<ButtonResult> {
   return evalInObsidian({
-    async callback({ buttonIndex: index, buttonTimeoutMs, intervalMs, lib: { pressKey, waitUntil } }): Promise<ButtonResult> {
+    async callback({
+      app,
+      buttonResultTimeoutMs,
+      caption,
+      intervalMs,
+      lib: { pressKey, waitUntil },
+      notePath: path,
+      obsidianModule,
+      settleTimeoutMs
+    }): Promise<ButtonResult> {
+      function activeView(): InstanceType<typeof obsidianModule.MarkdownView> | null {
+        return app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
+      }
+
+      function previewEl(): HTMLElement | null {
+        // A markdown leaf in preview mode holds BOTH renderings; only the reading one scrolls. Preferring
+        // the scrollable candidate picks it without depending on which wrapper class is where.
+        const candidates = [...activeView()?.containerEl.querySelectorAll<HTMLElement>(':scope .markdown-preview-view') ?? []];
+        return candidates.find((candidate) => candidate.scrollHeight > candidate.clientHeight) ?? candidates[0] ?? null;
+      }
+
+      function findButton(): HTMLButtonElement | undefined {
+        return [...activeView()?.containerEl.querySelectorAll<HTMLButtonElement>(':scope .block-language-code-button button.mod-cta') ?? []]
+          .find((candidate) => candidate.textContent === caption);
+      }
+
+      // Reading view mounts lazily and unmounts sections far off-screen, so NO single scroll position
+      // holds a whole note's buttons. Advance a viewport at a time and wrap back to the top, remounting
+      // every section in turn until the one being looked for appears.
+      const SCROLL_BOTTOM_TOLERANCE_IN_PIXELS = 4;
+      const SCROLL_STEP_RATIO = 0.8;
+      function advanceScroll(): void {
+        const scroller = previewEl();
+        if (!scroller) {
+          return;
+        }
+        const isAtBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - SCROLL_BOTTOM_TOLERANCE_IN_PIXELS;
+        scroller.scrollTop = isAtBottom ? 0 : scroller.scrollTop + Math.floor(scroller.clientHeight * SCROLL_STEP_RATIO);
+      }
+
       async function dismissModals(): Promise<void> {
         for (const closeButton of document.querySelectorAll<HTMLElement>('.modal-container .modal-close-button')) {
           closeButton.click();
@@ -165,30 +321,55 @@ async function clickStashedButton(buttonIndex: number): Promise<ButtonResult> {
       }
 
       try {
-        const button = (window as DemoVaultButtonStash & Window).codeScriptToolkitDemoVaultButtons?.[index];
-        // Only reachable if the stash was lost between calls — an Obsidian reload, which no demo button
-        // performs. Reported rather than thrown, so the note's other buttons still run.
-        if (!button) {
-          return { caption: `<button #${String(index)} was not stashed>`, output: '', status: 'unknown' };
+        // Re-opened before every click rather than assuming the previous button left the workspace where
+        // it was found: opening a note is one of the most ordinary things a demo button does, and every
+        // helper above reads the ACTIVE view.
+        await app.workspace.openLinkText(path.replace(/\.md$/, ''), '', false);
+        await app.workspace.getLeaf(false).setViewState({
+          state: { file: path, mode: 'preview' },
+          type: 'markdown'
+        });
+
+        // Held from the predicate rather than re-queried after it: the walk keeps moving the viewport, so
+        // a button found on one poll can be unmounted again by the next.
+        let button: HTMLButtonElement | undefined;
+        try {
+          await waitUntil({
+            intervalInMilliseconds: intervalMs,
+            message: `code button "${caption}" never rendered`,
+            predicate: (): boolean => {
+              advanceScroll();
+              button = findButton();
+              return button !== undefined;
+            },
+            timeoutInMilliseconds: settleTimeoutMs
+          });
+        } catch {
+          return { caption, output: EMPTY, status: 'timeout' };
         }
 
-        const caption = button.textContent;
+        if (!button) {
+          return { caption, output: EMPTY, status: 'timeout' };
+        }
+
         const block = button.closest<HTMLElement>('.block-language-code-button') ?? button.parentElement;
+        button.scrollIntoView();
         button.click();
 
         let status: ButtonResult['status'] = 'timeout';
         try {
           await waitUntil({
             intervalInMilliseconds: intervalMs,
+            message: `button "${caption}" never reported a result`,
             predicate: async (): Promise<boolean> => {
               // A button may open a modal (alert/confirm/prompt) and await it; dismiss it so the
               // awaited call resolves and the ✅/❌ banner appears for classification.
               await dismissModals();
-              return /Executed (?:successfully|with error)/.test(block?.textContent ?? '');
+              return /Executed (?:successfully|with error)/.test(block?.textContent ?? EMPTY);
             },
-            timeoutInMilliseconds: buttonTimeoutMs
+            timeoutInMilliseconds: buttonResultTimeoutMs
           });
-          const text = block?.textContent ?? '';
+          const text = block?.textContent ?? EMPTY;
           if (text.includes('Executed with error')) {
             status = 'error';
           } else if (text.includes('Executed successfully')) {
@@ -200,87 +381,141 @@ async function clickStashedButton(buttonIndex: number): Promise<ButtonResult> {
           status = 'timeout';
         }
 
-        return { caption, output: (block?.textContent ?? '').slice(0, 600), status };
+        return { caption, output: (block?.textContent ?? EMPTY).slice(0, 600), status };
       } finally {
         // Dismiss any modal/suggester this button opened so it cannot block the next one, or the next note.
         await dismissModals();
       }
     },
-    input: { buttonIndex, buttonTimeoutMs: BUTTON_TIMEOUT_MS, intervalMs: POLL_INTERVAL_MS },
+    input: {
+      buttonResultTimeoutMs: BUTTON_RESULT_TIMEOUT_MS,
+      caption: buttonCaption,
+      intervalMs: POLL_INTERVAL_MS,
+      notePath,
+      settleTimeoutMs: SETTLE_TIMEOUT_MS
+    },
     vaultPath: getTemporaryVault().path
   });
 }
 
 /**
- * Opens a note in reading view, waits for its buttons to mount, and parks them on the renderer's `window`
- * for the per-button calls that follow.
+ * Opens a note in reading view and lists the captions of the buttons that mounted, deduplicated and in
+ * document order.
  *
- * This is the first of the note's transport calls and the only one that spends `RENDER_TIMEOUT_MS`.
+ * Two quirks of reading view shape this. It renders lazily and unmounts sections far off-screen, so no
+ * single scroll position holds a whole note's buttons — the preview is walked top to bottom and back while
+ * waiting, and the captions seen along the way are ACCUMULATED rather than read once at the end. Reading
+ * ONCE is what this file used to do, and it is why a third of the vault's buttons had never been clicked
+ * by anything. And while it settles, reading view can hold SEVERAL elements per fence — so the captions
+ * are deduplicated, which also stops a single-button note being clicked twice.
  *
- * @param noteName - The note's path relative to the demo vault root.
- * @returns The {@link NoteRenderResult}.
+ * This is the first of the note's transport calls, and the only one that spends its budget without
+ * clicking anything.
+ *
+ * @param note - The note to open.
+ * @returns The distinct button captions.
  */
-async function openNoteAndStashButtons(noteName: string): Promise<NoteRenderResult> {
+async function openNoteAndListButtonCaptions(note: DemoVaultNote): Promise<string[]> {
   return evalInObsidian({
-    async callback({ app, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }): Promise<NoteRenderResult> {
+    async callback({ app, expectedButtonCount, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, settleTimeoutMs }): Promise<string[]> {
       function activeView(): InstanceType<typeof obsidianModule.MarkdownView> | null {
         return app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
       }
 
-      function runButtons(): HTMLButtonElement[] {
-        return [...activeView()?.containerEl.querySelectorAll<HTMLButtonElement>(':scope .block-language-code-button button.mod-cta') ?? []];
+      function previewEl(): HTMLElement | null {
+        const candidates = [...activeView()?.containerEl.querySelectorAll<HTMLElement>(':scope .markdown-preview-view') ?? []];
+        return candidates.find((candidate) => candidate.scrollHeight > candidate.clientHeight) ?? candidates[0] ?? null;
+      }
+
+      // Accumulated across the walk below, never read from one snapshot: with the viewport moving, any
+      // single reading holds only the sections currently mounted. A Set keyed on the caption also keeps
+      // the order the buttons were first seen in, which — walking top to bottom — is document order, and
+      // some notes need that (`37 Invocable scripts.md` adds a broken script and then removes it again).
+      const seenCaptions = new Set<string>();
+      function captions(): string[] {
+        for (const button of activeView()?.containerEl.querySelectorAll<HTMLButtonElement>(':scope .block-language-code-button button.mod-cta') ?? []) {
+          if (button.textContent !== '') {
+            seenCaptions.add(button.textContent);
+          }
+        }
+        return [...seenCaptions];
+      }
+
+      const SCROLL_BOTTOM_TOLERANCE_IN_PIXELS = 4;
+      const SCROLL_STEP_RATIO = 0.8;
+      function advanceScroll(): void {
+        const scroller = previewEl();
+        if (!scroller) {
+          return;
+        }
+        const isAtBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - SCROLL_BOTTOM_TOLERANCE_IN_PIXELS;
+        scroller.scrollTop = isAtBottom ? 0 : scroller.scrollTop + Math.floor(scroller.clientHeight * SCROLL_STEP_RATIO);
       }
 
       await app.workspace.openLinkText(path.replace(/\.md$/, ''), '', false);
-      const leaf = app.workspace.getLeaf(false);
-      await leaf.setViewState({
+      await app.workspace.getLeaf(false).setViewState({
         state: { file: path, mode: 'preview' },
         type: 'markdown'
       });
 
-      let isRenderOk = true;
       try {
         await waitUntil({
           intervalInMilliseconds: intervalMs,
-          predicate: (): boolean => runButtons().length > 0,
-          timeoutInMilliseconds: renderTimeoutMs
+          message: `"${path}" never mounted all ${String(expectedButtonCount)} of its buttons`,
+          predicate: (): boolean => {
+            advanceScroll();
+            return captions().length >= expectedButtonCount;
+          },
+          timeoutInMilliseconds: settleTimeoutMs
         });
       } catch {
-        isRenderOk = false;
+        // The captions are returned either way; the caller asserts on them and reports the shortfall.
       }
 
-      const buttons = runButtons();
-      (window as DemoVaultButtonStash & Window).codeScriptToolkitDemoVaultButtons = buttons;
-      return { buttonCount: buttons.length, renderOk: isRenderOk };
+      return captions();
     },
-    input: { intervalMs: POLL_INTERVAL_MS, notePath: noteName, renderTimeoutMs: RENDER_TIMEOUT_MS },
+    input: {
+      expectedButtonCount: note.buttonCount,
+      intervalMs: POLL_INTERVAL_MS,
+      notePath: note.name,
+      settleTimeoutMs: SETTLE_TIMEOUT_MS
+    },
     vaultPath: getTemporaryVault().path
   });
 }
 
 describe('demo vault execution', () => {
-  it.each(NOTES)('runs every code button in "%s" without error', async (noteName) => {
-    // The note's buttons are enumerated in one transport call and clicked in one call each; the per-note
-    // result is accumulated HERE, in Node, where nothing is capped.
-    const { buttonCount, renderOk } = await openNoteAndStashButtons(noteName);
-    const results: ButtonResult[] = [];
-    for (let buttonIndex = 0; buttonIndex < buttonCount; buttonIndex++) {
-      results.push(await clickStashedButton(buttonIndex));
-    }
+  // A `for` loop rather than `it.each`, so each note's case carries its own literal name: the count of
+  // registered cases is the first thing to check when this suite goes quiet, and an interpolated title
+  // hides it behind one collapsed entry.
+  for (const note of NOTES) {
+    it(`runs every code button in "${note.name}" without error`, async () => {
+      // The note's buttons are enumerated in one transport call and clicked in one call each; the per-note
+      // result is accumulated HERE, in Node, where nothing is capped.
+      const captions = await openNoteAndListButtonCaptions(note);
+      const results: ButtonResult[] = [];
+      for (const caption of captions) {
+        results.push(await clickButtonByCaption(note.name, caption));
+      }
 
-    const result: NoteExecutionResult = { buttonCount, renderOk, results };
-    report.push({ note: noteName, ...result });
+      report.push({ captions, expectedButtonCount: note.buttonCount, note: note.name, results });
 
-    const broken = result.results.filter((buttonResult) =>
-      (buttonResult.status === 'error' || buttonResult.status === 'timeout')
-      && EXPECTED_NON_OK.every((expected) =>
-        !(expected.note === noteName
-          && expected.status === buttonResult.status
-          && buttonResult.caption.includes(expected.captionIncludes))
-      )
-    );
-    expect(broken, `"${noteName}" (renderOk=${String(result.renderOk)}, buttons=${String(result.buttonCount)}):\n${JSON.stringify(broken, null, 2)}`).toEqual([]);
-  });
+      // Asserted against the note's SOURCE rather than against whatever rendered, so a fence that silently
+      // stayed a plain code block fails instead of passing vacuously.
+      expect(captions.length, `"${note.name}" declares ${String(note.buttonCount)} button(s) but only ${String(captions.length)} rendered: ${JSON.stringify(captions)}`)
+        .toBeGreaterThanOrEqual(note.buttonCount);
+
+      const broken = results.filter((buttonResult) =>
+        (buttonResult.status === 'error' || buttonResult.status === 'timeout')
+        && EXPECTED_NON_OK.every((expected) =>
+          !(expected.note === note.name
+            && expected.status === buttonResult.status
+            && buttonResult.caption.includes(expected.captionIncludes))
+        )
+      );
+      expect(broken, formatFailures(note.name, broken)).toEqual([]);
+    });
+  }
 
   // The vault opts every button into showing its source through the plugin's vault-wide
   // default-code-button-config setting, so no note carries a per-block `sourceVisibility`.
@@ -288,7 +523,7 @@ describe('demo vault execution', () => {
   // the setting, and the thing a reader of the demo vault sees first.
   it('shows the source toggle on a real note without any per-note config', async () => {
     const result = await evalInObsidian({
-      async callback({ app, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, renderTimeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, notePath: path, obsidianModule, settleTimeoutMs }) {
         await app.workspace.openLinkText(path.replace(/\.md$/, ''), '', false);
         const leaf = app.workspace.getLeaf(false);
         await leaf.setViewState({
@@ -300,7 +535,7 @@ describe('demo vault execution', () => {
           intervalInMilliseconds: intervalMs,
           message: 'code button source toggle to render',
           predicate: (): boolean => query('.code-button-source-toggle') !== null,
-          timeoutInMilliseconds: renderTimeoutMs
+          timeoutInMilliseconds: settleTimeoutMs
         });
 
         const sourceEl = query('.code-button-source-container');
@@ -317,7 +552,7 @@ describe('demo vault execution', () => {
           return activeView()?.containerEl.querySelector<HTMLElement>(selector) ?? null;
         }
       },
-      input: { intervalMs: POLL_INTERVAL_MS, notePath: '01 Where your code lives/04 Relative path.md', renderTimeoutMs: RENDER_TIMEOUT_MS },
+      input: { intervalMs: POLL_INTERVAL_MS, notePath: '01 Where your code lives/04 Relative path.md', settleTimeoutMs: SETTLE_TIMEOUT_MS },
       vaultPath: getTemporaryVault().path
     });
 
