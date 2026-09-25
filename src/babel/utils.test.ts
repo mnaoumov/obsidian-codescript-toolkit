@@ -21,15 +21,17 @@ describe('objectPatternFromKeys', () => {
     expect(result.properties).toHaveLength(1);
     const property = result.properties[0] as ObjectProperty | undefined;
     expect(property?.type).toBe('ObjectProperty');
-    if (property?.type === 'ObjectProperty') {
-      expect(property.shorthand).toBe(true);
-      expect(property.computed).toBe(false);
-      if (property.key.type === 'Identifier') {
-        expect(property.key.name).toBe('foo');
-      }
-      if (property.value.type === 'Identifier') {
-        expect(property.value.name).toBe('foo');
-      }
+    if (property?.type !== 'ObjectProperty') {
+      return;
+    }
+
+    expect(property.shorthand).toBe(true);
+    expect(property.computed).toBe(false);
+    if (property.key.type === 'Identifier') {
+      expect(property.key.name).toBe('foo');
+    }
+    if (property.value.type === 'Identifier') {
+      expect(property.value.name).toBe('foo');
     }
   });
 

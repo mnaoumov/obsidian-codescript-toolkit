@@ -15,6 +15,7 @@ import {
 import { waitForAllAsyncOperations } from 'obsidian-dev-utils/async';
 import { castTo } from 'obsidian-dev-utils/object-utils';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import {
   beforeEach,
   describe,
@@ -1301,15 +1302,13 @@ describe('CodeButtonBlockComponent', () => {
       const createElCall = vi.mocked(el.createEl).mock.calls[0];
       expect(createElCall).toBeDefined();
       const options = createElCall?.[1] as ButtonCreateElOptions | undefined;
-      expect(options?.onclick).toBeDefined();
+      const onclick = ensureNonNullable(options?.onclick);
 
       // Invoke the onclick handler
-      if (options?.onclick) {
-        const mockScriptWrapper = vi.fn();
-        vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
-        await options.onclick();
-        expect(mockRequireHandlerFactoryComponent.requireStringAsync).toHaveBeenCalled();
-      }
+      const mockScriptWrapper = vi.fn();
+      vi.mocked(mockRequireHandlerFactoryComponent.requireStringAsync as ReturnType<typeof vi.fn>).mockResolvedValue(mockScriptWrapper);
+      await onclick();
+      expect(mockRequireHandlerFactoryComponent.requireStringAsync).toHaveBeenCalled();
     });
 
     it('should log error for unknown removeAfterExecution.when value', async () => {

@@ -204,10 +204,7 @@ describe('ScriptFolderWatcherMobile', () => {
           if (path === 'scripts') {
             return Promise.resolve({ files: ['scripts/a.ts'], folders: ['scripts/sub'] });
           }
-          if (path === 'scripts/sub') {
-            return Promise.resolve({ files: ['scripts/sub/b.ts'], folders: [] });
-          }
-          return Promise.resolve({ files: [], folders: [] });
+          return path === 'scripts/sub' ? Promise.resolve({ files: ['scripts/sub/b.ts'], folders: [] }) : Promise.resolve({ files: [], folders: [] });
         }
       );
 
@@ -229,18 +226,12 @@ describe('ScriptFolderWatcherMobile', () => {
 
       statMock.mockImplementation(
         (path: string) => {
-          if (path === 'scripts') {
-            return Promise.resolve({ ctime: 0, mtime: FOLDER_MTIME, size: 0, type: 'folder' });
-          }
-          return Promise.resolve({ ctime: 0, mtime: subfileMtime, size: 0, type: 'file' });
+          return path === 'scripts' ? Promise.resolve({ ctime: 0, mtime: FOLDER_MTIME, size: 0, type: 'folder' }) : Promise.resolve({ ctime: 0, mtime: subfileMtime, size: 0, type: 'file' });
         }
       );
       listMock.mockImplementation(
         (path: string) => {
-          if (path === 'scripts') {
-            return Promise.resolve({ files: ['scripts/a.ts'], folders: [] });
-          }
-          return Promise.resolve({ files: [], folders: [] });
+          return path === 'scripts' ? Promise.resolve({ files: ['scripts/a.ts'], folders: [] }) : Promise.resolve({ files: [], folders: [] });
         }
       );
 

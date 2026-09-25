@@ -521,11 +521,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       parentPath = trimStart({ $string: parentPath, prefix: 'requireString/' });
     }
 
-    if (parentPath?.includes('<anonymous>') || parentPath?.startsWith('plugin:')) {
-      return null;
-    }
-
-    return parentPath;
+    return parentPath?.includes('<anonymous>') || parentPath?.startsWith('plugin:') ? null : parentPath;
   }
 
   protected getRelativeModulePaths(packageJson: PackageJson, relativeModuleName: string): string[] {
@@ -1340,11 +1336,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       return ensureNonNullable(parsedLink.encodedUrl);
     }
     const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(parsedLink.url, join(options?.parentPath ?? '', DUMMY_FILE_NAME));
-    if (resolvedFile) {
-      return resolvedFile;
-    }
-
-    return `${VAULT_ROOT_PREFIX}${parsedLink.url}`;
+    return resolvedFile ?? `${VAULT_ROOT_PREFIX}${parsedLink.url}`;
   }
 
   private resolvePathPrefix(id: string): null | ResolveResult {
@@ -1378,11 +1370,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
     const parentFolder = dirname(parentPath);
 
-    if (id.startsWith('./') || id.startsWith('../')) {
-      return { resolvedId: join(parentFolder, id), resolvedType: ResolvedType.Path };
-    }
-
-    return { resolvedId: `${parentFolder}${MODULE_NAME_SEPARATOR}${id}`, resolvedType: ResolvedType.Module };
+    return id.startsWith('./') || id.startsWith('../') ? { resolvedId: join(parentFolder, id), resolvedType: ResolvedType.Path } : { resolvedId: `${parentFolder}${MODULE_NAME_SEPARATOR}${id}`, resolvedType: ResolvedType.Module };
   }
 
   private async resolveShouldTranspileAsync(params: RequireHandlerComponentBaseResolveShouldTranspileAsyncParams): Promise<boolean> {
@@ -1397,11 +1385,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     // `.cjs`/`.mjs`/`.ts` are unambiguous by extension and handled by checkShouldTranspile.
     // A Windows drive-letter path (e.g. `C:/...`) is a filesystem path, not a URL, but `isUrl` reads the drive as a URL scheme, so treat it as a filesystem path explicitly (mirroring resolve()).
     const isFileSystemPath = WINDOWS_DRIVE_LETTER_PATH_REG_EXP.test(cleanPath) || !isUrl(cleanPath);
-    if (isFileSystemPath && extname(cleanPath) === JS_EXTENSION && await this.checkHasCommonJsPackageEvidenceAsync(cleanPath)) {
-      return ESM_SYNTAX_REG_EXP.test(params.code);
-    }
-
-    return checkShouldTranspile({ canRequireSync: this.canRequireSync, code: params.code, path: params.path });
+    return isFileSystemPath && extname(cleanPath) === JS_EXTENSION && await this.checkHasCommonJsPackageEvidenceAsync(cleanPath) ? ESM_SYNTAX_REG_EXP.test(params.code) : checkShouldTranspile({ canRequireSync: this.canRequireSync, code: params.code, path: params.path });
   }
 
   private resolveUrl(id: string): null | ResolveResult {
@@ -1414,11 +1398,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       return { resolvedId: id.slice(FILE_URL_PREFIX.length), resolvedType: ResolvedType.Path };
     }
 
-    if (id.toLowerCase().startsWith(Platform.resourcePathPrefix)) {
-      return { resolvedId: id.slice(Platform.resourcePathPrefix.length), resolvedType: ResolvedType.Path };
-    }
-
-    return { resolvedId: id, resolvedType: ResolvedType.Url };
+    return id.toLowerCase().startsWith(Platform.resourcePathPrefix) ? { resolvedId: id.slice(Platform.resourcePathPrefix.length), resolvedType: ResolvedType.Path } : { resolvedId: id, resolvedType: ResolvedType.Url };
   }
 
   private wrapRequire(options: RequireHandlerComponentBaseWrapRequireParams): RequireExFunction {
@@ -1505,11 +1485,7 @@ export function getModuleTypeFromPath(path: string): ModuleType {
 }
 
 function convertPathToObsidianUrl(path: string): string {
-  if (!isAbsolute(path)) {
-    return path;
-  }
-
-  return Platform.resourcePathPrefix + path.replaceAll('\\', '/');
+  return isAbsolute(path) ? Platform.resourcePathPrefix + path.replaceAll('\\', '/') : path;
 }
 
 function getCodeScriptName(params: GetCodeScriptNameParams): string | undefined {

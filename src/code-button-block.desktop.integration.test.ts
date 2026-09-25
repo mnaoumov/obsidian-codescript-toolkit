@@ -101,11 +101,7 @@ describe('CodeButtonBlock integration', () => {
         });
 
         const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
-        if (!view) {
-          return { buttonCount: 0, error: 'No active MarkdownView' };
-        }
-
-        return { buttonCount: getButtonCount(), mode: view.getMode() };
+        return view ? { buttonCount: getButtonCount(), mode: view.getMode() } : { buttonCount: 0, error: 'No active MarkdownView' };
 
         function getButtonCount(): number {
           const activeView = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);

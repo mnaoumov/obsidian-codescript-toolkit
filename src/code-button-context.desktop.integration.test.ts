@@ -188,17 +188,11 @@ describe('CodeButtonContext integration', () => {
         });
 
         const content = await readContent();
-        if (content === null) {
-          return { content: '', error: 'File not found' };
-        }
-        return { content };
+        return content === null ? { content: '', error: 'File not found' } : { content };
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/insert-after.md');
-          if (!file || !('path' in file)) {
-            return null;
-          }
-          return await app.vault.read(file as import('obsidian').TFile);
+          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
@@ -228,17 +222,11 @@ describe('CodeButtonContext integration', () => {
         });
 
         const content = await readContent();
-        if (content === null) {
-          return { content: '', error: 'File not found' };
-        }
-        return { content };
+        return content === null ? { content: '', error: 'File not found' } : { content };
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/insert-before.md');
-          if (!file || !('path' in file)) {
-            return null;
-          }
-          return await app.vault.read(file as import('obsidian').TFile);
+          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
@@ -268,17 +256,11 @@ describe('CodeButtonContext integration', () => {
         });
 
         const content = await readContent();
-        if (content === null) {
-          return { content: '', error: 'File not found' };
-        }
-        return { content };
+        return content === null ? { content: '', error: 'File not found' } : { content };
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/remove-block.md');
-          if (!file || !('path' in file)) {
-            return null;
-          }
-          return await app.vault.read(file as import('obsidian').TFile);
+          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
@@ -315,17 +297,11 @@ describe('CodeButtonContext integration', () => {
           timeoutInMilliseconds: timeoutMs
         });
 
-        if (observed.content === null) {
-          return { content: '', error: 'Replacement not observed' };
-        }
-        return { content: observed.content };
+        return observed.content === null ? { content: '', error: 'Replacement not observed' } : { content: observed.content };
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/replace-block.md');
-          if (!file || !('path' in file)) {
-            return null;
-          }
-          return await app.vault.read(file as import('obsidian').TFile);
+          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
@@ -355,11 +331,7 @@ describe('CodeButtonContext integration', () => {
         });
 
         const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
-        if (!view) {
-          return { error: 'No active MarkdownView', output: '' };
-        }
-
-        return { output: getOutput() };
+        return view ? { output: getOutput() } : { error: 'No active MarkdownView', output: '' };
 
         function getOutput(): string {
           const activeView = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
@@ -391,11 +363,7 @@ describe('CodeButtonContext integration', () => {
         });
 
         const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
-        if (!view) {
-          return { error: 'No active MarkdownView', output: '' };
-        }
-
-        return { output: getOutput() };
+        return view ? { output: getOutput() } : { error: 'No active MarkdownView', output: '' };
 
         function getOutput(): string {
           const activeView = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
@@ -441,10 +409,7 @@ describe('CodeButtonContext integration', () => {
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/remove-after-success.md');
-          if (!file || !('path' in file)) {
-            return null;
-          }
-          return await app.vault.read(file as import('obsidian').TFile);
+          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
