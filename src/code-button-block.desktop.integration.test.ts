@@ -11,6 +11,8 @@ import {
 // The first code-button execution in a fresh Obsidian session loads babel-standalone and primes the require pipeline — a one-time cost far larger than a warm run. The poll timeout is generous enough to absorb that cold start; the first such test effectively warms the pipeline for the rest.
 const POLL_TIMEOUT_MS = 20_000;
 const POLL_INTERVAL_MS = 100;
+// The dirty-editor test polls twice and settles twice in one evalInObsidian call, which the transport caps at 30 s, so it cannot use the cold-start budget above. Run first and cold (vitest -t), its opening render still lands well inside this budget.
+const DIRTY_EDITOR_POLL_TIMEOUT_MS = 8000;
 
 beforeAll(() => {
   const vault = getTemporaryVault();
@@ -28,6 +30,18 @@ beforeAll(() => {
     '_int-test-buttons/basic.md': dedent`
       \`\`\`code-button
       window.__codeButtonResult = 42;
+      \`\`\`
+    `,
+    // Counts its own renders, so a test can edit the note in Live Preview and wait for the re-render that edit causes.
+    '_int-test-buttons/dirty-editor.md': dedent`
+      Intro line.
+
+      \`\`\`code-button
+      ---
+      shouldAutoRun: true
+      shouldShowSystemMessages: false
+      ---
+      window.__dirtyEditorRenderCount = (window.__dirtyEditorRenderCount ?? 0) + 1;
       \`\`\`
     `,
     // Regression fixture for GitHub issue #56: a code-button block near an empty code block followed by trailing unclosed text used to freeze Obsidian (catastrophic regex backtracking in obsidian-dev-utils' getCodeBlockMarkdownInfo, fixed in 87.0.3). Faithful reproduction, with console.log swapped for an auto-run flag the test can assert on.
@@ -113,6 +127,103 @@ describe('CodeButtonBlock integration', () => {
     });
 
     expect(result.buttonCount).toBeGreaterThan(0);
+  });
+
+  // A render used to save the note: obsidian-dev-utils' getCodeBlockMarkdownInfo saved the dirty editor before locating the block, so every Live Preview re-render wrote the note to disk mid-typing. Since obsidian-dev-utils 107 it reads the open view's text instead. The view's own debounced autosave is stubbed out meanwhile, so any write seen here can only have come from the render.
+  it('should not save a dirty editor when a Live Preview edit re-renders the block', async () => {
+    const result = await evalInObsidian({
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
+        const FILE_PATH = '_int-test-buttons/dirty-editor.md';
+        const TYPED_TEXT = '// typed without saving';
+        const SETTLE_MS = 1000;
+        Reflect.deleteProperty(window, '__dirtyEditorRenderCount');
+
+        const leaf = app.workspace.getLeaf(false);
+        await leaf.setViewState({
+          state: { file: FILE_PATH, mode: 'source', source: false },
+          type: 'markdown'
+        });
+
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => getRenderCount() > 0,
+          timeoutInMilliseconds: timeoutMs
+        });
+
+        // Live Preview renders the block more than once on open. Wait until those renders stop, so the one counted below is the edit's own and not an opening render already past its read.
+        let settledRenderCount: number;
+        do {
+          settledRenderCount = getRenderCount();
+          await delay(SETTLE_MS);
+        } while (getRenderCount() !== settledRenderCount);
+
+        const view = leaf.view;
+        if (!(view instanceof obsidianModule.MarkdownView) || !view.file) {
+          return { error: 'No MarkdownView for the fixture note' };
+        }
+
+        const file = view.file;
+        const mtimeBefore = file.stat.mtime;
+        const diskBefore = await app.vault.adapter.read(FILE_PATH);
+        const renderCountBefore = getRenderCount();
+        const wasDirtyBefore = Reflect.get(view, 'dirty');
+
+        const originalRequestSave = view.requestSave.bind(view);
+        // Keeps the half of requestSave that marks the view dirty, which is what a save-before-read keys on, and drops the scheduled save.
+        view.requestSave = (): void => {
+          Reflect.set(view, 'dirty', true);
+        };
+
+        try {
+          const codeLine = view.editor.getValue().split('\n').findIndex((line) => line.startsWith('window.__dirtyEditorRenderCount'));
+          view.editor.replaceRange(`${TYPED_TEXT}\n`, { ch: 0, line: codeLine });
+          const isDirtyAfterEdit = Reflect.get(view, 'dirty');
+
+          await waitUntil({
+            intervalInMilliseconds: intervalMs,
+            predicate: (): boolean => getRenderCount() > renderCountBefore,
+            timeoutInMilliseconds: timeoutMs
+          });
+
+          // The render awaits an animation frame before reading the note, so give a save it issued time to land.
+          await delay(SETTLE_MS);
+
+          return {
+            diskAfter: await app.vault.adapter.read(FILE_PATH),
+            diskBefore,
+            editorHasTypedText: view.editor.getValue().includes(TYPED_TEXT),
+            isDirtyAfterEdit,
+            mtimeAfter: file.stat.mtime,
+            mtimeBefore,
+            renderCountAfter: getRenderCount(),
+            renderCountBefore,
+            wasDirtyBefore
+          };
+        } finally {
+          view.requestSave = originalRequestSave;
+        }
+
+        async function delay(milliseconds: number): Promise<void> {
+          await new Promise((resolve) => {
+            window.setTimeout(resolve, milliseconds);
+          });
+        }
+
+        function getRenderCount(): number {
+          return (Reflect.get(window, '__dirtyEditorRenderCount') as number | undefined) ?? 0;
+        }
+      },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: DIRTY_EDITOR_POLL_TIMEOUT_MS },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.error).toBeUndefined();
+    expect(result.wasDirtyBefore).toBe(false);
+    expect(result.isDirtyAfterEdit).toBe(true);
+    expect(result.editorHasTypedText).toBe(true);
+    expect(result.renderCountAfter).toBeGreaterThan(result.renderCountBefore ?? 0);
+    expect(result.diskAfter).toBe(result.diskBefore);
+    expect(result.mtimeAfter).toBe(result.mtimeBefore);
   });
 
   it('should auto-run code button with shouldAutoRun: true', async () => {
