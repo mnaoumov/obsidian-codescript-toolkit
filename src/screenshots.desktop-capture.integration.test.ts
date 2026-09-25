@@ -189,7 +189,7 @@ describe('desktop store screenshots', () => {
     const commandNames = registeredNames.join('\n');
     expect(commandNames).toContain('Invoke script: Insert date.ts');
     expect(commandNames).toContain('Invoke script: Rebuild reading queue.ts');
-    await shoot(4, 'Every script in your folder becomes a command, hotkey and all');
+    await shoot(4, 'Every script in your folder becomes a command, hotkey too');
   });
 
   it('5 - a note importing a module from the vault', async () => {
