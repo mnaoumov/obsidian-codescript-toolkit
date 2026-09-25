@@ -984,10 +984,7 @@ describe('RequireHandler integration', () => {
         async callback({ app, directory }) {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
           const file = app.vault.getFileByPath(`${directory}/module.cjs`);
-          if (!file) {
-            return { error: 'File not found', value: null };
-          }
-          return (await requireAsync(file)) as Record<string, unknown>;
+          return file ? ((await requireAsync(file)) as Record<string, unknown>) : { error: 'File not found', value: null };
         },
         input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()
@@ -1001,10 +998,7 @@ describe('RequireHandler integration', () => {
         callback({ app, directory }) {
           const requireFunction = Reflect.get(window, 'require') as RequireFunction;
           const file = app.vault.getFileByPath(`${directory}/module.cjs`);
-          if (!file) {
-            return { error: 'File not found', value: null };
-          }
-          return (requireFunction(file)) as Record<string, unknown>;
+          return file ? ((requireFunction(file)) as Record<string, unknown>) : { error: 'File not found', value: null };
         },
         input: { directory: SCRIPTS_DIR },
         vaultPath: vaultPath()

@@ -82,6 +82,12 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   sourceVisibility: SourceVisibility.Hidden
 };
 
+const BOOLEAN_ARGUMENT_SUFFIXES: readonly (readonly [string, boolean])[] = [
+  ['', true],
+  [':true', true],
+  [':false', false]
+];
+
 let lastButtonIndex = 0;
 
 interface CodeButtonBlockComponentConstructorParams {
@@ -460,11 +466,11 @@ function escapeForFileName($string: string): string {
 }
 
 function getBooleanArgument(codeBlockArguments: string[], argumentName: string): boolean | undefined {
-  if (codeBlockArguments.includes(argumentName) || codeBlockArguments.includes(`${argumentName}:true`)) {
-    return true;
-  }
-  if (codeBlockArguments.includes(`${argumentName}:false`)) {
-    return false;
+  // Checked in order, so a `true` spelling wins over a `:false` one given alongside it.
+  for (const [suffix, value] of BOOLEAN_ARGUMENT_SUFFIXES) {
+    if (codeBlockArguments.includes(`${argumentName}${suffix}`)) {
+      return value;
+    }
   }
   return undefined;
 }

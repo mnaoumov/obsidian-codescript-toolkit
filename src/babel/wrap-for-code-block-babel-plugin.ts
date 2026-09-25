@@ -150,9 +150,5 @@ function convertToExpression(statement: Statement | undefined): Expression | nul
     return identifier('undefined');
   }
 
-  if (isExpressionStatement(statement)) {
-    return statement.expression;
-  }
-
-  return null;
+  return isExpressionStatement(statement) ? statement.expression : null;
 }

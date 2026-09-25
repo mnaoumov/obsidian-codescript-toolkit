@@ -135,10 +135,7 @@ describe('PathSuggest', () => {
   describe('fillPathEntries', () => {
     it('should skip node_modules folders', async () => {
       vi.mocked(mockApp.vault.adapter.list as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
-        if (path === ROOT_PATH) {
-          return { files: [], folders: ['scripts/node_modules'] };
-        }
-        return { files: ['scripts/node_modules/package.ts'], folders: [] };
+        return path === ROOT_PATH ? { files: [], folders: ['scripts/node_modules'] } : { files: ['scripts/node_modules/package.ts'], folders: [] };
       });
 
       const suggestions = await suggest.getSuggestions('');
@@ -157,10 +154,7 @@ describe('PathSuggest', () => {
       });
 
       vi.mocked(mockApp.vault.adapter.list as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
-        if (path === ROOT_PATH) {
-          return { files: ['scripts/file.ts'], folders: ['scripts/sub'] };
-        }
-        return { files: [], folders: [] };
+        return path === ROOT_PATH ? { files: ['scripts/file.ts'], folders: ['scripts/sub'] } : { files: [], folders: [] };
       });
 
       const suggestions = await folderSuggest.getSuggestions('');

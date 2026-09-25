@@ -29,12 +29,10 @@ describe('FixSourceMapBabelPlugin', () => {
     expect(result.transformedCode).toContain('//# sourceMappingURL=data:');
 
     const sourceMapMatch = /\/\/# sourceMappingURL=data:application\/json;charset=utf-8;base64,(?<encoded>.+)/.exec(result.transformedCode);
-    expect(sourceMapMatch).toBeTruthy();
-    if (sourceMapMatch?.groups) {
-      const decoded = Buffer.from(ensureNonNullable(sourceMapMatch.groups['encoded']), 'base64').toString('utf-8');
-      const sourceMap = JSON.parse(decoded) as SourceMapData;
-      expect(sourceMap.sources[0]).toBe(SOURCE_URL);
-    }
+    const groups = ensureNonNullable(sourceMapMatch?.groups);
+    const decoded = Buffer.from(ensureNonNullable(groups['encoded']), 'base64').toString('utf-8');
+    const sourceMap = JSON.parse(decoded) as SourceMapData;
+    expect(sourceMap.sources[0]).toBe(SOURCE_URL);
   });
 
   it('should transform code without errors when input has a source map', () => {

@@ -2,6 +2,7 @@ import type { TFile as OriginalTFile } from 'obsidian';
 
 import { Platform } from 'obsidian';
 import { castTo } from 'obsidian-dev-utils/object-utils';
+import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import {
   App,
   TFile
@@ -1185,10 +1186,7 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js' || path === '/vault/package.json');
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return '{"type":"module"}';
-        }
-        return 'module.exports = { fromModulePkg: true };';
+        return path === '/vault/package.json' ? '{"type":"module"}' : 'module.exports = { fromModulePkg: true };';
       });
       mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
         const module_ = context['module'] as MockModuleWithExports;
@@ -1217,10 +1215,7 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockExistsFile.mockImplementation((path: string) => path === 'C:/proj/probe.js' || path === 'C:/proj/package.json');
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === 'C:/proj/package.json') {
-          return '{"type":"commonjs"}';
-        }
-        return 'module.exports = { win: true };';
+        return path === 'C:/proj/package.json' ? '{"type":"commonjs"}' : 'module.exports = { win: true };';
       });
       mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
         const module_ = context['module'] as MockModuleWithExports;
@@ -1254,10 +1249,7 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js' || path === '/vault/package.json');
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return '{"type":"commonjs"}';
-        }
-        return 'import { a } from "./a.js";\nexport const b = a;';
+        return path === '/vault/package.json' ? '{"type":"commonjs"}' : 'import { a } from "./a.js";\nexport const b = a;';
       });
       mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
         const module_ = context['module'] as MockModuleWithExports;
@@ -1289,10 +1281,7 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js' || path === '/vault/package.json');
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return 'not valid json {';
-        }
-        return 'module.exports = { broken: true };';
+        return path === '/vault/package.json' ? 'not valid json {' : 'module.exports = { broken: true };';
       });
       mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
         const module_ = context['module'] as MockModuleWithExports;
@@ -1309,10 +1298,7 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockExistsFile.mockImplementation((path: string) => path === '/vault/lib.js' || path === '/vault/package.json');
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return packageJsonContent;
-        }
-        return 'module.exports = { fromCjsPackage: true };';
+        return path === '/vault/package.json' ? packageJsonContent : 'module.exports = { fromCjsPackage: true };';
       });
       mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
         const module_ = context['module'] as MockModuleWithExports;
@@ -1596,19 +1582,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve module with package.json main field', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/test-pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/test-pkg/lib/index.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/test-pkg/lib/index.js', '/vault/node_modules/test-pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/test-pkg';
@@ -1617,10 +1591,7 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return JSON.stringify({});
         }
-        if (path === '/vault/node_modules/test-pkg/package.json') {
-          return JSON.stringify({ main: './lib/index.js' });
-        }
-        return 'module.exports = { pkg: true };';
+        return path === '/vault/node_modules/test-pkg/package.json' ? JSON.stringify({ main: './lib/index.js' }) : 'module.exports = { pkg: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
@@ -1638,19 +1609,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve module with package.json exports field', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/exports-pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/exports-pkg/dist/index.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/exports-pkg/dist/index.js', '/vault/node_modules/exports-pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/exports-pkg';
@@ -1659,10 +1618,7 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return JSON.stringify({});
         }
-        if (path === '/vault/node_modules/exports-pkg/package.json') {
-          return JSON.stringify({ exports: { '.': './dist/index.js' } });
-        }
-        return 'module.exports = { exported: true };';
+        return path === '/vault/node_modules/exports-pkg/package.json' ? JSON.stringify({ exports: { '.': './dist/index.js' } }) : 'module.exports = { exported: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
@@ -1694,10 +1650,7 @@ describe('RequireHandlerComponentBase', () => {
         return path === '/vault';
       });
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return JSON.stringify({});
-        }
-        return '';
+        return path === '/vault/package.json' ? JSON.stringify({}) : '';
       });
 
       await expect(handler.requireAsync('@scope', {
@@ -1779,10 +1732,7 @@ describe('RequireHandlerComponentBase', () => {
 
       const childCode = 'const dep = require(\'./dep.js\'); module.exports = { main: true };';
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path.endsWith('dep.js')) {
-          return 'module.exports = { dep: true };';
-        }
-        return childCode;
+        return path.endsWith('dep.js') ? 'module.exports = { dep: true };' : childCode;
       });
 
       mockDebuggableEval.mockImplementation((code: string): (context: Record<string, unknown>) => void => {
@@ -1878,19 +1828,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve scoped packages like @scope/pkg', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/@scope/pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/@scope/pkg/index.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/@scope/pkg/index.js', '/vault/node_modules/@scope/pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/@scope/pkg';
@@ -1899,10 +1837,7 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return JSON.stringify({});
         }
-        if (path === '/vault/node_modules/@scope/pkg/package.json') {
-          return JSON.stringify({ main: './index.js' });
-        }
-        return 'module.exports = { scoped: true };';
+        return path === '/vault/node_modules/@scope/pkg/package.json' ? JSON.stringify({ main: './index.js' }) : 'module.exports = { scoped: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
@@ -1919,19 +1854,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve scoped packages with subpath like @scope/pkg/sub', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/@scope/pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/@scope/pkg/sub.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/@scope/pkg/package.json', '/vault/node_modules/@scope/pkg/sub.js', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/@scope/pkg';
@@ -1940,10 +1863,7 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return JSON.stringify({});
         }
-        if (path === '/vault/node_modules/@scope/pkg/package.json') {
-          return JSON.stringify({ exports: { './sub': './sub.js' } });
-        }
-        return 'module.exports = { sub: true };';
+        return path === '/vault/node_modules/@scope/pkg/package.json' ? JSON.stringify({ exports: { './sub': './sub.js' } }) : 'module.exports = { sub: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
@@ -1996,19 +1916,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve package with string exports', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/str-pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/str-pkg/dist/index.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/str-pkg/dist/index.js', '/vault/node_modules/str-pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/str-pkg';
@@ -2017,10 +1925,7 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return JSON.stringify({});
         }
-        if (path === '/vault/node_modules/str-pkg/package.json') {
-          return JSON.stringify({ exports: './dist/index.js' });
-        }
-        return 'module.exports = { stringExports: true };';
+        return path === '/vault/node_modules/str-pkg/package.json' ? JSON.stringify({ exports: './dist/index.js' }) : 'module.exports = { stringExports: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
@@ -2037,19 +1942,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve package with array exports', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/arr-pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/arr-pkg/lib/main.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/arr-pkg/lib/main.js', '/vault/node_modules/arr-pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/arr-pkg';
@@ -2058,10 +1951,7 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return JSON.stringify({});
         }
-        if (path === '/vault/node_modules/arr-pkg/package.json') {
-          return JSON.stringify({ exports: ['./lib/main.js', './lib/fallback.js'] });
-        }
-        return 'module.exports = { arrayExports: true };';
+        return path === '/vault/node_modules/arr-pkg/package.json' ? JSON.stringify({ exports: ['./lib/main.js', './lib/fallback.js'] }) : 'module.exports = { arrayExports: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
@@ -2078,19 +1968,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should skip types condition in exports', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/types-pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/types-pkg/dist/index.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/types-pkg/dist/index.js', '/vault/node_modules/types-pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/types-pkg';
@@ -2291,10 +2169,7 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return JSON.stringify({});
         }
-        if (path === '/vault/main.js') {
-          return 'const dep = require(\'./dep.js\'); module.exports = { main: true };';
-        }
-        return 'module.exports = { dep: true };';
+        return path === '/vault/main.js' ? 'const dep = require(\'./dep.js\'); module.exports = { main: true };' : 'module.exports = { dep: true };';
       });
 
       let timestamp = 100;
@@ -2328,16 +2203,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve private module with # prefix', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/src/internal.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/package.json', '/vault/src/internal.js'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault';
@@ -2704,19 +2570,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should resolve wildcard condition in package.json exports', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/wildcard-pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/wildcard-pkg/dist/utils/helper.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/wildcard-pkg/dist/utils/helper.js', '/vault/node_modules/wildcard-pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/wildcard-pkg';
@@ -2849,10 +2703,7 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockExistsFolder.mockResolvedValue(false);
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return JSON.stringify({});
-        }
-        return 'module.exports = { value: true };';
+        return path === '/vault/package.json' ? JSON.stringify({}) : 'module.exports = { value: true };';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
@@ -2968,13 +2819,9 @@ describe('RequireHandlerComponentBase', () => {
       });
 
       await handler.requireAsync('//parent-for-child-async.js');
-      expect(capturedRequireAsync).toBeDefined();
-
       // Now call the captured requireAsync to exercise makeChildRequireAsync body
-      if (capturedRequireAsync !== undefined) {
-        const childResult = await capturedRequireAsync('obsidian/app');
-        expect(childResult).toBeDefined();
-      }
+      const childResult = await ensureNonNullable(capturedRequireAsync)('obsidian/app');
+      expect(childResult).toBeDefined();
     });
   });
 
@@ -3084,10 +2931,7 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockExistsFolder.mockResolvedValue(false);
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return JSON.stringify({});
-        }
-        return '';
+        return path === '/vault/package.json' ? JSON.stringify({}) : '';
       });
 
       await expect(handler.requireAsync('missing-pkg', {
@@ -3109,10 +2953,7 @@ describe('RequireHandlerComponentBase', () => {
         return path === '/vault/node_modules/no-pkg-json';
       });
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return JSON.stringify({});
-        }
-        return '';
+        return path === '/vault/package.json' ? JSON.stringify({}) : '';
       });
 
       await expect(handler.requireAsync('no-pkg-json', {
@@ -3122,13 +2963,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should skip when existing path is not found for module paths', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/no-entry/package.json') {
-          return true;
-        }
-        return false;
+        return (path === '/vault/package.json') || (path === '/vault/node_modules/no-entry/package.json');
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/no-entry';
@@ -3137,10 +2972,7 @@ describe('RequireHandlerComponentBase', () => {
         if (path === '/vault/package.json') {
           return JSON.stringify({});
         }
-        if (path === '/vault/node_modules/no-entry/package.json') {
-          return JSON.stringify({ main: './does-not-exist.js' });
-        }
-        return '';
+        return path === '/vault/node_modules/no-entry/package.json' ? JSON.stringify({ main: './does-not-exist.js' }) : '';
       });
 
       await expect(handler.requireAsync('no-entry', {
@@ -3246,19 +3078,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should return empty array for non-matching dot-prefixed condition', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/cond-pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/cond-pkg/lib/index.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/cond-pkg/lib/index.js', '/vault/node_modules/cond-pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/cond-pkg';
@@ -3299,19 +3119,7 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should sort non-standard condition keys after standard ones', async () => {
       handler.mockExistsFile.mockImplementation((path: string) => {
-        if (path === '/vault/src/package.json') {
-          return false;
-        }
-        if (path === '/vault/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/sort-pkg/package.json') {
-          return true;
-        }
-        if (path === '/vault/node_modules/sort-pkg/dist/index.js') {
-          return true;
-        }
-        return false;
+        return ['/vault/node_modules/sort-pkg/dist/index.js', '/vault/node_modules/sort-pkg/package.json', '/vault/package.json'].includes(path);
       });
       handler.mockExistsFolder.mockImplementation((path: string) => {
         return path === '/vault/node_modules/sort-pkg';
@@ -3440,10 +3248,7 @@ describe('RequireHandlerComponentBase', () => {
       });
       handler.mockExistsFolder.mockResolvedValue(false);
       handler.mockReadFile.mockImplementation((path: string) => {
-        if (path === '/vault/package.json') {
-          return JSON.stringify({});
-        }
-        return 'module.exports = {};';
+        return path === '/vault/package.json' ? JSON.stringify({}) : 'module.exports = {};';
       });
       handler.mockGetTimestamp.mockResolvedValue(100);
 
@@ -3497,10 +3302,7 @@ describe('RequireHandlerComponentBase', () => {
       });
       customHandler.mockExistsFolder.mockResolvedValue(false);
       customHandler.mockReadFile.mockImplementation((path: string) => {
-        if (path.endsWith('package.json')) {
-          return JSON.stringify({});
-        }
-        return 'module.exports = {};';
+        return path.endsWith('package.json') ? JSON.stringify({}) : 'module.exports = {};';
       });
       customHandler.mockGetTimestamp.mockResolvedValue(100);
 

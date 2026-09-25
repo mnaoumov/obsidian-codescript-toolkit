@@ -25,10 +25,6 @@ export class PluginSettings {
       return '';
     }
 
-    if (!this.modulesRoot) {
-      return path;
-    }
-
-    return join(this.modulesRoot, path);
+    return this.modulesRoot ? join(this.modulesRoot, path) : path;
   }
 }

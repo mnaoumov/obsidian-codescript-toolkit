@@ -50,10 +50,7 @@ function generateUniqueIdentifier(params: GenerateUniqueIdentifierParams): strin
 }
 
 function getImportMetaPropertyName(node: MemberExpression): string | undefined {
-  if (!isImportMeta(node.object) || !isIdentifier(node.property)) {
-    return undefined;
-  }
-  return node.property.name;
+  return !isImportMeta(node.object) || !isIdentifier(node.property) ? undefined : node.property.name;
 }
 
 function isImportMeta(node: Expression | MemberExpression['object']): node is MetaProperty {
@@ -129,9 +126,11 @@ function transformProgram(path: NodePath<Program>): void {
 
   function collectResolve(callExpPath: NodePath<CallExpression | OptionalCallExpression>): void {
     const callee = callExpPath.node.callee;
-    if (isMemberExpression(callee) && getImportMetaPropertyName(callee) === 'resolve') {
-      resolveMetas.push(callExpPath);
-      collectBindings(callExpPath, reservedIdentifiers);
+    if (!(isMemberExpression(callee) && getImportMetaPropertyName(callee) === 'resolve')) {
+      return;
     }
+
+    resolveMetas.push(callExpPath);
+    collectBindings(callExpPath, reservedIdentifiers);
   }
 }

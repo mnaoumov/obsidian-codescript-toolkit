@@ -97,11 +97,7 @@ function extractRequireArguments(callExpression: CallExpression): null | Require
     }
 
     for (const property of optionsArgument.properties) {
-      if (!isObjectProperty(property)) {
-        return null;
-      }
-
-      if (!isStringLiteral(property.value)) {
+      if (!isObjectProperty(property) || !isStringLiteral(property.value)) {
         return null;
       }
 

@@ -149,13 +149,14 @@ export class TempPluginRegistryComponent extends ComponentEx {
       if (pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
         pluginNoticeComponent.showNotice(`Loaded Temp Plugin: ${tempPluginClassName}.`);
       }
-      if (params.cssText) {
-        const STYLE_TAG_NAME = 'style';
-        styleEl = document.head.createEl(STYLE_TAG_NAME, {
-          attr: { id },
-          text: params.cssText
-        });
+      if (!params.cssText) {
+        return;
       }
+      const STYLE_TAG_NAME = 'style';
+      styleEl = document.head.createEl(STYLE_TAG_NAME, {
+        attr: { id },
+        text: params.cssText
+      });
     }
 
     // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
