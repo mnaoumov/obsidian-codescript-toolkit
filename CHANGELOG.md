@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## 13.7.2
+
+- docs(agents): list the capture-theme merge among the changelog entries to reword
+- apply the desktop capture theme with applyObsidianTheme
+- docs(screenshots): shorten desktop frame 4 caption so it fits the frame
+- chore(deps): float dependencies and re-shoot the store frames under the opaque caption band
+- test(code-button): assert a Live Preview re-render does not save the dirty editor
+- docs(agents): note the demo-vault merge subject to reword in the next changelog
+- move the demo-vault button walk onto the shared suite
+- docs(agents): note the dependency-bump merge subject to reword in the next changelog
+- float obsidian-test-mocks to ^7.0.0
+- fix(deps): restore the lockfile's missing resolved and integrity fields
+- test(demo-vault): scroll-walk the preview so buttons below the fold are clicked
+- docs(agents): date the pending changelog note instead of counting the range
+- docs(agents): say that the generated changelog ships commit subjects verbatim
+- test(demo-vault): split the button walk into one transport call per button
+- build(vitest): drop the local root-include workaround, now the library owns it
+- fix(deps): float devalue to 5.9.4, clearing GHSA-9rgm-9g3h-6x36
+- build(markdownlint): forbid hard-wrapped markdown paragraphs
+- style(comments): stop rewriting symbol names that open a comment
+- chore(deps): drop the dead markdown-it override
+- chore(deps): drop the dead js-yaml override
+- style(comments): stop capitalizing the middle of a wrapped comment
+- docs: replace the private rule-id citations with what they assert
+- docs: name the library and the sibling plugins so a reader can resolve them
+- docs: replace the private tracker references with what they pointed at
+- chore(deps): move to obsidian-dev-utils 103
+- test(integration): take the palette frame with the soft keyboard up
+- test: bring the in-closure wait ceilings under the transport's per-eval cap
+- chore: adopt the npm run gate branch gate
+- refactor(android): drive the Android suites with trusted input
+- docs: name the unversioned demo-vault asset and the folder it unzips into
+- chore: make the LICENSE copyright line checkable by the linter and guard it against the year roll-over
+- fix(test): let each vitest project collect only the files its own include names
+- chore: update libs
+- refactor: rename the platform modules onto the load-bearing desktop-/mobile- prefix
+- docs: bring the demo vault's "Start reading here" line onto the standard sentence
+- docs(demo-vault): document the WebAssembly fixture and check in its WAT source
+- fix(build): wire build:compile to buildCompile and drop the duplicate leaf script
+
 ## 13.7.1
 
 - chore(deps): sweep caret-ranged dependencies to latest
