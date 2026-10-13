@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 13.7.3
+
+- fix(watcher): load node:fs on demand behind Platform.isDesktop
+
 ## 13.7.2
 
 - docs(agents): list the capture-theme merge among the changelog entries to reword
