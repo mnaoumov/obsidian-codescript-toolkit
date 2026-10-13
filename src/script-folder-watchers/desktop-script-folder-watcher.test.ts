@@ -1,9 +1,12 @@
 import type { DataAdapterEx } from '@obsidian-typings/obsidian-public-latest';
+import type { FSWatcher } from 'node:fs';
 import type { App } from 'obsidian';
 import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Mock } from 'vitest';
 
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
+import fs from 'node:fs';
+import { Platform } from 'obsidian';
 import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
@@ -20,10 +23,9 @@ import { ScriptFolderWatcherDesktopComponent } from './desktop-script-folder-wat
 
 const mockWatch = vi.fn();
 
-vi.mock('node:fs', () => ({
-  default: { watch: (...$arguments: unknown[]): unknown => mockWatch(...$arguments) },
-  watch: (...$arguments: unknown[]): unknown => mockWatch(...$arguments)
-}));
+// The watcher loads `node:fs` with `require`, which `vi.mock` does not intercept. Built-ins are singletons, so spying on
+// the shared module object reaches the watcher's copy.
+vi.spyOn(fs, 'watch').mockImplementation((...$arguments: unknown[]): FSWatcher => mockWatch(...$arguments) as FSWatcher);
 
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   getDataAdapterEx: vi.fn()
@@ -84,6 +86,20 @@ describe('ScriptFolderWatcherDesktopComponent', () => {
       const isResult = await watcher['startWatcher'](onChange);
 
       expect(isResult).toBe(false);
+    });
+
+    it('should return false without watching when not on desktop', async () => {
+      Platform.isDesktop = false;
+      try {
+        const onChange = vi.fn().mockResolvedValue(undefined);
+
+        const isResult = await watcher['startWatcher'](onChange);
+
+        expect(isResult).toBe(false);
+        expect(mockWatch).not.toHaveBeenCalled();
+      } finally {
+        Platform.isDesktop = true;
+      }
     });
 
     it('should return false when folder does not exist', async () => {
