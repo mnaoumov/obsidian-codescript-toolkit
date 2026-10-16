@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 13.8.0
+
+- feat: serve @mnaoumov/obsidian-lib and @mnaoumov/typescript-lib to vault scripts
+- chore(spellcheck): accept Sidedock from the obsidian-typings workspace declarations
+- docs: fix the dead script-utils link in the obsidian-dev-utils note
+- docs: mark plugin names as code
+- test: merge using the obsidian-typings declarations of Obsidian internals
+
 ## 13.7.3
 
 - fix(watcher): load node:fs on demand behind Platform.isDesktop
