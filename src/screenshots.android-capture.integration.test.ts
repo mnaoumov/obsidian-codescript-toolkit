@@ -50,21 +50,6 @@ import {
   it
 } from 'vitest';
 
-/**
- * `App`, reduced to the font-size applier that `obsidian-typings` does not
- * declare. Setting `baseFontSize` alone changes nothing on screen.
- */
-interface FontSizeApp {
-  updateFontSize: (this: void) => void;
-}
-
-/**
- * `App`, reduced to the inline-title applier, likewise undeclared.
- */
-interface InlineTitleApp {
-  updateInlineTitleDisplay: (this: void) => void;
-}
-
 const WIDTH_IN_PIXELS = 900;
 const HEIGHT_IN_PIXELS = 1600;
 
@@ -163,12 +148,11 @@ beforeAll(async () => {
       });
 
       app.vault.setConfig('baseFontSize', fontSizeInPixels);
-      const fontApp: unknown = app;
-      (fontApp as FontSizeApp).updateFontSize();
+      app.updateFontSize();
 
       // Each note opens with its own `# H1`, so the inline title doubles it.
       app.vault.setConfig('showInlineTitle', false);
-      (fontApp as InlineTitleApp).updateInlineTitleDisplay();
+      app.updateInlineTitleDisplay();
 
       await sleep(SETTLE_DELAY_IN_MILLISECONDS);
 
