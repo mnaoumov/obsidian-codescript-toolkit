@@ -26,7 +26,7 @@ require('obsidian-dev-utils/obsidian/modals/alert');
 
 ## Caveats
 
-[script-utils](https://github.com/mnaoumov/obsidian-dev-utils/tree/main/src/script-utils) is not available — it is build tooling meant for Node, not for code running inside Obsidian.
+[script-utils](https://github.com/mnaoumov/obsidian-dev-utils/tree/107.0.0/src/script-utils) is not available — it is build tooling meant for Node, not for code running inside Obsidian.
 
 ## Platform support
 
