@@ -1,6 +1,6 @@
 # [`dataviewjs`](https://blacksmithgu.github.io/obsidian-dataview/api/intro/) scripts
 
-A `dataviewjs` block can `require()` your own modules, so query logic you keep repeating across notes can live in one `.ts` file instead. And a code button can call Dataview's API back, which is handy for inspecting what a query actually returns.
+A `dataviewjs` block can `require()` your own modules, so query logic you keep repeating across notes can live in one `.ts` file instead. And a code button can call `Dataview`'s API back, which is handy for inspecting what a query actually returns.
 
 ## Prerequisite
 

@@ -41,7 +41,7 @@ registerDemoVaultCoverageSuite({
   rootFolder: ROOT_FOLDER
 });
 
-// `_assets/` holds code fixtures — `code-script` modules, Templater templates, a vendored
+// `_assets/` holds code fixtures — `code-script` modules, `Templater` templates, a vendored
 // `node_modules` — that are notes only by their extension: they carry no `# H1`, no intro prose,
 // and nothing links to them from `00 Start.md`, so the authoring checks the vault's real notes must
 // Pass do not apply to them. The vault's own `.markdownlint-cli2.jsonc` exempts the same folder with

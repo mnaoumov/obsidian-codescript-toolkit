@@ -398,7 +398,7 @@
 - docs: add example
 - docs: add missing bold
 - docs: link to demo vault
-- docs: add JS Engine
+- docs: add `JS Engine`
 - docs: inline urls
 
 ## 11.2.5

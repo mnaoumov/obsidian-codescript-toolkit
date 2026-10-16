@@ -10,7 +10,7 @@ interface NotesInFolderQuery {
 /**
  * Renders every note in a folder, alphabetically.
  *
- * @param dv - The Dataview inline API of the block being rendered.
+ * @param dv - The `Dataview` inline API of the block being rendered.
  * @param query - The folder to list, as a vault-root-relative path.
  */
 export function runQuery(dv: DataviewInlineApi, query: NotesInFolderQuery): void {

@@ -2,9 +2,9 @@
 .obsidian/workspace.json
 .obsidian/hotkeys.json
 
-# No plugin ships committed config or built files. CodeScript Toolkit is
-# release-injected and configured at runtime by the Demo Vault Helper (so NO
-# data.json is committed); only the hand-written Demo Vault Helper bootstrap
+# No plugin ships committed config or built files. `CodeScript Toolkit` is
+# release-injected and configured at runtime by the `Demo Vault Helper` (so NO
+# data.json is committed); only the hand-written `Demo Vault Helper` bootstrap
 # plugin itself is committed.
 .obsidian/plugins/*
 !.obsidian/plugins/demo-vault-helper/

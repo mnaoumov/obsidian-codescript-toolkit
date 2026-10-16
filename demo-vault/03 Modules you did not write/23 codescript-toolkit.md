@@ -40,7 +40,7 @@ new Notice(`Temp plugin: ${plugin ? 'found' : 'not found'}`);
 
 ## `unregisterTempPlugin()`
 
-Unloads it again. Temp plugins are also unloaded automatically when CodeScript Toolkit itself unloads, so nothing survives a restart.
+Unloads it again. Temp plugins are also unloaded automatically when `CodeScript Toolkit` itself unloads, so nothing survives a restart.
 
 ```code-button
 ---
