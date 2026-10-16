@@ -81,7 +81,7 @@ codeButtonContext.container.createEl('button', {
 });
 ```
 
-It returns the loaded plugin instance, or `null` if loading failed. The optional `cssText` is loaded and unloaded with it. Temp plugins can be unloaded from the `Command Palette` (`CodeScript Toolkit: Unload temp plugin: …` / `Unload temp plugins`), and are all unloaded when CodeScript Toolkit itself unloads — nothing survives a restart.
+It returns the loaded plugin instance, or `null` if loading failed. The optional `cssText` is loaded and unloaded with it. Temp plugins can be unloaded from the `Command Palette` (`CodeScript Toolkit: Unload temp plugin: …` / `Unload temp plugins`), and are all unloaded when `CodeScript Toolkit` itself unloads — nothing survives a restart.
 
 ## `codeButtonContext.getTempPlugin()`
 

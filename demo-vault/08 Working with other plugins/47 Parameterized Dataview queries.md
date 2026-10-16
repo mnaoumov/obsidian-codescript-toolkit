@@ -96,9 +96,9 @@ A query module is a normal module, in any format the plugin loads, exporting one
 
 `dv` is the host note's [Dataview](<./46 Dataview.md>) inline API, so a module renders tables, lists, callouts and raw HTML exactly as an inline block would. Being a module rather than a fenced block, it can also `require()` your other modules, keep its own helpers, and move between vaults as a file.
 
-## Dataview's own `dv.view()`
+## `Dataview`'s own `dv.view()`
 
-Dataview has a related mechanism of its own. [`dv.view(path, input)`](https://blacksmithgu.github.io/obsidian-dataview/api/code-reference/) loads a `.js` file from your vault and runs it with `dv` and your `input` in scope, so the rendering can at least live outside the note.
+`Dataview` has a related mechanism of its own. [`dv.view(path, input)`](https://blacksmithgu.github.io/obsidian-dataview/api/code-reference/) loads a `.js` file from your vault and runs it with `dv` and your `input` in scope, so the rendering can at least live outside the note.
 
 It stops short of a module, though: the file is evaluated as `new Function('dv', 'input', contents)`, which leaves it with no `import`, no `export`, no TypeScript and nothing from npm — and it is found by Obsidian's link resolution rather than as a module path. That is the gap this plugin closes. The view file becomes a two-line shim, and what it calls is the very module the buttons above use:
 
@@ -133,7 +133,7 @@ That is the shape every query settles into: one module that answers the question
 - **One question at a time.** The host note is shared state, so a second query replaces the first. Point a second host note at the dispatcher if you want two answers side by side.
 - **`require()` inside `dataviewjs` does not reach the plugin on mobile** — see the warning in [Dataview](<./46 Dataview.md>). The block in the host note uses `requireAsync()`, which does.
 - **Frontmatter is YAML, not JavaScript.** A query comes back as plain data: no functions, no class instances, and a date-like string may come back as a date.
-- **Dataview repaints on a timer.** Its refresh interval is 2.5 seconds by default, so a host note that is already open would otherwise keep showing the previous answer for a moment after the frontmatter changes. `runQuery()` asks Dataview to refresh straight away to close that gap.
+- **`Dataview` repaints on a timer.** Its refresh interval is 2.5 seconds by default, so a host note that is already open would otherwise keep showing the previous answer for a moment after the frontmatter changes. `runQuery()` asks `Dataview` to refresh straight away to close that gap.
 
 ## Platform support
 

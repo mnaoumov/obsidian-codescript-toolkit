@@ -32,7 +32,7 @@ const QUERY_NOTE_PATH = '_assets/CodeScriptToolkit/Query.md';
  * Loads the module named by the host note's frontmatter and lets it render the query. This is what the
  * single `dataviewjs` block in `Query.md` calls.
  *
- * @param dv - The Dataview inline API of the block being rendered.
+ * @param dv - The `Dataview` inline API of the block being rendered.
  */
 export async function executeQuery(dv: DataviewInlineApi): Promise<void> {
   // `getFrontmatterSafe` waits for the metadata cache to catch up with the file on disk, so the query
@@ -89,7 +89,7 @@ export async function runQuery(app: App, queryModulePath: string, query: unknown
   await leaf.openFile(queryNote, { state: { mode: 'preview' } });
   app.workspace.setActiveLeaf(leaf, { focus: true });
 
-  // Dataview repaints its views on a timer — 2.5 seconds by default — so a host note that is already
+  // `Dataview` repaints its views on a timer — 2.5 seconds by default — so a host note that is already
   // open would sit on the previous answer for a noticeable moment. Asking for the refresh now makes the
   // change immediate; if the event is ever dropped this is a harmless no-op and the timer takes over.
   app.workspace.trigger('dataview:refresh-views');

@@ -5,14 +5,14 @@ const START_NOTE_PATH = '00 Start.md';
 const HOTKEY_COMMAND_ID = 'fix-require-modules:invoke-script-file-hotkey.js';
 const CODE_SCRIPT_TOOLKIT_PLUGIN_ID = 'fix-require-modules';
 
-// Settings this vault wants that the Demo Vault Helper does not set, because the helper configures
+// Settings this vault wants that the `Demo Vault Helper` does not set, because the helper configures
 // EVERY demo vault and these are ours alone. `shouldAutoScrollToConsoleMessages` is off because a demo
 // vault is read, not just clicked: a `shouldAutoRun` button writing to its results panel would scroll
 // the note down to itself while the note is still rendering, landing you mid-note instead of at the top.
 const DEMO_VAULT_CODE_BUTTON_CONFIG = '---\nshouldAutoScrollToConsoleMessages: false\nsourceVisibility: collapsed\n---';
 
-// Run by CodeScript Toolkit on load (its `startupScriptPath` setting, which the
-// demo Vault Helper points here). Applies this vault's own settings, opens the start
+// Run by `CodeScript Toolkit` on load (its `startupScriptPath` setting, which the
+// `Demo Vault Helper` points here). Applies this vault's own settings, opens the start
 // note and binds the demo hotkey, so the vault needs no committed config and no manual setup.
 export async function invoke(app) {
   const message = 'Demo vault ready';
