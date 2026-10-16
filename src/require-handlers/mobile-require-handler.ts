@@ -1,5 +1,5 @@
+import { noopAsync } from '@mnaoumov/typescript-lib/function';
 import { CapacitorAdapter } from 'obsidian';
-import { noopAsync } from 'obsidian-dev-utils/function';
 
 import type {
   RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
@@ -33,7 +33,7 @@ export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
     throw new Error(`Could not require module: ${id}. Electron modules are not available on mobile.`);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Overrides the base method and must share its params type.
   public override async requireNodeBinaryAsync(params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams): Promise<unknown> {
     const { path } = params;
     await noopAsync();
@@ -49,7 +49,7 @@ export class RequireHandlerMobileComponent extends RequireHandlerComponentBase {
     throw new Error(`Could not require module: ${id}. Node built-in modules are not available on mobile.`);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Overrides the base method and must share its params type.
   public override requireNonCached(params: RequireHandlerComponentBaseRequireNonCachedParams): unknown {
     const { id } = params;
     throw new Error(`Cannot require synchronously on mobile: '${id}'.`);

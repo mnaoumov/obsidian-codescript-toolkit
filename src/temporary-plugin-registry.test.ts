@@ -1,18 +1,17 @@
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+import type { CommandHandlerComponent } from '@mnaoumov/obsidian-lib/command-handlers/command-handler-component';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type {
   App,
   PluginManifest
 } from 'obsidian';
-import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Mock } from 'vitest';
 
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import {
   Component,
   Notice
 } from 'obsidian';
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -25,7 +24,7 @@ import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from '
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
+import { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 
 const mockPrintError = vi.fn();
 
@@ -42,8 +41,8 @@ function getObsidianDocumentHead(): ObsidianDocumentHead {
 // Only `printError` is stubbed (a thin return-value passthrough so the test can assert which error
 // was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
 // the real `invokeAsyncSafely`) are preserved via `importOriginal`. No dev-utils logic is reimplemented.
-vi.mock('obsidian-dev-utils/error', async (importOriginal) => ({
-  ...await importOriginal<typeof import('obsidian-dev-utils/error')>(),
+vi.mock('@mnaoumov/typescript-lib/error', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@mnaoumov/typescript-lib/error')>(),
   printError: (...$arguments: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...$arguments)
 }));
 

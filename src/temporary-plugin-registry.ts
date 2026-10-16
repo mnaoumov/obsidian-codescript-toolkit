@@ -1,16 +1,15 @@
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+import type { CommandHandlerComponent } from '@mnaoumov/obsidian-lib/command-handlers/command-handler-component';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type {
   App,
   Plugin as ObsidianPlugin
 } from 'obsidian';
-import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { invokeAsyncSafely } from '@mnaoumov/typescript-lib/async';
+import { printError } from '@mnaoumov/typescript-lib/error';
+import { ValueWrapper } from '@mnaoumov/typescript-lib/value-wrapper';
 import { Notice } from 'obsidian';
-import { invokeAsyncSafely } from 'obsidian-dev-utils/async';
-import { printError } from 'obsidian-dev-utils/error';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
-import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 import type {
   RegisterTempPluginParams as RegisterTemporaryPluginParams,

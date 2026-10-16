@@ -1,5 +1,5 @@
-import { errorToString } from 'obsidian-dev-utils/error';
-import { toJson } from 'obsidian-dev-utils/object-utils';
+import { errorToString } from '@mnaoumov/typescript-lib/error';
+import { toJson } from '@mnaoumov/typescript-lib/object-utils';
 import {
   beforeEach,
   describe,
@@ -10,11 +10,11 @@ import {
 
 import { ConsoleWrapper } from './console-wrapper.ts';
 
-vi.mock('obsidian-dev-utils/error', () => ({
+vi.mock('@mnaoumov/typescript-lib/error', () => ({
   errorToString: vi.fn((error: Error): string => `ErrorString:${error.message}`)
 }));
 
-vi.mock('obsidian-dev-utils/object-utils', () => ({
+vi.mock('@mnaoumov/typescript-lib/object-utils', () => ({
   FunctionHandlingMode: { NameOnly: 'NameOnly' },
   toJson: vi.fn((_object: unknown): string => '{"mocked":"json"}')
 }));

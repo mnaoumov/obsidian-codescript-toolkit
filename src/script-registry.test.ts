@@ -1,11 +1,11 @@
+import type { CommandHandlerComponent } from '@mnaoumov/obsidian-lib/command-handlers/command-handler-component';
+import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { App } from 'obsidian';
-import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Mock } from 'vitest';
 
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import { Component } from 'obsidian';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import { App as ObsidianTestApp } from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
@@ -29,8 +29,8 @@ const INVOCABLE_SCRIPTS_FOLDER = 'scripts';
 // was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
 // the real command-handler infrastructure) are preserved via `importOriginal`. No dev-utils logic is
 // reimplemented (printError only logs to console).
-vi.mock('obsidian-dev-utils/error', async (importOriginal) => ({
-  ...await importOriginal<typeof import('obsidian-dev-utils/error')>(),
+vi.mock('@mnaoumov/typescript-lib/error', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@mnaoumov/typescript-lib/error')>(),
   printError: (...$arguments: unknown[]): unknown => (mockPrintError as (...a: unknown[]) => unknown)(...$arguments)
 }));
 

@@ -1,15 +1,15 @@
+import type { PluginSettingsTabBaseConstructorParams } from '@mnaoumov/obsidian-lib/plugin/plugin-settings-tab';
 import type { SettingDefinitionItem } from 'obsidian';
-import type { PluginSettingsTabBaseConstructorParams } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
 
+import { appendCodeBlock } from '@mnaoumov/obsidian-lib/html-element';
+import { PluginSettingsTabBase } from '@mnaoumov/obsidian-lib/plugin/plugin-settings-tab';
+import { convertAsyncToSync } from '@mnaoumov/typescript-lib/async';
+import { EMPTY } from '@mnaoumov/typescript-lib/string';
+import { ValueWrapper } from '@mnaoumov/typescript-lib/value-wrapper';
 import {
   Events,
   stringifyYaml
 } from 'obsidian';
-import { convertAsyncToSync } from 'obsidian-dev-utils/async';
-import { appendCodeBlock } from 'obsidian-dev-utils/obsidian/html-element';
-import { PluginSettingsTabBase } from 'obsidian-dev-utils/obsidian/plugin/plugin-settings-tab';
-import { EMPTY } from 'obsidian-dev-utils/string';
-import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 import type { PluginSettings } from './plugin-settings.ts';
 

@@ -54,7 +54,7 @@ export class RequireHandlerEmulateMobileComponent extends RequireHandlerComponen
     return this.mobileRequireHandler.requireElectronModule(id);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Overrides the base method and must share its params type.
   protected override async requireNodeBinaryAsync(params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams): Promise<unknown> {
     return this.mobileRequireHandler.requireNodeBinaryAsync(params);
   }
@@ -63,7 +63,7 @@ export class RequireHandlerEmulateMobileComponent extends RequireHandlerComponen
     return this.mobileRequireHandler.requireNodeBuiltInModule(id);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Overrides the base method and must share its params type.
   protected override requireNonCached(params: RequireHandlerComponentBaseRequireNonCachedParams): unknown {
     return this.mobileRequireHandler.requireNonCached(params);
   }

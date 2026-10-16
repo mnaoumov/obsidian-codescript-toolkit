@@ -1,15 +1,15 @@
+import type { CommandHandlerComponent } from '@mnaoumov/obsidian-lib/command-handlers/command-handler-component';
+import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
+import type { ResourceLockComponent } from '@mnaoumov/obsidian-lib/resource-lock';
 import type {
   App as AppOriginal,
   PluginManifest
 } from 'obsidian';
-import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
-import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import { App } from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
@@ -21,27 +21,27 @@ import {
 
 import { Plugin } from './plugin.ts';
 
-vi.mock('obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler', () => ({
+vi.mock('@mnaoumov/obsidian-lib/command-handlers/open-settings-command-handler', () => ({
   OpenSettingsCommandHandler: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/data-handler', () => ({
+vi.mock('@mnaoumov/obsidian-lib/data-handler', () => ({
   PluginDataHandler: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar', () => ({
+vi.mock('@mnaoumov/obsidian-lib/markdown-code-block-processor-registrar', () => ({
   PluginMarkdownCodeBlockProcessorRegistrar: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar', () => ({
+vi.mock('@mnaoumov/obsidian-lib/obsidian-protocol-handler-registrar', () => ({
   PluginObsidianProtocolHandlerRegistrar: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/components/plugin-settings-tab-component', () => ({
+vi.mock('@mnaoumov/obsidian-lib/components/plugin-settings-tab-component', () => ({
   PluginSettingsTabComponent: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/plugin/plugin-event-source', () => ({
+vi.mock('@mnaoumov/obsidian-lib/plugin/plugin-event-source', () => ({
   PluginEventSourceImpl: vi.fn()
 }));
 
@@ -110,7 +110,7 @@ vi.mock('./startup-script.ts', () => ({
   StartupScriptComponent: vi.fn()
 }));
 
-vi.mock('./temp-plugin-registry.ts', () => ({
+vi.mock('./temporary-plugin-registry.ts', () => ({
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistryComponent: vi.fn()
 }));

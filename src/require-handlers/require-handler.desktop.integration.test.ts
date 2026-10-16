@@ -658,6 +658,29 @@ describe('RequireHandler integration', () => {
       expect(result.hasKeys).toBe(true);
     });
 
+    it('should require the @mnaoumov/obsidian-lib and @mnaoumov/typescript-lib modules', async () => {
+      const result = await evalInObsidian({
+        async callback() {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const communityPlugins = await requireAsync('@mnaoumov/obsidian-lib/community-plugins') as Record<string, unknown>;
+          const async = await requireAsync('@mnaoumov/typescript-lib/async') as Record<string, unknown>;
+          const alertModule = await requireAsync('@mnaoumov/obsidian-lib/modals/alert') as Record<string, unknown>;
+          return {
+            alertType: typeof alertModule['alert'],
+            configureCommunityPluginType: typeof communityPlugins['configureCommunityPlugin'],
+            sleepType: typeof async['sleep']
+          };
+        },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toEqual({
+        alertType: 'function',
+        configureCommunityPluginType: 'function',
+        sleepType: 'function'
+      });
+    });
+
     it('should require obsidian/specialModuleNames module', async () => {
       const result = await evalInObsidian({
         async callback() {

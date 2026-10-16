@@ -1,7 +1,7 @@
+import { convertAsyncToSync } from '@mnaoumov/typescript-lib/async';
+import { join } from '@mnaoumov/typescript-lib/path';
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import { Platform } from 'obsidian';
-import { convertAsyncToSync } from 'obsidian-dev-utils/async';
-import { join } from 'obsidian-dev-utils/path';
 
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
 

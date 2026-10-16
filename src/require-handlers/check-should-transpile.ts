@@ -1,4 +1,4 @@
-import { extname } from 'obsidian-dev-utils/path';
+import { extname } from '@mnaoumov/typescript-lib/path';
 
 import { splitQuery } from './split-query.ts';
 

@@ -1,4 +1,4 @@
-import type { DataviewInlineApi } from 'obsidian-dev-utils/obsidian/dataview';
+import type { DataviewInlineApi } from '@mnaoumov/obsidian-lib/dataview';
 
 /**
  * The question this module answers: how many of the most recently modified notes to list.

@@ -1,8 +1,8 @@
 import type { TFile } from 'obsidian';
 
+import { sleep } from '@mnaoumov/typescript-lib/async';
+import { noop } from '@mnaoumov/typescript-lib/function';
 import dedent from 'dedent';
-import { sleep } from 'obsidian-dev-utils/async';
-import { noop } from 'obsidian-dev-utils/function';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {

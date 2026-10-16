@@ -1,6 +1,6 @@
 import type { App } from 'obsidian';
 
-import { convertAsyncToSync } from 'obsidian-dev-utils/async';
+import { convertAsyncToSync } from '@mnaoumov/typescript-lib/async';
 
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
 

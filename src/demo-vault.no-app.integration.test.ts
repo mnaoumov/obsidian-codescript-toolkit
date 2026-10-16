@@ -1,12 +1,12 @@
-import { readdirSync } from 'node:fs';
-import process from 'node:process';
-import { ObsidianPluginRepoPaths } from 'obsidian-dev-utils/obsidian/plugin/obsidian-plugin-repo-paths';
+import { registerDemoVaultCoverageSuite } from '@mnaoumov/obsidian-dev-toolkit/demo-vault-coverage';
+import { ObsidianPluginRepoPaths } from '@mnaoumov/obsidian-dev-toolkit/obsidian-plugin-repo-paths';
+import { getRootFolder } from '@mnaoumov/typescript-dev-toolkit/root';
 import {
   join,
   relative
-} from 'obsidian-dev-utils/path';
-import { registerDemoVaultCoverageSuite } from 'obsidian-dev-utils/script-utils/demo-vault-coverage';
-import { getRootFolder } from 'obsidian-dev-utils/script-utils/root';
+} from '@mnaoumov/typescript-lib/path';
+import { readdirSync } from 'node:fs';
+import process from 'node:process';
 
 const ASSETS_FOLDER = '_assets';
 const MARKDOWN_EXTENSION = '.md';

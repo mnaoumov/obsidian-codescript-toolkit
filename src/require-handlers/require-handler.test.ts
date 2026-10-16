@@ -1,8 +1,8 @@
 import type { TFile as OriginalTFile } from 'obsidian';
 
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
 import { Platform } from 'obsidian';
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import {
   App,
   TFile
@@ -67,12 +67,12 @@ vi.mock('debuggable-eval', () => ({
   debuggableEval: mockDebuggableEval
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/parse-link', () => ({
+vi.mock('@mnaoumov/obsidian-lib/parse-link', () => ({
   parseLink: mockParseLink
 }));
 
-vi.mock('../obsidian-dev-utils-module.ts', () => ({
-  registerObsidianDevUtilsModule: vi.fn()
+vi.mock('../library-modules.ts', () => ({
+  registerLibraryModules: vi.fn()
 }));
 
 vi.mock('../special-module-names.ts', () => ({
@@ -865,6 +865,7 @@ describe('RequireHandlerComponentBase', () => {
       handler.exposeInitModuleAndAddToCache('/vault/test-mod', () => ({ test: true }));
 
       await expect(handler.requireAsync('//test-mod', {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Deliberately invalid value, to exercise the unknown-value branch.
         cacheInvalidationMode: 'unknown' as CacheInvalidationMode
       })).rejects.toThrow('Unknown cacheInvalidationMode: \'unknown\'.');
     });
@@ -1474,6 +1475,7 @@ describe('RequireHandlerComponentBase', () => {
 
       expect((): void => {
         windowCustomRequire('//bad-mode', {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Deliberately invalid value, to exercise the unknown-value branch.
           cacheInvalidationMode: 'bogus' as CacheInvalidationMode
         });
       }).toThrow('Unknown cacheInvalidationMode: \'bogus\'.');
@@ -1816,6 +1818,7 @@ describe('RequireHandlerComponentBase', () => {
       handler.mockGetTimestamp.mockResolvedValue(100);
 
       await expect(handler.requireAsync('//file.unknown', {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Deliberately invalid value, to exercise the unknown-value branch.
         moduleType: 'unknown' as ModuleType
       })).rejects.toThrow('Unknown module type: \'unknown\'.');
     });
@@ -2140,6 +2143,7 @@ describe('RequireHandlerComponentBase', () => {
       });
 
       await expect(handler.requireAsync('https://example.com/script', {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Deliberately invalid value, to exercise the unknown-value branch.
         moduleType: 'bogus' as ModuleType
       })).rejects.toThrow('Unknown module type: \'bogus\'.');
     });

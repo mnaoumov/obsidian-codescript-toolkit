@@ -6,7 +6,7 @@ import type {
   PrismModule
 } from '@obsidian-typings/obsidian-public-latest';
 
-import { castTo } from 'obsidian-dev-utils/object-utils';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import {
   beforeEach,
   describe,

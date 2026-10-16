@@ -1,13 +1,13 @@
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { DataAdapterEx } from '@obsidian-typings/obsidian-public-latest';
 import type { FSWatcher } from 'node:fs';
 import type { App } from 'obsidian';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Mock } from 'vitest';
 
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import fs from 'node:fs';
 import { Platform } from 'obsidian';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
 import {
   beforeEach,
   describe,

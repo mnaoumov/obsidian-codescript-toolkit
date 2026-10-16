@@ -6,8 +6,8 @@ import type {
 import type { Visitor } from '@babel/traverse';
 
 import { transform as babelTransform } from '@babel/standalone';
-import { noop } from 'obsidian-dev-utils/function';
-import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
+import { noop } from '@mnaoumov/typescript-lib/function';
+import { ValueWrapper } from '@mnaoumov/typescript-lib/value-wrapper';
 
 export interface BabelPluginBaseTransformParams {
   readonly code: string;

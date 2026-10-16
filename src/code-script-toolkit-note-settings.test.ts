@@ -27,15 +27,15 @@ const mockIsMarkdownFile = vi.fn<(path: string) => boolean>();
 const mockParseFrontmatter = vi.fn();
 const mockGetFrontmatterSafe = vi.fn();
 
-vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
+vi.mock('@mnaoumov/obsidian-lib/file-system', () => ({
   isMarkdownFile: (...$arguments: unknown[]): unknown => mockIsMarkdownFile(...$arguments as [string])
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/frontmatter', () => ({
+vi.mock('@mnaoumov/obsidian-lib/frontmatter', () => ({
   parseFrontmatter: (...$arguments: unknown[]): unknown => mockParseFrontmatter(...$arguments)
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/metadata-cache', () => ({
+vi.mock('@mnaoumov/obsidian-lib/metadata-cache', () => ({
   getFrontmatterSafe: (...$arguments: unknown[]): unknown => mockGetFrontmatterSafe(...$arguments)
 }));
 

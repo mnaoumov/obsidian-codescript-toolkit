@@ -1,14 +1,14 @@
+import type { DataHandler } from '@mnaoumov/obsidian-lib/data-handler';
+import type { PluginEventSource } from '@mnaoumov/obsidian-lib/plugin/plugin-event-source';
+import type { MaybeReturn } from '@mnaoumov/typescript-lib/type';
 import type { App } from 'obsidian';
-import type { DataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
-import type { PluginEventSource } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
-import type { MaybeReturn } from 'obsidian-dev-utils/type';
 
-import { parseYaml } from 'obsidian';
-import { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
+import { PluginSettingsComponentBase } from '@mnaoumov/obsidian-lib/components/plugin-settings-component';
 import {
   extname,
   join
-} from 'obsidian-dev-utils/path';
+} from '@mnaoumov/typescript-lib/path';
+import { parseYaml } from 'obsidian';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 

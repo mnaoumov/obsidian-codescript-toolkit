@@ -1,7 +1,7 @@
-import type { ObsidianPluginVitestConfigContext } from 'obsidian-dev-utils/script-utils/test-runners/vitest-config';
+import type { ObsidianPluginVitestConfigContext } from '@mnaoumov/obsidian-dev-toolkit/test-runners/vitest-config';
 import type { TestProjectConfiguration } from 'vitest/config';
 
-import { defineObsidianPluginVitestConfig } from 'obsidian-dev-utils/script-utils/test-runners/vitest-config';
+import { defineObsidianPluginVitestConfig } from '@mnaoumov/obsidian-dev-toolkit/test-runners/vitest-config';
 
 /**
  * The screenshot-capture suites that write

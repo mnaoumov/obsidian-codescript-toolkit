@@ -1,4 +1,4 @@
-import { noop } from 'obsidian-dev-utils/function';
+import { noop } from '@mnaoumov/typescript-lib/function';
 
 export const EMPTY_MODULE_SYMBOL = Symbol('emptyModule');
 

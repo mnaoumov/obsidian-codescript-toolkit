@@ -1,24 +1,24 @@
+import type { CommandHandlerComponent } from '@mnaoumov/obsidian-lib/command-handlers/command-handler-component';
+import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type {
   Command,
   IconName
 } from 'obsidian';
-import type { CommandHandlerComponent } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler-component';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Promisable } from 'type-fest';
 
-import { App } from 'obsidian';
+import { CommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/command-handler';
+import { GlobalCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/global-command-handler';
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { isMarkdownFile } from '@mnaoumov/obsidian-lib/file-system';
 import {
   ErrorWrapper,
   printError
-} from 'obsidian-dev-utils/error';
-import { noopAsync } from 'obsidian-dev-utils/function';
-import { CommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/command-handler';
-import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
-import { isMarkdownFile } from 'obsidian-dev-utils/obsidian/file-system';
-import { join } from 'obsidian-dev-utils/path';
-import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
+} from '@mnaoumov/typescript-lib/error';
+import { noopAsync } from '@mnaoumov/typescript-lib/function';
+import { join } from '@mnaoumov/typescript-lib/path';
+import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
+import { App } from 'obsidian';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';

@@ -1,9 +1,9 @@
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import {
   Component,
   Platform
 } from 'obsidian';
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
 import {
   beforeEach,
   describe,
