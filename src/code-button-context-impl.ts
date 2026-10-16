@@ -1,21 +1,21 @@
+import type { CodeBlockMarkdownInformation } from '@mnaoumov/obsidian-lib/code-block-markdown-information';
+import type { ResourceLockComponent } from '@mnaoumov/obsidian-lib/resource-lock';
 import type {
   App,
   MarkdownPostProcessorContext,
   Plugin as ObsidianPlugin,
   TFile
 } from 'obsidian';
-import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
-import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
-import { MarkdownRenderer } from 'obsidian';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
-import { getFile } from 'obsidian-dev-utils/obsidian/file-system';
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { getFile } from '@mnaoumov/obsidian-lib/file-system';
 import {
   insertAfterCodeBlock,
   insertBeforeCodeBlock,
   removeCodeBlock,
   replaceCodeBlock
-} from 'obsidian-dev-utils/obsidian/markdown-code-block-processor';
+} from '@mnaoumov/obsidian-lib/markdown-code-block-processor';
+import { MarkdownRenderer } from 'obsidian';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type {
@@ -31,7 +31,7 @@ import type {
 
 import { ConsoleWrapper } from './console-wrapper.ts';
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
+import { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 
 interface CodeButtonContextImplComponentConstructorParams {
   readonly app: App;
@@ -93,7 +93,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     return this.tempPluginRegistry.getTempPlugin(tempPluginClass);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
   public async insertAfterCodeButtonBlock(params: CodeButtonContextInsertAfterCodeButtonBlockParams): Promise<void> {
     const { lineOffset, markdown, shouldPreserveLinePrefix } = params;
     await insertAfterCodeBlock({
@@ -108,7 +108,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     });
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
   public async insertBeforeCodeButtonBlock(params: CodeButtonContextInsertBeforeCodeButtonBlockParams): Promise<void> {
     const { lineOffset, markdown, shouldPreserveLinePrefix } = params;
     await insertBeforeCodeBlock({
@@ -145,7 +145,7 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     await MarkdownRenderer.render(this.app, markdown, this.container, this.sourceFile.path, this);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
   public async replaceCodeButtonBlock(params: CodeButtonContextReplaceCodeButtonBlockParams): Promise<void> {
     const { markdown, shouldKeepGapWhenEmpty, shouldPreserveLinePrefix } = params;
     await replaceCodeBlock({

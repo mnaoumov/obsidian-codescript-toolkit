@@ -1,4 +1,4 @@
-import { castTo } from 'obsidian-dev-utils/object-utils';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import {
   beforeEach,
   describe,
@@ -44,8 +44,8 @@ vi.mock('debuggable-eval', () => ({
   debuggableEval: vi.fn()
 }));
 
-vi.mock('../obsidian-dev-utils-module.ts', () => ({
-  registerObsidianDevUtilsModule: vi.fn()
+vi.mock('../library-modules.ts', () => ({
+  registerLibraryModules: vi.fn()
 }));
 
 vi.mock('../special-module-names.ts', () => ({

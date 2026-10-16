@@ -1,13 +1,13 @@
+import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { App } from 'obsidian';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Promisable } from 'type-fest';
 
-import { selectItem } from 'obsidian-dev-utils/obsidian/modals/select-item';
+import { selectItem } from '@mnaoumov/obsidian-lib/modals/select-item';
 import {
   basename,
   join
-} from 'obsidian-dev-utils/path';
+} from '@mnaoumov/typescript-lib/path';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 

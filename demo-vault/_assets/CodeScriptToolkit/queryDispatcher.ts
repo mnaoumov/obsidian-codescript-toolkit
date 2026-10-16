@@ -2,13 +2,13 @@ import type {
   App,
   MarkdownView
 } from 'obsidian';
-import type { DataviewInlineApi } from 'obsidian-dev-utils/obsidian/dataview';
+import type { DataviewInlineApi } from '@mnaoumov/obsidian-lib/dataview';
 
 import {
   CalloutMode,
   renderCallout
-} from 'obsidian-dev-utils/obsidian/callout';
-import { getFrontmatterSafe } from 'obsidian-dev-utils/obsidian/metadata-cache';
+} from '@mnaoumov/obsidian-lib/callout';
+import { getFrontmatterSafe } from '@mnaoumov/obsidian-lib/metadata-cache';
 
 /**
  * The two keys the host note carries: which module answers the question, and the question itself.

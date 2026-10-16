@@ -1,3 +1,4 @@
+import type { CodeBlockMarkdownInformation } from '@mnaoumov/obsidian-lib/code-block-markdown-information';
 import type {
   App,
   MarkdownPostProcessorContext,
@@ -5,7 +6,6 @@ import type {
   PluginManifest,
   TFile
 } from 'obsidian';
-import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 

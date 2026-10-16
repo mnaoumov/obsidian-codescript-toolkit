@@ -1,14 +1,14 @@
+import type { PluginSettingsComponentBase } from '@mnaoumov/obsidian-lib/components/plugin-settings-component';
+import type { AsyncEventRef } from '@mnaoumov/typescript-lib/async-events';
 import type {
   Plugin,
   SettingDefinition,
   SettingGroup
 } from 'obsidian';
-import type { AsyncEventRef } from 'obsidian-dev-utils/async-events';
-import type { PluginSettingsComponentBase } from 'obsidian-dev-utils/obsidian/components/plugin-settings-component';
 
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { SettingEx } from 'obsidian-dev-utils/obsidian/setting-ex';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { SettingEx } from '@mnaoumov/obsidian-lib/setting-ex';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import { App } from 'obsidian-test-mocks/obsidian';
 import {
   beforeEach,
@@ -165,16 +165,16 @@ vi.mock('obsidian', async (importOriginal) => ({
   stringifyYaml: (object: unknown): unknown => JSON.stringify(object)
 }));
 
-vi.mock('obsidian-dev-utils/async', async (importOriginal) => ({
-  ...await importOriginal<typeof import('obsidian-dev-utils/async')>(),
+vi.mock('@mnaoumov/typescript-lib/async', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@mnaoumov/typescript-lib/async')>(),
   convertAsyncToSync: vi.fn(($function: unknown) => $function)
 }));
 
-vi.mock('obsidian-dev-utils/html-element', () => ({
+vi.mock('@mnaoumov/typescript-lib/html-element', () => ({
   appendCodeBlock: vi.fn()
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/setting-ex', () => ({
+vi.mock('@mnaoumov/obsidian-lib/setting-ex', () => ({
   // The declarative rows are handed a plain `Setting` that dev-utils re-prototypes into a `SettingEx`;
   // The mock instance already is one, so adoption is the identity.
   adoptSettingEx: (setting: unknown): unknown => setting,

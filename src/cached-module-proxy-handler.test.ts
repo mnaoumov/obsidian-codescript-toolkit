@@ -11,7 +11,7 @@ import {
   EMPTY_MODULE_SYMBOL
 } from './cached-module-proxy-handler.ts';
 
-vi.mock('obsidian-dev-utils/function', () => ({
+vi.mock('@mnaoumov/typescript-lib/function', () => ({
   noop: vi.fn()
 }));
 

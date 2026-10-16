@@ -1,12 +1,12 @@
 import type { App } from 'obsidian';
 
-import { FileSystemAdapter } from 'obsidian';
+import { MonkeyAroundComponent } from '@mnaoumov/obsidian-lib/components/monkey-around-component';
 import {
   castTo,
   getPrototypeOf,
   normalizeOptionalProperties
-} from 'obsidian-dev-utils/object-utils';
-import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/monkey-around-component';
+} from '@mnaoumov/typescript-lib/object-utils';
+import { FileSystemAdapter } from 'obsidian';
 import {
   beforeEach,
   describe,
@@ -46,8 +46,8 @@ vi.mock('debuggable-eval', () => ({
   debuggableEval: vi.fn()
 }));
 
-vi.mock('../obsidian-dev-utils-module.ts', () => ({
-  registerObsidianDevUtilsModule: vi.fn()
+vi.mock('../library-modules.ts', () => ({
+  registerLibraryModules: vi.fn()
 }));
 
 vi.mock('../special-module-names.ts', () => ({
@@ -566,6 +566,7 @@ describe('RequireHandlerDesktopComponent', () => {
     });
 
     it('should throw for unknown type', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Deliberately invalid value, to exercise the unknown-value branch.
       expect(() => handler.exposeRequireNonCached('some-id', 'unknownType' as ResolvedType, {})).toThrow(
         'Unknown type: \'unknownType\'.'
       );
@@ -1350,6 +1351,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as RequirePathImplAccessor)
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Deliberately invalid value, to exercise the unknown-value branch.
           .requirePathImpl('/path/to/file.xyz', { moduleType: 'unknown' as ModuleType });
       }).toThrow('Unknown module type: \'unknown\'.');
     });
@@ -2114,6 +2116,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         (handler as unknown as GetDependenciesTimestampAccessor)
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Deliberately invalid value, to exercise the unknown-value branch.
           .getDependenciesTimestampChangedAndReloadIfNeeded('/path/to/file.js', { cacheInvalidationMode: 'invalid' as CacheInvalidationMode });
       }).toThrow('Unknown cacheInvalidationMode: \'invalid\'.');
     });
@@ -2129,6 +2132,7 @@ describe('RequireHandlerDesktopComponent', () => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
         handler as unknown as ResolveAccessor,
         'resolve'
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment -- Deliberately invalid value, to exercise the unknown-value branch.
       ).mockReturnValue({ resolvedId: 'unknown-dep', resolvedType: 'bizarre' as ResolvedType });
 
       expect(() => {

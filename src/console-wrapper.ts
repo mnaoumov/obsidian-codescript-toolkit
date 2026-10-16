@@ -1,8 +1,8 @@
-import { errorToString } from 'obsidian-dev-utils/error';
+import { errorToString } from '@mnaoumov/typescript-lib/error';
 import {
   FunctionHandlingMode,
   toJson
-} from 'obsidian-dev-utils/object-utils';
+} from '@mnaoumov/typescript-lib/object-utils';
 
 type ConsoleMethod = 'debug' | 'error' | 'info' | 'log' | 'warn';
 

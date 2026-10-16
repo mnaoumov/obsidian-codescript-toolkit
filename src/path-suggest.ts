@@ -1,11 +1,11 @@
 import type { App } from 'obsidian';
 
-import { AbstractInputSuggest } from 'obsidian';
 import {
   basename,
   extname,
   relative
-} from 'obsidian-dev-utils/path';
+} from '@mnaoumov/typescript-lib/path';
+import { AbstractInputSuggest } from 'obsidian';
 
 import { EXTENSIONS } from './require-handlers/require-handler.ts';
 

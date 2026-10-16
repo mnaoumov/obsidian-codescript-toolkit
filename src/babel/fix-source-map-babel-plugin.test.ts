@@ -1,4 +1,4 @@
-import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
+import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
 import {
   describe,
   expect,

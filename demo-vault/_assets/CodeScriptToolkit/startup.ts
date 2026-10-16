@@ -1,5 +1,5 @@
 import { Notice } from 'obsidian';
-import { configureCommunityPlugin } from 'obsidian-dev-utils/obsidian/community-plugins';
+import { configureCommunityPlugin } from '@mnaoumov/obsidian-lib/community-plugins';
 
 const START_NOTE_PATH = '00 Start.md';
 const HOTKEY_COMMAND_ID = 'fix-require-modules:invoke-script-file-hotkey.js';

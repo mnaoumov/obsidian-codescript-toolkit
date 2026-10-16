@@ -1,12 +1,12 @@
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { OpenDemoVaultCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-demo-vault-command-handler';
-import { OpenSettingsCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/open-settings-command-handler';
-import { PluginSettingsTabComponent } from 'obsidian-dev-utils/obsidian/components/plugin-settings-tab-component';
-import { PluginDataHandler } from 'obsidian-dev-utils/obsidian/data-handler';
-import { PluginMarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
-import { PluginObsidianProtocolHandlerRegistrar } from 'obsidian-dev-utils/obsidian/obsidian-protocol-handler-registrar';
-import { PluginBase } from 'obsidian-dev-utils/obsidian/plugin/plugin';
-import { PluginEventSourceImpl } from 'obsidian-dev-utils/obsidian/plugin/plugin-event-source';
+import { OpenDemoVaultCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/open-demo-vault-command-handler';
+import { OpenSettingsCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/open-settings-command-handler';
+import { PluginSettingsTabComponent } from '@mnaoumov/obsidian-lib/components/plugin-settings-tab-component';
+import { PluginDataHandler } from '@mnaoumov/obsidian-lib/data-handler';
+import { PluginMarkdownCodeBlockProcessorRegistrar } from '@mnaoumov/obsidian-lib/markdown-code-block-processor-registrar';
+import { PluginObsidianProtocolHandlerRegistrar } from '@mnaoumov/obsidian-lib/obsidian-protocol-handler-registrar';
+import { PluginBase } from '@mnaoumov/obsidian-lib/plugin/plugin';
+import { PluginEventSourceImpl } from '@mnaoumov/obsidian-lib/plugin/plugin-event-source';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 
 import { CodeButtonBlockComponent } from './code-button-block.ts';
 import { CodeButtonCodeHighlighterComponent } from './code-button-code-highlighter-component.ts';
@@ -25,7 +25,7 @@ import { ScriptRegistryComponent } from './script-registry.ts';
 import { ScriptManager } from './script.ts';
 import { StartupScriptComponent } from './startup-script.ts';
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
+import { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 
 export class Plugin extends PluginBase {
   /**

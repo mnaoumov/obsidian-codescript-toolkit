@@ -1,10 +1,10 @@
 import type { TFile } from 'obsidian';
 
+import { MonkeyAroundComponent } from '@mnaoumov/obsidian-lib/components/monkey-around-component';
 import {
   castTo,
   getPrototypeOf
-} from 'obsidian-dev-utils/object-utils';
-import { MonkeyAroundComponent } from 'obsidian-dev-utils/obsidian/components/monkey-around-component';
+} from '@mnaoumov/typescript-lib/object-utils';
 
 import type { RequireHandlerDesktopComponent } from '../require-handlers/desktop-require-handler.ts';
 import type { RequireFunction } from '../require-handlers/require-handler.ts';

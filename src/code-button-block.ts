@@ -1,14 +1,33 @@
+import type { CodeBlockMarkdownInformation } from '@mnaoumov/obsidian-lib/code-block-markdown-information';
+import type { MarkdownCodeBlockProcessorRegistrar } from '@mnaoumov/obsidian-lib/markdown-code-block-processor-registrar';
+import type { ResourceLockComponent } from '@mnaoumov/obsidian-lib/resource-lock';
 import type {
   App,
   Editor,
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
-import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
-import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
-import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 import type { Promisable } from 'type-fest';
 
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { getFile } from '@mnaoumov/obsidian-lib/file-system';
+import {
+  getCodeBlockMarkdownInfo,
+  replaceCodeBlock
+} from '@mnaoumov/obsidian-lib/markdown-code-block-processor';
+import { getOsAndObsidianUnsafePathCharsRegExp } from '@mnaoumov/obsidian-lib/validation';
+import { convertAsyncToSync } from '@mnaoumov/typescript-lib/async';
+import { printError } from '@mnaoumov/typescript-lib/error';
+import {
+  normalizeOptionalProperties,
+  removeUndefinedProperties
+} from '@mnaoumov/typescript-lib/object-utils';
+import {
+  basename,
+  dirname
+} from '@mnaoumov/typescript-lib/path';
+import { indent } from '@mnaoumov/typescript-lib/string';
+import { ValueWrapper } from '@mnaoumov/typescript-lib/value-wrapper';
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import {
   getFrontMatterInfo,
@@ -20,25 +39,6 @@ import {
   setIcon,
   stringifyYaml
 } from 'obsidian';
-import { convertAsyncToSync } from 'obsidian-dev-utils/async';
-import { printError } from 'obsidian-dev-utils/error';
-import {
-  normalizeOptionalProperties,
-  removeUndefinedProperties
-} from 'obsidian-dev-utils/object-utils';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
-import { getFile } from 'obsidian-dev-utils/obsidian/file-system';
-import {
-  getCodeBlockMarkdownInfo,
-  replaceCodeBlock
-} from 'obsidian-dev-utils/obsidian/markdown-code-block-processor';
-import { getOsAndObsidianUnsafePathCharsRegExp } from 'obsidian-dev-utils/obsidian/validation';
-import {
-  basename,
-  dirname
-} from 'obsidian-dev-utils/path';
-import { indent } from 'obsidian-dev-utils/string';
-import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
@@ -54,7 +54,7 @@ import { CODE_BUTTON_BLOCK_LANGUAGE } from './code-button-code-highlighter-compo
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
+import { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 
 interface CodeButtonBlockComponentHandleClickParams {
   readonly buttonIndex: number;

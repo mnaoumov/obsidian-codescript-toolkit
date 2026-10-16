@@ -1,6 +1,6 @@
 import type { Editor } from 'obsidian';
 
-import { EditorCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/editor-command-handler';
+import { EditorCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/editor-command-handler';
 
 import { insertSampleCodeButton } from '../code-button-block.ts';
 

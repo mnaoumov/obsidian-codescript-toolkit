@@ -17,7 +17,7 @@ export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeT
     super({ hasTopLevelAwait: false });
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base transform and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Overrides the base transform and must share its params type.
   public override transform(params: BabelPluginBaseTransformParams): TransformResult<TransformCodeToCommonJsData> {
     const { code, filename, folder } = params;
     try {

@@ -1,4 +1,4 @@
-import { SyntaxHighlightingComponent } from 'obsidian-dev-utils/obsidian/components/syntax-highlighting-component';
+import { SyntaxHighlightingComponent } from '@mnaoumov/obsidian-lib/components/syntax-highlighting-component';
 
 export const CODE_BUTTON_BLOCK_LANGUAGE = 'code-button';
 

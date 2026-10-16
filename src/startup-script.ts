@@ -1,8 +1,8 @@
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { Promisable } from 'type-fest';
 
+import { LayoutReadyComponent } from '@mnaoumov/obsidian-lib/components/layout-ready-component';
 import { App } from 'obsidian';
-import { LayoutReadyComponent } from 'obsidian-dev-utils/obsidian/components/layout-ready-component';
 
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';

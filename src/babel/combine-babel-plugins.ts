@@ -1,4 +1,4 @@
-import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
+import { normalizeOptionalProperties } from '@mnaoumov/typescript-lib/object-utils';
 
 import type {
   BabelPluginBaseTransformParams,
@@ -29,7 +29,7 @@ abstract class CombineBabelPlugins<DataList extends unknown[]> extends BabelPlug
 }
 
 export class SequentialBabelPlugin<DataList extends unknown[]> extends CombineBabelPlugins<DataList> {
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base transform and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Overrides the base transform and must share its params type.
   public override transform(params: BabelPluginBaseTransformParams): TransformResult<TupleToIntersection<DataList>> {
     const { filename, folder } = params;
     let code = params.code;

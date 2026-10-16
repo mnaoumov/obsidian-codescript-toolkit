@@ -9,7 +9,7 @@ import type { StartupScriptComponent } from '../startup-script.ts';
 
 import { ReloadStartupScriptCommandHandler } from './reload-startup-script-command-handler.ts';
 
-vi.mock('obsidian-dev-utils/obsidian/command-handlers/global-command-handler', () => ({
+vi.mock('@mnaoumov/obsidian-lib/command-handlers/global-command-handler', () => ({
   GlobalCommandHandler: vi.fn()
 }));
 

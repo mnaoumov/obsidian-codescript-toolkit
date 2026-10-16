@@ -1,10 +1,10 @@
+import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { App } from 'obsidian';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 
-import { noop } from 'obsidian-dev-utils/function';
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { noop } from '@mnaoumov/typescript-lib/function';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -25,7 +25,7 @@ interface SelectItemArguments {
 
 const mockSelectItem = vi.fn();
 
-vi.mock('obsidian-dev-utils/obsidian/modals/select-item', () => ({
+vi.mock('@mnaoumov/obsidian-lib/modals/select-item', () => ({
   selectItem: (...$arguments: unknown[]): unknown => mockSelectItem(...$arguments)
 }));
 

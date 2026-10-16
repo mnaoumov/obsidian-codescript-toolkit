@@ -1,9 +1,9 @@
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { App } from 'obsidian';
-import type { PluginNoticeComponent } from 'obsidian-dev-utils/obsidian/components/plugin-notice-component';
 import type { Promisable } from 'type-fest';
 
-import { registerAsyncEvent } from 'obsidian-dev-utils/obsidian/components/async-events-component';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
+import { registerAsyncEvent } from '@mnaoumov/obsidian-lib/components/async-events-component';
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 import type { ScriptManager } from '../script.ts';

@@ -1,8 +1,33 @@
+import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
+import type { PackageJson } from '@mnaoumov/typescript-dev-toolkit/npm';
 import type { Code } from 'mdast';
-import type { ConsoleDebugComponent } from 'obsidian-dev-utils/obsidian/components/console-debug-component';
-import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
 import type { Promisable } from 'type-fest';
 
+import { AllWindowsEventComponent } from '@mnaoumov/obsidian-lib/components/all-windows-event-component';
+import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
+import { parseLink } from '@mnaoumov/obsidian-lib/parse-link';
+import { noop } from '@mnaoumov/typescript-lib/function';
+import {
+  castTo,
+  normalizeOptionalProperties
+} from '@mnaoumov/typescript-lib/object-utils';
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  toPosixPath
+} from '@mnaoumov/typescript-lib/path';
+import {
+  replaceAll,
+  trimEnd,
+  trimStart
+} from '@mnaoumov/typescript-lib/string';
+import { TypeAsserter } from '@mnaoumov/typescript-lib/type';
+import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
+import { isUrl } from '@mnaoumov/typescript-lib/url';
+import { ValueWrapper } from '@mnaoumov/typescript-lib/value-wrapper';
 import { getDataAdapterEx } from '@obsidian-typings/obsidian-public-latest/implementations';
 import { debuggableEval } from 'debuggable-eval';
 import {
@@ -11,38 +36,13 @@ import {
   requestUrl,
   TFile
 } from 'obsidian';
-import { noop } from 'obsidian-dev-utils/function';
-import {
-  castTo,
-  normalizeOptionalProperties
-} from 'obsidian-dev-utils/object-utils';
-import { AllWindowsEventComponent } from 'obsidian-dev-utils/obsidian/components/all-windows-event-component';
-import { ComponentEx } from 'obsidian-dev-utils/obsidian/components/component-ex';
-import { parseLink } from 'obsidian-dev-utils/obsidian/parse-link';
-import {
-  basename,
-  dirname,
-  extname,
-  isAbsolute,
-  join,
-  toPosixPath
-} from 'obsidian-dev-utils/path';
-import {
-  replaceAll,
-  trimEnd,
-  trimStart
-} from 'obsidian-dev-utils/string';
-import { TypeAsserter } from 'obsidian-dev-utils/type';
-import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
-import { isUrl } from 'obsidian-dev-utils/url';
-import { ValueWrapper } from 'obsidian-dev-utils/value-wrapper';
 import { remark } from 'remark';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
 
 import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import type { TempPluginRegistryComponent } from '../temp-plugin-registry.ts';
+import type { TempPluginRegistryComponent } from '../temporary-plugin-registry.ts';
 import type {
   ParentPathOptions,
   require,
@@ -66,7 +66,7 @@ import {
 import { CODE_SCRIPT_BLOCK_LANGUAGE } from '../code-script-code-highlighter-component.ts';
 import { CodeScriptToolkitModuleImpl } from '../code-script-toolkit-module-impl.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from '../code-script-toolkit-note-settings.ts';
-import { registerObsidianDevUtilsModule } from '../obsidian-dev-utils-module.ts';
+import { registerLibraryModules } from '../library-modules.ts';
 import { SPECIAL_MODULE_NAMES } from '../special-module-names.ts';
 import {
   CacheInvalidationMode,
@@ -964,7 +964,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     this.specialModuleFactories.set('obsidian/app', () => this.app);
     this.specialModuleFactories.set('obsidian/specialModuleNames', () => SPECIAL_MODULE_NAMES);
     this.specialModuleFactories.set('codescript-toolkit', () => new CodeScriptToolkitModuleImpl(this.tempPluginRegistry));
-    registerObsidianDevUtilsModule(this.specialModuleFactories);
+    registerLibraryModules(this.specialModuleFactories);
 
     for (const id of SPECIAL_MODULE_NAMES.obsidianBuiltInModuleNames) {
       this.specialModuleFactories.set(id, () => this.pluginRequire(id));

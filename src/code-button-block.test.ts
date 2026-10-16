@@ -1,21 +1,21 @@
+import type { CodeBlockMarkdownInformation } from '@mnaoumov/obsidian-lib/code-block-markdown-information';
+import type { MarkdownCodeBlockProcessorRegistrar } from '@mnaoumov/obsidian-lib/markdown-code-block-processor-registrar';
+import type { ResourceLockComponent } from '@mnaoumov/obsidian-lib/resource-lock';
 import type {
   App,
   Editor,
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
-import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
-import type { MarkdownCodeBlockProcessorRegistrar } from 'obsidian-dev-utils/obsidian/markdown-code-block-processor-registrar';
-import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
+import { waitForAllAsyncOperations } from '@mnaoumov/typescript-test-toolkit/async-operation-tracking';
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import {
   Menu,
   setIcon
 } from 'obsidian';
-import { waitForAllAsyncOperations } from 'obsidian-dev-utils/async';
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
-import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
 import {
   beforeEach,
   describe,
@@ -32,7 +32,7 @@ import type { CodeButtonContext } from './code-button-context.ts';
 import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
+import type { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 
 import { SourceVisibility } from './code-button-block-config.ts';
 import {
@@ -59,15 +59,15 @@ interface CodeButtonBlockComponentPrivateApi {
   processCodeButtonBlock: (...$arguments: never[]) => Promise<void>;
 }
 
-vi.mock('obsidian-dev-utils/error', () => ({
+vi.mock('@mnaoumov/typescript-lib/error', () => ({
   printError: (...$arguments: unknown[]): unknown => mockPrintError(...$arguments)
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
+vi.mock('@mnaoumov/obsidian-lib/file-system', () => ({
   getFile: (...$arguments: unknown[]): unknown => mockGetFile(...$arguments)
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor', () => ({
+vi.mock('@mnaoumov/obsidian-lib/markdown-code-block-processor', () => ({
   getCodeBlockMarkdownInfo: (...$arguments: unknown[]): unknown => mockGetCodeBlockMarkdownInfo(...$arguments),
   replaceCodeBlock: (...$arguments: unknown[]): unknown => mockReplaceCodeBlock(...$arguments)
 }));
@@ -80,7 +80,7 @@ vi.mock('obsidian', async (importOriginal) => {
   };
 });
 
-vi.mock('obsidian-dev-utils/obsidian/validation', () => ({
+vi.mock('@mnaoumov/obsidian-lib/validation', () => ({
   getOsAndObsidianUnsafePathCharsRegExp: (...$arguments: unknown[]): unknown => mockGetOsAndObsidianUnsafePathCharsRegExp(...$arguments)
 }));
 
@@ -176,7 +176,7 @@ vi.mock('./code-button-context-impl.ts', () => ({
   }
 }));
 
-vi.mock('./temp-plugin-registry.ts', () => ({
+vi.mock('./temporary-plugin-registry.ts', () => ({
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistry: vi.fn()
 }));

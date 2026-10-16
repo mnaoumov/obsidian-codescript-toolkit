@@ -1,12 +1,12 @@
+import type { CodeBlockMarkdownInformation } from '@mnaoumov/obsidian-lib/code-block-markdown-information';
+import type { ResourceLockComponent } from '@mnaoumov/obsidian-lib/resource-lock';
 import type {
   App,
   MarkdownPostProcessorContext
 } from 'obsidian';
-import type { CodeBlockMarkdownInformation } from 'obsidian-dev-utils/obsidian/code-block-markdown-information';
-import type { ResourceLockComponent } from 'obsidian-dev-utils/obsidian/resource-lock';
 
-import { castTo } from 'obsidian-dev-utils/object-utils';
-import { strictProxy } from 'obsidian-dev-utils/strict-proxy';
+import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import {
   beforeEach,
   describe,
@@ -18,7 +18,7 @@ import {
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from './code-button-context.ts';
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import type { TempPluginRegistryComponent } from './temp-plugin-registry.ts';
+import type { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 
 import { SourceVisibility } from './code-button-block-config.ts';
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
@@ -43,11 +43,11 @@ vi.mock('obsidian', async (importOriginal) => ({
   }
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/file-system', () => ({
+vi.mock('@mnaoumov/obsidian-lib/file-system', () => ({
   getFile: (...$arguments: unknown[]): unknown => mockGetFile(...$arguments)
 }));
 
-vi.mock('obsidian-dev-utils/obsidian/markdown-code-block-processor', () => ({
+vi.mock('@mnaoumov/obsidian-lib/markdown-code-block-processor', () => ({
   insertAfterCodeBlock: (...$arguments: unknown[]): unknown => mockInsertAfterCodeBlock(...$arguments),
   insertBeforeCodeBlock: (...$arguments: unknown[]): unknown => mockInsertBeforeCodeBlock(...$arguments),
   removeCodeBlock: (...$arguments: unknown[]): unknown => mockRemoveCodeBlock(...$arguments),
@@ -66,7 +66,7 @@ vi.mock('./console-wrapper.ts', () => ({
   }
 }));
 
-vi.mock('./temp-plugin-registry.ts', () => ({
+vi.mock('./temporary-plugin-registry.ts', () => ({
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistry: class MockTemporaryPluginRegistry {
     // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.

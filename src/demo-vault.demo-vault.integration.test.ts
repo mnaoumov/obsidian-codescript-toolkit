@@ -1,4 +1,4 @@
-import { registerDemoVaultButtonSuite } from 'obsidian-dev-utils/script-utils/demo-vault-buttons';
+import { registerDemoVaultButtonSuite } from '@mnaoumov/obsidian-dev-toolkit/demo-vault-buttons';
 
 // The first code-button execution in a fresh Obsidian session loads babel-standalone and primes the require
 // pipeline, a one-time cost far larger than a warm run. Both budgets are spent inside ONE transport call per

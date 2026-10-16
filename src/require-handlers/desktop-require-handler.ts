@@ -1,17 +1,17 @@
-import type { PackageJson } from 'obsidian-dev-utils/script-utils/npm';
+import type { PackageJson } from '@mnaoumov/typescript-dev-toolkit/npm';
 
-import {
-  FileSystemAdapter,
-  TFile
-} from 'obsidian';
-import { noopAsync } from 'obsidian-dev-utils/function';
-import { normalizeOptionalProperties } from 'obsidian-dev-utils/object-utils';
+import { noopAsync } from '@mnaoumov/typescript-lib/function';
+import { normalizeOptionalProperties } from '@mnaoumov/typescript-lib/object-utils';
 import {
   dirname,
   join,
   toPosixPath
-} from 'obsidian-dev-utils/path';
-import { ensureNonNullable } from 'obsidian-dev-utils/type-guards';
+} from '@mnaoumov/typescript-lib/path';
+import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
+import {
+  FileSystemAdapter,
+  TFile
+} from 'obsidian';
 
 import type { RequireOptions } from '../types.ts';
 import type {
@@ -182,7 +182,7 @@ ${this.getRequireAsyncAdvice(path)}`);
     return this.originalModulePrototypeRequireWrapped(id, options);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Overrides the base method and must share its params type.
   protected override async requireNodeBinaryAsync(params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams): Promise<unknown> {
     const {
       arrayBuffer,
@@ -211,7 +211,7 @@ ${this.getRequireAsyncAdvice(path)}`);
     return this.originalModulePrototypeRequireWrapped(id, options);
   }
 
-  // eslint-disable-next-line obsidian-dev-utils/params-options-name-match -- Overrides the base method and must share its params type.
+  // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Overrides the base method and must share its params type.
   protected override requireNonCached(params: RequireHandlerComponentBaseRequireNonCachedParams): unknown {
     const { id, options, type } = params;
     switch (type) {

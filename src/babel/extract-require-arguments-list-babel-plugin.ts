@@ -10,7 +10,7 @@ import {
   isProgram,
   isStringLiteral
 } from '@babel/types';
-import { nameof } from 'obsidian-dev-utils/object-utils';
+import { nameof } from '@mnaoumov/typescript-lib/object-utils';
 
 import type { RequireOptions } from '../types.ts';
 
@@ -123,11 +123,11 @@ function extractRequireArguments(callExpression: CallExpression): null | Require
       } else if (key === nameof<RequireOptions>('cacheInvalidationMode')) {
         // Validate against the enum's VALUES ('always'/'never'/'whenPossible'), which is what
         // callers pass, not its PascalCase keys.
-        if (!Object.values(CacheInvalidationMode).includes(value)) {
+        if (!isCacheInvalidationMode(value)) {
           return null;
         }
 
-        options.cacheInvalidationMode = value as CacheInvalidationMode;
+        options.cacheInvalidationMode = value;
       } else {
         return null;
       }
@@ -135,4 +135,8 @@ function extractRequireArguments(callExpression: CallExpression): null | Require
   }
 
   return { id, options };
+}
+
+function isCacheInvalidationMode(value: string): value is CacheInvalidationMode {
+  return Object.values(CacheInvalidationMode).includes(value);
 }

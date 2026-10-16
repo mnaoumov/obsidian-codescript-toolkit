@@ -5,7 +5,7 @@ import {
   configureCommunityPlugin,
   enableCommunityPlugin,
   installCommunityPlugin
-} from 'obsidian-dev-utils/obsidian/community-plugins';
+} from '@mnaoumov/obsidian-lib/community-plugins';
 
 const CODE_SCRIPT_TOOLKIT_PLUGIN_ID = 'fix-require-modules';
 const INVOKE_SCRIPT_COMMAND_ID_PREFIX = `${CODE_SCRIPT_TOOLKIT_PLUGIN_ID}:invoke-script-file-`;

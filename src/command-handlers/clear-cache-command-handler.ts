@@ -1,4 +1,4 @@
-import { GlobalCommandHandler } from 'obsidian-dev-utils/obsidian/command-handlers/global-command-handler';
+import { GlobalCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/global-command-handler';
 
 import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
 

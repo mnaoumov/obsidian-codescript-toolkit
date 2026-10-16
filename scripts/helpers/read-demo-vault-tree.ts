@@ -1,5 +1,6 @@
 import type { PopulateFilesParams } from 'obsidian-integration-testing';
 
+import { getRootFolder } from '@mnaoumov/typescript-dev-toolkit/root';
 import {
   readdirSync,
   readFileSync
@@ -10,7 +11,6 @@ import {
   sep
 } from 'node:path';
 import process from 'node:process';
-import { getRootFolder } from 'obsidian-dev-utils/script-utils/root';
 
 // Obsidian internals and repo tooling that must not be written into the test vault
 // (the harness provisions `.obsidian/plugins/<id>` itself).
