@@ -63,6 +63,13 @@ If you are not sure where to start, three notes cover most of it: [Core function
 
 The plugin is available in [the official Community Plugins repository](https://community.obsidian.md/plugins/fix-require-modules).
 
+### Requirements
+
+On mobile, the plugin runs on the device's own web engine, and it needs a modern one:
+
+- **iOS / iPadOS 16.4 or later.** Older versions cannot even load the plugin: it fails to enable with `Plugin failure: fix-require-modules`. Devices that cannot update past iOS 15, such as the iPad mini 4, are not supported.
+- **Android: an up-to-date [Android System WebView](https://play.google.com/store/apps/details?id=com.google.android.webview)** (version 97 or later). If the plugin fails to enable on Android, update that app first.
+
 ### Beta versions
 
 To install the latest beta release of this plugin (regardless if it is available in [the official Community Plugins repository](https://community.obsidian.md) or not), follow these steps:

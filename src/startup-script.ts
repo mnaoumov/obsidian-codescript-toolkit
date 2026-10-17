@@ -94,7 +94,17 @@ export class StartupScriptComponent extends LayoutReadyComponent {
       return;
     }
 
-    this.startupScript = await this.requireHandlerFactoryComponent.requireVaultScriptAsync(startupScriptPath) as StartupScript;
+    const startupScript = await this.requireHandlerFactoryComponent.requireVaultScriptAsync(startupScriptPath) as Partial<StartupScript>;
+    if (typeof startupScript.invoke !== 'function') {
+      // Without this check the script fails later with a bare `invoke is not a function`, which does not say which file or what to fix.
+      const message = `Startup script ${startupScriptPath} does not export an \`invoke()\` function. Add \`export async function invoke(app) { ... }\` to it.`;
+      this.pluginNoticeComponent.showNotice(message);
+      console.error(message);
+      this.startupScript = null;
+      return;
+    }
+
+    this.startupScript = startupScript as StartupScript;
   }
 
   private async validateStartupScript(shouldWarnOnNotConfigured = false): Promise<null | string> {
