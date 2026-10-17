@@ -323,6 +323,34 @@ describe('StartupScriptComponent', () => {
       }
     });
 
+    it('should report a clear error and not invoke when the script does not export invoke', async () => {
+      const SCRIPT_PATH = 'startup.js';
+      const mockCleanup = vi.fn().mockResolvedValue(undefined);
+      const expectedMessage = `Startup script ${SCRIPT_PATH} does not export an \`invoke()\` function. Add \`export async function invoke(app) { ... }\` to it.`;
+
+      mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue(SCRIPT_PATH);
+      mockApp.vault.exists.mockResolvedValue(true);
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        cleanup: mockCleanup
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        noop();
+      });
+
+      try {
+        await component.onloadAsync();
+        await expect(component.onLayoutReady()).resolves.toBeUndefined();
+        await component['cleanupStartupScript']();
+
+        expect(mockShowNotice).toHaveBeenCalledWith(expectedMessage);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expectedMessage);
+        expect(mockCleanup).not.toHaveBeenCalled();
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+
     it('should require the script when path is valid', async () => {
       const SCRIPT_PATH = 'startup.ts';
       const mockInvoke = vi.fn().mockResolvedValue(undefined);

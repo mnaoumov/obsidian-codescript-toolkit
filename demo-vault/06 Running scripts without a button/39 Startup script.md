@@ -44,6 +44,8 @@ export async function invoke(app: App): Promise<void> {
 
 ## Caveats
 
+The startup script must export `invoke()`. A script that only runs code at its top level, with no such export, is reported with a notice naming the file, and its `cleanup()` is never called.
+
 When `shouldExecuteOnLoad()` returns `true`, `invoke()` is awaited during startup — Obsidian waits for it before showing the UI, so slow work there delays the whole app.
 
 ## Platform support
