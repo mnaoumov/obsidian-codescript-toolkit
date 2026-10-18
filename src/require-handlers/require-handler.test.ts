@@ -603,6 +603,11 @@ describe('RequireHandlerComponentBase', () => {
       expect(result.resolvedId).toBe('obsidian/app?v=1');
     });
 
+    it('should resolve the retired obsidian-dev-utils and any of its subpaths as a special module', () => {
+      expect(handler.exposeResolve('obsidian-dev-utils').resolvedType).toBe(ResolvedType.SpecialModule);
+      expect(handler.exposeResolve('obsidian-dev-utils/obsidian/modals/alert?v=1').resolvedType).toBe(ResolvedType.SpecialModule);
+    });
+
     it('should resolve an http URL as Url type', () => {
       const result = handler.exposeResolve('https://example.com/mod.js');
       expect(result.resolvedType).toBe(ResolvedType.Url);
@@ -714,6 +719,20 @@ describe('RequireHandlerComponentBase', () => {
       expect(() => handler.exposeRequireSpecialModule('deprecated-mod', {})).toThrow(
         'Could not require module: deprecated-mod. Deprecated Obsidian built-in modules are no longer available.'
       );
+    });
+
+    it('should throw the retirement error for obsidian-dev-utils, naming the replacement', () => {
+      expect(() => handler.exposeRequireSpecialModule('obsidian-dev-utils/obsidian/modals/alert?v=1', {})).toThrow(
+        'Could not require module: obsidian-dev-utils/obsidian/modals/alert. obsidian-dev-utils is retired, and CodeScript Toolkit no longer bundles it. '
+          + 'Use @mnaoumov/obsidian-lib/modals/alert instead.'
+      );
+    });
+
+    it('should reject require and requireAsync of obsidian-dev-utils with the retirement error', async () => {
+      expect(() => {
+        window.require('obsidian-dev-utils');
+      }).toThrow('obsidian-dev-utils is retired');
+      await expect(handler.requireAsync('obsidian-dev-utils/async')).rejects.toThrow('Use @mnaoumov/typescript-lib/async instead.');
     });
 
     it('should delegate to requireAsarPackedModule for asar-packed module names', () => {

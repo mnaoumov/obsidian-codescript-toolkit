@@ -67,6 +67,10 @@ import { CODE_SCRIPT_BLOCK_LANGUAGE } from '../code-script-code-highlighter-comp
 import { CodeScriptToolkitModuleImpl } from '../code-script-toolkit-module-impl.ts';
 import { getCodeScriptToolkitNoteSettingsFromContent } from '../code-script-toolkit-note-settings.ts';
 import { registerLibraryModules } from '../library-modules.ts';
+import {
+  createRetiredLibraryModuleError,
+  isRetiredLibraryModuleId
+} from '../retired-library-module.ts';
 import { SPECIAL_MODULE_NAMES } from '../special-module-names.ts';
 import {
   CacheInvalidationMode,
@@ -595,6 +599,10 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
 
     const cleanId = splitQuery(id).cleanString;
+    if (isRetiredLibraryModuleId(cleanId)) {
+      throw createRetiredLibraryModuleError(cleanId);
+    }
+
     return this.specialModuleFactories.get(cleanId)?.(options);
   }
 
@@ -659,7 +667,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const id = toPosixPath(params.id);
 
     const cleanId = splitQuery(id).cleanString;
-    if (this.specialModuleFactories.has(cleanId)) {
+    if (this.specialModuleFactories.has(cleanId) || isRetiredLibraryModuleId(cleanId)) {
       return { resolvedId: id, resolvedType: ResolvedType.SpecialModule };
     }
 

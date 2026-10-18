@@ -15,10 +15,6 @@ const MOCK_ROOT_FUNC_RESULT = 'test';
 
 const mockGetNestedPropertyValue = vi.fn((_object: unknown, _path: unknown) => MOCK_NESTED_MODULE);
 
-vi.mock('obsidian-dev-utils', () => ({
-  someFunction: (): string => MOCK_ROOT_FUNC_RESULT
-}));
-
 vi.mock('@mnaoumov/obsidian-lib', () => ({
   obsidianLibFunction: (): string => MOCK_ROOT_FUNC_RESULT
 }));
@@ -31,27 +27,15 @@ vi.mock('@mnaoumov/typescript-lib/object-utils', () => ({
   getNestedPropertyValue: (object: unknown, path: unknown): unknown => mockGetNestedPropertyValue(object, path)
 }));
 
-vi.mock('../node_modules/obsidian-dev-utils/package.json', () => ({
+vi.mock('../node_modules/@mnaoumov/obsidian-lib/package.json', () => ({
   default: {
     exports: {
       '.': './dist/index.js',
       './@types/something': './dist/@types/something.js',
       './*': './dist/*.js',
-      './error': './dist/error.js',
-      './my-utils': './dist/my-utils.js',
-      './obsidian/file-manager': './dist/obsidian/file-manager.js',
+      './components': './dist/components/index.js',
+      './file-manager/my-utils': './dist/file-manager/my-utils.js',
       './script-utils': './dist/script-utils.js'
-    },
-    name: 'obsidian-dev-utils'
-  }
-}));
-
-vi.mock('../node_modules/@mnaoumov/obsidian-lib/package.json', () => ({
-  default: {
-    exports: {
-      '.': './dist/index.js',
-      './*': './dist/*.js',
-      './components': './dist/components/index.js'
     },
     name: '@mnaoumov/obsidian-lib'
   }
@@ -62,6 +46,7 @@ vi.mock('../node_modules/@mnaoumov/typescript-lib/package.json', () => ({
     exports: {
       '.': './dist/index.js',
       './@types/*': './dist/@types/*.js',
+      './my-utils': './dist/my-utils.js',
       './transformers': './dist/transformers/index.js'
     },
     name: '@mnaoumov/typescript-lib'
@@ -76,14 +61,6 @@ describe('registerLibraryModules', () => {
     mockGetNestedPropertyValue.mockClear();
   });
 
-  it('should register the root obsidian-dev-utils module', () => {
-    registerLibraryModules(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils');
-    expect(factory).toBeDefined();
-    const module = factory?.({});
-    expect(module).toEqual({ someFunction: expect.any(Function) as unknown });
-  });
-
   it('should register the root @mnaoumov/obsidian-lib module', () => {
     registerLibraryModules(specialModuleFactories);
     const module = specialModuleFactories.get('@mnaoumov/obsidian-lib')?.({});
@@ -96,29 +73,19 @@ describe('registerLibraryModules', () => {
     expect(module).toEqual({ typescriptLibFunction: expect.any(Function) as unknown });
   });
 
-  it('should register individual exports of the root module', () => {
+  it('should no longer register obsidian-dev-utils', () => {
     registerLibraryModules(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils/someFunction');
-    expect(factory).toBeDefined();
-    const value = factory?.({});
-    expect(typeof value).toBe('function');
+    const hasRetiredLibrary = [...specialModuleFactories.keys()].some((key) => key.startsWith('obsidian-dev-utils'));
+    expect(hasRetiredLibrary).toBe(false);
   });
 
-  it('should register individual exports of the @mnaoumov root modules', () => {
+  it('should register individual exports of the root modules', () => {
     registerLibraryModules(specialModuleFactories);
-    expect(specialModuleFactories.has('@mnaoumov/obsidian-lib/obsidianLibFunction')).toBe(true);
+    expect(typeof specialModuleFactories.get('@mnaoumov/obsidian-lib/obsidianLibFunction')?.({})).toBe('function');
     expect(specialModuleFactories.has('@mnaoumov/typescript-lib/typescriptLibFunction')).toBe(true);
   });
 
   it('should register non-root export paths with their individual exports', () => {
-    registerLibraryModules(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils/error/nestedFunction');
-    expect(factory).toBeDefined();
-    const value = factory?.({});
-    expect(value).toBe(MOCK_NESTED_MODULE.nestedFunction);
-  });
-
-  it('should register non-root export paths of the @mnaoumov modules', () => {
     registerLibraryModules(specialModuleFactories);
     expect(specialModuleFactories.get('@mnaoumov/obsidian-lib/components/nestedFunction')?.({})).toBe(MOCK_NESTED_MODULE.nestedFunction);
     expect(specialModuleFactories.get('@mnaoumov/typescript-lib/transformers/nestedFunction')?.({})).toBe(MOCK_NESTED_MODULE.nestedFunction);
@@ -154,19 +121,13 @@ describe('registerLibraryModules', () => {
     registerLibraryModules(specialModuleFactories);
     expect(mockGetNestedPropertyValue).toHaveBeenCalledWith(
       expect.anything(),
-      'obsidian.file-manager'
+      'file-manager.my-utils'
     );
   });
 
   it('should use the requireId with the original kebab-case path', () => {
     registerLibraryModules(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils/my-utils/nestedFunction');
-    expect(factory).toBeDefined();
-  });
-
-  it('should register nested kebab-case module exports', () => {
-    registerLibraryModules(specialModuleFactories);
-    const factory = specialModuleFactories.get('obsidian-dev-utils/obsidian/file-manager/nestedFunction');
-    expect(factory).toBeDefined();
+    expect(specialModuleFactories.has('@mnaoumov/typescript-lib/my-utils/nestedFunction')).toBe(true);
+    expect(specialModuleFactories.has('@mnaoumov/obsidian-lib/file-manager/my-utils/nestedFunction')).toBe(true);
   });
 });

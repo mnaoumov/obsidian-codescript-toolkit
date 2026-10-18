@@ -204,17 +204,22 @@ describe('RequireHandler Android integration', () => {
       expect(result.hasObsidianBuiltIn).toBe(true);
     });
 
-    it('should requireAsync obsidian-dev-utils on Android', async () => {
+    it('should reject requireAsync of obsidian-dev-utils with the retirement error on Android', async () => {
       const result = await evalInObsidian({
         async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          const module_ = await requireAsync('obsidian-dev-utils');
-          return { hasKeys: Object.keys(module_ as object).length > 0 };
+          try {
+            await requireAsync('obsidian-dev-utils/obsidian/modals/alert');
+            return { message: '' };
+          } catch (error) {
+            return { message: (error as Error).message };
+          }
         },
         vaultPath: vaultPath()
       });
 
-      expect(result.hasKeys).toBe(true);
+      expect(result.message).toContain('obsidian-dev-utils is retired');
+      expect(result.message).toContain('Use @mnaoumov/obsidian-lib/modals/alert instead.');
     });
 
     it('should resolve relative paths via requireAsync on Android', async () => {
