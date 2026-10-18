@@ -489,17 +489,22 @@ describe('RequireHandler integration', () => {
       expect(result.hasObsidianBuiltIn).toBe(true);
     });
 
-    it('should require obsidian-dev-utils synchronously via global require()', async () => {
+    it('should throw the retirement error for obsidian-dev-utils via global require()', async () => {
       const result = await evalInObsidian({
         callback() {
           const requireFunction = Reflect.get(window, 'require') as RequireFunction;
-          const module_ = requireFunction('obsidian-dev-utils') as object;
-          return { hasKeys: Object.keys(module_).length > 0 };
+          try {
+            requireFunction('obsidian-dev-utils/obsidian/modals/alert');
+            return { message: '' };
+          } catch (error) {
+            return { message: (error as Error).message };
+          }
         },
         vaultPath: vaultPath()
       });
 
-      expect(result.hasKeys).toBe(true);
+      expect(result.message).toContain('obsidian-dev-utils is retired');
+      expect(result.message).toContain('Use @mnaoumov/obsidian-lib/modals/alert instead.');
     });
 
     it('should require Node built-in module synchronously via global require()', async () => {
@@ -645,17 +650,44 @@ describe('RequireHandler integration', () => {
       expect(result.hasWorkspace).toBe(true);
     });
 
-    it('should require obsidian-dev-utils module', async () => {
+    it('should reject requireAsync of obsidian-dev-utils with the retirement error', async () => {
       const result = await evalInObsidian({
         async callback() {
           const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
-          const module_ = await requireAsync('obsidian-dev-utils');
-          return { hasKeys: Object.keys(module_ as object).length > 0 };
+          try {
+            await requireAsync('obsidian-dev-utils');
+            return { message: '' };
+          } catch (error) {
+            return { message: (error as Error).message };
+          }
         },
         vaultPath: vaultPath()
       });
 
-      expect(result.hasKeys).toBe(true);
+      expect(result.message).toContain('obsidian-dev-utils is retired');
+      expect(result.message).toContain('Use @mnaoumov/obsidian-lib and @mnaoumov/typescript-lib instead.');
+    });
+
+    it('should reject an import of obsidian-dev-utils in a vault script with the retirement error', async () => {
+      const result = await evalInObsidian({
+        async callback({ app, directory }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const scriptPath = `${directory}/retired-import.ts`;
+          await app.vault.adapter.write(scriptPath, 'import { sleep } from \'obsidian-dev-utils/async\';\nexport const value = sleep;\n');
+          try {
+            await requireAsync(`//${scriptPath}`);
+            return { message: '' };
+          } catch (error) {
+            // The script loader wraps whatever its module threw in `Failed to load module`, so the retirement error is the cause.
+            return { message: ((error as Error).cause as Error | undefined)?.message ?? '' };
+          }
+        },
+        input: { directory: SCRIPTS_DIR },
+        vaultPath: vaultPath()
+      });
+
+      expect(result.message).toContain('obsidian-dev-utils is retired');
+      expect(result.message).toContain('Use @mnaoumov/typescript-lib/async instead.');
     });
 
     it('should require the @mnaoumov/obsidian-lib and @mnaoumov/typescript-lib modules', async () => {

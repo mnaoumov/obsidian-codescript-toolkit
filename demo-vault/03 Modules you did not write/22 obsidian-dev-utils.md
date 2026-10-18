@@ -27,21 +27,14 @@ require('@mnaoumov/typescript-lib/async');
 
 ## Caveats
 
-[Obsidian Dev Utils](https://github.com/mnaoumov/obsidian-dev-utils/), the library these two replace, still works the same way, so existing scripts keep running. It is no longer developed, so prefer the new names in new scripts:
+[Obsidian Dev Utils](https://github.com/mnaoumov/obsidian-dev-utils/), the library these two replace, is retired and no longer ships with the plugin. A script that still requires or imports it fails with an error naming the module to use instead. Rename the imports like this:
 
-```code-button
----
-caption: 'Require obsidian-dev-utils module'
----
-const { alert } = require('obsidian-dev-utils/obsidian/modals/alert');
+| Old import                        | New import                     |
+| --------------------------------- | ------------------------------ |
+| `obsidian-dev-utils/obsidian/<x>` | `@mnaoumov/obsidian-lib/<x>`   |
+| `obsidian-dev-utils/<x>`          | `@mnaoumov/typescript-lib/<x>` |
 
-await alert({
-  app,
-  message: 'Require obsidian-dev-utils module example'
-});
-```
-
-Its [script-utils](https://github.com/mnaoumov/obsidian-dev-utils/tree/107.0.0/src/script-utils) is not available — it is build tooling meant for Node, not for code running inside Obsidian.
+For example, `require('obsidian-dev-utils/obsidian/modals/alert')` becomes `require('@mnaoumov/obsidian-lib/modals/alert')`. The library's own [import map](https://github.com/mnaoumov/obsidian-dev-utils#import-map) lists the few modules that moved elsewhere. Its `script-utils` has no replacement here — it was build tooling meant for Node, not for code running inside Obsidian.
 
 ## Platform support
 
