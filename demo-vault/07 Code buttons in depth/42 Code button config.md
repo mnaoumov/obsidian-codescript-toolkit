@@ -25,7 +25,7 @@ sourceVisibility: hidden
 ```
 ````
 
-Rather than typing that, run **CodeScript Toolkit: Insert sample code button** to drop a fresh block at the cursor.
+Rather than typing that, run **`CodeScript Toolkit`: Insert sample code button** to drop a fresh block at the cursor.
 
 ## Override default button config
 

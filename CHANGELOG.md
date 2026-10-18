@@ -625,7 +625,7 @@
 
 ## 8.19.0
 
-- Rename Refresh Any View
+- Rename `Refresh Any View`
 - Add raw mode (#19)
 
 ## 8.18.3
