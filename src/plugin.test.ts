@@ -33,10 +33,6 @@ vi.mock('@mnaoumov/obsidian-lib/markdown-code-block-processor-registrar', () => 
   PluginMarkdownCodeBlockProcessorRegistrar: vi.fn()
 }));
 
-vi.mock('@mnaoumov/obsidian-lib/obsidian-protocol-handler-registrar', () => ({
-  PluginObsidianProtocolHandlerRegistrar: vi.fn()
-}));
-
 vi.mock('@mnaoumov/obsidian-lib/components/plugin-settings-tab-component', () => ({
   PluginSettingsTabComponent: vi.fn()
 }));

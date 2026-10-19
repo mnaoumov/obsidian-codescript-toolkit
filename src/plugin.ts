@@ -3,7 +3,6 @@ import { OpenSettingsCommandHandler } from '@mnaoumov/obsidian-lib/command-handl
 import { PluginSettingsTabComponent } from '@mnaoumov/obsidian-lib/components/plugin-settings-tab-component';
 import { PluginDataHandler } from '@mnaoumov/obsidian-lib/data-handler';
 import { PluginMarkdownCodeBlockProcessorRegistrar } from '@mnaoumov/obsidian-lib/markdown-code-block-processor-registrar';
-import { PluginObsidianProtocolHandlerRegistrar } from '@mnaoumov/obsidian-lib/obsidian-protocol-handler-registrar';
 import { PluginBase } from '@mnaoumov/obsidian-lib/plugin/plugin';
 import { PluginEventSourceImpl } from '@mnaoumov/obsidian-lib/plugin/plugin-event-source';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
@@ -155,8 +154,8 @@ export class Plugin extends PluginBase {
 
     this.addChild(
       new ProtocolHandlerComponent({
+        app: this.app,
         consoleDebugComponent: this.consoleDebugComponent,
-        obsidianProtocolHandlerRegistrar: new PluginObsidianProtocolHandlerRegistrar(this),
         pluginSettingsComponent,
         RequireHandlerFactoryComponent: requireHandlerFactory
       })

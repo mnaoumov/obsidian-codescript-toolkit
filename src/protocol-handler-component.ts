@@ -1,6 +1,8 @@
 import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
-import type { ObsidianProtocolHandlerRegistrar } from '@mnaoumov/obsidian-lib/obsidian-protocol-handler-registrar';
-import type { ObsidianProtocolData } from 'obsidian';
+import type {
+  App,
+  ObsidianProtocolData
+} from 'obsidian';
 
 import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
 import { toJson } from '@mnaoumov/typescript-lib/object-utils';
@@ -20,8 +22,8 @@ interface InvokeModuleFunctionParams {
 }
 
 interface ProtocolHandlerComponentConstructorParams {
+  readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
-  readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 }
@@ -39,23 +41,35 @@ interface WindowWithRequireAsync {
 }
 
 export class ProtocolHandlerComponent extends ComponentEx {
+  private readonly app: App;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
-  private readonly obsidianProtocolHandlerRegistrar: ObsidianProtocolHandlerRegistrar;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 
   public constructor(params: ProtocolHandlerComponentConstructorParams) {
     super();
+    this.app = params.app;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.consoleDebugComponent = params.consoleDebugComponent;
-    this.obsidianProtocolHandlerRegistrar = params.obsidianProtocolHandlerRegistrar;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
   }
 
   public override onload(): void {
-    this.obsidianProtocolHandlerRegistrar.registerObsidianProtocolHandler({
-      action: PROTOCOL_HANDLER_ACTION,
-      handler: this.processQuery.bind(this)
+    // `Plugin.registerObsidianProtocolHandler` ties the unregister to the plugin's own `_events`, which `Component.unload` runs only
+    // after every child unloaded without throwing. So a plugin instance whose unload threw leaves its handler behind, and the next
+    // instance's registration throws `Action "CodeScriptToolkit" is already registered as a handler.`, failing the whole plugin load.
+    // Registering against this component's lifetime, after dropping such a leftover, makes the registration idempotent.
+    const workspace = this.app.workspace;
+    const staleHandler = workspace.protocolHandler.handlers.get(PROTOCOL_HANDLER_ACTION);
+    if (staleHandler) {
+      console.warn(`Replacing the stale "${PROTOCOL_HANDLER_ACTION}" protocol handler left behind by a previous plugin instance.`);
+      workspace.unregisterObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, staleHandler);
+    }
+
+    const handler = this.processQuery.bind(this);
+    workspace.registerObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, handler);
+    this.register(() => {
+      workspace.unregisterObsidianProtocolHandler(PROTOCOL_HANDLER_ACTION, handler);
     });
   }
 
