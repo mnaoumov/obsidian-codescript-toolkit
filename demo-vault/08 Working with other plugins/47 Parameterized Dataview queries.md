@@ -73,7 +73,7 @@ export async function runQuery(app, queryModulePath, query) {
 }
 ```
 
-The shipped file adds the validation, the tab reuse and the refresh nudge this excerpt leaves out — open `_assets/CodeScriptToolkit/queryDispatcher.ts` to read it. `getFrontmatterSafe()` comes from [`@mnaoumov/obsidian-lib`](<../03 Modules you did not write/22 obsidian-dev-utils.md>) and waits for the metadata cache to catch up, so the query just written is the one read back.
+The shipped file adds the validation, the tab reuse and the refresh nudge this excerpt leaves out — open `_assets/CodeScriptToolkit/queryDispatcher.ts` to read it. `getFrontmatterSafe()` comes from [`@mnaoumov/obsidian-lib`](<../03 Modules you did not write/22 obsidian-lib and typescript-lib.md>) and waits for the metadata cache to catch up, so the query just written is the one read back.
 
 **The query module** — anything exporting `runQuery`. This is the whole of `/QueryModules/notesInFolder.ts`:
 

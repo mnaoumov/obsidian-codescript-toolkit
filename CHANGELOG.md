@@ -2,7 +2,7 @@
 
 ## 14.0.0
 
-- feat!: requiring or importing `obsidian-dev-utils` now throws an error naming its replacement. The library is retired and no longer ships with the plugin. Rename `obsidian-dev-utils/obsidian/<x>` to `@mnaoumov/obsidian-lib/<x>`, and any other `obsidian-dev-utils/<x>` to `@mnaoumov/typescript-lib/<x>`. See the [migration note](<https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/03%20Modules%20you%20did%20not%20write/22%20obsidian-dev-utils.md#caveats>) for details.
+- feat!: requiring or importing `obsidian-dev-utils` now throws an error naming its replacement. The library is retired and no longer ships with the plugin. Rename `obsidian-dev-utils/obsidian/<x>` to `@mnaoumov/obsidian-lib/<x>`, and any other `obsidian-dev-utils/<x>` to `@mnaoumov/typescript-lib/<x>`. See the [migration note](<https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/obsidian-dev-utils.md>) for details.
 - fix(startup-script): name the file when a startup script does not export `invoke()`
 - chore(github): point questions to Discussions from the new-issue page
 - ci: attest release assets through the toolkit's reusable workflow
