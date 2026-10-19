@@ -111,4 +111,59 @@ describe('ProtocolHandler integration', () => {
     expect(result.executed).toBe(true);
     expect(result.codeResult).toBe('executed');
   });
+
+  it('should unregister the protocol handler when the plugin is disabled', async () => {
+    const result = await evalInObsidian({
+      async callback({ app, pluginId }) {
+        const workspaceUnknown: unknown = app.workspace;
+        const workspaceWithProtocolHandler = workspaceUnknown as WorkspaceWithProtocolHandler;
+        await app.plugins.disablePlugin(pluginId);
+        const isRegisteredWhileDisabled = workspaceWithProtocolHandler.protocolHandler.handlers.has('CodeScriptToolkit');
+        await app.plugins.enablePlugin(pluginId);
+        const PLUGIN_LOAD_DELAY_MS = 2000;
+        await sleep(PLUGIN_LOAD_DELAY_MS);
+        return {
+          isRegisteredAfterEnable: workspaceWithProtocolHandler.protocolHandler.handlers.has('CodeScriptToolkit'),
+          isRegisteredWhileDisabled
+        };
+      },
+      input: { pluginId: PLUGIN_ID },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.isRegisteredWhileDisabled).toBe(false);
+    expect(result.isRegisteredAfterEnable).toBe(true);
+  });
+
+  it('should load despite a handler left behind by a previous instance that did not unload cleanly', async () => {
+    const result = await evalInObsidian({
+      async callback({ app, pluginId }) {
+        const workspaceUnknown: unknown = app.workspace;
+        const workspaceWithProtocolHandler = workspaceUnknown as WorkspaceWithProtocolHandler;
+        const handlers = workspaceWithProtocolHandler.protocolHandler.handlers;
+        await app.plugins.disablePlugin(pluginId);
+
+        // What an instance whose unload threw before its protocol-handler cleanup leaves behind.
+        function staleHandler(): void {
+          Reflect.set(window, '__protoStaleInvoked', 'yes');
+        }
+        handlers.set('CodeScriptToolkit', staleHandler);
+
+        await app.plugins.enablePlugin(pluginId);
+        const PLUGIN_LOAD_DELAY_MS = 2000;
+        await sleep(PLUGIN_LOAD_DELAY_MS);
+
+        const handler = handlers.get('CodeScriptToolkit');
+        return {
+          isPluginLoaded: app.plugins.getPlugin(pluginId) !== null,
+          isReplaced: handler !== undefined && handler !== staleHandler
+        };
+      },
+      input: { pluginId: PLUGIN_ID },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.isPluginLoaded).toBe(true);
+    expect(result.isReplaced).toBe(true);
+  });
 });

@@ -1,6 +1,9 @@
 import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
-import type { ObsidianProtocolHandlerRegistrar } from '@mnaoumov/obsidian-lib/obsidian-protocol-handler-registrar';
-import type { ObsidianProtocolData } from 'obsidian';
+import type {
+  ObsidianProtocolData,
+  ObsidianProtocolHandler,
+  Workspace
+} from 'obsidian';
 import type { Mock } from 'vitest';
 
 import {
@@ -8,7 +11,10 @@ import {
   noop
 } from '@mnaoumov/typescript-lib/function';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
-import { ensureGenericObject } from '@mnaoumov/typescript-lib/type-guards';
+import {
+  ensureGenericObject,
+  ensureNonNullable
+} from '@mnaoumov/typescript-lib/type-guards';
 import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import { App } from 'obsidian';
 import {
@@ -32,7 +38,7 @@ describe('ProtocolHandlerComponent', () => {
   let component: ProtocolHandlerComponent;
   let mockRequireStringAsync: Mock<RequireHandlerFactoryComponent['requireStringAsync']>;
   let mockDebug: Mock<(message: string, ...$arguments: unknown[]) => void>;
-  let mockRegisterObsidianProtocolHandler: Mock<ObsidianProtocolHandlerRegistrar['registerObsidianProtocolHandler']>;
+  let handlers: Map<string, ObsidianProtocolHandler>;
   let registeredHandler: (query: ObsidianProtocolData) => Promise<void>;
   let mockSettings: MockSettings;
 
@@ -41,14 +47,34 @@ describe('ProtocolHandlerComponent', () => {
 
     mockRequireStringAsync = vi.fn().mockResolvedValue(undefined);
     mockDebug = vi.fn();
-    mockRegisterObsidianProtocolHandler = vi.fn();
+    handlers = new Map();
     mockSettings = { shouldHandleProtocolUrls: true };
 
-    component = new ProtocolHandlerComponent({
+    component = createComponent();
+    component.load();
+    registeredHandler = ensureNonNullable(handlers.get('CodeScriptToolkit')) as (query: ObsidianProtocolData) => Promise<void>;
+  });
+
+  function createComponent(): ProtocolHandlerComponent {
+    // Mirrors Obsidian's `WorkspaceProtocolHandler`: a duplicate action throws, and an unregister removes only the handler it names.
+    const workspace = strictProxy<Workspace>({
+      protocolHandler: strictProxy<Workspace['protocolHandler']>({ handlers }),
+      registerObsidianProtocolHandler(action: string, handler: ObsidianProtocolHandler): void {
+        if (handlers.has(action)) {
+          throw new Error(`Action "${action}" is already registered as a handler.`);
+        }
+        handlers.set(action, handler);
+      },
+      unregisterObsidianProtocolHandler(action: string, handler: ObsidianProtocolHandler): void {
+        if (handlers.get(action) === handler) {
+          handlers.delete(action);
+        }
+      }
+    });
+
+    return new ProtocolHandlerComponent({
+      app: strictProxy<App>({ workspace }),
       consoleDebugComponent: strictProxy<ConsoleDebugComponent>({ consoleDebug: mockDebug }),
-      obsidianProtocolHandlerRegistrar: strictProxy<ObsidianProtocolHandlerRegistrar>({
-        registerObsidianProtocolHandler: mockRegisterObsidianProtocolHandler
-      }),
       pluginSettingsComponent: strictProxy<PluginSettingsComponent>({
         settings: strictProxy<PluginSettingsComponent['settings']>(mockSettings)
       }),
@@ -56,17 +82,42 @@ describe('ProtocolHandlerComponent', () => {
         requireStringAsync: mockRequireStringAsync
       })
     });
-
-    component.load();
-    registeredHandler = mockRegisterObsidianProtocolHandler.mock.calls[0]?.[0]?.handler as (query: ObsidianProtocolData) => Promise<void>;
-  });
+  }
 
   describe('onload', () => {
     it('should register a protocol handler with the correct action name', () => {
-      expect(mockRegisterObsidianProtocolHandler).toHaveBeenCalledWith({
-        action: 'CodeScriptToolkit',
-        handler: expect.any(Function) as unknown
+      expect(handlers.get('CodeScriptToolkit')).toEqual(expect.any(Function));
+    });
+
+    it('should unregister the handler when the component unloads', () => {
+      component.unload();
+      expect(handlers.has('CodeScriptToolkit')).toBe(false);
+    });
+
+    it('should register again after an unload and reload', () => {
+      component.unload();
+      component.load();
+      expect(handlers.get('CodeScriptToolkit')).toEqual(expect.any(Function));
+    });
+
+    it('should replace a stale handler left behind by a previous instance instead of throwing', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+        noop();
       });
+      const secondComponent = createComponent();
+
+      expect(() => {
+        secondComponent.load();
+      }).not.toThrow();
+      expect(warnSpy).toHaveBeenCalledWith('Replacing the stale "CodeScriptToolkit" protocol handler left behind by a previous plugin instance.');
+      expect(handlers.get('CodeScriptToolkit')).not.toBe(registeredHandler);
+
+      component.unload();
+      expect(handlers.has('CodeScriptToolkit')).toBe(true);
+
+      secondComponent.unload();
+      expect(handlers.has('CodeScriptToolkit')).toBe(false);
+      warnSpy.mockRestore();
     });
   });
 
