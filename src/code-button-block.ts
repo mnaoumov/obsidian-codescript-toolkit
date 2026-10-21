@@ -1,4 +1,5 @@
 import type { CodeBlockMarkdownInformation } from '@mnaoumov/obsidian-lib/code-block-markdown-information';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { MarkdownCodeBlockProcessorRegistrar } from '@mnaoumov/obsidian-lib/markdown-code-block-processor-registrar';
 import type { ResourceLockComponent } from '@mnaoumov/obsidian-lib/resource-lock';
 import type {
@@ -34,7 +35,6 @@ import {
   MarkdownRenderer,
   MarkdownView,
   Menu,
-  Notice,
   parseYaml,
   setIcon,
   stringifyYaml
@@ -94,6 +94,7 @@ let lastButtonIndex = 0;
 interface CodeButtonBlockComponentConstructorParams {
   readonly app: App;
   readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
+  readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   readonly resourceLockComponent: null | ResourceLockComponent;
@@ -131,6 +132,7 @@ interface MakeWrapperScriptParams {
 export class CodeButtonBlockComponent extends ComponentEx {
   private readonly app: App;
   private readonly markdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
+  private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly RequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   private readonly resourceLockComponent: null | ResourceLockComponent;
@@ -142,6 +144,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     this.app = params.app;
     this.resourceLockComponent = params.resourceLockComponent;
     this.markdownCodeBlockProcessorRegistrar = params.markdownCodeBlockProcessorRegistrar;
+    this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.RequireHandlerFactoryComponent = params.RequireHandlerFactoryComponent;
     // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
@@ -399,7 +402,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
   private async revealInNote(markdownInfo: CodeBlockMarkdownInformation): Promise<void> {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view) {
-      new Notice('Cannot reveal the code button block: there is no active note.');
+      this.pluginNoticeComponent.showNotice('Cannot reveal the code button block: there is no active note.');
       return;
     }
 
@@ -418,7 +421,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
         .setTitle('Copy source')
         .onClick(convertAsyncToSync(async () => {
           await activeWindow.navigator.clipboard.writeText(code);
-          new Notice('Code button source copied to the clipboard.');
+          this.pluginNoticeComponent.showNotice('Code button source copied to the clipboard.');
         }));
     });
 
