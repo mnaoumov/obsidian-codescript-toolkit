@@ -75,6 +75,7 @@ export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
     when: 'never'
   },
   shouldAutoOutput: true,
+  shouldAutoOutputUndefined: false,
   shouldAutoRun: false,
   shouldAutoScrollToConsoleMessages: true,
   shouldShowSystemMessages: true,
@@ -121,6 +122,7 @@ interface CodeButtonBlockComponentShowButtonMenuParams {
 
 interface MakeWrapperScriptParams {
   readonly shouldAutoOutput: boolean;
+  readonly shouldAutoOutputUndefined: boolean;
   readonly source: string;
   readonly sourceFileName: string;
   readonly sourceFolder: string;
@@ -175,6 +177,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     try {
       const script = makeWrapperScript({
         shouldAutoOutput: params.codeButtonContext.config.shouldAutoOutput,
+        shouldAutoOutputUndefined: params.codeButtonContext.config.shouldAutoOutputUndefined,
         source: params.code,
         sourceFileName: `${basename(params.codeButtonContext.sourceFile.path)}.code-button.${String(params.buttonIndex)}.${params.escapedCaption}.ts`,
         sourceFolder: dirname(params.codeButtonContext.sourceFile.path)
@@ -478,13 +481,14 @@ function getBooleanArgument(codeBlockArguments: string[], argumentName: string):
 function makeWrapperScript(params: MakeWrapperScriptParams): string {
   const {
     shouldAutoOutput,
+    shouldAutoOutputUndefined,
     source,
     sourceFileName,
     sourceFolder
   } = params;
   const result = new SequentialBabelPlugin([
     new ConvertToCommonJsBabelPlugin(),
-    new WrapForCodeBlockBabelPlugin(shouldAutoOutput),
+    new WrapForCodeBlockBabelPlugin({ shouldAutoOutput, shouldAutoOutputUndefined }),
     new ReplaceDynamicImportBabelPlugin()
   ]).transform({
     code: source,

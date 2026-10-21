@@ -15,6 +15,7 @@ removeAfterExecution:
   shouldKeepGap: false
   when: never
 shouldAutoOutput: true
+shouldAutoOutputUndefined: false
 shouldAutoRun: false
 shouldAutoScrollToConsoleMessages: true
 shouldShowSystemMessages: true
@@ -151,6 +152,30 @@ shouldAutoOutput: false
 1 + 2;
 3 + 4;
 5 + 6; // this will NOT be displayed in the results panel
+```
+````
+
+## `shouldAutoOutputUndefined` - Auto output undefined
+
+Auto output skips a last expression that evaluates to `undefined`, so a button ending with a call that returns nothing — `await doSomething();`, or a closing `console.log()` — does not print a bare `undefined` under its own output.
+
+````markdown
+```code-button
+---
+shouldAutoOutputUndefined: false # default
+---
+console.log('Done'); // the panel shows `Done` only
+```
+````
+
+Set it to `true` to echo `undefined` too, exactly as the [`DevTools Console`][DevTools Console] does. It has no effect while `shouldAutoOutput` is `false`.
+
+````markdown
+```code-button
+---
+shouldAutoOutputUndefined: true
+---
+console.log('Done'); // the panel shows `Done`, then `undefined`
 ```
 ````
 

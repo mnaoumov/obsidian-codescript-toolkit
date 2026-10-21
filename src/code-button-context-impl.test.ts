@@ -141,6 +141,7 @@ function createMockConfig(overrides: Partial<CodeButtonBlockConfig> = {}): CodeB
     isRaw: false,
     removeAfterExecution: { shouldKeepGap: false, when: 'never' },
     shouldAutoOutput: true,
+    shouldAutoOutputUndefined: false,
     shouldAutoRun: false,
     shouldAutoScrollToConsoleMessages: true,
     shouldShowSystemMessages: true,

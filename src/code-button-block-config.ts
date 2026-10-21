@@ -61,6 +61,17 @@ export interface CodeButtonBlockConfig {
   shouldAutoOutput: boolean;
 
   /**
+   * Whether [auto output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#shouldautooutputundefined---auto-output-undefined) also prints a last expression that evaluates to `undefined`, the way the `DevTools Console` does.
+   *
+   * Off by default, so a button ending with a call that returns nothing does not print `undefined`.
+   *
+   * Has no effect unless {@link CodeButtonBlockConfig.shouldAutoOutput} is `true`.
+   *
+   * @default `false`
+   */
+  shouldAutoOutputUndefined: boolean;
+
+  /**
    * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#shouldautorun---auto-running-code-blocks-mode) without pressing the button.
    */
   shouldAutoRun: boolean;

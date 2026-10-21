@@ -1,17 +1,45 @@
 import {
   describe,
   expect,
-  it
+  it,
+  vi
 } from 'vitest';
 
 import { WrapForCodeBlockBabelPlugin } from './wrap-for-code-block-babel-plugin.ts';
 
 const TEST_FILENAME = 'test.ts';
 
+interface RunResult {
+  readonly logged: unknown[][];
+}
+
+function createPlugin(shouldAutoOutput: boolean, shouldAutoOutputUndefined = false): WrapForCodeBlockBabelPlugin {
+  return new WrapForCodeBlockBabelPlugin({ shouldAutoOutput, shouldAutoOutputUndefined });
+}
+
+async function run(plugin: WrapForCodeBlockBabelPlugin, code: string): Promise<RunResult> {
+  const result = plugin.transform({ code, filename: TEST_FILENAME });
+  expect(result.error).toBeUndefined();
+
+  const logged: unknown[][] = [];
+  const fakeConsole = {
+    log: vi.fn((...loggedValues: unknown[]) => {
+      logged.push(loggedValues);
+    })
+  };
+  const fakeWindow = { console: fakeConsole };
+  const wrapperModule = { exports: undefined as unknown };
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func -- Runs the generated wrapper the way the plugin's require does, with `console` and `window` stubbed.
+  const evaluateWrapper = new Function('module', 'window', 'console', result.transformedCode) as (wrapperModule: unknown, window: unknown, console: unknown) => void;
+  evaluateWrapper(wrapperModule, fakeWindow, fakeConsole);
+  await (wrapperModule.exports as (context: unknown) => Promise<void>)({ app: {}, console: fakeConsole });
+  return { logged };
+}
+
 describe('WrapForCodeBlockBabelPlugin', () => {
   describe('shouldAutoOutput=true', () => {
     it('should wrap the last expression statement in console.log', () => {
-      const plugin = new WrapForCodeBlockBabelPlugin(true);
+      const plugin = createPlugin(true);
       const result = plugin.transform({ code: '1 + 2;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('console.log');
@@ -19,7 +47,7 @@ describe('WrapForCodeBlockBabelPlugin', () => {
     });
 
     it('should not wrap non-expression last statement (if statement)', () => {
-      const plugin = new WrapForCodeBlockBabelPlugin(true);
+      const plugin = createPlugin(true);
       const result = plugin.transform({ code: 'if (true) { console.log("hi"); }', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('if');
@@ -28,28 +56,82 @@ describe('WrapForCodeBlockBabelPlugin', () => {
     });
 
     it('should handle empty program body', () => {
-      const plugin = new WrapForCodeBlockBabelPlugin(true);
+      const plugin = createPlugin(true);
       const result = plugin.transform({ code: '', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       // With empty body + shouldAutoOutput, convertToExpression(undefined) returns identifier('undefined')
       expect(result.transformedCode).toContain('console.log');
     });
+
+    it('should output a defined last value', async () => {
+      const { logged } = await run(createPlugin(true), '1 + 2;\n5 + 6;');
+      expect(logged).toEqual([[11]]);
+    });
+
+    it('should output an awaited last value', async () => {
+      const { logged } = await run(createPlugin(true), 'await Promise.resolve(42);');
+      expect(logged).toEqual([[42]]);
+    });
+
+    it('should output null', async () => {
+      const { logged } = await run(createPlugin(true), 'null;');
+      expect(logged).toEqual([[null]]);
+    });
+
+    describe('shouldAutoOutputUndefined=false', () => {
+      it('should not output an undefined last value', async () => {
+        const { logged } = await run(createPlugin(true), 'await Promise.resolve();');
+        expect(logged).toEqual([]);
+      });
+
+      it('should not output undefined after a trailing console.log', async () => {
+        const { logged } = await run(createPlugin(true), 'console.log(\'x\');');
+        expect(logged).toEqual([['x']]);
+      });
+
+      it('should not output anything for an empty block', async () => {
+        const { logged } = await run(createPlugin(true), '');
+        expect(logged).toEqual([]);
+      });
+
+      it('should not clash with a script variable of the helper parameter name', async () => {
+        const { logged } = await run(createPlugin(true), 'const __codeButtonAutoOutputValue = 5;\n__codeButtonAutoOutputValue + 1;');
+        expect(logged).toEqual([[6]]);
+      });
+    });
+
+    describe('shouldAutoOutputUndefined=true', () => {
+      it('should output an undefined last value', async () => {
+        const { logged } = await run(createPlugin(true, true), 'await Promise.resolve();');
+        expect(logged).toEqual([[undefined]]);
+      });
+
+      it('should output undefined after a trailing console.log', async () => {
+        const { logged } = await run(createPlugin(true, true), 'console.log(\'x\');');
+        expect(logged).toEqual([['x'], [undefined]]);
+      });
+    });
   });
 
   describe('shouldAutoOutput=false', () => {
     it('should not wrap any statement in console.log', () => {
-      const plugin = new WrapForCodeBlockBabelPlugin(false);
+      const plugin = createPlugin(false);
       const result = plugin.transform({ code: '1 + 2;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       // Console appears in the wrapper (for __console and window.console), but not as console.log wrapping the expression
       expect(result.transformedCode).not.toMatch(/console\.log\(1\s*\+\s*2\)/);
       expect(result.transformedCode).toContain('1 + 2');
     });
+
+    it('should ignore shouldAutoOutputUndefined', async () => {
+      const { logged } = await run(createPlugin(false, true), 'await Promise.resolve();');
+      expect(logged).toEqual([]);
+    });
   });
 
   describe('wrapper structure', () => {
     it('should wrap code in module.exports = function codeButtonBlockScriptWrapper', () => {
-      const plugin = new WrapForCodeBlockBabelPlugin(false);
+      const plugin = createPlugin(false);
       const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('module.exports');
@@ -58,7 +140,7 @@ describe('WrapForCodeBlockBabelPlugin', () => {
     });
 
     it('should save and restore window.console in the wrapper', () => {
-      const plugin = new WrapForCodeBlockBabelPlugin(false);
+      const plugin = createPlugin(false);
       const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('__console');
@@ -66,14 +148,14 @@ describe('WrapForCodeBlockBabelPlugin', () => {
     });
 
     it('should declare app from codeButtonContext.app', () => {
-      const plugin = new WrapForCodeBlockBabelPlugin(false);
+      const plugin = createPlugin(false);
       const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('codeButtonContext.app');
     });
 
     it('should use try/finally to restore console', () => {
-      const plugin = new WrapForCodeBlockBabelPlugin(false);
+      const plugin = createPlugin(false);
       const result = plugin.transform({ code: 'const x = 1;', filename: TEST_FILENAME });
       expect(result.error).toBeUndefined();
       expect(result.transformedCode).toContain('try');
