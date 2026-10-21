@@ -73,6 +73,20 @@ describe('WrapForCodeBlockBabelPlugin', () => {
       expect(logged).toEqual([[42]]);
     });
 
+    it('should output the settled value of an un-awaited last Promise', async () => {
+      const { logged } = await run(createPlugin(true), 'Promise.resolve(42);');
+      expect(logged).toEqual([[42]]);
+    });
+
+    it('should output the settled value of a last thenable', async () => {
+      const { logged } = await run(createPlugin(true), '({ then(resolve) { resolve(\'settled\'); } });');
+      expect(logged).toEqual([['settled']]);
+    });
+
+    it('should reject with the reason of an un-awaited last Promise', async () => {
+      await expect(run(createPlugin(true), 'Promise.reject(new Error(\'boom\'));')).rejects.toThrow('boom');
+    });
+
     it('should output null', async () => {
       const { logged } = await run(createPlugin(true), 'null;');
       expect(logged).toEqual([[null]]);
@@ -91,6 +105,11 @@ describe('WrapForCodeBlockBabelPlugin', () => {
 
       it('should not output anything for an empty block', async () => {
         const { logged } = await run(createPlugin(true), '');
+        expect(logged).toEqual([]);
+      });
+
+      it('should not output an un-awaited last Promise that settles to undefined', async () => {
+        const { logged } = await run(createPlugin(true), 'Promise.resolve();');
         expect(logged).toEqual([]);
       });
 

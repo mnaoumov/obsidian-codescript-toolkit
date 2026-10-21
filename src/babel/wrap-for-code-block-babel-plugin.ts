@@ -8,6 +8,7 @@ import type {
 import {
   arrowFunctionExpression,
   assignmentExpression,
+  awaitExpression,
   binaryExpression,
   blockStatement,
   callExpression,
@@ -49,10 +50,12 @@ export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
           const lastStatementExpression = convertToExpression(lastStatement);
 
           if (lastStatementExpression) {
+            // An un-awaited Promise would otherwise reach the results panel as the object itself, which formats as `{}`.
+            const settledExpression = awaitExpression(lastStatementExpression);
             const newLastStatement = expressionStatement(
               this.shouldAutoOutputUndefined
-                ? makeConsoleLogCall(lastStatementExpression)
-                : makeConsoleLogIfDefinedCall(lastStatementExpression)
+                ? makeConsoleLogCall(settledExpression)
+                : makeConsoleLogIfDefinedCall(settledExpression)
             );
 
             programBody.push(newLastStatement);
