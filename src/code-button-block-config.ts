@@ -57,6 +57,8 @@ export interface CodeButtonBlockConfig {
 
   /**
    * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/41%20Code%20button%20config.md#shouldautooutput---auto-output-mode) the last evaluated expression.
+   *
+   * A last expression that is a `Promise` is awaited first, and its settled value is output.
    */
   shouldAutoOutput: boolean;
 

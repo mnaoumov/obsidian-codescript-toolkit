@@ -142,6 +142,14 @@ shouldAutoOutput: true # default
 ```
 ````
 
+A last expression that is a `Promise` is awaited first, so the panel shows what it settles to rather than the `Promise` object itself. A button ending with `app.vault.read(file);` prints the file's content, and one ending with a `Promise` that rejects fails with that error. The button keeps running until that `Promise` settles.
+
+````markdown
+```code-button
+Promise.resolve(42); // the panel shows `42`
+```
+````
+
 Set it to `false` to keep the panel to what you print explicitly.
 
 ````markdown

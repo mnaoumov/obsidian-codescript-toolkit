@@ -22,6 +22,16 @@ beforeAll(() => {
   const vault = getTemporaryVault();
 
   vault.populate({
+    '_int-test-context-notes/auto-output-promise.md': dedent`
+      \`\`\`code-button
+      ---
+      shouldAutoRun: true
+      shouldAutoOutput: true
+      shouldShowSystemMessages: false
+      ---
+      Promise.resolve('settled-promise-value')
+      \`\`\`
+    `,
     '_int-test-context-notes/auto-output.md': dedent`
       \`\`\`code-button
       ---
@@ -344,6 +354,37 @@ describe('CodeButtonContext integration', () => {
     });
 
     expect(result.output).toContain('43');
+  });
+
+  it('should auto-output the settled value of an un-awaited last Promise', async () => {
+    const result = await evalInObsidian({
+      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
+        await app.workspace.openLinkText('_int-test-context-notes/auto-output-promise', '', false);
+        const leaf = app.workspace.getLeaf(false);
+        await leaf.setViewState({
+          state: { file: '_int-test-context-notes/auto-output-promise.md', mode: 'preview' },
+          type: 'markdown'
+        });
+
+        await waitUntil({
+          intervalInMilliseconds: intervalMs,
+          predicate: (): boolean => getOutput() !== '',
+          timeoutInMilliseconds: timeoutMs
+        });
+
+        return { output: getOutput() };
+
+        function getOutput(): string {
+          const activeView = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
+          const resultEl = activeView?.containerEl.querySelector('.fix-require-modules.console-log-container');
+          return resultEl?.textContent ?? '';
+        }
+      },
+      input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
+      vaultPath: vaultPath()
+    });
+
+    expect(result.output).toBe('settled-promise-value');
   });
 
   it('should wrap console output when shouldWrapConsole is true', async () => {
