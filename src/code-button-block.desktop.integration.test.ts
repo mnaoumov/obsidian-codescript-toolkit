@@ -44,7 +44,7 @@ beforeAll(() => {
       window.__dirtyEditorRenderCount = (window.__dirtyEditorRenderCount ?? 0) + 1;
       \`\`\`
     `,
-    // Regression fixture for GitHub issue #56: a code-button block near an empty code block followed by trailing unclosed text used to freeze Obsidian (catastrophic regex backtracking in obsidian-dev-utils' getCodeBlockMarkdownInfo, fixed in 87.0.3). Faithful reproduction, with console.log swapped for an auto-run flag the test can assert on.
+    // Regression fixture for GitHub issue #56: a code-button block near an empty code block followed by trailing unclosed text used to freeze Obsidian (catastrophic regex backtracking in the library's getCodeBlockMarkdownInfo, since fixed). Faithful reproduction, with console.log swapped for an auto-run flag the test can assert on.
     '_int-test-buttons/issue-56.md': dedent`
       \`\`\`code-button
       ---
@@ -129,7 +129,7 @@ describe('CodeButtonBlock integration', () => {
     expect(result.buttonCount).toBeGreaterThan(0);
   });
 
-  // A render used to save the note: obsidian-dev-utils' getCodeBlockMarkdownInfo saved the dirty editor before locating the block, so every Live Preview re-render wrote the note to disk mid-typing. Since obsidian-dev-utils 107 it reads the open view's text instead. The view's own debounced autosave is stubbed out meanwhile, so any write seen here can only have come from the render.
+  // A render used to save the note: the library's getCodeBlockMarkdownInfo saved the dirty editor before locating the block, so every Live Preview re-render wrote the note to disk mid-typing. It now reads the open view's text instead. The view's own debounced autosave is stubbed out meanwhile, so any write seen here can only have come from the render.
   it('should not save a dirty editor when a Live Preview edit re-renders the block', async () => {
     const result = await evalInObsidian({
       async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
@@ -254,7 +254,7 @@ describe('CodeButtonBlock integration', () => {
     expect(result.autoRunResult).toBe('auto-ran');
   });
 
-  // Regression test for GitHub issue #56: rendering this note used to hang the main thread (catastrophic regex backtracking in obsidian-dev-utils' getCodeBlockMarkdownInfo). Pre-fix the poll below would time out; post-fix the render completes and sets the flag.
+  // Regression test for GitHub issue #56: rendering this note used to hang the main thread (catastrophic regex backtracking in the library's getCodeBlockMarkdownInfo). Pre-fix the poll below would time out; post-fix the render completes and sets the flag.
   it('should render issue-56 note without freezing', async () => {
     const result = await evalInObsidian({
       async callback({ app, intervalMs, lib: { waitUntil }, timeoutMs }) {

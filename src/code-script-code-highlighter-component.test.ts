@@ -105,7 +105,7 @@ function createGetModeMock(): ReturnType<typeof vi.fn<(config: Cm5EditorConfigur
  *
  * Neither is modeled by `obsidian-test-mocks` — its `loadPrism` resolves to an empty object and there is no
  * `window.CodeMirror` at all — so supplementing them here is the sanctioned test double, mirroring the base
- * component's own suite in `obsidian-dev-utils`. `strictProxy` is deliberately NOT used: reading a
+ * component's own suite in `@mnaoumov/obsidian-lib`. `strictProxy` is deliberately NOT used: reading a
  * not-yet-registered language or mode as `undefined` is exactly the behavior under test.
  *
  * @returns The mocked registries.
