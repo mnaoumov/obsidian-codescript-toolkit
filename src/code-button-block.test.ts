@@ -1,4 +1,5 @@
 import type { CodeBlockMarkdownInformation } from '@mnaoumov/obsidian-lib/code-block-markdown-information';
+import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { MarkdownCodeBlockProcessorRegistrar } from '@mnaoumov/obsidian-lib/markdown-code-block-processor-registrar';
 import type { ResourceLockComponent } from '@mnaoumov/obsidian-lib/resource-lock';
 import type {
@@ -7,6 +8,7 @@ import type {
   MarkdownPostProcessorContext,
   TFile
 } from 'obsidian';
+import type { Mock } from 'vitest';
 
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
@@ -304,6 +306,7 @@ describe('CodeButtonBlockComponent', () => {
   let component: CodeButtonBlockComponent;
   let mockApp: App;
   let mockMarkdownCodeBlockProcessorRegistrar: MarkdownCodeBlockProcessorRegistrar;
+  let mockShowNotice: Mock<PluginNoticeComponent['showNotice']>;
   let mockPluginSettingsComponent: PluginSettingsComponent;
   let mockRequireHandlerFactoryComponent: RequireHandlerFactoryComponent;
   let mockTemporaryPluginRegistry: TempPluginRegistryComponent;
@@ -326,6 +329,7 @@ describe('CodeButtonBlockComponent', () => {
     mockRequireHandlerFactoryComponent = partialRequireHandlerFactoryComponent as RequireHandlerFactoryComponent;
     const partialTemporaryPluginRegistry: Partial<TempPluginRegistryComponent> = {};
     mockTemporaryPluginRegistry = partialTemporaryPluginRegistry as TempPluginRegistryComponent;
+    mockShowNotice = vi.fn<PluginNoticeComponent['showNotice']>();
 
     mockGetFile.mockReturnValue({ path: 'notes/test.md' });
     mockGetCodeBlockMarkdownInfo.mockResolvedValue(null);
@@ -335,6 +339,7 @@ describe('CodeButtonBlockComponent', () => {
     component = new CodeButtonBlockComponent({
       app: mockApp,
       markdownCodeBlockProcessorRegistrar: mockMarkdownCodeBlockProcessorRegistrar,
+      pluginNoticeComponent: strictProxy<PluginNoticeComponent>({ showNotice: mockShowNotice }),
       pluginSettingsComponent: mockPluginSettingsComponent,
       RequireHandlerFactoryComponent: mockRequireHandlerFactoryComponent,
       resourceLockComponent: mockResourceLockComponent,
@@ -622,6 +627,7 @@ describe('CodeButtonBlockComponent', () => {
       await waitForAllAsyncOperations();
 
       expect(writeText).toHaveBeenCalledWith('console.log("test")');
+      expect(mockShowNotice).toHaveBeenCalledWith('Code button source copied to the clipboard.');
 
       vi.unstubAllGlobals();
     });
@@ -697,6 +703,7 @@ describe('CodeButtonBlockComponent', () => {
       await waitForAllAsyncOperations();
 
       expect(getActiveViewOfType).toHaveBeenCalled();
+      expect(mockShowNotice).toHaveBeenCalledWith('Cannot reveal the code button block: there is no active note.');
     });
 
     it('should not create a source panel when sourceVisibility is hidden', async () => {

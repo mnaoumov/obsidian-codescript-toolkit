@@ -174,6 +174,7 @@ export class Plugin extends PluginBase {
       new CodeButtonBlockComponent({
         app: this.app,
         markdownCodeBlockProcessorRegistrar,
+        pluginNoticeComponent: this.pluginNoticeComponent,
         pluginSettingsComponent,
         RequireHandlerFactoryComponent: requireHandlerFactory,
         resourceLockComponent: this.resourceLockComponent,
