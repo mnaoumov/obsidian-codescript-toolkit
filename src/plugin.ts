@@ -63,7 +63,7 @@ export class Plugin extends PluginBase {
     );
     this.pluginSettingsComponent = pluginSettingsComponent;
 
-    // Since obsidian-dev-utils 90 a child is loaded as it is added, so the settings' async load tail runs
+    // A child is loaded as it is added, so the settings' async load tail runs
     // in parallel with the components added below instead of before them. Every one of them reads the
     // settings as it loads — StartupScriptComponent asks for `getStartupScriptPath()` in its `onloadAsync`
     // and silently does nothing when it reads the empty default, so a configured startup script never ran.

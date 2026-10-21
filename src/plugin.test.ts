@@ -149,7 +149,7 @@ describe('Plugin', () => {
     castTo<PluginPrivateApi>(plugin).resourceLockComponent = strictProxy<ResourceLockComponent>({});
     /*
      * The command handler component is normally wired by the base `onload()` before `onloadImpl` runs.
-     * Seed it through the base accessor -- since obsidian-dev-utils 93.2 the components live in a bag
+     * Seed it through the base accessor -- the components live in a bag
      * behind it, so writing a backing field no longer feeds the getter, which throws when unset.
      */
     castTo<PluginPrivateApi>(plugin).commandHandlerComponent = strictProxy<CommandHandlerComponent>({
@@ -174,7 +174,7 @@ describe('Plugin', () => {
 
     const { registerCommandHandlers } = castTo<PluginPrivateApi>(plugin).commandHandlerComponent;
     expect(registerCommandHandlers).toHaveBeenCalledOnce();
-    // Since obsidian-dev-utils 89.0.0 the handlers are built lazily by a factory, so build them here.
+    // The handlers are built lazily by a factory, so build them here.
     const commandHandlerFactory = vi.mocked(registerCommandHandlers).mock.calls[0]?.[0];
     expect(commandHandlerFactory?.()).toHaveLength(EXPECTED_COMMAND_HANDLER_COUNT);
   });
