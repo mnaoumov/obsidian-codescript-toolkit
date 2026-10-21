@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 14.0.1
+
+- fix(protocol-handler): load even when a previous instance of the plugin left its `obsidian://CodeScriptToolkit` handler behind, instead of failing with `Action "CodeScriptToolkit" is already registered as a handler`
+- fix(deps): update `@mnaoumov/typescript-lib` to 1.6.1, so printing an `AggregateError` whose `errors` is missing shows the real error instead of crashing the error printer
+- docs(demo-vault): rename the `obsidian-dev-utils` note after `@mnaoumov/obsidian-lib` and `@mnaoumov/typescript-lib`
+- docs: mark plugin names as code
+- docs(readme): point the Debugging link at the `@mnaoumov/obsidian-lib` guide
+
 ## 14.0.0
 
 - feat!: requiring or importing `obsidian-dev-utils` now throws an error naming its replacement. The library is retired and no longer ships with the plugin. Rename `obsidian-dev-utils/obsidian/<x>` to `@mnaoumov/obsidian-lib/<x>`, and any other `obsidian-dev-utils/<x>` to `@mnaoumov/typescript-lib/<x>`. See the [migration note](<https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/obsidian-dev-utils.md>) for details.
