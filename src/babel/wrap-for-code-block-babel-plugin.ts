@@ -6,12 +6,15 @@ import type {
 } from '@babel/types';
 
 import {
+  arrowFunctionExpression,
   assignmentExpression,
+  binaryExpression,
   blockStatement,
   callExpression,
   expressionStatement,
   functionExpression,
   identifier,
+  ifStatement,
   isExpressionStatement,
   memberExpression,
   tryStatement,
@@ -21,9 +24,19 @@ import {
 
 import { BabelPluginBase } from './babel-plugin-base.ts';
 
+interface WrapForCodeBlockBabelPluginConstructorParams {
+  readonly shouldAutoOutput: boolean;
+  readonly shouldAutoOutputUndefined: boolean;
+}
+
 export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
-  public constructor(private readonly shouldAutoOutput: boolean) {
+  private readonly shouldAutoOutput: boolean;
+  private readonly shouldAutoOutputUndefined: boolean;
+
+  public constructor(params: WrapForCodeBlockBabelPluginConstructorParams) {
     super({});
+    this.shouldAutoOutput = params.shouldAutoOutput;
+    this.shouldAutoOutputUndefined = params.shouldAutoOutputUndefined;
   }
 
   public override getVisitor(): Visitor<PluginPass> {
@@ -36,15 +49,11 @@ export class WrapForCodeBlockBabelPlugin extends BabelPluginBase {
           const lastStatementExpression = convertToExpression(lastStatement);
 
           if (lastStatementExpression) {
-            const newLastStatement = expressionStatement(callExpression(
-              memberExpression(
-                identifier('console'),
-                identifier('log')
-              ),
-              [
-                lastStatementExpression
-              ]
-            ));
+            const newLastStatement = expressionStatement(
+              this.shouldAutoOutputUndefined
+                ? makeConsoleLogCall(lastStatementExpression)
+                : makeConsoleLogIfDefinedCall(lastStatementExpression)
+            );
 
             programBody.push(newLastStatement);
             /* v8 ignore start -- convertToExpression returns identifier('undefined') for undefined input, so this falsy branch is unreachable. */
@@ -151,4 +160,30 @@ function convertToExpression(statement: Statement | undefined): Expression | nul
   }
 
   return isExpressionStatement(statement) ? statement.expression : null;
+}
+
+function makeConsoleLogCall(expression: Expression): Expression {
+  return callExpression(
+    memberExpression(
+      identifier('console'),
+      identifier('log')
+    ),
+    [
+      expression
+    ]
+  );
+}
+
+/**
+ * Builds `(value => { if (value !== undefined) { console.log(value); } })(expression)`.
+ *
+ * The expression stays the argument, so it is still evaluated in the script's own scope (`await` keeps working), and
+ * the parameter name cannot clash with anything the script declares.
+ */
+function makeConsoleLogIfDefinedCall(expression: Expression): Expression {
+  const value = identifier('__codeButtonAutoOutputValue');
+  const definedCheck = binaryExpression('!==', value, identifier('undefined'));
+  const logValue = blockStatement([expressionStatement(makeConsoleLogCall(value))]);
+  const helper = arrowFunctionExpression([value], blockStatement([ifStatement(definedCheck, logValue)]));
+  return callExpression(helper, [expression]);
 }

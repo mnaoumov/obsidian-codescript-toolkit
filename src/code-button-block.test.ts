@@ -202,6 +202,10 @@ describe('DEFAULT_CODE_BUTTON_BLOCK_CONFIG', () => {
     expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.shouldAutoOutput).toBe(true);
   });
 
+  it('should have shouldAutoOutputUndefined false', () => {
+    expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.shouldAutoOutputUndefined).toBe(false);
+  });
+
   it('should have shouldAutoRun false', () => {
     expect(DEFAULT_CODE_BUTTON_BLOCK_CONFIG.shouldAutoRun).toBe(false);
   });
