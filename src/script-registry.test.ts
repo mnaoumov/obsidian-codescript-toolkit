@@ -26,8 +26,8 @@ const mockPrintError = vi.fn();
 const INVOCABLE_SCRIPTS_FOLDER = 'scripts';
 
 // Only `printError` is stubbed (a thin return-value passthrough so the test can assert which error
-// was reported). All other real exports of `obsidian-dev-utils/error` (e.g. `getStackTrace`, used by
-// the real command-handler infrastructure) are preserved via `importOriginal`. No dev-utils logic is
+// was reported). All other real exports of `@mnaoumov/typescript-lib/error` (e.g. `getStackTrace`, used by
+// the real command-handler infrastructure) are preserved via `importOriginal`. No library logic is
 // reimplemented (printError only logs to console).
 vi.mock('@mnaoumov/typescript-lib/error', async (importOriginal) => ({
   ...await importOriginal<typeof import('@mnaoumov/typescript-lib/error')>(),

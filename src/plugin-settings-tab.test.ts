@@ -175,7 +175,7 @@ vi.mock('@mnaoumov/typescript-lib/html-element', () => ({
 }));
 
 vi.mock('@mnaoumov/obsidian-lib/setting-ex', () => ({
-  // The declarative rows are handed a plain `Setting` that dev-utils re-prototypes into a `SettingEx`;
+  // The declarative rows are handed a plain `Setting` that the library re-prototypes into a `SettingEx`;
   // The mock instance already is one, so adoption is the identity.
   adoptSettingEx: (setting: unknown): unknown => setting,
   // eslint-disable-next-line prefer-arrow-callback -- must be a constructor function for `new`

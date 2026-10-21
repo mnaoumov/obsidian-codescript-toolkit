@@ -29,7 +29,7 @@ import { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 export class Plugin extends PluginBase {
   /**
    * The settings component, exposed so anything holding this plugin instance -- a script, another plugin,
-   * `obsidian-dev-utils`' `configureCommunityPlugin` -- can read and change the settings of the RUNNING
+   * `@mnaoumov/obsidian-lib`' `configureCommunityPlugin` -- can read and change the settings of the RUNNING
    * plugin through {@link PluginSettingsComponent.editAndSave}, which both applies them immediately and
    * persists them. Writing `data.json` directly would need a reload to take effect.
    *
