@@ -39,9 +39,6 @@
     "version": "jiti scripts/version.ts"
   },
   "overrides": {
-    "@mnaoumov/obsidian-dev-toolkit": {
-      "@babel/core": "$@babel/core"
-    },
     "@puppeteer/browsers": "^3.2.5",
     "@vitest/coverage-v8": "$@vitest/coverage-v8",
     "deepmerge-ts": "^8.0.2",
@@ -56,7 +53,7 @@
     "@babel/traverse": "^8.0.7",
     "@babel/types": "^8.0.6",
     "@commitlint/cli": "^21.2.4",
-    "@mnaoumov/obsidian-dev-toolkit": "^5.0.2",
+    "@mnaoumov/obsidian-dev-toolkit": "^5.1.1",
     "@mnaoumov/typescript-dev-toolkit": "^3.10.0",
     "@mnaoumov/typescript-test-toolkit": "^1.0.2",
     "@obsidian-typings/obsidian-public-latest": "^6.50.0",

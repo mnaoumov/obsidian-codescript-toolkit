@@ -11,11 +11,7 @@
     "Known and NOT overridden: GHSA-vfj7-8cjw-p6xm (braces stack exhaustion) affects every braces release (<=3.0.3,",
     "no patched version), so there is nothing to override it to. It reaches this repo through markdownlint-cli2 ->",
     "micromatch / globby -> fast-glob and is the only advisory `npm audit` reports here (7 high, all this one, measured",
-    "2026-10-16). Add a braces override once a patched release exists.",
-    "Not a pin, so it has no entry: the nested \"@mnaoumov/obsidian-dev-toolkit\": { \"@babel/core\": \"$@babel/core\" } override.",
-    "obsidian-dev-toolkit 5 declares an optional @babel/core ^7 peer, used only by its \framework: 'solid' bundler path,",
-    "which this repo does not use. This plugin ships Babel 8 (the vault-script transpiler), and npm refuses to resolve",
-    "an optional peer present at an excluded version, so the override points that one peer at the root's Babel 8."
+    "2026-10-16). Add a braces override once a patched release exists."
   ],
   "pins": {
     "@puppeteer/browsers": {
