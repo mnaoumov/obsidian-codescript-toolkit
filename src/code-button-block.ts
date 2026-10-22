@@ -407,7 +407,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
     }
 
     const state = view.getState();
-    state['mode'] = 'source';
+    state.mode = 'source';
     await view.setState(state, { history: false });
     view.editor.setCursor({ ch: 0, line: markdownInfo.sectionInfo.lineStart });
   }
