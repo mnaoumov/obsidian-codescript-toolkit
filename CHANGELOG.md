@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 15.0.0
+
+- feat!: the bundled `@mnaoumov/obsidian-lib` that vault scripts can `require` moves from 3.3.1 to 6.0.2. Three of its major releases change what a script sees: a patch's `postPatchHandler` can no longer add members ([4.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/4.0.0>)), `PathSettings` entries match case-insensitively and an unescaped `*`, `?` or `[` makes an entry a glob ([5.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/5.0.0>)), and the names kept from `obsidian-dev-utils` are gone, including the `obsidian-dev-utils-state` module, the `obsidianDevUtils` i18n namespace and the legacy CSS class and events ([6.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/6.0.0>)). Check a script that uses any of these against those release notes.
+- feat(code-button): await a last Promise before auto-output prints it
+- feat(code-button): stop auto-output printing `undefined`; add `shouldAutoOutputUndefined`
+- fix(code-button): route the reveal and copy notices through the plugin notice component
+- fix(docs): point JSDoc links at the renumbered demo-vault notes
+- docs: point leftover `obsidian-dev-utils` comments at the packages that hold the APIs now
+- docs: shorten the debugging section
+- docs(readme): lead the Debugging section with `Advanced Debug Mode`
+- chore: replace leftover `obsidian-dev-utils` references with `@mnaoumov/obsidian-lib`
+- chore(deps): move to `@mnaoumov/obsidian-dev-toolkit` 5
+- chore(deps): float `brace-expansion`, `sharp` and `fast-uri` past their advisories
+
 ## 14.0.1
 
 - fix(protocol-handler): load even when a previous instance of the plugin left its `obsidian://CodeScriptToolkit` handler behind, instead of failing with `Action "CodeScriptToolkit" is already registered as a handler`
