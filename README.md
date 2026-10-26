@@ -59,6 +59,20 @@ If you are not sure where to start, three notes cover most of it: [Core function
   - [`Templater`](https://silentvoid13.github.io/Templater/)
   - `My favorite scripting plugin not listed above` — most likely, this plugin can enrich it too.
 
+## Similar plugins
+
+- [`CustomJS`](https://community.obsidian.md/plugins/customjs) — loads JavaScript classes from vault files into one global object that `dataviewjs` blocks and `Templater` templates call, with startup and hotkey-bound scripts; each file must hold exactly one class, while this plugin loads any module shape, TypeScript included.
+- [`Execute Code`](https://community.obsidian.md/plugins/execute-code) — runs code blocks in more than twenty languages, Python, C++ and R among them, through interpreters installed on your computer; this plugin runs only JavaScript and TypeScript, but inside Obsidian itself, with its API in reach.
+- [`JavaScript Init`](https://community.obsidian.md/plugins/obsidian-javascript-init) — runs one JavaScript snippet, kept in its settings, when Obsidian loads; this plugin's startup script is one entry point among several, and it lives in a vault file.
+- [`JS Engine`](https://community.obsidian.md/plugins/js-engine) — runs `js-engine` code blocks and renders what they return as markdown, with an API for building views from a note; this plugin centres on a module system, and runs scripts from buttons, commands, hotkeys and URLs.
+- [`Modules`](https://community.obsidian.md/plugins/modules) — loads JavaScript and TypeScript modules from the vault and the Internet on every platform, Markdown files included, with source maps; it is the closest to this plugin's module system, while this plugin also turns scripts into code buttons, commands, hotkeys and a startup script.
+- [`Plugin REPL`](https://community.obsidian.md/plugins/plugin-repl) — evaluates the JavaScript line or selection under the cursor and inserts the result, with helper functions for editor automation; this plugin runs whole scripts and modules rather than evaluating in place.
+- [`RunJS`](https://community.obsidian.md/plugins/runjs) — runs named JavaScript snippets from code blocks or a scripts folder through a code list view, a picker, commands, ribbon icons or at startup; this plugin also compiles TypeScript and loads npm packages.
+- [`Safe JS`](https://community.obsidian.md/plugins/safe-js) — runs JavaScript inside isolated Web Workers behind a small, permission-gated API, so a script cannot reach the DOM, Node.js or the Obsidian app; this plugin does the opposite and gives scripts full access, with no sandbox.
+- [`User Plugins`](https://community.obsidian.md/plugins/obsidian-user-plugins) — loads vault JavaScript files as small plugins whose `onload` receives a plugin instance, mostly to add commands; this plugin runs scripts with no plugin shape, from notes as well as from commands.
+
+Last searched for similar plugins on 2026-10-26.
+
 ## Installation
 
 The plugin is available in [the official Community Plugins repository](https://community.obsidian.md/plugins/fix-require-modules).
