@@ -470,14 +470,14 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       );
     }
 
-    const module = await this.initModuleAndAddToCacheAsync(
+    const $module = await this.initModuleAndAddToCacheAsync(
       cleanResolvedId,
       () => this.requireNonCachedAsync({ id: cleanResolvedId, options: fullOptions, type: resolvedType })
     );
     if (resolvedId !== cleanResolvedId) {
-      this.initModuleAndAddToCache(resolvedId, () => module);
+      this.initModuleAndAddToCache(resolvedId, () => $module);
     }
-    return module;
+    return $module;
   }
 
   public async requireStringAsync(params: RequireHandlerComponentBaseRequireStringAsyncParams): Promise<unknown> {
@@ -565,18 +565,18 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       this.addToModuleCache({ id, isLoaded: false, module: this.createEmptyModule(id) });
     }
     try {
-      const module = moduleInitializer();
+      const $module = moduleInitializer();
       const cachedModule = this.getCachedModule(id);
       if (cachedModule) {
         return cachedModule;
       }
       /* v8 ignore start -- empty module check applies during circular dependency resolution when initializer returns the proxy itself. */
-      if (!this.isEmptyModule(module)) {
-        this.addToModuleCache({ id, module });
+      if (!this.isEmptyModule($module)) {
+        this.addToModuleCache({ id, module: $module });
       }
       /* v8 ignore stop */
 
-      return module;
+      return $module;
     } catch (error) {
       this.deleteCacheEntry(id);
       throw error;
@@ -646,22 +646,20 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
 
     const scriptWrapper = debuggableEval(wrappedCode, `${options.evalPrefix}/${options.path}${options.urlSuffix}`) as ScriptWrapper;
-    const module = { exports: {} };
+    const $module = { exports: {} };
 
     const context: ScriptWrapperContext = {
       __dirname: dirname(options.path),
       __filename: options.path,
-      // eslint-disable-next-line import-x/no-commonjs -- Need to return exports.
-      exports: module.exports,
-      module,
+      exports: $module.exports,
+      module: $module,
       require: this.makeChildRequire(options.path),
       requireAsync: this.makeChildRequireAsync(options.path),
       requireAsyncWrapper: this.requireAsyncWrapper.bind(this)
     };
     const promisable = scriptWrapper(context);
     return {
-      // eslint-disable-next-line import-x/no-commonjs -- Need to return exports.
-      exportsFunction: () => module.exports,
+      exportsFunction: () => $module.exports,
       promisable
     };
   }
@@ -703,10 +701,10 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   private addToModuleCache(params: RequireHandlerComponentBaseAddToModuleCacheParams): NodeJS.Module {
-    const { id, isLoaded = true, module } = params;
+    const { id, isLoaded = true, module: $module } = params;
     this.modulesCache[id] = {
       children: [],
-      exports: module,
+      exports: $module,
       filename: '',
       id,
       isPreloading: false,
@@ -717,13 +715,13 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       require: this.requireEx
     };
     if (
-      !this.isEmptyModule(module) && (typeof module === 'object' || typeof module === 'function') && module !== null && !('default' in module)
-      && Object.isExtensible(module)
+      !this.isEmptyModule($module) && (typeof $module === 'object' || typeof $module === 'function') && $module !== null && !('default' in $module)
+      && Object.isExtensible($module)
     ) {
-      Object.defineProperty(module, 'default', {
+      Object.defineProperty($module, 'default', {
         configurable: false,
         enumerable: false,
-        value: module,
+        value: $module,
         writable: false
       });
     }
@@ -955,17 +953,17 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       this.addToModuleCache({ id, isLoaded: false, module: this.createEmptyModule(id) });
     }
     try {
-      const module = await moduleInitializer();
+      const $module = await moduleInitializer();
       const cachedModule = this.getCachedModule(id);
       if (cachedModule) {
         return cachedModule;
       }
       /* v8 ignore start -- empty module check applies during circular dependency resolution when initializer returns the proxy itself. */
-      if (!this.isEmptyModule(module)) {
-        this.addToModuleCache({ id, module });
+      if (!this.isEmptyModule($module)) {
+        this.addToModuleCache({ id, module: $module });
       }
       /* v8 ignore stop */
-      return module;
+      return $module;
     } catch (error) {
       this.deleteCacheEntry(id);
       throw error;
@@ -1001,8 +999,8 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
   }
 
-  private isEmptyModule(module: unknown): boolean {
-    return (module as Partial<EmptyModule> | undefined)?.[EMPTY_MODULE_SYMBOL] === true;
+  private isEmptyModule($module: unknown): boolean {
+    return ($module as Partial<EmptyModule> | undefined)?.[EMPTY_MODULE_SYMBOL] === true;
   }
 
   private makeChildRequire(parentPath: string): RequireExFunction {
@@ -1118,14 +1116,14 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
         () => this.requireNonCached({ id: resolvedId, options: fullOptions, type: resolvedType })
       );
     }
-    const module = this.initModuleAndAddToCache(
+    const $module = this.initModuleAndAddToCache(
       cleanResolvedId,
       () => this.requireNonCached({ id: cleanResolvedId, options: fullOptions, type: resolvedType })
     );
     if (resolvedId !== cleanResolvedId) {
-      this.initModuleAndAddToCache(resolvedId, () => module);
+      this.initModuleAndAddToCache(resolvedId, () => $module);
     }
-    return module;
+    return $module;
   }
 
   private async requireAsyncWrapper(requireFunction: (require: RequireExFunction) => Promisable<unknown>, require?: RequireExFunction): Promise<unknown> {

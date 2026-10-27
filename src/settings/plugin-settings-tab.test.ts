@@ -151,20 +151,20 @@ vi.mock('obsidian', async (importOriginal) => ({
   Events: class {
     private readonly handlers = new Map<string, (() => void)[]>();
 
-    public on(event: string, handler: () => void): void {
-      const existing = this.handlers.get(event) ?? [];
+    public on($event: string, handler: () => void): void {
+      const existing = this.handlers.get($event) ?? [];
       existing.push(handler);
-      this.handlers.set(event, existing);
+      this.handlers.set($event, existing);
     }
 
-    public trigger(event: string): void {
-      const handlers = this.handlers.get(event) ?? [];
+    public trigger($event: string): void {
+      const handlers = this.handlers.get($event) ?? [];
       for (const handler of handlers) {
         handler();
       }
     }
   },
-  stringifyYaml: (object: unknown): unknown => JSON.stringify(object)
+  stringifyYaml: ($object: unknown): unknown => JSON.stringify($object)
 }));
 
 vi.mock('@mnaoumov/typescript-lib/async', async (importOriginal) => ({

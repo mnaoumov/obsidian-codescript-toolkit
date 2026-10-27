@@ -86,33 +86,33 @@ interface ReadFileBinaryAsyncAccessor {
   readonly readFileBinaryAsync: (path: string) => Promise<ArrayBuffer>;
 }
 
-function asCanRequireSync(object: RequireHandlerMobileComponent): CanRequireSyncAccessor {
-  return castTo<CanRequireSyncAccessor>(object);
+function asCanRequireSync($object: RequireHandlerMobileComponent): CanRequireSyncAccessor {
+  return castTo<CanRequireSyncAccessor>($object);
 }
 
-function asExistsFileAsync(object: RequireHandlerMobileComponent): ExistsFileAsyncAccessor {
+function asExistsFileAsync($object: RequireHandlerMobileComponent): ExistsFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as ExistsFileAsyncAccessor;
+  return $object as unknown as ExistsFileAsyncAccessor;
 }
 
-function asExistsFolderAsync(object: RequireHandlerMobileComponent): ExistsFolderAsyncAccessor {
+function asExistsFolderAsync($object: RequireHandlerMobileComponent): ExistsFolderAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as ExistsFolderAsyncAccessor;
+  return $object as unknown as ExistsFolderAsyncAccessor;
 }
 
-function asGetTimestampAsync(object: RequireHandlerMobileComponent): GetTimestampAsyncAccessor {
+function asGetTimestampAsync($object: RequireHandlerMobileComponent): GetTimestampAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as GetTimestampAsyncAccessor;
+  return $object as unknown as GetTimestampAsyncAccessor;
 }
 
-function asReadFileAsync(object: RequireHandlerMobileComponent): ReadFileAsyncAccessor {
+function asReadFileAsync($object: RequireHandlerMobileComponent): ReadFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as ReadFileAsyncAccessor;
+  return $object as unknown as ReadFileAsyncAccessor;
 }
 
-function asReadFileBinaryAsync(object: RequireHandlerMobileComponent): ReadFileBinaryAsyncAccessor {
+function asReadFileBinaryAsync($object: RequireHandlerMobileComponent): ReadFileBinaryAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as ReadFileBinaryAsyncAccessor;
+  return $object as unknown as ReadFileBinaryAsyncAccessor;
 }
 
 function createMockParams(adapter?: unknown): RequireHandlerConstructorParams {

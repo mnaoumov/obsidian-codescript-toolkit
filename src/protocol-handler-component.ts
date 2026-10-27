@@ -127,8 +127,8 @@ async function invokeModuleFunction(params: InvokeModuleFunctionParams): Promise
   if (typeof requireAsync !== 'function') {
     throw new TypeError('requireAsync is not defined in window.');
   }
-  const module = await requireAsync(moduleSpecifier);
-  const $function = module[functionName];
+  const $module = await requireAsync(moduleSpecifier);
+  const $function = $module[functionName];
   if ($function === undefined) {
     throw new Error(`Function ${functionName} in module ${moduleSpecifier} is not defined.`);
   }

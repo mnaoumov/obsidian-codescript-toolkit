@@ -24,7 +24,7 @@ vi.mock('@mnaoumov/typescript-lib', () => ({
 }));
 
 vi.mock('@mnaoumov/typescript-lib/object-utils', () => ({
-  getNestedPropertyValue: (object: unknown, path: unknown): unknown => mockGetNestedPropertyValue(object, path)
+  getNestedPropertyValue: ($object: unknown, path: unknown): unknown => mockGetNestedPropertyValue($object, path)
 }));
 
 vi.mock('../../node_modules/@mnaoumov/obsidian-lib/package.json', () => ({
@@ -63,14 +63,14 @@ describe('registerLibraryModules', () => {
 
   it('should register the root @mnaoumov/obsidian-lib module', () => {
     registerLibraryModules(specialModuleFactories);
-    const module = specialModuleFactories.get('@mnaoumov/obsidian-lib')?.({});
-    expect(module).toEqual({ obsidianLibFunction: expect.any(Function) as unknown });
+    const $module = specialModuleFactories.get('@mnaoumov/obsidian-lib')?.({});
+    expect($module).toEqual({ obsidianLibFunction: expect.any(Function) as unknown });
   });
 
   it('should register the root @mnaoumov/typescript-lib module', () => {
     registerLibraryModules(specialModuleFactories);
-    const module = specialModuleFactories.get('@mnaoumov/typescript-lib')?.({});
-    expect(module).toEqual({ typescriptLibFunction: expect.any(Function) as unknown });
+    const $module = specialModuleFactories.get('@mnaoumov/typescript-lib')?.({});
+    expect($module).toEqual({ typescriptLibFunction: expect.any(Function) as unknown });
   });
 
   it('should no longer register obsidian-dev-utils', () => {

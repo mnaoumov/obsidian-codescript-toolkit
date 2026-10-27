@@ -171,7 +171,7 @@ interface MockVaultAbsolutePathUndefinedAccessor {
 }
 
 interface ModulePrototypeRequireAccessor {
-  readonly modulePrototypeRequire: (id: string, module: NodeJS.Module) => unknown;
+  readonly modulePrototypeRequire: (id: string, $module: NodeJS.Module) => unknown;
 }
 
 interface ModuleRequirePrototype {

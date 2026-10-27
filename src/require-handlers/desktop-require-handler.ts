@@ -108,7 +108,7 @@ export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase 
     return stats.mtimeMs;
   }
 
-  public modulePrototypeRequire(id: string | TFile, module: NodeJS.Module): unknown {
+  public modulePrototypeRequire(id: string | TFile, $module: NodeJS.Module): unknown {
     /**
      * The caller line index is 6 because the call stack is as follows:
      *
@@ -123,7 +123,7 @@ export class RequireHandlerDesktopComponent extends RequireHandlerComponentBase 
     const CALLER_LINE_INDEX = 6;
     const parentPath = this.getParentPathFromCallStack(CALLER_LINE_INDEX) ?? undefined;
     const options = normalizeOptionalProperties<RequireOptions>({
-      parentModule: module,
+      parentModule: $module,
       parentPath
     });
     return this.requireEx(id, options);
@@ -388,8 +388,8 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 
   private originalModulePrototypeRequireWrapped(id: string, options: Partial<RequireOptions>): unknown {
-    const module = options.parentModule ?? window.module;
-    return this.originalModulePrototypeRequire?.call(module, id, options);
+    const $module = options.parentModule ?? window.module;
+    return this.originalModulePrototypeRequire?.call($module, id, options);
   }
 
   private readFile(path: string): string {
