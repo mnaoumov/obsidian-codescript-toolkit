@@ -6,7 +6,7 @@ Pass an Obsidian `TFile` straight to `require()` instead of turning it back into
 ---
 caption: Require via TFile (sync)
 ---
-const file = app.vault.getFileByPath('_assets/CodeScriptToolkit/vaultRootRelativePath.js');
+const file = app.vault.getFileByPath('_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js');
 const { vaultRootRelativePath } = require(file);
 vaultRootRelativePath();
 ```
@@ -15,7 +15,7 @@ vaultRootRelativePath();
 ---
 caption: Require via TFile (async)
 ---
-const file = app.vault.getFileByPath('_assets/CodeScriptToolkit/vaultRootRelativePath.js');
+const file = app.vault.getFileByPath('_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js');
 const { vaultRootRelativePath } = await requireAsync(file);
 vaultRootRelativePath();
 ```

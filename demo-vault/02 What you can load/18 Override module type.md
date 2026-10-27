@@ -6,7 +6,7 @@ Normally the file extension decides how a file is loaded. When the extension lie
 ---
 caption: Override module type
 ---
-const { overrideModuleType } = require('/module.unknownExtension', { moduleType: 'jsTs' });
+const { overrideModuleType } = require('/ModuleTypes/module.unknownExtension', { moduleType: 'jsTs' });
 overrideModuleType();
 ```
 

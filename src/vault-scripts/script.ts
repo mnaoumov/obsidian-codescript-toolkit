@@ -9,7 +9,7 @@ import {
   join
 } from '@mnaoumov/typescript-lib/path';
 
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import { ScriptRegistryComponent } from './script-registry.ts';

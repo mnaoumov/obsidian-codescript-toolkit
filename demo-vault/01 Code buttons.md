@@ -27,7 +27,7 @@ Everything the rest of this vault demonstrates works inside a button: `require()
 caption: Everything at once
 ---
 // CommonJS (cjs) style
-const { relativePath } = require('./_assets/CodeScriptToolkit/relativePath.js');
+const { relativePath } = require('./_assets/CodeScriptToolkit/Paths/relativePath.js');
 
 // ES Modules (esm) style
 import { Notice } from 'obsidian';

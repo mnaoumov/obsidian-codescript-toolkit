@@ -6,8 +6,8 @@ import {
   getPrototypeOf
 } from '@mnaoumov/typescript-lib/object-utils';
 
-import type { RequireHandlerDesktopComponent } from '../require-handlers/desktop-require-handler.ts';
-import type { RequireFunction } from '../require-handlers/require-handler.ts';
+import type { RequireHandlerDesktopComponent } from './desktop-require-handler.ts';
+import type { RequireFunction } from './require-handler.ts';
 
 export class ModuleRequirePatchComponent extends MonkeyAroundComponent {
   public originalModulePrototypeRequire?: RequireFunction;

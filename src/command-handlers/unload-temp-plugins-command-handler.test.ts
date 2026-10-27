@@ -7,7 +7,7 @@ import {
 } from 'vitest';
 
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import type { TempPluginRegistryComponent } from '../temporary-plugin-registry.ts';
+import type { TempPluginRegistryComponent } from '../temp-plugins/temporary-plugin-registry.ts';
 
 import { UnloadTempPluginsCommandHandler as UnloadTemporaryPluginsCommandHandler } from './unload-temp-plugins-command-handler.ts';
 

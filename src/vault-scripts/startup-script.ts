@@ -4,8 +4,8 @@ import type { Promisable } from 'type-fest';
 import { LayoutReadyComponent } from '@mnaoumov/obsidian-lib/components/layout-ready-component';
 import { App } from 'obsidian';
 
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
 import type { Script } from './script.ts';
 
 interface StartupScript extends Script {

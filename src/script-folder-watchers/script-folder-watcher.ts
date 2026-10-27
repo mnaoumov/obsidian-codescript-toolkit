@@ -5,8 +5,8 @@ import type { Promisable } from 'type-fest';
 import { registerAsyncEvent } from '@mnaoumov/obsidian-lib/components/async-events-component';
 import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
 
-import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
-import type { ScriptManager } from '../script.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
+import type { ScriptManager } from '../vault-scripts/script.ts';
 
 export interface ScriptFolderWatcherComponentBaseConstructorParams {
   readonly app: App;

@@ -20,11 +20,11 @@ import type {
   RequireHandlerComponentBaseRequireNonCachedParams
 } from './require-handler.ts';
 
-import { ModuleRequirePatchComponent } from '../patches/module-require-patch-component.ts';
 import {
   CacheInvalidationMode,
   ModuleType
 } from '../types.ts';
+import { ModuleRequirePatchComponent } from './module-require-patch-component.ts';
 import {
   ENTRY_POINT,
   extractCodeScript,

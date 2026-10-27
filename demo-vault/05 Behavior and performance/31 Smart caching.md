@@ -8,10 +8,10 @@ Click the first button, then the second, and compare the output: the four module
 ---
 caption: Smart caching (first click)
 ---
-const { cacheInvalidationModeAlways } = await requireAsync('/cacheInvalidationModeAlways.js', { cacheInvalidationMode: 'always' });
-const { cacheInvalidationModeNever } = await requireAsync('/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
-const { cacheInvalidationModeWhenPossible } = await requireAsync('/cacheInvalidationModeWhenPossible.js', { cacheInvalidationMode: 'whenPossible' });
-const { cacheInvalidationModeWhenPossibleWithQueryString } = await requireAsync('/cacheInvalidationModeWhenPossibleWithQueryString.js?someQueryString', { cacheInvalidationMode: 'whenPossible' });
+const { cacheInvalidationModeAlways } = await requireAsync('/Behavior/cacheInvalidationModeAlways.js', { cacheInvalidationMode: 'always' });
+const { cacheInvalidationModeNever } = await requireAsync('/Behavior/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
+const { cacheInvalidationModeWhenPossible } = await requireAsync('/Behavior/cacheInvalidationModeWhenPossible.js', { cacheInvalidationMode: 'whenPossible' });
+const { cacheInvalidationModeWhenPossibleWithQueryString } = await requireAsync('/Behavior/cacheInvalidationModeWhenPossibleWithQueryString.js?someQueryString', { cacheInvalidationMode: 'whenPossible' });
 
 cacheInvalidationModeAlways();
 cacheInvalidationModeNever();
@@ -23,10 +23,10 @@ cacheInvalidationModeWhenPossibleWithQueryString();
 ---
 caption: Smart caching (second click)
 ---
-const { cacheInvalidationModeAlways } = await requireAsync('/cacheInvalidationModeAlways.js', { cacheInvalidationMode: 'always' });
-const { cacheInvalidationModeNever } = await requireAsync('/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
-const { cacheInvalidationModeWhenPossible } = await requireAsync('/cacheInvalidationModeWhenPossible.js', { cacheInvalidationMode: 'whenPossible' });
-const { cacheInvalidationModeWhenPossibleWithQueryString } = await requireAsync('/cacheInvalidationModeWhenPossibleWithQueryString.js?someQueryString', { cacheInvalidationMode: 'whenPossible' });
+const { cacheInvalidationModeAlways } = await requireAsync('/Behavior/cacheInvalidationModeAlways.js', { cacheInvalidationMode: 'always' });
+const { cacheInvalidationModeNever } = await requireAsync('/Behavior/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
+const { cacheInvalidationModeWhenPossible } = await requireAsync('/Behavior/cacheInvalidationModeWhenPossible.js', { cacheInvalidationMode: 'whenPossible' });
+const { cacheInvalidationModeWhenPossibleWithQueryString } = await requireAsync('/Behavior/cacheInvalidationModeWhenPossibleWithQueryString.js?someQueryString', { cacheInvalidationMode: 'whenPossible' });
 
 cacheInvalidationModeAlways();
 cacheInvalidationModeNever();

@@ -5,7 +5,7 @@ import {
   vi
 } from 'vitest';
 
-import type { ScriptManager } from '../script.ts';
+import type { ScriptManager } from '../vault-scripts/script.ts';
 
 import { InvokeScriptChooseCommandHandler } from './invoke-script-choose-command-handler.ts';
 

@@ -184,7 +184,7 @@ vi.mock('@mnaoumov/obsidian-lib/setting-ex', () => ({
   })
 }));
 
-vi.mock('./code-button-block.ts', () => ({
+vi.mock('../code-buttons/code-button-block.ts', () => ({
   DEFAULT_CODE_BUTTON_BLOCK_CONFIG: {
     caption: '(no caption)',
     isRaw: false,

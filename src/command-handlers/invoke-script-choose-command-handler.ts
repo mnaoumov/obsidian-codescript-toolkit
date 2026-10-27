@@ -1,6 +1,6 @@
 import { GlobalCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/global-command-handler';
 
-import type { ScriptManager } from '../script.ts';
+import type { ScriptManager } from '../vault-scripts/script.ts';
 
 export class InvokeScriptChooseCommandHandler extends GlobalCommandHandler {
   public constructor(private readonly scriptManager: ScriptManager) {

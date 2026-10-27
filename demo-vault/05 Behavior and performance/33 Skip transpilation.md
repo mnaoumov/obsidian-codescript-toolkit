@@ -13,7 +13,7 @@ The three buttons below load the same bundle and print how long each took.
 caption: Load WITH transpilation (Babel)
 ---
 const start = performance.now();
-await requireAsync('/module.cjs', { cacheInvalidationMode: 'always', shouldTranspile: true });
+await requireAsync('/ModuleTypes/module.cjs', { cacheInvalidationMode: 'always', shouldTranspile: true });
 console.log(`With transpilation:    ${Math.round(performance.now() - start)} ms`);
 ```
 
@@ -22,7 +22,7 @@ console.log(`With transpilation:    ${Math.round(performance.now() - start)} ms`
 caption: Load WITHOUT transpilation (raw)
 ---
 const start = performance.now();
-await requireAsync('/module.cjs', { cacheInvalidationMode: 'always', shouldTranspile: false });
+await requireAsync('/ModuleTypes/module.cjs', { cacheInvalidationMode: 'always', shouldTranspile: false });
 console.log(`Without transpilation: ${Math.round(performance.now() - start)} ms`);
 ```
 
@@ -32,7 +32,7 @@ caption: Load with default auto-detection
 ---
 // A plain `.cjs` bundle is detected as CommonJS and runs raw automatically — no option needed.
 const start = performance.now();
-await requireAsync('/module.cjs', { cacheInvalidationMode: 'always' });
+await requireAsync('/ModuleTypes/module.cjs', { cacheInvalidationMode: 'always' });
 console.log(`Auto-detected:         ${Math.round(performance.now() - start)} ms`);
 ```
 

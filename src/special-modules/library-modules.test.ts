@@ -6,7 +6,7 @@ import {
   vi
 } from 'vitest';
 
-import type { RequireOptions } from './types.ts';
+import type { RequireOptions } from '../types.ts';
 
 import { registerLibraryModules } from './library-modules.ts';
 
@@ -27,7 +27,7 @@ vi.mock('@mnaoumov/typescript-lib/object-utils', () => ({
   getNestedPropertyValue: (object: unknown, path: unknown): unknown => mockGetNestedPropertyValue(object, path)
 }));
 
-vi.mock('../node_modules/@mnaoumov/obsidian-lib/package.json', () => ({
+vi.mock('../../node_modules/@mnaoumov/obsidian-lib/package.json', () => ({
   default: {
     exports: {
       '.': './dist/index.js',
@@ -41,7 +41,7 @@ vi.mock('../node_modules/@mnaoumov/obsidian-lib/package.json', () => ({
   }
 }));
 
-vi.mock('../node_modules/@mnaoumov/typescript-lib/package.json', () => ({
+vi.mock('../../node_modules/@mnaoumov/typescript-lib/package.json', () => ({
   default: {
     exports: {
       '.': './dist/index.js',

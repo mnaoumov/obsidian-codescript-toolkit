@@ -13,7 +13,7 @@ import {
 
 import type { PluginSettings } from './plugin-settings.ts';
 
-import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from './code-button-block.ts';
+import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from '../code-buttons/code-button-block.ts';
 import { PathSuggest } from './path-suggest.ts';
 
 interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstructorParams<PluginSettings> {

@@ -6,16 +6,16 @@ Modern JavaScript is written with `import`/`export`, but Obsidian's built-in `re
 ---
 caption: Require ECMAScript modules
 ---
-const { cjs } = require('/module.cjs');
+const { cjs } = require('/ModuleTypes/module.cjs');
 cjs();
 
-const { mjs } = require('/module.mjs');
+const { mjs } = require('/ModuleTypes/module.mjs');
 mjs();
 
-const { jsAsCjs } = require('/moduleAsCjs.js');
+const { jsAsCjs } = require('/ModuleTypes/moduleAsCjs.js');
 jsAsCjs();
 
-const { jsAsMjs } = require('/moduleAsMjs.js');
+const { jsAsMjs } = require('/ModuleTypes/moduleAsMjs.js');
 jsAsMjs();
 ```
 
@@ -27,16 +27,16 @@ The `import` form works too, and reads better for it. Both buttons load the same
 ---
 caption: Import ECMAScript modules
 ---
-import { cjs } from '/module.cjs';
+import { cjs } from '/ModuleTypes/module.cjs';
 cjs();
 
-import { mjs } from '/module.mjs';
+import { mjs } from '/ModuleTypes/module.mjs';
 mjs();
 
-import { jsAsCjs } from '/moduleAsCjs.js';
+import { jsAsCjs } from '/ModuleTypes/moduleAsCjs.js';
 jsAsCjs();
 
-import { jsAsMjs } from '/moduleAsMjs.js';
+import { jsAsMjs } from '/ModuleTypes/moduleAsMjs.js';
 jsAsMjs();
 ```
 

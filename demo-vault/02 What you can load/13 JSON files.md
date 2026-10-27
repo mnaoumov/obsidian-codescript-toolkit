@@ -6,7 +6,7 @@ Require a `.json` file and get the parsed object back — no `read` plus `JSON.p
 ---
 caption: Require JSON files
 ---
-require('/module.json');
+require('/ModuleTypes/module.json');
 ```
 
 ## Platform support

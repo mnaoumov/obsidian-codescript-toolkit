@@ -7,16 +7,16 @@ Everything in this vault is built on three functions the plugin adds to the glob
 caption: All three, side by side
 ---
 // synchronous — simplest, most limited
-const { relativePath } = require('./_assets/CodeScriptToolkit/relativePath.js');
+const { relativePath } = require('./_assets/CodeScriptToolkit/Paths/relativePath.js');
 relativePath();
 
 // asynchronous — everything works, needs `await`
-const { rootRelativePath } = await requireAsync('/rootRelativePath.js');
+const { rootRelativePath } = await requireAsync('/Paths/rootRelativePath.js');
 rootRelativePath();
 
 // synchronous-looking, asynchronously pre-loaded
 await requireAsyncWrapper((require) => {
-  const { vaultRootRelativePath } = require('//_assets/CodeScriptToolkit/vaultRootRelativePath.js');
+  const { vaultRootRelativePath } = require('//_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js');
   vaultRootRelativePath();
 });
 ```

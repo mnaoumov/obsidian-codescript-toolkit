@@ -25,8 +25,8 @@ import {
   vi
 } from 'vitest';
 
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
+import type { PluginSettingsComponent } from './settings/plugin-settings-component.ts';
 
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 

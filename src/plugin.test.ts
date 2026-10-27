@@ -41,15 +41,15 @@ vi.mock('@mnaoumov/obsidian-lib/plugin/plugin-event-source', () => ({
   PluginEventSourceImpl: vi.fn()
 }));
 
-vi.mock('./code-button-block.ts', () => ({
+vi.mock('./code-buttons/code-button-block.ts', () => ({
   CodeButtonBlockComponent: vi.fn()
 }));
 
-vi.mock('./code-button-code-highlighter-component.ts', () => ({
+vi.mock('./code-buttons/code-button-code-highlighter-component.ts', () => ({
   CodeButtonCodeHighlighterComponent: vi.fn()
 }));
 
-vi.mock('./code-script-code-highlighter-component.ts', () => ({
+vi.mock('./vault-scripts/code-script-code-highlighter-component.ts', () => ({
   CodeScriptCodeHighlighterComponent: vi.fn()
 }));
 
@@ -70,7 +70,7 @@ vi.mock('./command-handlers/unload-temp-plugins-command-handler.ts', () => ({
   UnloadTempPluginsCommandHandler: vi.fn()
 }));
 
-vi.mock('./plugin-settings-component.ts', () => ({
+vi.mock('./settings/plugin-settings-component.ts', () => ({
   // A ComponentEx, not a bare mock: onloadImpl awaits its `loadWithPromises`.
   // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new` and return a real loadable Component.
   PluginSettingsComponent: vi.fn(function () {
@@ -78,7 +78,7 @@ vi.mock('./plugin-settings-component.ts', () => ({
   })
 }));
 
-vi.mock('./plugin-settings-tab.ts', () => ({
+vi.mock('./settings/plugin-settings-tab.ts', () => ({
   PluginSettingsTab: vi.fn()
 }));
 
@@ -94,19 +94,19 @@ vi.mock('./script-folder-watchers/script-folder-watcher-factory.ts', () => ({
   ScriptFolderWatcherFactoryComponent: vi.fn()
 }));
 
-vi.mock('./script-registry.ts', () => ({
+vi.mock('./vault-scripts/script-registry.ts', () => ({
   ScriptRegistryComponent: vi.fn()
 }));
 
-vi.mock('./script.ts', () => ({
+vi.mock('./vault-scripts/script.ts', () => ({
   ScriptManager: vi.fn()
 }));
 
-vi.mock('./startup-script.ts', () => ({
+vi.mock('./vault-scripts/startup-script.ts', () => ({
   StartupScriptComponent: vi.fn()
 }));
 
-vi.mock('./temporary-plugin-registry.ts', () => ({
+vi.mock('./temp-plugins/temporary-plugin-registry.ts', () => ({
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistryComponent: vi.fn()
 }));

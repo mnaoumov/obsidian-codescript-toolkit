@@ -6,13 +6,13 @@ Load a `.wasm` binary and call its exports like an ordinary module. Unlike [Node
 ---
 caption: Require WebAssembly
 ---
-const { answer } = await requireAsync('/module.wasm');
+const { answer } = await requireAsync('/ModuleTypes/module.wasm');
 console.log(answer());
 ```
 
 ## The module in this vault
 
-The plugin bundles no WebAssembly of its own — it loads only what your vault already contains. The `/module.wasm` the button above loads is this vault's own 39-byte example at `_assets/CodeScriptToolkit/module.wasm`, and its source is checked in beside it as [`module.wat`](<../_assets/CodeScriptToolkit/module.wat>):
+The plugin bundles no WebAssembly of its own — it loads only what your vault already contains. The `/ModuleTypes/module.wasm` the button above loads is this vault's own 39-byte example at `_assets/CodeScriptToolkit/ModuleTypes/module.wasm`, and its source is checked in beside it as [`module.wat`](<../_assets/CodeScriptToolkit/ModuleTypes/module.wat>):
 
 ```wat
 (module

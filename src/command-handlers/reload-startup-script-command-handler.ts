@@ -1,6 +1,6 @@
 import { GlobalCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/global-command-handler';
 
-import type { StartupScriptComponent } from '../startup-script.ts';
+import type { StartupScriptComponent } from '../vault-scripts/startup-script.ts';
 
 export class ReloadStartupScriptCommandHandler extends GlobalCommandHandler {
   public constructor(private readonly startupScriptComponent: StartupScriptComponent) {

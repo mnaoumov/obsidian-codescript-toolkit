@@ -4,7 +4,7 @@ import type {
   RegisterTempPluginParams as RegisterTemporaryPluginParams,
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginClass
-} from './code-button-context.ts';
+} from '../code-buttons/code-button-context.ts';
 
 /**
  * Helper functions of the plugin.

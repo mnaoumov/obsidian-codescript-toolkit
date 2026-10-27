@@ -6,7 +6,7 @@ Load a compiled native addon (`.node`) — the format npm packages ship when par
 ---
 caption: Require Node binaries
 ---
-const { hello } = require('/module.node');
+const { hello } = require('/ModuleTypes/module.node');
 hello();
 ```
 

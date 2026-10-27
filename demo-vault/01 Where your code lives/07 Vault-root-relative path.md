@@ -6,7 +6,7 @@ Address a file from the vault root with a leading `//`, whatever the plugin's mo
 ---
 caption: Require vault-root-relative path
 ---
-const { vaultRootRelativePath } = require('//_assets/CodeScriptToolkit/vaultRootRelativePath.js');
+const { vaultRootRelativePath } = require('//_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js');
 vaultRootRelativePath();
 ```
 

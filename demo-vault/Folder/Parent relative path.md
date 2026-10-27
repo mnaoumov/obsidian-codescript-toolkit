@@ -6,7 +6,7 @@ A fixture for [04 Relative path](<../01 Where your code lives/04 Relative path.m
 ---
 caption: Require parent relative path
 ---
-const { parentRelativePath } = require('../_assets/CodeScriptToolkit/parentRelativePath.js');
+const { parentRelativePath } = require('../_assets/CodeScriptToolkit/Paths/parentRelativePath.js');
 parentRelativePath();
 ```
 
@@ -14,6 +14,6 @@ parentRelativePath();
 ---
 caption: Require parent relative path with custom parent path
 ---
-const { parentRelativePathWithCustomParentPath } = require('../_assets/CodeScriptToolkit/parentRelativePathWithCustomParentPath.js', { parentPath: 'Folder/Parent relative path.md' });
+const { parentRelativePathWithCustomParentPath } = require('../_assets/CodeScriptToolkit/Paths/parentRelativePathWithCustomParentPath.js', { parentPath: 'Folder/Parent relative path.md' });
 parentRelativePathWithCustomParentPath();
 ```

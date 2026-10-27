@@ -20,8 +20,8 @@ import {
   vi
 } from 'vitest';
 
-import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from './code-button-context.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
+import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from '../code-buttons/code-button-context.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
 
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';

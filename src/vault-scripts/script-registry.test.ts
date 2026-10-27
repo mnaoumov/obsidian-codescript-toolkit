@@ -15,8 +15,8 @@ import {
   vi
 } from 'vitest';
 
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import { ScriptRegistryComponent } from './script-registry.ts';

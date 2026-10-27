@@ -5,12 +5,12 @@ import * as typescriptLib from '@mnaoumov/typescript-lib';
 import { getNestedPropertyValue } from '@mnaoumov/typescript-lib/object-utils';
 import { trimStart } from '@mnaoumov/typescript-lib/string';
 
-import type { RequireOptions } from './types.ts';
+import type { RequireOptions } from '../types.ts';
 
 // eslint-disable-next-line import-x/no-relative-packages -- package.json is not exported.
-import obsidianLibPackageJson from '../node_modules/@mnaoumov/obsidian-lib/package.json';
+import obsidianLibPackageJson from '../../node_modules/@mnaoumov/obsidian-lib/package.json';
 // eslint-disable-next-line import-x/no-relative-packages -- package.json is not exported.
-import typescriptLibPackageJson from '../node_modules/@mnaoumov/typescript-lib/package.json';
+import typescriptLibPackageJson from '../../node_modules/@mnaoumov/typescript-lib/package.json';
 
 const EXPORT_PATH_PREFIX = './';
 const EXPORT_PATH_SEPARATOR = '/';

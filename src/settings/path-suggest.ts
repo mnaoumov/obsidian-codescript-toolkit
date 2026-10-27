@@ -7,7 +7,7 @@ import {
 } from '@mnaoumov/typescript-lib/path';
 import { AbstractInputSuggest } from 'obsidian';
 
-import { EXTENSIONS } from './require-handlers/require-handler.ts';
+import { EXTENSIONS } from '../require-handlers/require-handler.ts';
 
 const CACHE_DURATION_IN_MILLISECONDS = 30_000;
 

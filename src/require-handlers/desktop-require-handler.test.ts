@@ -46,11 +46,11 @@ vi.mock('debuggable-eval', () => ({
   debuggableEval: vi.fn()
 }));
 
-vi.mock('../library-modules.ts', () => ({
+vi.mock('../special-modules/library-modules.ts', () => ({
   registerLibraryModules: vi.fn()
 }));
 
-vi.mock('../special-module-names.ts', () => ({
+vi.mock('../special-modules/special-module-names.ts', () => ({
   SPECIAL_MODULE_NAMES: {
     asarPackedModuleNames: [],
     deprecatedObsidianBuiltInModuleNames: [],
@@ -60,7 +60,7 @@ vi.mock('../special-module-names.ts', () => ({
   }
 }));
 
-vi.mock('../code-script-toolkit-module-impl.ts', () => ({
+vi.mock('../special-modules/code-script-toolkit-module-impl.ts', () => ({
   CodeScriptToolkitModuleImpl: vi.fn()
 }));
 

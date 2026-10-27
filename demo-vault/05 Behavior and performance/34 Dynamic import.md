@@ -6,7 +6,7 @@
 ---
 caption: Dynamic import
 ---
-const { dynamicImport } = await import('/dynamicImport.js')
+const { dynamicImport } = await import('/Behavior/dynamicImport.js')
 dynamicImport();
 ```
 
