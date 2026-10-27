@@ -19,10 +19,12 @@ import { SequentialBabelPlugin } from './combine-babel-plugins.ts';
 const TEST_FILENAME = 'test.ts';
 
 interface RenameData {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The Babel visitor records whether it renamed an identifier.
   renamed: boolean;
 }
 
 interface WrapData {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The Babel visitor records whether it wrapped an expression.
   wrapped: boolean;
 }
 

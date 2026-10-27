@@ -32,7 +32,7 @@ vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
 }));
 
 interface MockSettings {
-  getInvocableScriptsFolder: Mock<() => string>;
+  readonly getInvocableScriptsFolder: Mock<() => string>;
 }
 
 describe('ScriptFolderWatcherDesktopComponent', () => {

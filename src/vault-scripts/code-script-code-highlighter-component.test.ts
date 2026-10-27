@@ -22,9 +22,9 @@ import {
 } from './code-script-code-highlighter-component.ts';
 
 interface Mocks {
-  getMode: ReturnType<typeof createGetModeMock>;
-  modes: CodeMirrorModule['modes'];
-  prism: PrismModule;
+  readonly getMode: ReturnType<typeof createGetModeMock>;
+  readonly modes: CodeMirrorModule['modes'];
+  readonly prism: PrismModule;
 }
 
 const { loadPrismMock } = vi.hoisted(() => ({

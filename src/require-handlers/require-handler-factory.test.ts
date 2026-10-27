@@ -22,6 +22,7 @@ const mockRequireStringAsync = vi.fn();
 const mockRequireVaultScriptAsync = vi.fn();
 
 interface MockIsMobile {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests switch the platform flag to exercise desktop and mobile factory selection.
   isMobile: boolean;
 }
 

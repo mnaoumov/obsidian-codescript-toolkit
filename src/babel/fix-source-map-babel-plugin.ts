@@ -4,15 +4,15 @@ import type { Visitor } from '@babel/traverse';
 import { BabelPluginBase } from './babel-plugin-base.ts';
 
 interface FixSourceMapData {
-  sourceUrl: string;
+  readonly sourceUrl: string;
 }
 
 interface InputMap {
-  sourcemap: SourceMap;
+  readonly sourcemap: SourceMap;
 }
 
 interface SourceMap {
-  sources: string[];
+  readonly sources: string[];
 }
 
 export class FixSourceMapBabelPlugin extends BabelPluginBase<FixSourceMapData> {

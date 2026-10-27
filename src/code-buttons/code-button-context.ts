@@ -16,7 +16,7 @@ export interface CodeButtonContext {
   /**
    * Obsidian app instance.
    */
-  app: App;
+  readonly app: App;
 
   /**
    * The button element the running code belongs to.
@@ -25,12 +25,12 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#codebuttoncontextbuttonel}
    */
-  buttonEl: HTMLButtonElement | null;
+  readonly buttonEl: HTMLButtonElement | null;
 
   /**
    * A config for the code button block.
    */
-  config: CodeButtonBlockConfig;
+  readonly config: CodeButtonBlockConfig;
 
   /**
    * A console instance.
@@ -41,7 +41,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldwrapconsole---console-messages}
    */
-  console: Console;
+  readonly console: Console;
 
   /**
    * A container element to render the output to.
@@ -52,7 +52,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#codebuttoncontextcontainer}
    */
-  container: HTMLElement;
+  readonly container: HTMLElement;
 
   /**
    * Get a temp plugin by class name or class itself.
@@ -61,7 +61,7 @@ export interface CodeButtonContext {
    * @returns The temp plugin.
    */
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  getTempPlugin: (tempPluginClass: string | TempPluginClass) => null | ObsidianPlugin;
+  readonly getTempPlugin: (tempPluginClass: string | TempPluginClass) => null | ObsidianPlugin;
 
   /**
    * Insert markdown after the code button block.
@@ -70,7 +70,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
-  insertAfterCodeButtonBlock: (params: CodeButtonContextInsertAfterCodeButtonBlockParams) => Promise<void>;
+  readonly insertAfterCodeButtonBlock: (params: CodeButtonContextInsertAfterCodeButtonBlockParams) => Promise<void>;
 
   /**
    * Insert markdown before the code button block.
@@ -79,24 +79,24 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
-  insertBeforeCodeButtonBlock: (params: CodeButtonContextInsertBeforeCodeButtonBlockParams) => Promise<void>;
+  readonly insertBeforeCodeButtonBlock: (params: CodeButtonContextInsertBeforeCodeButtonBlockParams) => Promise<void>;
 
   /**
    * Information about a code block in a markdown file
    *
    * @see {@link https://github.com/mnaoumov/obsidian-lib/blob/main/src/code-block-markdown-information.ts}
    */
-  markdownInfo: CodeBlockMarkdownInformation | null;
+  readonly markdownInfo: CodeBlockMarkdownInformation | null;
 
   /**
    * A markdown post processor context.
    */
-  markdownPostProcessorContext: MarkdownPostProcessorContext;
+  readonly markdownPostProcessorContext: MarkdownPostProcessorContext;
 
   /**
    * A parent element where the code button block is rendered.
    */
-  parentEl: HTMLElement;
+  readonly parentEl: HTMLElement;
 
   /**
    * Register a temp plugin.
@@ -106,7 +106,7 @@ export interface CodeButtonContext {
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#codebuttoncontextregistertempplugin}
    */
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-  registerTempPlugin: <TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>) => Promise<null | TPlugin>;
+  readonly registerTempPlugin: <TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>) => Promise<null | TPlugin>;
 
   /**
    * Remove the code button block.
@@ -115,7 +115,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
-  removeCodeButtonBlock: (shouldKeepGap?: boolean) => Promise<void>;
+  readonly removeCodeButtonBlock: (shouldKeepGap?: boolean) => Promise<void>;
 
   /**
    * Render markdown inside the {@link container}.
@@ -124,7 +124,7 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#codebuttoncontextrendermarkdown}
    */
-  renderMarkdown: (markdown: string) => Promise<void>;
+  readonly renderMarkdown: (markdown: string) => Promise<void>;
 
   /**
    * Replace the code button block with the given markdown.
@@ -133,17 +133,17 @@ export interface CodeButtonContext {
    *
    * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
-  replaceCodeButtonBlock: (params: CodeButtonContextReplaceCodeButtonBlockParams) => Promise<void>;
+  readonly replaceCodeButtonBlock: (params: CodeButtonContextReplaceCodeButtonBlockParams) => Promise<void>;
 
   /**
    * The source code of the code button block.
    */
-  source: string;
+  readonly source: string;
 
   /**
    * The source markdown file which contains the code button block.
    */
-  sourceFile: TFile;
+  readonly sourceFile: TFile;
 }
 
 /**

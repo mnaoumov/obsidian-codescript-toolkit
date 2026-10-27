@@ -22,21 +22,23 @@ import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
 interface AppSetting {
-  openTabById: ReturnType<typeof vi.fn>;
+  readonly openTabById: ReturnType<typeof vi.fn>;
 }
 
 interface AppWithSetting {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests replace the settings controller to exercise tab navigation.
   setting: AppSetting;
 }
 
 interface BindCall {
-  options: MockBindOptions | undefined;
-  propertyName: string;
+  readonly options: MockBindOptions | undefined;
+  readonly propertyName: string;
 }
 
 type BindFunction = (params: MockBindParams) => unknown;
 
 interface BindTarget {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests replace the binding function to observe settings changes.
   bind: BindFunction;
 }
 
@@ -51,8 +53,8 @@ interface MockBindParams {
 }
 
 interface MockPathSuggestInstance {
-  getRootPath: () => string;
-  refresh: ReturnType<typeof vi.fn>;
+  readonly getRootPath: () => string;
+  readonly refresh: ReturnType<typeof vi.fn>;
 }
 
 interface MockPathSuggestParams {
@@ -60,9 +62,9 @@ interface MockPathSuggestParams {
 }
 
 interface MockTextInstance {
-  inputEl: HTMLInputElement;
-  onChanged: ReturnType<typeof vi.fn>;
-  setPlaceholder: ReturnType<typeof vi.fn>;
+  readonly inputEl: HTMLInputElement;
+  readonly onChanged: ReturnType<typeof vi.fn>;
+  readonly setPlaceholder: ReturnType<typeof vi.fn>;
 }
 
 const mockSettingExSetName = vi.fn();

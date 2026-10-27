@@ -20,7 +20,7 @@ import { ScriptRegistryComponent } from './script-registry.ts';
 import { ScriptManager } from './script.ts';
 
 interface SelectItemArguments {
-  itemTextFunction: (s: string) => string;
+  readonly itemTextFunction: (s: string) => string;
 }
 
 const mockSelectItem = vi.fn();
@@ -42,28 +42,28 @@ vi.mock('./script-registry.ts', () => ({
 }));
 
 interface MockAdapter {
-  exists: ReturnType<typeof vi.fn>;
-  list: ReturnType<typeof vi.fn>;
+  readonly exists: ReturnType<typeof vi.fn>;
+  readonly list: ReturnType<typeof vi.fn>;
 }
 
 interface MockApp {
-  vault: MockVault;
+  readonly vault: MockVault;
 }
 
 interface MockConsoleDebugComponent {
-  consoleDebug: ReturnType<typeof vi.fn>;
+  readonly consoleDebug: ReturnType<typeof vi.fn>;
 }
 
 interface MockPluginSettingsComponent {
-  settings: MockSettings;
+  readonly settings: MockSettings;
 }
 
 interface MockSettings {
-  getInvocableScriptsFolder: ReturnType<typeof vi.fn>;
+  readonly getInvocableScriptsFolder: ReturnType<typeof vi.fn>;
 }
 
 interface MockVault {
-  adapter: MockAdapter;
+  readonly adapter: MockAdapter;
 }
 
 function createMockApp(): MockApp {

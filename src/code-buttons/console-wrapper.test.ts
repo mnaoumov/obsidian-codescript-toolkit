@@ -20,8 +20,8 @@ vi.mock('@mnaoumov/typescript-lib/object-utils', () => ({
 }));
 
 interface MockElement {
-  createDiv: ReturnType<typeof vi.fn>;
-  scrollIntoView: ReturnType<typeof vi.fn>;
+  readonly createDiv: ReturnType<typeof vi.fn>;
+  readonly scrollIntoView: ReturnType<typeof vi.fn>;
 }
 
 function createMockElement(): MockElement {

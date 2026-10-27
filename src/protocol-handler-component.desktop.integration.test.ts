@@ -8,11 +8,11 @@ import {
 } from 'vitest';
 
 interface ProtocolHandlerRegistry {
-  handlers: Map<string, (data: Record<string, string>) => void>;
+  readonly handlers: Map<string, (data: Record<string, string>) => void>;
 }
 
 interface WorkspaceWithProtocolHandler {
-  protocolHandler: ProtocolHandlerRegistry;
+  readonly protocolHandler: ProtocolHandlerRegistry;
 }
 
 const MODULES_ROOT = '_int-test-protocol';

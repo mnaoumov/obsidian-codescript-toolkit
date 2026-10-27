@@ -31,7 +31,7 @@ const mockPrintError = vi.fn();
 let showNoticeMock: Mock<PluginNoticeComponent['showNotice']>;
 
 interface ObsidianDocumentHead {
-  createEl: (...$arguments: never[]) => HTMLElement;
+  readonly createEl: (...$arguments: never[]) => HTMLElement;
 }
 
 function getObsidianDocumentHead(): ObsidianDocumentHead {
@@ -47,8 +47,8 @@ vi.mock('@mnaoumov/typescript-lib/error', async (importOriginal) => ({
 }));
 
 interface MockPlugin {
-  load: ReturnType<typeof vi.fn>;
-  unload: ReturnType<typeof vi.fn>;
+  readonly load: ReturnType<typeof vi.fn>;
+  readonly unload: ReturnType<typeof vi.fn>;
 }
 
 function createApp(): App {

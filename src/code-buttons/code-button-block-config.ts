@@ -25,7 +25,7 @@ export interface CodeButtonBlockConfig {
   /**
    * The caption of the code button.
    */
-  caption: string;
+  readonly caption: string;
 
   /**
    * The [inline CSS](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#css---inline-button-styles) applied to the button element, in the same syntax as an HTML `style` attribute.
@@ -34,7 +34,7 @@ export interface CodeButtonBlockConfig {
    *
    * @default `''`
    */
-  css: string;
+  readonly css: string;
 
   /**
    * The [CSS classes](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#cssclasses---button-css-classes) added to the button element, as a single space-separated string or a list of strings.
@@ -43,23 +43,24 @@ export interface CodeButtonBlockConfig {
    *
    * @default `''`
    */
-  cssClasses: string | string[];
+  readonly cssClasses: string | string[];
 
   /**
    * Whether the button should work in [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#israw---raw-mode) mode.
    */
-  isRaw: boolean;
+  readonly isRaw: boolean;
 
   /**
    * Configures the behavior of the button removal after it has been executed.
    */
-  removeAfterExecution: RemoveAfterExecutionConfig;
+  readonly removeAfterExecution: RemoveAfterExecutionConfig;
 
   /**
    * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldautooutput---auto-output-mode) the last evaluated expression.
    *
    * A last expression that is a `Promise` is awaited first, and its settled value is output.
    */
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Raw mode disables automatic output while normalizing the button configuration.
   shouldAutoOutput: boolean;
 
   /**
@@ -71,11 +72,12 @@ export interface CodeButtonBlockConfig {
    *
    * @default `false`
    */
-  shouldAutoOutputUndefined: boolean;
+  readonly shouldAutoOutputUndefined: boolean;
 
   /**
    * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldautorun---auto-running-code-blocks-mode) without pressing the button.
    */
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Raw mode enables automatic execution while normalizing the button configuration.
   shouldAutoRun: boolean;
 
   /**
@@ -87,16 +89,18 @@ export interface CodeButtonBlockConfig {
    *
    * @default `true`
    */
-  shouldAutoScrollToConsoleMessages: boolean;
+  readonly shouldAutoScrollToConsoleMessages: boolean;
 
   /**
    * Whether to show system messages such as `Executing...`, `Executed successfully`, etc.
    */
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Raw mode disables system messages while normalizing the button configuration.
   shouldShowSystemMessages: boolean;
 
   /**
    * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldwrapconsole---console-messages) in the results panel.
    */
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Raw mode disables console wrapping while normalizing the button configuration.
   shouldWrapConsole: boolean;
 
   /**
@@ -104,7 +108,7 @@ export interface CodeButtonBlockConfig {
    *
    * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#israw---raw-mode) buttons, which own their whole rendered element and clear it on every run.
    */
-  sourceVisibility: SourceVisibility;
+  readonly sourceVisibility: SourceVisibility;
 }
 
 /**
@@ -114,10 +118,10 @@ export interface RemoveAfterExecutionConfig {
   /**
    * Whether to keep the gap after the button has been removed.
    */
-  shouldKeepGap: boolean;
+  readonly shouldKeepGap: boolean;
 
   /**
    * The condition of the button removal.
    */
-  when: 'always' | 'never' | 'onError' | 'onSuccess';
+  readonly when: 'always' | 'never' | 'onError' | 'onSuccess';
 }

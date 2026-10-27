@@ -9,7 +9,7 @@ import { BabelPluginBase } from './babel-plugin-base.ts';
 import { FixSourceMapBabelPlugin } from './fix-source-map-babel-plugin.ts';
 
 interface SourceMapData {
-  sources: string[];
+  readonly sources: string[];
 }
 
 const TEST_FILENAME = 'test.ts';

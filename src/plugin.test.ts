@@ -112,10 +112,14 @@ vi.mock('./temp-plugins/temporary-plugin-registry.ts', () => ({
 }));
 
 interface PluginPrivateApi {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Test setup injects this plugin dependency after construction.
   commandHandlerComponent: CommandHandlerComponent;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Test setup injects this plugin dependency after construction.
   consoleDebugComponent: ConsoleDebugComponent;
-  onloadImpl: () => Promise<void>;
+  readonly onloadImpl: () => Promise<void>;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Test setup injects this plugin dependency after construction.
   pluginNoticeComponent: PluginNoticeComponent;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Test setup injects this plugin dependency after construction.
   resourceLockComponent: ResourceLockComponent;
 }
 

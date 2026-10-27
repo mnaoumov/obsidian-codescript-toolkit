@@ -90,65 +90,68 @@ vi.mock('../special-modules/code-script-toolkit-module-impl.ts', () => ({
 }));
 
 interface CustomRequireWindow {
-  require: (id: string, options?: Partial<RequireOptions>) => unknown;
+  readonly require: (id: string, options?: Partial<RequireOptions>) => unknown;
 }
 
 interface MockAppAccessor {
-  app: MockAppWithMetadataCache;
+  readonly app: MockAppWithMetadataCache;
 }
 
 interface MockAppWithMetadataCache {
-  metadataCache: MockMetadataCache;
+  readonly metadataCache: MockMetadataCache;
 }
 
 interface MockCleanups {
-  cleanups__: (() => void)[];
+  readonly cleanups__: (() => void)[];
 }
 
 interface MockMetadataCache {
   // eslint-disable-next-line unicorn/name-replacements -- Named by a dependency's API - Obsidian's MetadataCache/Vault and Babel's InputOptions.
-  getFirstLinkpathDest: ReturnType<typeof vi.fn>;
+  readonly getFirstLinkpathDest: ReturnType<typeof vi.fn>;
 }
 
 interface MockModuleWithExports {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The evaluated CommonJS fixture assigns its module exports.
   exports: unknown;
 }
 
 interface MockPluginRequireAccessor {
-  pluginRequire: ReturnType<typeof vi.fn>;
+  readonly pluginRequire: ReturnType<typeof vi.fn>;
 }
 
 interface MockPluginSettings {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests change the module root to exercise path resolution and cache invalidation.
   modulesRoot: string;
 }
 
 interface MockPluginSettingsComponent {
-  settings: MockPluginSettings;
+  readonly settings: MockPluginSettings;
 }
 
 interface MockPluginSettingsComponentAccessor {
-  pluginSettingsComponent: MockPluginSettingsComponent;
+  readonly pluginSettingsComponent: MockPluginSettingsComponent;
 }
 
 interface MockWindowRequire {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The require hook is installed, restored or removed during lifecycle tests.
   require?: unknown;
 }
 
 interface RequireAsyncWindow {
-  requireAsync?: unknown;
+  readonly requireAsync?: unknown;
 }
 
 interface RequireAsyncWrapperTypedWindow {
-  requireAsyncWrapper?: ($function: (r: (id: string) => unknown) => unknown, r?: unknown) => Promise<unknown>;
+  readonly requireAsyncWrapper?: ($function: (r: (id: string) => unknown) => unknown, r?: unknown) => Promise<unknown>;
 }
 
 interface RequireAsyncWrapperWindow {
-  requireAsyncWrapper?: ($function: (r: unknown) => unknown, r?: unknown) => Promise<unknown>;
+  readonly requireAsyncWrapper?: ($function: (r: unknown) => unknown, r?: unknown) => Promise<unknown>;
 }
 
 interface RequireWindowFull {
-  requireAsync?: unknown;
-  requireAsyncWrapper?: unknown;
+  readonly requireAsync?: unknown;
+  readonly requireAsyncWrapper?: unknown;
 }
 
 interface ResolveResult {
@@ -157,11 +160,11 @@ interface ResolveResult {
 }
 
 interface WebAssemblyInstantiateSpy {
-  mockRestore: () => void;
+  readonly mockRestore: () => void;
 }
 
 interface WebAssemblyInstantiateSpyFactory {
-  mockResolvedValue: (value: WebAssembly.WebAssemblyInstantiatedSource) => WebAssemblyInstantiateSpy;
+  readonly mockResolvedValue: (value: WebAssembly.WebAssemblyInstantiatedSource) => WebAssemblyInstantiateSpy;
 }
 
 function windowCustomRequire(id: string, options?: Partial<RequireOptions>): unknown {

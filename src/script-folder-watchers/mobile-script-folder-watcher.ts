@@ -5,8 +5,8 @@ import { convertAsyncToSync } from '@mnaoumov/typescript-lib/async';
 import { ScriptFolderWatcherComponentBase } from './script-folder-watcher.ts';
 
 interface ModificationEntry {
-  isChanged: boolean;
-  modificationTime: number;
+  readonly isChanged: boolean;
+  readonly modificationTime: number;
 }
 
 const MILLISECONDS_IN_SECOND = 1000;

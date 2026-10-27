@@ -59,11 +59,11 @@ interface ScriptComponentConstructorParams {
 }
 
 interface ScriptOrCommand extends Partial<Script> {
-  buildInvokeCommand?: (app: App) => Promisable<Partial<Command>>;
+  readonly buildInvokeCommand?: (app: App) => Promisable<Partial<Command>>;
   // Deprecated for script authors, who should export `buildInvokeCommand()` instead. Declared here only so legacy
   // Scripts still exporting it can be detected and reported. Not a `@deprecated` tag: this interface is module-private,
   // So the tag would reach no consumer while making its own detection below fail `@typescript-eslint/no-deprecated`.
-  invokeCommand?: Partial<Command>;
+  readonly invokeCommand?: Partial<Command>;
 }
 
 interface ScriptRegistryComponentConstructorParams {
@@ -76,7 +76,7 @@ interface ScriptRegistryComponentConstructorParams {
 }
 
 interface WrapperCommandHandler extends CommandHandler {
-  forceInvoke: () => Promise<void>;
+  readonly forceInvoke: () => Promise<void>;
 }
 
 class CommandWrapperCommandHandler extends CommandHandler implements WrapperCommandHandler {

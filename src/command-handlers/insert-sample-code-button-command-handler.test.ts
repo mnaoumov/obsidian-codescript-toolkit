@@ -16,7 +16,7 @@ vi.mock('../code-buttons/code-button-block.ts', () => ({
 }));
 
 interface InsertSampleCodeButtonCommandHandlerPrivateApi {
-  executeEditor: (editor: Editor) => void;
+  readonly executeEditor: (editor: Editor) => void;
 }
 
 describe('InsertSampleCodeButtonCommandHandler', () => {

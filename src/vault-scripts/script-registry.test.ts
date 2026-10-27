@@ -44,14 +44,14 @@ vi.mock('./code-script-toolkit-note-settings.ts', () => ({
 }));
 
 interface CreateRegistryOverrides {
-  app?: App;
-  consoleDebugComponent?: ConsoleDebugComponent;
-  pluginNoticeComponent?: PluginNoticeComponent;
-  RequireHandlerFactoryComponent?: RequireHandlerFactoryComponent;
+  readonly app?: App;
+  readonly consoleDebugComponent?: ConsoleDebugComponent;
+  readonly pluginNoticeComponent?: PluginNoticeComponent;
+  readonly RequireHandlerFactoryComponent?: RequireHandlerFactoryComponent;
 }
 
 interface MockRequireHandlerFactoryComponent {
-  requireVaultScriptAsync: Mock<(id: string) => Promise<unknown>>;
+  readonly requireVaultScriptAsync: Mock<(id: string) => Promise<unknown>>;
 }
 
 function createApp(files: Record<string, string> = {}): App {

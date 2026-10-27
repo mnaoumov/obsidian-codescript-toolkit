@@ -9,8 +9,8 @@ import type { PluginSettingsComponent } from '../settings/plugin-settings-compon
 import type { Script } from './script.ts';
 
 interface StartupScript extends Script {
-  cleanup?: (app: App) => Promisable<void>;
-  shouldExecuteOnLoad?: (app: App) => Promisable<boolean>;
+  readonly cleanup?: (app: App) => Promisable<void>;
+  readonly shouldExecuteOnLoad?: (app: App) => Promisable<boolean>;
 }
 
 interface StartupScriptComponentConstructorParams {

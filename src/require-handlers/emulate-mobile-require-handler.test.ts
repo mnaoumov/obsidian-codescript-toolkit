@@ -58,7 +58,7 @@ vi.mock('./require-handler.ts', () => ({
 }));
 
 interface CanRequireNonCachedAccessor {
-  canRequireNonCached: () => boolean;
+  readonly canRequireNonCached: () => boolean;
 }
 
 interface CanRequireSyncAccessor {
@@ -66,43 +66,43 @@ interface CanRequireSyncAccessor {
 }
 
 interface ExistsFileAsyncAccessor {
-  existsFileAsync: (path: string) => Promise<boolean>;
+  readonly existsFileAsync: (path: string) => Promise<boolean>;
 }
 
 interface ExistsFolderAsyncAccessor {
-  existsFolderAsync: (path: string) => Promise<boolean>;
+  readonly existsFolderAsync: (path: string) => Promise<boolean>;
 }
 
 interface GetTimestampAsyncAccessor {
-  getTimestampAsync: (path: string) => Promise<number>;
+  readonly getTimestampAsync: (path: string) => Promise<number>;
 }
 
 interface ReadFileAsyncAccessor {
-  readFileAsync: (path: string) => Promise<string>;
+  readonly readFileAsync: (path: string) => Promise<string>;
 }
 
 interface ReadFileBinaryAsyncAccessor {
-  readFileBinaryAsync: (path: string) => Promise<ArrayBuffer>;
+  readonly readFileBinaryAsync: (path: string) => Promise<ArrayBuffer>;
 }
 
 interface RequireAsarPackedModuleAccessor {
-  requireAsarPackedModule: (id: string) => unknown;
+  readonly requireAsarPackedModule: (id: string) => unknown;
 }
 
 interface RequireElectronModuleAccessor {
-  requireElectronModule: (id: string) => unknown;
+  readonly requireElectronModule: (id: string) => unknown;
 }
 
 interface RequireNodeBinaryAsyncAccessor {
-  requireNodeBinaryAsync: (params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams) => Promise<unknown>;
+  readonly requireNodeBinaryAsync: (params: RequireHandlerComponentBaseRequireNodeBinaryAsyncParams) => Promise<unknown>;
 }
 
 interface RequireNodeBuiltInModuleAccessor {
-  requireNodeBuiltInModule: (id: string) => unknown;
+  readonly requireNodeBuiltInModule: (id: string) => unknown;
 }
 
 interface RequireNonCachedAccessor {
-  requireNonCached: (params: RequireHandlerComponentBaseRequireNonCachedParams) => unknown;
+  readonly requireNonCached: (params: RequireHandlerComponentBaseRequireNonCachedParams) => unknown;
 }
 
 function asCanRequireNonCached(object: RequireHandlerEmulateMobileComponent): CanRequireNonCachedAccessor {

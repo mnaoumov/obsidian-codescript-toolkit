@@ -31,6 +31,7 @@ import type { PluginSettingsComponent } from './settings/plugin-settings-compone
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 
 interface MockSettings {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests toggle protocol handling to exercise enabled and disabled settings.
   shouldHandleProtocolUrls: boolean;
 }
 
@@ -238,7 +239,7 @@ describe('ProtocolHandlerComponent', () => {
       }));
 
       interface MockCall {
-        code: string;
+        readonly code: string;
       }
       const generatedCode = (mockRequireStringAsync.mock.calls[0] as [MockCall])[0].code;
       const genericObjectWindow = ensureGenericObject(window);
