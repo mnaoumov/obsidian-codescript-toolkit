@@ -12,8 +12,8 @@ import { EXTENSIONS } from '../require-handlers/require-handler.ts';
 const CACHE_DURATION_IN_MILLISECONDS = 30_000;
 
 interface PathEntry {
-  path: string;
-  type: PathEntryType;
+  readonly path: string;
+  readonly type: PathEntryType;
 }
 
 type PathEntryType = 'file' | 'folder';

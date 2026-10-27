@@ -22,7 +22,8 @@ import { ScriptFolderWatcherMobileComponent } from './mobile-script-folder-watch
 const CHECKING_INTERVAL_IN_SECONDS = 10;
 
 interface MockSettings {
-  getInvocableScriptsFolder: Mock<() => string>;
+  readonly getInvocableScriptsFolder: Mock<() => string>;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests change the polling interval to exercise watcher settings.
   mobileChangesCheckingIntervalInSeconds: number;
 }
 

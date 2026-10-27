@@ -69,59 +69,59 @@ const MOCK_CONFIG_DIR = `${EMPTY}.obsidian`;
 const MOCK_MTIME_MS = 1_234_567_890;
 
 interface CurrentModulesTimestampChainAccessor {
-  currentModulesTimestampChain: Set<string>;
+  readonly currentModulesTimestampChain: Set<string>;
 }
 
 interface FileSystemAdapterAccessor {
-  fileSystemAdapter: FileSystemAdapter;
+  readonly fileSystemAdapter: FileSystemAdapter;
 }
 
 interface FileSystemAdapterFsAccessor {
-  fileSystemAdapter: MockFileSystemAdapterFs;
+  readonly fileSystemAdapter: MockFileSystemAdapterFs;
 }
 
 interface FileSystemAdapterFsPromisesAccessor {
-  fileSystemAdapter: MockFileSystemAdapterFsPromises;
+  readonly fileSystemAdapter: MockFileSystemAdapterFsPromises;
 }
 
 interface FindExistingFilePathAccessor {
-  findExistingFilePath: (path: string) => null | string;
+  readonly findExistingFilePath: (path: string) => null | string;
 }
 
 interface FsAccessor {
-  fs: MockFs;
+  readonly fs: MockFs;
 }
 
 interface FsPromisesAccessor {
-  fsPromises: MockFsPromises;
+  readonly fsPromises: MockFsPromises;
 }
 
 interface GetCachedModuleAccessor {
-  getCachedModule: (id: string) => unknown;
+  readonly getCachedModule: (id: string) => unknown;
 }
 
 interface GetDependenciesTimestampAccessor {
-  getDependenciesTimestampChangedAndReloadIfNeeded: (path: string, options?: Partial<RequireOptions>) => number;
+  readonly getDependenciesTimestampChangedAndReloadIfNeeded: (path: string, options?: Partial<RequireOptions>) => number;
 }
 
 interface GetParentPathFromCallStackAccessor {
-  getParentPathFromCallStack: (callerLineIndex: number) => null | string;
+  readonly getParentPathFromCallStack: (callerLineIndex: number) => null | string;
 }
 
 interface GetRootFolderAccessor {
-  getRootFolder: (cwd: string) => null | string;
+  readonly getRootFolder: (cwd: string) => null | string;
 }
 
 interface GetRootFoldersAccessor {
-  getRootFolders: (folder: string) => string[];
+  readonly getRootFolders: (folder: string) => string[];
 }
 
 interface GetTimestampAccessor {
-  getTimestamp: (path: string) => number;
+  readonly getTimestamp: (path: string) => number;
 }
 
 interface GetUrlDependencyErrorMessageAccessor {
-  getUrlDependencyErrorMessage: (params: GetUrlDependencyErrorMessageParams) => string;
+  readonly getUrlDependencyErrorMessage: (params: GetUrlDependencyErrorMessageParams) => string;
 }
 
 interface GetUrlDependencyErrorMessageParams {
@@ -131,105 +131,108 @@ interface GetUrlDependencyErrorMessageParams {
 }
 
 interface InitModuleAndAddToCacheAccessor {
-  initModuleAndAddToCache: (id: string, moduleInitializer: () => unknown) => unknown;
+  readonly initModuleAndAddToCache: (id: string, moduleInitializer: () => unknown) => unknown;
 }
 
 interface MockFileSystemAdapterFs {
-  fs: MockFs;
+  readonly fs: MockFs;
 }
 
 interface MockFileSystemAdapterFsPromises {
-  fsPromises: MockFsPromises;
+  readonly fsPromises: MockFsPromises;
 }
 
 interface MockFs {
-  existsSync: ReturnType<typeof vi.fn>;
-  readFileSync: ReturnType<typeof vi.fn>;
-  statSync: ReturnType<typeof vi.fn>;
+  readonly existsSync: ReturnType<typeof vi.fn>;
+  readonly readFileSync: ReturnType<typeof vi.fn>;
+  readonly statSync: ReturnType<typeof vi.fn>;
 }
 
 interface MockFsPromises {
-  mkdir: ReturnType<typeof vi.fn>;
-  readFile: ReturnType<typeof vi.fn>;
-  rm: ReturnType<typeof vi.fn>;
-  stat: ReturnType<typeof vi.fn>;
-  writeFile: ReturnType<typeof vi.fn>;
+  readonly mkdir: ReturnType<typeof vi.fn>;
+  readonly readFile: ReturnType<typeof vi.fn>;
+  readonly rm: ReturnType<typeof vi.fn>;
+  readonly stat: ReturnType<typeof vi.fn>;
+  readonly writeFile: ReturnType<typeof vi.fn>;
 }
 
 interface MockModuleDependenciesAccessor {
-  moduleDependencies: Map<string, Set<string>>;
+  readonly moduleDependencies: Map<string, Set<string>>;
 }
 
 interface MockVaultAbsolutePathAccessor {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests replace or clear the cached vault path to exercise path resolution.
   _vaultAbsolutePath: string;
 }
 
 interface MockVaultAbsolutePathUndefinedAccessor {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests replace or clear the cached vault path to exercise path resolution.
   _vaultAbsolutePath: undefined;
 }
 
 interface ModulePrototypeRequireAccessor {
-  modulePrototypeRequire: (id: string, module: NodeJS.Module) => unknown;
+  readonly modulePrototypeRequire: (id: string, module: NodeJS.Module) => unknown;
 }
 
 interface ModuleRequirePrototype {
-  require: (id: string) => unknown;
+  readonly require: (id: string) => unknown;
 }
 
 interface ModulesRootSetting {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests change the module root to exercise path resolution and cache invalidation.
   modulesRoot: string;
 }
 
 interface ModuleWithExports {
-  exports: unknown;
+  readonly exports: unknown;
 }
 
 interface OriginalModulePrototypeRequireAccessor {
-  originalModulePrototypeRequire: unknown;
+  readonly originalModulePrototypeRequire: unknown;
 }
 
 interface OriginalModulePrototypeRequireWrappedAccessor {
-  originalModulePrototypeRequireWrapped: (id: string, options: Partial<RequireOptions>) => unknown;
+  readonly originalModulePrototypeRequireWrapped: (id: string, options: Partial<RequireOptions>) => unknown;
 }
 
 interface PluginSettingsModulesRootAccessor {
-  pluginSettingsComponent: PluginSettingsWithModulesRoot;
+  readonly pluginSettingsComponent: PluginSettingsWithModulesRoot;
 }
 
 interface PluginSettingsSyncFallbackAccessor {
-  pluginSettingsComponent: PluginSettingsWithSyncFallback;
+  readonly pluginSettingsComponent: PluginSettingsWithSyncFallback;
 }
 
 interface PluginSettingsWithModulesRoot {
-  settings: ModulesRootSetting;
+  readonly settings: ModulesRootSetting;
 }
 
 interface PluginSettingsWithSyncFallback {
-  settings: SyncFallbackSetting;
+  readonly settings: SyncFallbackSetting;
 }
 
 interface ReadFileAccessor {
-  readFile: (path: string) => string;
+  readonly readFile: (path: string) => string;
 }
 
 interface ReadPackageJsonAccessor {
-  readPackageJson: (path: string) => unknown;
+  readonly readPackageJson: (path: string) => unknown;
 }
 
 interface RequireJsonAccessor {
-  requireJson: (path: string) => unknown;
+  readonly requireJson: (path: string) => unknown;
 }
 
 interface RequireJsTsAccessor {
-  requireJsTs: (path: string) => unknown;
+  readonly requireJsTs: (path: string) => unknown;
 }
 
 interface RequireMdAccessor {
-  requireMd: (path: string) => unknown;
+  readonly requireMd: (path: string) => unknown;
 }
 
 interface RequireModuleAccessor {
-  requireModule: (params: RequireModuleParams) => unknown;
+  readonly requireModule: (params: RequireModuleParams) => unknown;
 }
 
 interface RequireModuleParams {
@@ -239,23 +242,23 @@ interface RequireModuleParams {
 }
 
 interface RequirePathAccessor {
-  requirePath: (path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType) => unknown;
+  readonly requirePath: (path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType) => unknown;
 }
 
 interface RequirePathImplAccessor {
-  requirePathImpl: (path: string, options?: Partial<RequireOptions>) => unknown;
+  readonly requirePathImpl: (path: string, options?: Partial<RequireOptions>) => unknown;
 }
 
 interface RequireSpecialModuleAccessor {
-  requireSpecialModule: (id: string, options: Partial<RequireOptions>) => unknown;
+  readonly requireSpecialModule: (id: string, options: Partial<RequireOptions>) => unknown;
 }
 
 interface RequireStringAccessor {
-  requireString: (params: RequireStringParams) => unknown;
+  readonly requireString: (params: RequireStringParams) => unknown;
 }
 
 interface RequireStringImplAccessor {
-  requireStringImpl: (options: unknown) => RequireStringImplResult;
+  readonly requireStringImpl: (options: unknown) => RequireStringImplResult;
 }
 
 interface RequireStringImplResult {
@@ -269,11 +272,11 @@ interface RequireStringParams {
 }
 
 interface RequireWasmAccessor {
-  requireWasm: (path: string) => unknown;
+  readonly requireWasm: (path: string) => unknown;
 }
 
 interface ResolveAccessor {
-  resolve: (params: ResolveParams) => ResolveResult;
+  readonly resolve: (params: ResolveParams) => ResolveResult;
 }
 
 interface ResolveParams {
@@ -287,11 +290,12 @@ interface ResolveResult {
 }
 
 interface SyncFallbackSetting {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests toggle the synchronous fallback setting between require scenarios.
   shouldUseSyncFallback: boolean;
 }
 
 interface WriteFileBinaryAsyncAccessor {
-  writeFileBinaryAsync: (path: string, arrayBuffer: ArrayBuffer) => Promise<void>;
+  readonly writeFileBinaryAsync: (path: string, arrayBuffer: ArrayBuffer) => Promise<void>;
 }
 
 let mockFs: MockFs;

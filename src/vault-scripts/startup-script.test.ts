@@ -19,23 +19,23 @@ import type { PluginSettingsComponent } from '../settings/plugin-settings-compon
 import { StartupScriptComponent } from './startup-script.ts';
 
 interface MockApp {
-  vault: MockVault;
+  readonly vault: MockVault;
 }
 
 interface MockPluginSettingsComponent {
-  settings: MockSettings;
+  readonly settings: MockSettings;
 }
 
 interface MockRequireHandlerFactoryComponent {
-  requireVaultScriptAsync: ReturnType<typeof vi.fn>;
+  readonly requireVaultScriptAsync: ReturnType<typeof vi.fn>;
 }
 
 interface MockSettings {
-  getStartupScriptPath: ReturnType<typeof vi.fn>;
+  readonly getStartupScriptPath: ReturnType<typeof vi.fn>;
 }
 
 interface MockVault {
-  exists: ReturnType<typeof vi.fn>;
+  readonly exists: ReturnType<typeof vi.fn>;
 }
 
 function createMockApp(): MockApp {

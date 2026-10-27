@@ -57,8 +57,8 @@ interface BabelTransformResult {
 }
 
 interface CodeButtonBlockComponentPrivateApi {
-  handleClick: (...$arguments: never[]) => Promise<void>;
-  processCodeButtonBlock: (...$arguments: never[]) => Promise<void>;
+  readonly handleClick: (...$arguments: never[]) => Promise<void>;
+  readonly processCodeButtonBlock: (...$arguments: never[]) => Promise<void>;
 }
 
 vi.mock('@mnaoumov/typescript-lib/error', () => ({
@@ -144,7 +144,7 @@ interface MockCreateElOptions {
 }
 
 interface MockSourceFile {
-  path: string;
+  readonly path: string;
 }
 
 const mockCodeButtonContextConstructor = vi.fn();
@@ -288,6 +288,7 @@ describe('insertSampleCodeButton', () => {
 
 // `mockApp` is built without a workspace; the reveal-in-note tests attach a stub one.
 interface AppWithWorkspace {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests replace the workspace to exercise active-leaf execution contexts.
   workspace: unknown;
 }
 

@@ -9,7 +9,7 @@ import { BabelPluginBase } from './babel-plugin-base.ts';
 import { transformImportMetaBabelPlugin } from './transform-import-meta-babel-plugin.ts';
 
 interface TransformCodeToCommonJsData {
-  hasTopLevelAwait: boolean;
+  readonly hasTopLevelAwait: boolean;
 }
 
 export class ConvertToCommonJsBabelPlugin extends BabelPluginBase<TransformCodeToCommonJsData> {

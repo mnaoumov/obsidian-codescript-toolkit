@@ -15,7 +15,7 @@ import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-set
 import { ScriptRegistryComponent } from './script-registry.ts';
 
 export interface Script {
-  invoke: (app: App) => Promisable<void>;
+  readonly invoke: (app: App) => Promisable<void>;
 }
 
 const extensions = ['.js', '.cjs', '.mjs', '.ts', '.cts', '.mts'];

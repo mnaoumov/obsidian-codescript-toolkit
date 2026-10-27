@@ -15,6 +15,7 @@ const MODULES_ROOT = '_int-test-context';
 const PLUGIN_ID = 'fix-require-modules';
 
 interface ObservedContent {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The integration callback captures rendered content after the asynchronous read.
   content: null | string;
 }
 

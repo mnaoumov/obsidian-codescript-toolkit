@@ -29,15 +29,17 @@ interface ProtocolHandlerComponentConstructorParams {
 }
 
 interface Query {
-  // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
+  // eslint-disable-next-line unicorn/name-replacements, typescript-dev-toolkit/readonly-interface-members -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key. Protocol query processing fills in default arguments before invoking the script.
   args?: string;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Protocol query processing generates or defaults the executable code.
   code?: string;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Protocol query processing fills in the default function name.
   functionName?: string;
-  module?: string;
+  readonly module?: string;
 }
 
 interface WindowWithRequireAsync {
-  requireAsync: (id: string) => Promise<Record<string, unknown>>;
+  readonly requireAsync: (id: string) => Promise<Record<string, unknown>>;
 }
 
 export class ProtocolHandlerComponent extends ComponentEx {

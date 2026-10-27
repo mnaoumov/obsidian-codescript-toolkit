@@ -18,13 +18,14 @@ import { CacheInvalidationMode } from '../types.ts';
 import { BabelPluginBase } from './babel-plugin-base.ts';
 
 interface ExtractRequireArgumentsListData {
-  requireArgumentsList: RequireArguments[];
+  readonly requireArgumentsList: RequireArguments[];
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Visitors update the detected require parameter name while traversing the script.
   requireFunctionName: string;
 }
 
 interface RequireArguments {
-  id: string;
-  options: Partial<RequireOptions>;
+  readonly id: string;
+  readonly options: Partial<RequireOptions>;
 }
 export class ExtractRequireArgumentsListBabelPlugin extends BabelPluginBase<ExtractRequireArgumentsListData> {
   public constructor(data?: ExtractRequireArgumentsListData) {

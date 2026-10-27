@@ -26,22 +26,22 @@ import { PluginSettingsComponent } from './plugin-settings-component.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
 interface LegacyConverter {
-  converter: (record: GenericObject) => void;
-  legacySettingsClass: new () => LegacySettingsInstance;
+  readonly converter: (record: GenericObject) => void;
+  readonly legacySettingsClass: new () => LegacySettingsInstance;
 }
 
 interface LegacySettingsInstance {
-  invocableScriptsDirectory: string;
+  readonly invocableScriptsDirectory: string;
 }
 
 interface PluginSettingsComponentPrivateApi {
-  registerLegacySettingsConverters: () => void;
-  registerValidators: () => void;
+  readonly registerLegacySettingsConverters: () => void;
+  readonly registerValidators: () => void;
 }
 
 interface RegisteredValidator {
-  propertyName: string;
-  validator: SettingsValidator<PluginSettings>;
+  readonly propertyName: string;
+  readonly validator: SettingsValidator<PluginSettings>;
 }
 
 const mockParseYaml = vi.fn();

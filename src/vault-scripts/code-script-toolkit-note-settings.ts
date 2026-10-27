@@ -5,7 +5,7 @@ import { parseFrontmatter } from '@mnaoumov/obsidian-lib/frontmatter';
 import { getFrontmatterSafe } from '@mnaoumov/obsidian-lib/metadata-cache';
 
 interface CodeScriptToolkitNoteSettingsFrontmatter {
-  codeScriptToolkit?: CodeScriptToolkitNoteSettings;
+  readonly codeScriptToolkit?: CodeScriptToolkitNoteSettings;
 }
 
 class CodeScriptToolkitNoteSettings {

@@ -91,7 +91,7 @@ export enum ResolvedType {
 
 export type RequireFunction = typeof require;
 interface EmptyModule {
-  [EMPTY_MODULE_SYMBOL]: boolean;
+  readonly [EMPTY_MODULE_SYMBOL]: boolean;
 }
 interface ExtractCodeScriptParams {
   readonly md: string;
@@ -110,6 +110,7 @@ interface GetModuleTypeFromContentTypeParams {
   readonly url: string;
 }
 interface Module {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Evaluated CommonJS scripts replace module.exports when publishing their exports.
   exports: object;
 }
 
@@ -191,8 +192,11 @@ interface RequireStringImplResult {
 }
 
 interface RequireWindow {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The require hook is installed and restored with the component lifecycle.
   require?: RequireExFunction;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The asynchronous require global is installed and removed with the component lifecycle.
   requireAsync?: RequireAsyncFunction;
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- The asynchronous require wrapper global is installed and removed with the component lifecycle.
   requireAsyncWrapper?: RequireAsyncWrapperFunction;
 }
 
@@ -204,13 +208,13 @@ interface ResolveResult {
 type ScriptWrapper = (context: ScriptWrapperContext) => Promisable<void>;
 
 interface ScriptWrapperContext {
-  __dirname: string;
-  __filename: string;
-  exports: object;
-  module: Module;
-  require: RequireExFunction;
-  requireAsync: RequireAsyncFunction;
-  requireAsyncWrapper: RequireAsyncWrapperFunction;
+  readonly __dirname: string;
+  readonly __filename: string;
+  readonly exports: object;
+  readonly module: Module;
+  readonly require: RequireExFunction;
+  readonly requireAsync: RequireAsyncFunction;
+  readonly requireAsyncWrapper: RequireAsyncWrapperFunction;
 }
 
 const CALLER_LINE_INDEX = 4;
@@ -241,10 +245,10 @@ const JS_EXTENSION = '.js';
 const ESM_PACKAGE_TYPE = 'module';
 
 export interface RequireHandler extends ComponentEx {
-  clearCache: () => void;
-  requireAsync: (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
-  requireStringAsync: (params: RequireStringAsyncParams) => Promise<unknown>;
-  requireVaultScriptAsync: (id: string) => Promise<unknown>;
+  readonly clearCache: () => void;
+  readonly requireAsync: (id: string, options?: Partial<RequireOptions>) => Promise<unknown>;
+  readonly requireStringAsync: (params: RequireStringAsyncParams) => Promise<unknown>;
+  readonly requireVaultScriptAsync: (id: string) => Promise<unknown>;
 }
 
 export interface RequireHandlerComponentBaseRequireNodeBinaryAsyncParams {
