@@ -700,6 +700,10 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return this.resolveRelativeOrModule({ id, parentPath });
   }
 
+  protected resolveModulesRootPath(id: string): string {
+    return join(this.vaultAbsolutePath, this.pluginSettingsComponent.settings.modulesRoot, trimStart({ $string: id, prefix: '/' }));
+  }
+
   private addToModuleCache(params: RequireHandlerComponentBaseAddToModuleCacheParams): NodeJS.Module {
     const { id, isLoaded = true, module: $module } = params;
     this.modulesCache[id] = {
@@ -1362,7 +1366,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const MODULES_ROOT_PATH_PREFIX = '/';
     if (id.startsWith(MODULES_ROOT_PATH_PREFIX)) {
       return {
-        resolvedId: join(this.vaultAbsolutePath, this.pluginSettingsComponent.settings.modulesRoot, trimStart({ $string: id, prefix: MODULES_ROOT_PATH_PREFIX })),
+        resolvedId: this.resolveModulesRootPath(id),
         resolvedType: ResolvedType.Path
       };
     }

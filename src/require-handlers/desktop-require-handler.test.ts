@@ -331,6 +331,10 @@ class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopCompon
     return this.requireNonCached({ id, options, type });
   }
 
+  public exposeResolvePath(id: string): string {
+    return this.resolve({ id, parentPath: undefined }).resolvedId;
+  }
+
   public getModulesCache(): NodeJS.Dict<NodeJS.Module> {
     return this.modulesCache;
   }
@@ -1557,6 +1561,53 @@ describe('RequireHandlerDesktopComponent', () => {
         .getUrlDependencyErrorMessage({ path: '/my/module.ts', resolvedId: 'https://example.com/dep.js' });
 
       expect(result).toContain(`cacheInvalidationMode=${CacheInvalidationMode.Never}`);
+    });
+  });
+
+  describe('POSIX absolute paths', () => {
+    const PACKAGE_PATH = `/Users/test/vault/${MOCK_CONFIG_DIR}/plugins/terminal/node_modules/node-pty`;
+    const PACKAGE_ENTRY = `${PACKAGE_PATH}/lib/index.js`;
+
+    beforeEach(() => {
+      Object.defineProperty(handler, 'vaultAbsolutePath', { get: () => '/Users/test/vault' });
+    });
+
+    it('should resolve an existing absolute package directory through its native entry point', () => {
+      mockFs.existsSync.mockImplementation((path: string) => path === PACKAGE_PATH);
+      mockFs.statSync.mockReturnValue({ isDirectory: () => true, isFile: () => false });
+      const resolveMock = vi.fn().mockReturnValue(PACKAGE_ENTRY);
+      mockOriginalModulePrototypeRequire.mockReturnValue({ createRequire: () => ({ resolve: resolveMock }) });
+
+      expect(handler.exposeResolvePath(PACKAGE_PATH)).toBe(PACKAGE_ENTRY);
+      expect(resolveMock).toHaveBeenCalledWith(PACKAGE_PATH);
+    });
+
+    it('should preserve an existing modules-root target when an absolute file also exists', () => {
+      const rootedPath = `/Users/test/vault${PACKAGE_ENTRY}`;
+      mockFs.existsSync.mockImplementation((path: string) => [PACKAGE_ENTRY, rootedPath].includes(path));
+      mockFs.statSync.mockReturnValue({ isDirectory: () => false, isFile: () => true });
+
+      expect(handler.exposeResolvePath(PACKAGE_ENTRY)).toBe(rootedPath);
+      expect(mockOriginalModulePrototypeRequire).not.toHaveBeenCalled();
+    });
+
+    it('should preserve the modules-root path when neither target exists', () => {
+      expect(handler.exposeResolvePath('/missing.js')).toBe('/Users/test/vault/missing.js');
+      expect(mockOriginalModulePrototypeRequire).not.toHaveBeenCalled();
+    });
+
+    it('should retain query options on a native absolute file', () => {
+      mockFs.existsSync.mockImplementation((path: string) => path === PACKAGE_ENTRY);
+      mockFs.statSync.mockReturnValue({ isDirectory: () => false, isFile: () => true });
+      mockOriginalModulePrototypeRequire.mockReturnValue({ createRequire: () => ({ resolve: vi.fn().mockReturnValue(PACKAGE_ENTRY) }) });
+
+      expect(handler.exposeResolvePath(`${PACKAGE_ENTRY}?cacheInvalidationMode=never`)).toBe(`${PACKAGE_ENTRY}?cacheInvalidationMode=never`);
+    });
+
+    it('should keep explicit vault-root and system-root prefixes unambiguous', () => {
+      expect(handler.exposeResolvePath('//scripts/test.js')).toBe('/Users/test/vault/scripts/test.js');
+      expect(handler.exposeResolvePath('~/scripts/test.js')).toBe('/scripts/test.js');
+      expect(mockOriginalModulePrototypeRequire).not.toHaveBeenCalled();
     });
   });
 
