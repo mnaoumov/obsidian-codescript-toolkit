@@ -10,15 +10,8 @@ import {
 const MODULES_ROOT = '_int-test-invocables';
 const INVOCABLES_FOLDER = 'scripts';
 const PLUGIN_ID = 'fix-require-modules';
-// The first script execution in a fresh Obsidian session loads babel-standalone and primes the require pipeline — a one-time cost far larger than a warm run. The poll timeout is generous enough to absorb that cold start.
-/*
- * Under the transport's ~30s per-closure cap, not at it.
- * Two of the closures spend this ceiling twice over, so at 20_000 each of them declared 40s.
- * The eval is killed at the cap first and reported as a bare transport timeout.
- * That names the harness rather than the wait that overran.
- * A script registering or unregistering lands in well under a second, so the smaller ceiling costs nothing.
- * The constant feeds nothing but closure input, so no Node-side wait sees the change.
- */
+// Readiness and command execution use separate transport calls, each below the ~30s cap.
+const EDITOR_READY_TIMEOUT_MS = 20_000;
 const POLL_TIMEOUT_MS = 12_000;
 const POLL_INTERVAL_MS = 100;
 
@@ -61,6 +54,36 @@ beforeAll(async () => {
     vaultPath: vault.path
   });
 }, 30_000);
+
+async function openScratchEditor(): Promise<void> {
+  await evalInObsidian({
+    async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, scratchPath, timeoutMs }) {
+      const file = app.vault.getFileByPath(scratchPath);
+      if (!file) {
+        throw new Error(`Scratch note not found: ${scratchPath}`);
+      }
+
+      const leaf = app.workspace.getLeaf(false);
+      await leaf.openFile(file, { state: { mode: 'source' } });
+      await app.workspace.revealLeaf(leaf);
+      await waitUntil({
+        intervalInMilliseconds: intervalMs,
+        message: 'The scratch note must be active with an editor before invoking an editor command',
+        predicate: (): boolean => {
+          const view = app.workspace.getActiveViewOfType(obsidianModule.MarkdownView);
+          return view?.file?.path === scratchPath && app.workspace.activeEditor?.editor === view.editor;
+        },
+        timeoutInMilliseconds: timeoutMs
+      });
+    },
+    input: {
+      intervalMs: POLL_INTERVAL_MS,
+      scratchPath: `${MODULES_ROOT}/${INVOCABLES_FOLDER}/scratch.md`,
+      timeoutMs: EDITOR_READY_TIMEOUT_MS
+    },
+    vaultPath: vaultPath()
+  });
+}
 
 function vaultPath(): string {
   return getTemporaryVault().path;
@@ -228,23 +251,10 @@ describe('ScriptRegistry integration', () => {
   });
 
   it('should execute editorCallback invocable script with editor context', async () => {
-    // Open a markdown file to ensure an active editor exists
-    await evalInObsidian({
-      async callback({ app, intervalMs, invocablesFolder, lib: { waitUntil }, modulesRoot, obsidianModule, timeoutMs }) {
-        await app.workspace.openLinkText(`${modulesRoot}/${invocablesFolder}/scratch`, '', false);
-
-        await waitUntil({
-          intervalInMilliseconds: intervalMs,
-          predicate: (): boolean => app.workspace.getActiveViewOfType(obsidianModule.MarkdownView)?.editor !== undefined,
-          timeoutInMilliseconds: timeoutMs
-        });
-      },
-      input: { intervalMs: POLL_INTERVAL_MS, invocablesFolder: INVOCABLES_FOLDER, modulesRoot: MODULES_ROOT, timeoutMs: POLL_TIMEOUT_MS },
-      vaultPath: vaultPath()
-    });
+    await openScratchEditor();
 
     const result = await evalInObsidian({
-      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, pluginId, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, pluginId, timeoutMs }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-callback'));
 
@@ -252,18 +262,13 @@ describe('ScriptRegistry integration', () => {
           return { editorExists: false, error: 'Command not found', executed: false };
         }
 
-        await waitUntil({
-          intervalInMilliseconds: intervalMs,
-          predicate: (): boolean => app.workspace.getActiveViewOfType(obsidianModule.MarkdownView)?.editor !== undefined,
-          timeoutInMilliseconds: timeoutMs
-        });
-
         Reflect.deleteProperty(window, '__editorCallbackInvoked');
         Reflect.deleteProperty(window, '__editorExists');
         app.commands.executeCommandById(commandId);
 
         await waitUntil({
           intervalInMilliseconds: intervalMs,
+          message: 'The editor command must execute its callback',
           predicate: (): boolean => Reflect.get(window, '__editorCallbackInvoked') === true,
           timeoutInMilliseconds: timeoutMs
         });
@@ -281,9 +286,10 @@ describe('ScriptRegistry integration', () => {
   });
 
   it('should execute editorCheckCallback invocable script with condition check and editor', async () => {
-    // The previous test already opened a markdown file — editor should still be active
+    await openScratchEditor();
+
     const result = await evalInObsidian({
-      async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, pluginId, timeoutMs }) {
+      async callback({ app, intervalMs, lib: { waitUntil }, pluginId, timeoutMs }) {
         const commandId = Object.keys(app.commands.commands)
           .find((id) => id.startsWith(`${pluginId}:invoke-script-file-`) && id.includes('editor-check-callback'));
 
@@ -291,18 +297,13 @@ describe('ScriptRegistry integration', () => {
           return { editorHasEditor: false, error: 'Command not found', executed: false };
         }
 
-        await waitUntil({
-          intervalInMilliseconds: intervalMs,
-          predicate: (): boolean => app.workspace.getActiveViewOfType(obsidianModule.MarkdownView)?.editor !== undefined,
-          timeoutInMilliseconds: timeoutMs
-        });
-
         Reflect.deleteProperty(window, '__editorCheckCallbackInvoked');
         Reflect.deleteProperty(window, '__editorCheckHasEditor');
         app.commands.executeCommandById(commandId);
 
         await waitUntil({
           intervalInMilliseconds: intervalMs,
+          message: 'The editor command must execute its callback',
           predicate: (): boolean => Reflect.get(window, '__editorCheckCallbackInvoked') === true,
           timeoutInMilliseconds: timeoutMs
         });
