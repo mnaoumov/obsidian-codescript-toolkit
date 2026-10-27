@@ -53,8 +53,8 @@ export function registerLibraryModules(specialModuleFactories: SpecialModuleFact
 }
 
 function registerLibraryModule(params: RegisterLibraryModuleParams): void {
-  const { exportPaths, libName, module, specialModuleFactories } = params;
-  specialModuleFactories.set(libName, () => module);
+  const { exportPaths, libName, module: $module, specialModuleFactories } = params;
+  specialModuleFactories.set(libName, () => $module);
 
   for (const exportPath of exportPaths) {
     if (exportPath.endsWith(WILDCARD_EXPORT_PATH)) {
@@ -71,7 +71,7 @@ function registerLibraryModule(params: RegisterLibraryModuleParams): void {
     const propertyPath = relativeExportPath
       .replaceAll(EXPORT_PATH_SEPARATOR, () => PROPERTY_PATH_SEPARATOR);
 
-    const subModule = relativeExportPath === ROOT_EXPORT_PATH ? module : getNestedPropertyValue(module, propertyPath) as object;
+    const subModule = relativeExportPath === ROOT_EXPORT_PATH ? $module : getNestedPropertyValue($module, propertyPath) as object;
 
     const requireId = relativeExportPath === ROOT_EXPORT_PATH ? libName : `${libName}/${relativeExportPath}`;
 

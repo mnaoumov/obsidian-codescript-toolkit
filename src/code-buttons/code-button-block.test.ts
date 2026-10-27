@@ -299,7 +299,7 @@ interface MockMenu {
 }
 
 interface MockMenuItem {
-  readonly onClick__: ((event: MouseEvent) => unknown) | null;
+  readonly onClick__: (($event: MouseEvent) => unknown) | null;
   readonly title__: string;
 }
 

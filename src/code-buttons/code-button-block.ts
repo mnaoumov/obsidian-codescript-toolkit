@@ -355,8 +355,8 @@ export class CodeButtonBlockComponent extends ComponentEx {
 
       buttonEl.addClasses(splitCssClasses(fullConfig.cssClasses));
 
-      buttonEl.addEventListener('contextmenu', (event: MouseEvent) => {
-        thisWrapper.value.showButtonMenu({ code, event, markdownInfo });
+      buttonEl.addEventListener('contextmenu', ($event: MouseEvent) => {
+        thisWrapper.value.showButtonMenu({ code, event: $event, markdownInfo });
       });
     }
 

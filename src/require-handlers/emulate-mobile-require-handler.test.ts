@@ -105,63 +105,63 @@ interface RequireNonCachedAccessor {
   readonly requireNonCached: (params: RequireHandlerComponentBaseRequireNonCachedParams) => unknown;
 }
 
-function asCanRequireNonCached(object: RequireHandlerEmulateMobileComponent): CanRequireNonCachedAccessor {
+function asCanRequireNonCached($object: RequireHandlerEmulateMobileComponent): CanRequireNonCachedAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as CanRequireNonCachedAccessor;
+  return $object as unknown as CanRequireNonCachedAccessor;
 }
 
-function asCanRequireSync(object: RequireHandlerEmulateMobileComponent): CanRequireSyncAccessor {
-  return castTo<CanRequireSyncAccessor>(object);
+function asCanRequireSync($object: RequireHandlerEmulateMobileComponent): CanRequireSyncAccessor {
+  return castTo<CanRequireSyncAccessor>($object);
 }
 
-function asExistsFileAsync(object: RequireHandlerEmulateMobileComponent): ExistsFileAsyncAccessor {
+function asExistsFileAsync($object: RequireHandlerEmulateMobileComponent): ExistsFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as ExistsFileAsyncAccessor;
+  return $object as unknown as ExistsFileAsyncAccessor;
 }
 
-function asExistsFolderAsync(object: RequireHandlerEmulateMobileComponent): ExistsFolderAsyncAccessor {
+function asExistsFolderAsync($object: RequireHandlerEmulateMobileComponent): ExistsFolderAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as ExistsFolderAsyncAccessor;
+  return $object as unknown as ExistsFolderAsyncAccessor;
 }
 
-function asGetTimestampAsync(object: RequireHandlerEmulateMobileComponent): GetTimestampAsyncAccessor {
+function asGetTimestampAsync($object: RequireHandlerEmulateMobileComponent): GetTimestampAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as GetTimestampAsyncAccessor;
+  return $object as unknown as GetTimestampAsyncAccessor;
 }
 
-function asReadFileAsync(object: RequireHandlerEmulateMobileComponent): ReadFileAsyncAccessor {
+function asReadFileAsync($object: RequireHandlerEmulateMobileComponent): ReadFileAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as ReadFileAsyncAccessor;
+  return $object as unknown as ReadFileAsyncAccessor;
 }
 
-function asReadFileBinaryAsync(object: RequireHandlerEmulateMobileComponent): ReadFileBinaryAsyncAccessor {
+function asReadFileBinaryAsync($object: RequireHandlerEmulateMobileComponent): ReadFileBinaryAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as ReadFileBinaryAsyncAccessor;
+  return $object as unknown as ReadFileBinaryAsyncAccessor;
 }
 
-function asRequireAsarPackedModule(object: RequireHandlerEmulateMobileComponent): RequireAsarPackedModuleAccessor {
+function asRequireAsarPackedModule($object: RequireHandlerEmulateMobileComponent): RequireAsarPackedModuleAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as RequireAsarPackedModuleAccessor;
+  return $object as unknown as RequireAsarPackedModuleAccessor;
 }
 
-function asRequireElectronModule(object: RequireHandlerEmulateMobileComponent): RequireElectronModuleAccessor {
+function asRequireElectronModule($object: RequireHandlerEmulateMobileComponent): RequireElectronModuleAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as RequireElectronModuleAccessor;
+  return $object as unknown as RequireElectronModuleAccessor;
 }
 
-function asRequireNodeBinaryAsync(object: RequireHandlerEmulateMobileComponent): RequireNodeBinaryAsyncAccessor {
+function asRequireNodeBinaryAsync($object: RequireHandlerEmulateMobileComponent): RequireNodeBinaryAsyncAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as RequireNodeBinaryAsyncAccessor;
+  return $object as unknown as RequireNodeBinaryAsyncAccessor;
 }
 
-function asRequireNodeBuiltInModule(object: RequireHandlerEmulateMobileComponent): RequireNodeBuiltInModuleAccessor {
+function asRequireNodeBuiltInModule($object: RequireHandlerEmulateMobileComponent): RequireNodeBuiltInModuleAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as RequireNodeBuiltInModuleAccessor;
+  return $object as unknown as RequireNodeBuiltInModuleAccessor;
 }
 
-function asRequireNonCached(object: RequireHandlerEmulateMobileComponent): RequireNonCachedAccessor {
+function asRequireNonCached($object: RequireHandlerEmulateMobileComponent): RequireNonCachedAccessor {
   // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion to access protected method
-  return object as unknown as RequireNonCachedAccessor;
+  return $object as unknown as RequireNonCachedAccessor;
 }
 
 describe('RequireHandlerEmulateMobileComponent', () => {

@@ -103,11 +103,11 @@ describe('ConsoleWrapper', () => {
     });
 
     it('should call toJson for object args', () => {
-      const object = { key: 'value' };
-      wrapper.appendToResultEl([object], 'log');
+      const $object = { key: 'value' };
+      wrapper.appendToResultEl([$object], 'log');
 
       expect(toJson).toHaveBeenCalledWith(
-        object,
+        $object,
         expect.objectContaining({
           functionHandlingMode: 'NameOnly',
           maxDepth: 0,
