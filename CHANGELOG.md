@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 15.0.1
+
+- fix: re #62
+- refactor: adopt keyword-safe binding names
+- refactor: adopt readonly interface members
+- test: make editor script cases independent of workspace state
+- docs(readme): combine related resources and plugin comparisons
+- refactor: group src and the demo-vault script fixtures into subject folders
+- docs(readme): list similar plugins
+- chore(deps): drop the @babel/core override for obsidian-dev-toolkit
+
 ## 15.0.0
 
 - feat!: the bundled `@mnaoumov/obsidian-lib` that vault scripts can `require` moves from 3.3.1 to 6.0.2. Three of its major releases change what a script sees: a patch's `postPatchHandler` can no longer add members ([4.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/4.0.0>)), `PathSettings` entries match case-insensitively and an unescaped `*`, `?` or `[` makes an entry a glob ([5.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/5.0.0>)), and the names kept from `obsidian-dev-utils` are gone, including the `obsidian-dev-utils-state` module, the `obsidianDevUtils` i18n namespace and the legacy CSS class and events ([6.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/6.0.0>)). Check a script that uses any of these against those release notes.
