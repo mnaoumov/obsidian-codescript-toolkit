@@ -234,6 +234,24 @@ ${this.getRequireAsyncAdvice(path)}`);
     }
   }
 
+  protected override resolveModulesRootPath(id: string): string {
+    const modulesRootPath = super.resolveModulesRootPath(id);
+    if (this.findExistingFilePath(modulesRootPath) !== null) {
+      return modulesRootPath;
+    }
+
+    const { cleanString, query } = splitQuery(id);
+    if (!this.existsFile(cleanString) && !this.existsFolder(cleanString)) {
+      return modulesRootPath;
+    }
+
+    // Other plugins pass native POSIX paths to window.require. Let Node resolve
+    // package directories (including package.json main) without prepending our scripts root.
+    const { createRequire } = this.originalModulePrototypeRequireWrapped('node:module', {}) as typeof import('node:module');
+    const nativeRequire = createRequire(join(this.vaultAbsolutePath, 'package.json'));
+    return nativeRequire.resolve(cleanString) + query;
+  }
+
   private existsFile(path: string): boolean {
     path = splitQuery(path).cleanString;
     return this.fs.existsSync(path) && this.fs.statSync(path).isFile();

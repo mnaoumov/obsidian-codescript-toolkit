@@ -134,6 +134,9 @@ beforeAll(() => {
     [`${SCRIPTS_DIR}/module.mjs`]: 'export const value = \'esm-ok\';',
     [`${SCRIPTS_DIR}/module.mts`]: 'export const value: string = \'mts-ok\';',
     [`${SCRIPTS_DIR}/module.wasm`]: createMinimalWasm(),
+    [`${SCRIPTS_DIR}/native-package/lib/child.cjs`]: 'exports.value = "native-package-ok";',
+    [`${SCRIPTS_DIR}/native-package/lib/entry.cjs`]: 'exports.value = require("./child.cjs").value;',
+    [`${SCRIPTS_DIR}/native-package/package.json`]: JSON.stringify({ main: 'lib/entry.cjs', name: 'native-package' }),
     [`${SCRIPTS_DIR}/nested/child.cjs`]: 'exports.child = true;',
     [`${SCRIPTS_DIR}/npm-test/node_modules/fake-pkg/index.js`]: 'exports.name = "fake-pkg";',
     [`${SCRIPTS_DIR}/npm-test/node_modules/fake-pkg/package.json`]: JSON.stringify({ main: 'index.js', name: 'fake-pkg', version: '1.0.0' }),
@@ -342,6 +345,39 @@ describe('RequireHandler integration', () => {
       });
 
       expect(result).toBe(42);
+    });
+  });
+
+  describe('native absolute paths', () => {
+    it.each(['global', 'module', 'async'] as const)('should load a native absolute package path through %s require', async (mode) => {
+      const result = await evalInObsidian({
+        async callback({ directory, mode: requireMode, vaultDirectory }) {
+          const requireFunction = Reflect.get(window, 'require') as RequireFunction;
+          const nodeProcess = requireFunction('node:process') as typeof import('node:process');
+          const previousDirectory = nodeProcess.cwd();
+          try {
+            // A leading slash is native on POSIX and drive-relative on Windows.
+            // Use the vault's drive so this exercises the same fallback on both.
+            nodeProcess.chdir(vaultDirectory);
+            const absolutePath = `${vaultDirectory.replaceAll('\\', '/').replace(/^[A-Za-z]:/u, '')}/${directory}/native-package`;
+            if (requireMode === 'module') {
+              const nodeModule = Reflect.get(window, 'module');
+              return nodeModule.require(absolutePath) as Record<string, unknown>;
+            }
+            if (requireMode === 'async') {
+              const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+              return await requireAsync(absolutePath) as Record<string, unknown>;
+            }
+            return requireFunction(absolutePath) as Record<string, unknown>;
+          } finally {
+            nodeProcess.chdir(previousDirectory);
+          }
+        },
+        input: { directory: SCRIPTS_DIR, mode, vaultDirectory: vaultPath() },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toHaveProperty('value', 'native-package-ok');
     });
   });
 
