@@ -8,7 +8,7 @@ The path is relative to **this note**, wherever it sits. This note lives one fol
 ---
 caption: Require relative path
 ---
-const { relativePath } = require('../_assets/CodeScriptToolkit/relativePath.js');
+const { relativePath } = require('../_assets/CodeScriptToolkit/Paths/relativePath.js');
 relativePath();
 ```
 
@@ -20,7 +20,7 @@ Relative to *what*? Normally the current script or note, detected automatically.
 ---
 caption: Require relative path with custom parent path
 ---
-const { relativePathWithCustomParentPath } = require('./_assets/CodeScriptToolkit/relativePathWithCustomParentPath.js', { parentPath: '00 Start.md' });
+const { relativePathWithCustomParentPath } = require('./_assets/CodeScriptToolkit/Paths/relativePathWithCustomParentPath.js', { parentPath: '00 Start.md' });
 relativePathWithCustomParentPath();
 ```
 

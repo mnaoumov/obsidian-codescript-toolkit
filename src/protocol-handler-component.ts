@@ -7,8 +7,8 @@ import type {
 import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
 import { toJson } from '@mnaoumov/typescript-lib/object-utils';
 
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
 import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
+import type { PluginSettingsComponent } from './settings/plugin-settings-component.ts';
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 

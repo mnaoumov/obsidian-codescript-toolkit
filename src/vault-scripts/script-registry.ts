@@ -20,8 +20,8 @@ import { join } from '@mnaoumov/typescript-lib/path';
 import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
 import { App } from 'obsidian';
 
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
+import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
 import type { Script } from './script.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';

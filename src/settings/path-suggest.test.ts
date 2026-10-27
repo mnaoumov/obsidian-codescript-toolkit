@@ -14,7 +14,7 @@ import {
 
 import { PathSuggest } from './path-suggest.ts';
 
-vi.mock('./require-handlers/require-handler.ts', () => ({
+vi.mock('../require-handlers/require-handler.ts', () => ({
   EXTENSIONS: ['.js', '.ts']
 }));
 

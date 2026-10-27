@@ -14,8 +14,8 @@ import {
   vi
 } from 'vitest';
 
-import type { PluginSettingsComponent } from '../plugin-settings-component.ts';
-import type { ScriptManager } from '../script.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
+import type { ScriptManager } from '../vault-scripts/script.ts';
 
 import { ScriptFolderWatcherMobileComponent } from './mobile-script-folder-watcher.ts';
 

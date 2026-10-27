@@ -9,7 +9,7 @@ import {
   it
 } from 'vitest';
 
-import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from './code-button-context.ts';
+import type { RegisterTempPluginParams as RegisterTemporaryPluginParams } from '../code-buttons/code-button-context.ts';
 
 interface CodeScriptToolkitModule {
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.

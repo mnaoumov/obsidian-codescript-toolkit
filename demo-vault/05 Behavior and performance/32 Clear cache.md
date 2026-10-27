@@ -8,7 +8,7 @@ Click the first button, then the second: the module is cached with `never`, so b
 ---
 caption: Smart caching (first click)
 ---
-const { cacheInvalidationModeNever } = await requireAsync('/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
+const { cacheInvalidationModeNever } = await requireAsync('/Behavior/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
 
 cacheInvalidationModeNever();
 ```
@@ -17,7 +17,7 @@ cacheInvalidationModeNever();
 ---
 caption: Smart caching (second click)
 ---
-const { cacheInvalidationModeNever } = await requireAsync('/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
+const { cacheInvalidationModeNever } = await requireAsync('/Behavior/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
 
 cacheInvalidationModeNever();
 ```
@@ -28,7 +28,7 @@ Now invoke the **`CodeScript Toolkit`: Clear cache** command, and click the thir
 ---
 caption: Smart caching (third click)
 ---
-const { cacheInvalidationModeNever } = await requireAsync('/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
+const { cacheInvalidationModeNever } = await requireAsync('/Behavior/cacheInvalidationModeNever.js', { cacheInvalidationMode: 'never' });
 
 cacheInvalidationModeNever();
 ```

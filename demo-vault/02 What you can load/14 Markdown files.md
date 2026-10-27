@@ -6,7 +6,7 @@ Keep code in a note and require it like a module. The code lives in a ` ```code-
 ---
 caption: Require Markdown files
 ---
-const { markdown } = require('/module.md');
+const { markdown } = require('/ModuleTypes/module.md');
 markdown();
 ```
 
@@ -18,7 +18,7 @@ One note can hold several script blocks. The first is the default; any block who
 ---
 caption: Require Markdown files with named script block
 ---
-const { markdownWithNamedScriptBlock } = require('/module.md?codeScriptName=namedScriptBlock');
+const { markdownWithNamedScriptBlock } = require('/ModuleTypes/module.md?codeScriptName=namedScriptBlock');
 markdownWithNamedScriptBlock();
 ```
 
@@ -58,7 +58,7 @@ codeScriptToolkit:
 ---
 caption: Require Markdown files with default named script block
 ---
-const { markdownWithDefaultNamedScriptBlock } = require('/defaultNamedModule.md');
+const { markdownWithDefaultNamedScriptBlock } = require('/ModuleTypes/defaultNamedModule.md');
 markdownWithDefaultNamedScriptBlock();
 ```
 

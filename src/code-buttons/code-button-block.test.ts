@@ -26,15 +26,15 @@ import {
   vi
 } from 'vitest';
 
+import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+import type { TempPluginRegistryComponent } from '../temp-plugins/temporary-plugin-registry.ts';
 import type {
   CodeButtonBlockConfig,
   RemoveAfterExecutionConfig
 } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import type { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 
 import { SourceVisibility } from './code-button-block-config.ts';
 import {
@@ -90,7 +90,7 @@ vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   getDataAdapterEx: (...$arguments: unknown[]): unknown => mockGetDataAdapterEx(...$arguments)
 }));
 
-vi.mock('./babel/combine-babel-plugins.ts', () => ({
+vi.mock('../babel/combine-babel-plugins.ts', () => ({
   SequentialBabelPlugin: class {
     public transform(code: string): BabelTransformResult {
       return { error: undefined, transformedCode: `transformed:${code}` };
@@ -98,15 +98,15 @@ vi.mock('./babel/combine-babel-plugins.ts', () => ({
   }
 }));
 
-vi.mock('./babel/convert-to-common-js-babel-plugin.ts', () => ({
+vi.mock('../babel/convert-to-common-js-babel-plugin.ts', () => ({
   ConvertToCommonJsBabelPlugin: vi.fn()
 }));
 
-vi.mock('./babel/replace-dynamic-import-babel-plugin.ts', () => ({
+vi.mock('../babel/replace-dynamic-import-babel-plugin.ts', () => ({
   ReplaceDynamicImportBabelPlugin: vi.fn()
 }));
 
-vi.mock('./babel/wrap-for-code-block-babel-plugin.ts', () => ({
+vi.mock('../babel/wrap-for-code-block-babel-plugin.ts', () => ({
   WrapForCodeBlockBabelPlugin: vi.fn()
 }));
 
@@ -178,7 +178,7 @@ vi.mock('./code-button-context-impl.ts', () => ({
   }
 }));
 
-vi.mock('./temporary-plugin-registry.ts', () => ({
+vi.mock('../temp-plugins/temporary-plugin-registry.ts', () => ({
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistry: vi.fn()
 }));
@@ -1069,7 +1069,7 @@ describe('CodeButtonBlockComponent', () => {
 
     it('should throw when makeWrapperScript babel transform fails', async () => {
       // Import and override the SequentialBabelPlugin mock to return an error
-      const babelModule = await import('./babel/combine-babel-plugins.ts');
+      const babelModule = await import('../babel/combine-babel-plugins.ts');
       vi.spyOn(babelModule.SequentialBabelPlugin.prototype, 'transform').mockReturnValueOnce({
         data: {},
         error: new Error('Babel transform failed'),

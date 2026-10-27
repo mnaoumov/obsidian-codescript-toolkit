@@ -8,10 +8,10 @@ import {
   vi
 } from 'vitest';
 
-import { insertSampleCodeButton } from '../code-button-block.ts';
+import { insertSampleCodeButton } from '../code-buttons/code-button-block.ts';
 import { InsertSampleCodeButtonCommandHandler } from './insert-sample-code-button-command-handler.ts';
 
-vi.mock('../code-button-block.ts', () => ({
+vi.mock('../code-buttons/code-button-block.ts', () => ({
   insertSampleCodeButton: vi.fn()
 }));
 

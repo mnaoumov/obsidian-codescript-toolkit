@@ -131,4 +131,4 @@ The same functions are available to plain scripts through the [`codescript-toolk
 
 ## Full spec
 
-Every member, with its type, lives in [`src/code-button-context.ts`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/src/code-button-context.ts).
+Every member, with its type, lives in [`src/code-buttons/code-button-context.ts`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/src/code-buttons/code-button-context.ts).

@@ -6,13 +6,13 @@ Address a script from your scripts root with a leading `/`, instead of counting 
 ---
 caption: Require root-relative path
 ---
-const { rootRelativePath } = require('/rootRelativePath.js');
+const { rootRelativePath } = require('/Paths/rootRelativePath.js');
 rootRelativePath();
 ```
 
 ## Options
 
-Which folder `/` means is the **Modules root** setting in the plugin's settings tab. In this vault it is `_assets/CodeScriptToolkit`, so `/rootRelativePath.js` is `_assets/CodeScriptToolkit/rootRelativePath.js`. To address the vault root instead, see [Vault-root-relative path](<./07 Vault-root-relative path.md>).
+Which folder `/` means is the **Modules root** setting in the plugin's settings tab. In this vault it is `_assets/CodeScriptToolkit`, so `/Paths/rootRelativePath.js` is `_assets/CodeScriptToolkit/Paths/rootRelativePath.js`. To address the vault root instead, see [Vault-root-relative path](<./07 Vault-root-relative path.md>).
 
 ## Platform support
 

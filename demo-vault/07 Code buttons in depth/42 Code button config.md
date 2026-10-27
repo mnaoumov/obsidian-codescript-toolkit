@@ -297,6 +297,6 @@ This is a per-vault decision more than a per-button one, so it is usually best s
 
 ## Full spec
 
-Every key, with its type, lives in [`src/code-button-block-config.ts`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/src/code-button-block-config.ts).
+Every key, with its type, lives in [`src/code-buttons/code-button-block-config.ts`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/src/code-buttons/code-button-block-config.ts).
 
 [DevTools Console]: https://developer.chrome.com/docs/devtools/console

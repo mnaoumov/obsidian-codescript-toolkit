@@ -6,16 +6,16 @@ Write your vault scripts in TypeScript and require them directly — no build st
 ---
 caption: Require TypeScript modules
 ---
-const { cts } = require('/module.cts');
+const { cts } = require('/ModuleTypes/module.cts');
 cts();
 
-const { mts } = require('/module.mts');
+const { mts } = require('/ModuleTypes/module.mts');
 mts();
 
-const { tsAsCts } = require('/moduleAsCts.ts');
+const { tsAsCts } = require('/ModuleTypes/moduleAsCts.ts');
 tsAsCts();
 
-const { tsAsMts } = require('/moduleAsMts.ts');
+const { tsAsMts } = require('/ModuleTypes/moduleAsMts.ts');
 tsAsMts();
 ```
 
@@ -23,16 +23,16 @@ tsAsMts();
 ---
 caption: Import TypeScript modules
 ---
-import { cts } from '/module.cts';
+import { cts } from '/ModuleTypes/module.cts';
 cts();
 
-import { mts } from '/module.mts';
+import { mts } from '/ModuleTypes/module.mts';
 mts();
 
-import { tsAsCts } from '/moduleAsCts.ts';
+import { tsAsCts } from '/ModuleTypes/moduleAsCts.ts';
 tsAsCts();
 
-import { tsAsMts } from '/moduleAsMts.ts';
+import { tsAsMts } from '/ModuleTypes/moduleAsMts.ts';
 tsAsMts();
 ```
 

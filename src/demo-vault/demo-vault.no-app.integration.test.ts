@@ -39,18 +39,18 @@ registerDemoVaultCoverageSuite({
   authoring: {
     excludedNotes: [VAULT_README, ...collectAssetNotePaths()]
   },
-  configInterfaces: [{ interfaceName: 'CodeButtonBlockConfig', sourcePath: 'src/code-button-block-config.ts' }],
+  configInterfaces: [{ interfaceName: 'CodeButtonBlockConfig', sourcePath: 'src/code-buttons/code-button-block-config.ts' }],
   interfaces: [{
     interfaceName: 'CodeButtonContext',
     kind: 'methods',
     receiver: 'codeButtonContext',
-    sourcePath: 'src/code-button-context.ts'
+    sourcePath: 'src/code-buttons/code-button-context.ts'
   }],
   nonTrivialGuard: {
     expectDemoNote: '07 Code buttons in depth/43 Code button context.md',
     expectMember: 'registerTempPlugin',
     interfaceName: 'CodeButtonContext',
-    sourcePath: 'src/code-button-context.ts'
+    sourcePath: 'src/code-buttons/code-button-context.ts'
   },
   rootFolder: ROOT_FOLDER
 });

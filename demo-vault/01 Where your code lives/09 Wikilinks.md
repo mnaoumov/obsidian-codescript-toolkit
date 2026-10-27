@@ -6,7 +6,7 @@ Require a script through Obsidian's own link syntax. Because it is a real link, 
 ---
 caption: Require via wikilink (sync)
 ---
-const { vaultRootRelativePath } = require('[[_assets/CodeScriptToolkit/vaultRootRelativePath.js]]');
+const { vaultRootRelativePath } = require('[[_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js]]');
 vaultRootRelativePath();
 ```
 
@@ -14,7 +14,7 @@ vaultRootRelativePath();
 ---
 caption: Require via wikilink (async)
 ---
-const { vaultRootRelativePath } = await requireAsync('[[_assets/CodeScriptToolkit/vaultRootRelativePath.js]]');
+const { vaultRootRelativePath } = await requireAsync('[[_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js]]');
 vaultRootRelativePath();
 ```
 
@@ -26,7 +26,7 @@ An alias after `|` is accepted and ignored for resolution, so a link you wrote f
 ---
 caption: Require via wikilink with alias (sync)
 ---
-const { vaultRootRelativePath } = require('[[_assets/CodeScriptToolkit/vaultRootRelativePath.js|My Script]]');
+const { vaultRootRelativePath } = require('[[_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js|My Script]]');
 vaultRootRelativePath();
 ```
 

@@ -16,7 +16,7 @@ if (!Platform.isLinux && !Platform.isMacOS) {
 const correctVaultPathPrefix = '~/' + app.vault.adapter.basePath;
 console.warn(`Correct vault path prefix should be: ${correctVaultPathPrefix}`);
 
-const { systemRootPath } = require('~/path/to/vault/obsidian-codescript-toolkit-demo-vault/_assets/CodeScriptToolkit/systemRootPath.js');
+const { systemRootPath } = require('~/path/to/vault/obsidian-codescript-toolkit-demo-vault/_assets/CodeScriptToolkit/Paths/systemRootPath.js');
 systemRootPath();
 ```
 

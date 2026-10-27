@@ -51,7 +51,7 @@ vi.mock('obsidian', async (importOriginal) => ({
   parseYaml: (...$arguments: unknown[]): unknown => mockParseYaml(...$arguments)
 }));
 
-vi.mock('./require-handlers/require-handler.ts', () => ({
+vi.mock('../require-handlers/require-handler.ts', () => ({
   EXTENSIONS: ['.js', '.ts']
 }));
 

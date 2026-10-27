@@ -6,7 +6,7 @@ Require files that live *inside* an `.asar` archive as if the archive were an or
 ---
 caption: Require ASAR
 ---
-const { jsInsideAsar } = require('/module.asar/jsInsideAsar.js');
+const { jsInsideAsar } = require('/ModuleTypes/module.asar/jsInsideAsar.js');
 jsInsideAsar();
 ```
 

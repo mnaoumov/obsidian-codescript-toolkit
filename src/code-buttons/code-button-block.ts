@@ -40,21 +40,21 @@ import {
   stringifyYaml
 } from 'obsidian';
 
+import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
+import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
 import type { CodeButtonBlockConfig } from './code-button-block-config.ts';
 import type { CodeButtonContext } from './code-button-context.ts';
-import type { PluginSettingsComponent } from './plugin-settings-component.ts';
-import type { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 
-import { SequentialBabelPlugin } from './babel/combine-babel-plugins.ts';
-import { ConvertToCommonJsBabelPlugin } from './babel/convert-to-common-js-babel-plugin.ts';
-import { ReplaceDynamicImportBabelPlugin } from './babel/replace-dynamic-import-babel-plugin.ts';
-import { WrapForCodeBlockBabelPlugin } from './babel/wrap-for-code-block-babel-plugin.ts';
+import { SequentialBabelPlugin } from '../babel/combine-babel-plugins.ts';
+import { ConvertToCommonJsBabelPlugin } from '../babel/convert-to-common-js-babel-plugin.ts';
+import { ReplaceDynamicImportBabelPlugin } from '../babel/replace-dynamic-import-babel-plugin.ts';
+import { WrapForCodeBlockBabelPlugin } from '../babel/wrap-for-code-block-babel-plugin.ts';
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+import { TempPluginRegistryComponent } from '../temp-plugins/temporary-plugin-registry.ts';
 import { SourceVisibility } from './code-button-block-config.ts';
 import { CODE_BUTTON_BLOCK_LANGUAGE } from './code-button-code-highlighter-component.ts';
 import { CodeButtonContextImplComponent } from './code-button-context-impl.ts';
 import { ConsoleWrapper } from './console-wrapper.ts';
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
-import { TempPluginRegistryComponent } from './temporary-plugin-registry.ts';
 
 interface CodeButtonBlockComponentHandleClickParams {
   readonly buttonIndex: number;

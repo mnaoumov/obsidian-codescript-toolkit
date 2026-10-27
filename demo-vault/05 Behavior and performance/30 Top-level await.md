@@ -6,7 +6,7 @@ Use `await` at the top level of a module — no wrapping everything in an `async
 ---
 caption: Require top-level await
 ---
-await requireAsync('/topLevelAwait.js');
+await requireAsync('/Behavior/topLevelAwait.js');
 ```
 
 The module it loads is simply:

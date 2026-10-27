@@ -6,7 +6,7 @@ The same idea as [Wikilinks](<./09 Wikilinks.md>), for vaults configured to use 
 ---
 caption: Require via markdown link (sync)
 ---
-const { vaultRootRelativePath } = require('[Script](_assets/CodeScriptToolkit/vaultRootRelativePath.js)');
+const { vaultRootRelativePath } = require('[Script](_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js)');
 vaultRootRelativePath();
 ```
 
@@ -14,7 +14,7 @@ vaultRootRelativePath();
 ---
 caption: Require via markdown link (async)
 ---
-const { vaultRootRelativePath } = await requireAsync('[Script](_assets/CodeScriptToolkit/vaultRootRelativePath.js)');
+const { vaultRootRelativePath } = await requireAsync('[Script](_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js)');
 vaultRootRelativePath();
 ```
 
@@ -26,7 +26,7 @@ Angle brackets around the target are accepted — which is what Obsidian writes 
 ---
 caption: Require via markdown link with angle brackets (sync)
 ---
-const { vaultRootRelativePath } = require('[Script](<_assets/CodeScriptToolkit/vaultRootRelativePath.js>)');
+const { vaultRootRelativePath } = require('[Script](<_assets/CodeScriptToolkit/Paths/vaultRootRelativePath.js>)');
 vaultRootRelativePath();
 ```
 

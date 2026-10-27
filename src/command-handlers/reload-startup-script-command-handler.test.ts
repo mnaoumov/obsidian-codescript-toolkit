@@ -5,7 +5,7 @@ import {
   vi
 } from 'vitest';
 
-import type { StartupScriptComponent } from '../startup-script.ts';
+import type { StartupScriptComponent } from '../vault-scripts/startup-script.ts';
 
 import { ReloadStartupScriptCommandHandler } from './reload-startup-script-command-handler.ts';
 
