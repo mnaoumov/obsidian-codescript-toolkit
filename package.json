@@ -75,7 +75,7 @@
     "mdast": "^3.0.0",
     "nano-staged": "^1.0.2",
     "obsidian": "^1.14.4",
-    "obsidian-integration-testing": "^17.5.0",
+    "obsidian-integration-testing": "^17.7.1",
     "obsidian-test-mocks": "^7.2.3",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",

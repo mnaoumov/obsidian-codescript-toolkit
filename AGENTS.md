@@ -99,7 +99,9 @@ Those notes are excluded from the demo-vault walk (they install a third-party pl
 
 ### Gotcha: a hand-started Android emulator has no DNS
 
-`obsidian-integration-testing` starts the emulator itself with `-avd obsidian_test -no-snapshot-load -no-snapshot-save -dns-server 8.8.8.8 [-no-window]`, but if the AVD is **already running** it reuses that device as-is. An emulator started by hand (`emulator -avd obsidian_test`) therefore has no `-dns-server`, and on Windows it inherits a host DNS it cannot reach: IP routing works (`adb shell ping 8.8.8.8` succeeds) while **every hostname fails** (`adb shell ping cdn.jsdelivr.net` → `unknown host`).
+`obsidian-integration-testing` starts the emulator itself and passes it `-dns-server <list>`, but if the AVD is **already running** it reuses that device as-is. Since 17.7.1 the list is the host's own resolvers, read at launch (Node's `dns.getServers()`), unless the Android transport's `emulatorDnsServers` option overrides it. Before that the harness forced `8.8.8.8`. That worked only on a network that answers public DNS. On a network that does not, the emulator never reached a validated network, and the run stalled before any test.
+
+So which resolver works depends on the network the host is on at the moment. An emulator started by hand (`emulator -avd obsidian_test`) gets no `-dns-server` at all, and on Windows it can inherit a host DNS it cannot reach: IP routing works (`adb shell ping 8.8.8.8` succeeds) while **every hostname fails** (`adb shell ping cdn.jsdelivr.net` → `unknown host`). A hard-coded public resolver is not a fix either: it fails the same way on a network that blocks it.
 
 The only android test that touches the network is the HTTP-URL `requireAsync` case (`cdn.jsdelivr.net/npm/is-number`), so the symptom is a single confusing failure — `Request Failed. UnknownHostException Unable to resolve host` — in an otherwise green suite. Fix: `adb emu kill`, then let the harness boot the emulator itself. Do not "fix" the test.
 
