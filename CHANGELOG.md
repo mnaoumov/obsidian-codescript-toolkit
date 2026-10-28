@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 15.0.2
+
+- chore(deps): adopt obsidian-integration-testing 17.7.1 for host-resolver emulator DNS
+- fix: re #63
+
 ## 15.0.1
 
 - fix: re #62
