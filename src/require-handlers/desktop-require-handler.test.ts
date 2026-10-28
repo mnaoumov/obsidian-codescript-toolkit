@@ -6,6 +6,7 @@ import {
   getPrototypeOf,
   normalizeOptionalProperties
 } from '@mnaoumov/typescript-lib/object-utils';
+import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import { FileSystemAdapter } from 'obsidian';
 import {
   beforeEach,
@@ -840,6 +841,52 @@ describe('RequireHandlerDesktopComponent', () => {
   });
 
   describe('requireNodeBinaryAsync', () => {
+    it('should load native exports instead of returning the circular-dependency placeholder', () => {
+      const nativeExports = { nativeBinary: true };
+      Object.defineProperty(handler, 'requireEx', { get: () => vi.fn() });
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValue({
+        isFile: (): boolean => true,
+        mtimeMs: MOCK_MTIME_MS
+      });
+      // On POSIX, Node and the toolkit use the same absolute cache key.
+      mockOriginalModulePrototypeRequire.mockImplementation((id: string): unknown => handler.getModulesCache()[id]?.exports ?? nativeExports);
+
+      const result = handler.exposeRequireNonCached('/path/to/native.node', ResolvedType.Path, {});
+
+      expect(result).toBe(nativeExports);
+    });
+
+    it('should preserve an already loaded native addon when delegating to Node', async () => {
+      const path = '/path/to/native.node';
+      const nativeExports = { nativeBinary: true };
+      handler.getModulesCache()[path] = strictProxy<NodeJS.Module>({ exports: nativeExports, loaded: true });
+      const cachedExports: unknown = handler.getModulesCache()[path]?.exports;
+      mockOriginalModulePrototypeRequire.mockImplementation((id: string): unknown => handler.getModulesCache()[id]?.exports);
+
+      const result = await handler.exposeRequireNodeBinaryAsync(path, {});
+
+      expect(result).toBe(cachedExports);
+    });
+
+    it('should allow retrying a native addon after its first load fails', () => {
+      const path = '/path/to/native.node';
+      const nativeExports = { nativeBinary: true };
+      Object.defineProperty(handler, 'requireEx', { get: () => vi.fn() });
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.statSync.mockReturnValue({
+        isFile: (): boolean => true,
+        mtimeMs: MOCK_MTIME_MS
+      });
+      mockOriginalModulePrototypeRequire.mockImplementationOnce(() => {
+        throw new Error('native load failed');
+      }).mockImplementation((id: string): unknown => handler.getModulesCache()[id]?.exports ?? nativeExports);
+
+      expect(() => handler.exposeRequireNonCached(path, ResolvedType.Path, {})).toThrow('native load failed');
+      expect(handler.getModulesCache()[path]).toBeUndefined();
+      expect(handler.exposeRequireNonCached(path, ResolvedType.Path, {})).toBe(nativeExports);
+    });
+
     it('should call requireNodeBinary with the path when no arrayBuffer is provided', async () => {
       const EXPECTED_MODULE = { nativeBinary: true };
       mockOriginalModulePrototypeRequire.mockReturnValue(EXPECTED_MODULE);
