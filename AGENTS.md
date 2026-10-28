@@ -61,6 +61,12 @@ Known flake: on 2026-08-09 one demo-vault run failed 3 of 43 with CDP `ECONNREFU
 
 Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before running them**, or the suite silently exercises a stale build.
 
+### Native addons share Node's module cache
+
+`RequireHandlerComponentBase.modulesCache` shares the original Node require cache. Before delegating a `.node` file to Node, `RequireHandlerDesktopComponent.requireNodeBinary` removes an unloaded placeholder so Node actually initializes the addon. Keep already loaded native entries intact. JavaScript circular-dependency placeholders still belong to the toolkit's normal initializer.
+
+`native-addon.desktop.integration.test.ts` calls a real native function from Sharp's Node-API addon through global require, asynchronous require, patched `Module.require`, and a nested CommonJS module. Sharp is already a development dependency; the test loads the installed binary in place so its companion libraries remain available. Windows normalizes toolkit paths to forward slashes while Node caches native paths with backslashes. The shared-key regression temporarily aliases those keys on Windows so Node's real native loader encounters the same placeholder collision as on POSIX; it restores the native key afterward. Keep this case as well as the ordinary entry-point checks: those checks alone pass on Windows even when the POSIX collision is broken.
+
 ### Gotcha: a root-level `include` makes every project collect every test file
 
 Measured 2026-09-03 on vitest `5.0.0`, and **fixed in the library since — this section is here so the symptom is recognizable if it ever comes back, not because anything needs doing.** `npm run test:integration:desktop` collected all **63** `src/**/*.test.ts` in the repo, not the **9** its project's `include` names — every one labelled `|integration-tests:desktop|`. `obsidian-dev-utils`' shared config then declared a root-level `include: ['src/**/*.test.ts']` as well as a per-project one; vitest 4 let the project glob replace it, vitest 5 does not, and the root glob is a superset of every project glob.

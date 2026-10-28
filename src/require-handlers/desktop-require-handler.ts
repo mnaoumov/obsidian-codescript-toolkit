@@ -495,6 +495,12 @@ ${this.getRequireAsyncAdvice(path)}`;
   }
 
   private requireNodeBinary(path: string, options: Partial<RequireOptions>): unknown {
+    // Node shares this cache. An unloaded toolkit placeholder would make its
+    // native loader return empty exports without ever loading the binary.
+    if (this.modulesCache[path]?.loaded === false) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- Node must create its own native module cache entry.
+      delete this.modulesCache[path];
+    }
     return this.originalModulePrototypeRequireWrapped(path, options);
   }
 
