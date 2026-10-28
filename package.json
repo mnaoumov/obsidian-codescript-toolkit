@@ -58,7 +58,7 @@
     "@babel/types": "^8.0.6",
     "@commitlint/cli": "^21.2.4",
     "@mnaoumov/obsidian-dev-toolkit": "^7.0.0",
-    "@mnaoumov/typescript-dev-toolkit": "^5.0.0",
+    "@mnaoumov/typescript-dev-toolkit": "^5.1.0",
     "@mnaoumov/typescript-test-toolkit": "^1.0.2",
     "@obsidian-typings/obsidian-public-latest": "^6.50.0",
     "@total-typescript/ts-reset": "^0.6.1",
