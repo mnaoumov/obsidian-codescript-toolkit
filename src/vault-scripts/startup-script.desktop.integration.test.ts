@@ -1,3 +1,4 @@
+import dedent from 'dedent';
 import { evalInObsidian } from 'obsidian-integration-testing';
 import { getTemporaryVault } from 'obsidian-integration-testing/vitest-global-setup-plugin';
 import {
@@ -24,11 +25,11 @@ beforeAll(async () => {
       shouldUseSyncFallback: false,
       startupScriptPath: STARTUP_SCRIPT
     }),
-    [`${MODULES_ROOT}/${STARTUP_SCRIPT}`]: [
-      'exports.shouldExecuteOnLoad = (app) => { window.__startupShouldExecuteOnLoadApp = typeof app; return true; };',
-      'exports.invoke = (app) => { window.__startupInvoked = true; window.__startupApp = typeof app; };',
-      'exports.cleanup = () => { window.__startupCleaned = true; };'
-    ].join('\n')
+    [`${MODULES_ROOT}/${STARTUP_SCRIPT}`]: dedent`
+      exports.shouldExecuteOnLoad = (app) => { window.__startupShouldExecuteOnLoadApp = typeof app; return true; };
+      exports.invoke = (app) => { window.__startupInvoked = true; window.__startupApp = typeof app; };
+      exports.cleanup = () => { window.__startupCleaned = true; };
+    `
   });
 
   await evalInObsidian({
