@@ -24,6 +24,7 @@
 
 import type { WorkspaceSidedock } from 'obsidian';
 
+import dedent from 'dedent';
 import {
   mkdirSync,
   writeFileSync
@@ -198,37 +199,36 @@ describe('desktop store screenshots', () => {
  * @returns The module's source.
  */
 function buildModule(): string {
-  return [
-    'export function greet(name: string): string {',
-    // eslint-disable-next-line no-template-curly-in-string -- This is the module's source, not a template literal of this file.
-    '  return `Hello from a TypeScript module, ${name}`;',
-    '}',
-    ''
-  ].join('\n');
+  return dedent`
+    export function greet(name: string): string {
+      return \`Hello from a TypeScript module, \${name}\`;
+    }\n
+  `;
 }
 
 /**
  * Builds the note that imports that module.
  *
+ * It greets `Obsidian`, not `app.vault.getName()`: the capture runs in a
+ * throwaway vault, and its generated name would be the most prominent word in
+ * the frame.
+ *
  * @returns The note's Markdown.
  */
 function buildModuleNote(): string {
-  return [
-    '# Greeting',
-    '',
-    'Split the code out into a module and `require` it from the note:',
-    '',
-    '```code-button',
-    '---',
-    'caption: Greet this vault',
-    '---',
-    'const { greet } = require(\'./greeting.ts\');',
-    // Not `app.vault.getName()`: the capture runs in a throwaway vault, and its
-    // generated name would be the most prominent word in the frame.
-    'greet(\'Obsidian\');',
-    '```',
-    ''
-  ].join('\n');
+  return dedent`
+    # Greeting
+
+    Split the code out into a module and \`require\` it from the note:
+
+    \`\`\`code-button
+    ---
+    caption: Greet this vault
+    ---
+    const { greet } = require('./greeting.ts');
+    greet('Obsidian');
+    \`\`\`\n
+  `;
 }
 
 /**
@@ -238,46 +238,41 @@ function buildModuleNote(): string {
  * the Obsidian API, the second is TypeScript with a type annotation that plain
  * JavaScript would reject — which is the claim the plugin makes.
  *
- * Assembled from an array so the fenced blocks survive being written inside a
- * TypeScript file.
- *
  * @returns The note's Markdown.
  */
 function buildSubjectNote(): string {
-  return [
-    '# Vault stats',
-    '',
-    'A script belongs beside the note that explains it:',
-    '',
-    '```code-button',
-    '---',
-    'caption: Count the notes in this vault',
-    '---',
-    'const count = app.vault.getMarkdownFiles().length;',
-    // eslint-disable-next-line no-template-curly-in-string -- This is the note's source, not a template literal of this file.
-    '`This vault has ${count} markdown notes`;',
-    '```',
-    '',
-    'TypeScript works too, types and all:',
-    '',
-    '```code-button',
-    '---',
-    'caption: Longest chapter title',
-    '---',
-    'interface Chapter {',
-    '  title: string;',
-    '  words: number;',
-    '}',
-    '',
-    'const chapters: Chapter[] = [',
-    '  { title: \'The long way round\', words: 1840 },',
-    '  { title: \'Home\', words: 620 }',
-    '];',
-    '',
-    'chapters.sort((left, right) => right.words - left.words)[0]?.title;',
-    '```',
-    ''
-  ].join('\n');
+  return dedent`
+    # Vault stats
+
+    A script belongs beside the note that explains it:
+
+    \`\`\`code-button
+    ---
+    caption: Count the notes in this vault
+    ---
+    const count = app.vault.getMarkdownFiles().length;
+    \`This vault has \${count} markdown notes\`;
+    \`\`\`
+
+    TypeScript works too, types and all:
+
+    \`\`\`code-button
+    ---
+    caption: Longest chapter title
+    ---
+    interface Chapter {
+      title: string;
+      words: number;
+    }
+
+    const chapters: Chapter[] = [
+      { title: 'The long way round', words: 1840 },
+      { title: 'Home', words: 620 }
+    ];
+
+    chapters.sort((left, right) => right.words - left.words)[0]?.title;
+    \`\`\`\n
+  `;
 }
 
 /**

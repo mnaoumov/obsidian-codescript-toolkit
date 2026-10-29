@@ -2,6 +2,7 @@ import type { TFile as OriginalTFile } from 'obsidian';
 
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
+import dedent from 'dedent';
 import { Platform } from 'obsidian';
 import {
   App,
@@ -327,13 +328,13 @@ describe('getModuleTypeFromPath', () => {
 });
 
 describe('extractCodeScript', () => {
-  const SIMPLE_MD_WITH_CODE_SCRIPT = [
-    '# Test',
-    '',
-    '```code-script',
-    'console.log(\'hello\');',
-    '```'
-  ].join('\n');
+  const SIMPLE_MD_WITH_CODE_SCRIPT = dedent`
+    # Test
+
+    \`\`\`code-script
+    console.log('hello');
+    \`\`\`
+  `;
 
   it('should extract the first code-script block from markdown', () => {
     const result = extractCodeScript({ md: SIMPLE_MD_WITH_CODE_SCRIPT, path: 'test.md' });
@@ -342,13 +343,13 @@ describe('extractCodeScript', () => {
   });
 
   it('should throw when no code-script block is found', () => {
-    const md = [
-      '# Test',
-      '',
-      '```typescript',
-      'console.log(\'hello\');',
-      '```'
-    ].join('\n');
+    const md = dedent`
+      # Test
+
+      \`\`\`typescript
+      console.log('hello');
+      \`\`\`
+    `;
 
     expect(() => extractCodeScript({ md, path: 'test.md' })).toThrow('No code-script code block found in \'test.md\'.');
   });
@@ -359,27 +360,27 @@ describe('extractCodeScript', () => {
   });
 
   it('should extract the first code-script block when multiple exist', () => {
-    const md = [
-      '```code-script',
-      'first();',
-      '```',
-      '',
-      '```code-script',
-      'second();',
-      '```'
-    ].join('\n');
+    const md = dedent`
+      \`\`\`code-script
+      first();
+      \`\`\`
+
+      \`\`\`code-script
+      second();
+      \`\`\`
+    `;
 
     const result = extractCodeScript({ md, path: 'test.md' });
     expect(result.code).toBe('first();');
   });
 
   it('should extract named code-script using query parameter', () => {
-    const md = [
-      '```code-script',
-      '// codeScriptName: myScript',
-      'console.log(\'named\');',
-      '```'
-    ].join('\n');
+    const md = dedent`
+      \`\`\`code-script
+      // codeScriptName: myScript
+      console.log('named');
+      \`\`\`
+    `;
 
     const result = extractCodeScript({ md, path: 'test.md?codeScriptName=myScript' });
     expect(result.code).toBe('// codeScriptName: myScript\nconsole.log(\'named\');');
@@ -387,11 +388,11 @@ describe('extractCodeScript', () => {
   });
 
   it('should throw when named code-script is not found', () => {
-    const md = [
-      '```code-script',
-      'console.log(\'no name\');',
-      '```'
-    ].join('\n');
+    const md = dedent`
+      \`\`\`code-script
+      console.log('no name');
+      \`\`\`
+    `;
 
     expect(() => extractCodeScript({ md, path: 'test.md?codeScriptName=missing' })).toThrow(
       'Code script with name missing not found in \'test.md?codeScriptName=missing\'.'
@@ -399,31 +400,31 @@ describe('extractCodeScript', () => {
   });
 
   it('should throw for invalid query parameter', () => {
-    const md = [
-      '```code-script',
-      'console.log(\'hello\');',
-      '```'
-    ].join('\n');
+    const md = dedent`
+      \`\`\`code-script
+      console.log('hello');
+      \`\`\`
+    `;
 
     expect(() => extractCodeScript({ md, path: 'test.md?invalidParam=value' })).toThrow('Invalid query: \'?invalidParam=value\'.');
   });
 
   it('should use defaultCodeScriptName from frontmatter when no query', () => {
-    const md = [
-      '---',
-      'codeScriptToolkit:',
-      '  defaultCodeScriptName: myDefault',
-      '---',
-      '',
-      '```code-script',
-      '// codeScriptName: myDefault',
-      'console.log(\'default\');',
-      '```',
-      '',
-      '```code-script',
-      'console.log(\'other\');',
-      '```'
-    ].join('\n');
+    const md = dedent`
+      ---
+      codeScriptToolkit:
+        defaultCodeScriptName: myDefault
+      ---
+
+      \`\`\`code-script
+      // codeScriptName: myDefault
+      console.log('default');
+      \`\`\`
+
+      \`\`\`code-script
+      console.log('other');
+      \`\`\`
+    `;
 
     const result = extractCodeScript({ md, path: 'test.md' });
     expect(result.code).toBe('// codeScriptName: myDefault\nconsole.log(\'default\');');
@@ -1562,11 +1563,11 @@ describe('RequireHandlerComponentBase', () => {
     it('should use resolvedId (with query) as cache key for .md files', async () => {
       handler.mockExistsFile.mockResolvedValue(true);
       handler.mockGetTimestamp.mockResolvedValue(100);
-      handler.mockReadFile.mockResolvedValue([
-        '```code-script',
-        'console.log(\'hello\');',
-        '```'
-      ].join('\n'));
+      handler.mockReadFile.mockResolvedValue(dedent`
+        \`\`\`code-script
+        console.log('hello');
+        \`\`\`
+      `);
 
       mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
         const module_ = context['module'] as MockModuleWithExports;
@@ -2083,11 +2084,11 @@ describe('RequireHandlerComponentBase', () => {
       mockRequestUrl.mockResolvedValue({
         arrayBuffer: new ArrayBuffer(0),
         headers: { 'content-type': 'text/markdown' },
-        text: [
-          '```code-script',
-          'module.exports = { md: true };',
-          '```'
-        ].join('\n')
+        text: dedent`
+          \`\`\`code-script
+          module.exports = { md: true };
+          \`\`\`
+        `
       });
 
       mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
@@ -2369,13 +2370,13 @@ describe('RequireHandlerComponentBase', () => {
     it('should return null when caller path contains <anonymous>', () => {
       // Override Error to produce a stack with <anonymous> at the expected caller line
       const OriginalError = window.Error;
-      const mockStack = [
-        'Error',
-        '    at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:1:1)',
-        '    at RequireHandlerImpl.resolve (plugin:fix-require-modules:2:2)',
-        '    at RequireHandlerImpl.require (plugin:fix-require-modules:3:3)',
-        '    at <anonymous> (<anonymous>:1:1)'
-      ].join('\n');
+      const mockStack = dedent`
+        Error
+            at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:1:1)
+            at RequireHandlerImpl.resolve (plugin:fix-require-modules:2:2)
+            at RequireHandlerImpl.require (plugin:fix-require-modules:3:3)
+            at <anonymous> (<anonymous>:1:1)
+      `;
 
       class MockError extends OriginalError {
         public constructor(message?: string) {
@@ -2395,13 +2396,13 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should return null when caller path starts with plugin:', () => {
       const OriginalError = window.Error;
-      const mockStack = [
-        'Error',
-        '    at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:1:1)',
-        '    at RequireHandlerImpl.resolve (plugin:fix-require-modules:2:2)',
-        '    at RequireHandlerImpl.require (plugin:fix-require-modules:3:3)',
-        '    at someFunction (plugin:other-plugin:5:10)'
-      ].join('\n');
+      const mockStack = dedent`
+        Error
+            at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:1:1)
+            at RequireHandlerImpl.resolve (plugin:fix-require-modules:2:2)
+            at RequireHandlerImpl.require (plugin:fix-require-modules:3:3)
+            at someFunction (plugin:other-plugin:5:10)
+      `;
 
       class MockError extends OriginalError {
         public constructor(message?: string) {
@@ -2460,13 +2461,13 @@ describe('RequireHandlerComponentBase', () => {
 
     it('should return the path and strip requireString/ prefix', () => {
       const OriginalError = window.Error;
-      const mockStack = [
-        'Error',
-        '    at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:1:1)',
-        '    at RequireHandlerImpl.resolve (plugin:fix-require-modules:2:2)',
-        '    at RequireHandlerImpl.require (plugin:fix-require-modules:3:3)',
-        '    at someFunction (requireString//path/to/file.js:5:10)'
-      ].join('\n');
+      const mockStack = dedent`
+        Error
+            at RequireHandlerImpl.getParentPathFromCallStack (plugin:fix-require-modules:1:1)
+            at RequireHandlerImpl.resolve (plugin:fix-require-modules:2:2)
+            at RequireHandlerImpl.require (plugin:fix-require-modules:3:3)
+            at someFunction (requireString//path/to/file.js:5:10)
+      `;
 
       class MockError extends OriginalError {
         public constructor(message?: string) {
@@ -3519,15 +3520,15 @@ describe('RequireHandlerComponentBase', () => {
   describe('extractCodeScript position sorting', () => {
     it('should handle codes without position info', () => {
       // Create markdown with multiple code-script blocks but positions naturally assigned
-      const md = [
-        '```code-script',
-        'first();',
-        '```',
-        '',
-        '```code-script',
-        'second();',
-        '```'
-      ].join('\n');
+      const md = dedent`
+        \`\`\`code-script
+        first();
+        \`\`\`
+
+        \`\`\`code-script
+        second();
+        \`\`\`
+      `;
 
       const result = extractCodeScript({ md, path: 'test.md' });
       // The first block should be returned
