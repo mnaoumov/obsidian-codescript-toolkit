@@ -7,6 +7,7 @@ import type {
   PluginManifest
 } from 'obsidian';
 
+import { OpenBugReportCommandHandler } from '@mnaoumov/obsidian-lib/command-handlers/open-bug-report-command-handler';
 import { ComponentEx } from '@mnaoumov/obsidian-lib/components/component-ex';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
@@ -134,7 +135,7 @@ const manifest: PluginManifest = {
 
 describe('Plugin', () => {
   const EXPECTED_ADD_CHILD_COUNT = 11;
-  const EXPECTED_COMMAND_HANDLER_COUNT = 7;
+  const EXPECTED_COMMAND_HANDLER_COUNT = 8;
 
   let app: AppOriginal;
 
@@ -180,7 +181,9 @@ describe('Plugin', () => {
     expect(registerCommandHandlers).toHaveBeenCalledOnce();
     // The handlers are built lazily by a factory, so build them here.
     const commandHandlerFactory = vi.mocked(registerCommandHandlers).mock.calls[0]?.[0];
-    expect(commandHandlerFactory?.()).toHaveLength(EXPECTED_COMMAND_HANDLER_COUNT);
+    const commandHandlers = commandHandlerFactory?.();
+    expect(commandHandlers).toHaveLength(EXPECTED_COMMAND_HANDLER_COUNT);
+    expect(commandHandlers).toEqual(expect.arrayContaining([expect.any(OpenBugReportCommandHandler)]));
   });
 
   it('should expose the settings component it added as a child', async () => {

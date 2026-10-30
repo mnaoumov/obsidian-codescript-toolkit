@@ -3696,7 +3696,6 @@ function createMockNodeModule(id: string): NodeJS.Module {
     id,
     isPreloading: false,
     loaded: true,
-    parent: null,
     path: '',
     paths: [],
     require: castTo<NodeJS.Require>(vi.fn().mockReturnValue({}))
