@@ -1,6 +1,7 @@
 import type { App } from 'obsidian';
 
 import { MonkeyAroundComponent } from '@mnaoumov/obsidian-lib/components/monkey-around-component';
+import { noop } from '@mnaoumov/typescript-lib/function';
 import {
   castTo,
   getPrototypeOf,
@@ -20,6 +21,7 @@ import type { RequireOptions } from '../types.ts';
 import type {
   RequireFunction,
   RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
+  RequireHandlerComponentBaseTrackModuleRequesterParams,
   RequireHandlerConstructorParams
 } from './require-handler.ts';
 
@@ -71,6 +73,11 @@ const MOCK_MTIME_MS = 1_234_567_890;
 
 interface CurrentModulesTimestampChainAccessor {
   readonly currentModulesTimestampChain: Set<string>;
+}
+
+interface DependencyWalkAccessor {
+  readonly beginDependencyWalk: () => void;
+  readonly endDependencyWalk: () => void;
 }
 
 interface FileSystemAdapterAccessor {
@@ -243,7 +250,7 @@ interface RequireModuleParams {
 }
 
 interface RequirePathAccessor {
-  readonly requirePath: (path: string, cacheInvalidationMode?: CacheInvalidationMode, moduleType?: ModuleType) => unknown;
+  readonly requirePath: (path: string, options: Partial<RequireOptions>) => unknown;
 }
 
 interface RequirePathImplAccessor {
@@ -293,6 +300,10 @@ interface ResolveResult {
 interface SyncFallbackSetting {
   // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Tests toggle the synchronous fallback setting between require scenarios.
   shouldUseSyncFallback: boolean;
+}
+
+interface TrackModuleRequesterAccessor {
+  readonly trackModuleRequester: (params: RequireHandlerComponentBaseTrackModuleRequesterParams) => () => void;
 }
 
 interface WriteFileBinaryAsyncAccessor {
@@ -1255,7 +1266,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-        (handler as unknown as RequirePathAccessor).requirePath('/nonexistent/file');
+        (handler as unknown as RequirePathAccessor).requirePath('/nonexistent/file', {});
       }).toThrow('File not found: \'/nonexistent/file\'.');
     });
 
@@ -1285,10 +1296,51 @@ describe('RequireHandlerDesktopComponent', () => {
       };
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      const result = (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js');
+      const result = (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js', {});
 
       expect(result).toBe(EXPECTED_EXPORTS);
       getDependenciesTimestampSpy.mockRestore();
+    });
+
+    it('should report a cycle that comes back under another id and return the partial exports without reloading', () => {
+      mockFs.existsSync.mockImplementation((p: string) => p === '/path/to/a.js');
+      mockFs.statSync.mockReturnValue({ isFile: (): boolean => true, mtimeMs: MOCK_MTIME_MS });
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop);
+      const getDependenciesTimestampSpy = vi.spyOn(
+        // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
+        handler as unknown as GetDependenciesTimestampAccessor,
+        'getDependenciesTimestampChangedAndReloadIfNeeded'
+      );
+
+      const PARTIAL_EXPORTS = { partial: true };
+      handler.getModulesCache()['/path/to/a.js'] = {
+        children: [],
+        exports: PARTIAL_EXPORTS,
+        filename: '/path/to/a.js',
+        id: '/path/to/a.js',
+        isPreloading: false,
+        loaded: false,
+        parent: null,
+        path: '',
+        paths: [],
+        // eslint-disable-next-line no-restricted-syntax -- mock requires double assertion
+        require: vi.fn() as unknown as NodeJS.Require
+      };
+      // eslint-disable-next-line no-restricted-syntax -- accessing protected member in test
+      const trackAccessor = handler as unknown as TrackModuleRequesterAccessor;
+      trackAccessor.trackModuleRequester({ path: '/path/to/b.js', requesterPath: '/path/to/a.js' });
+      trackAccessor.trackModuleRequester({ path: '/path/to/a', requesterPath: '/path/to/b.js' });
+
+      // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
+      const result = (handler as unknown as RequirePathAccessor).requirePath('/path/to/a', { parentPath: '/path/to/a' });
+
+      expect(result).toBe(PARTIAL_EXPORTS);
+      expect(consoleWarnSpy).toHaveBeenCalledExactlyOnceWith(
+        'Circular dependency detected: /path/to/a.js -> /path/to/b.js -> /path/to/a.js. The partially initialized exports of /path/to/a.js are returned.'
+      );
+      expect(getDependenciesTimestampSpy).not.toHaveBeenCalled();
+      getDependenciesTimestampSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
     });
 
     it('should clear currentModulesTimestampChain after root require', () => {
@@ -1306,7 +1358,7 @@ describe('RequireHandlerDesktopComponent', () => {
       expect(chain.size).toBe(0);
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js');
+      (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js', {});
 
       expect(chain.size).toBe(0);
       getDependenciesTimestampSpy.mockRestore();
@@ -1329,7 +1381,7 @@ describe('RequireHandlerDesktopComponent', () => {
 
       expect(() => {
         // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-        (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js');
+        (handler as unknown as RequirePathAccessor).requirePath('/path/to/file.js', {});
       }).toThrow('dep error');
 
       expect(chain.size).toBe(0);
@@ -2459,7 +2511,7 @@ describe('RequireHandlerDesktopComponent', () => {
   });
 
   describe('requirePath nested require', () => {
-    it('should not clear currentModulesTimestampChain when not a root require', () => {
+    it('should not clear currentModulesTimestampChain while another dependency walk is still running', () => {
       mockFs.existsSync.mockImplementation((p: string) => p === '/path/to/nested.js');
       mockFs.statSync.mockReturnValue({ isFile: (): boolean => true, mtimeMs: MOCK_MTIME_MS });
 
@@ -2470,14 +2522,19 @@ describe('RequireHandlerDesktopComponent', () => {
       ).mockReturnValue(MOCK_MTIME_MS);
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
+      const walkAccessor = handler as unknown as DependencyWalkAccessor;
+      // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
       const chain = (handler as unknown as CurrentModulesTimestampChainAccessor).currentModulesTimestampChain;
+      walkAccessor.beginDependencyWalk();
       chain.add('some-parent-module');
 
       // eslint-disable-next-line no-restricted-syntax -- accessing private member in test
-      (handler as unknown as RequirePathAccessor).requirePath('/path/to/nested.js');
+      (handler as unknown as RequirePathAccessor).requirePath('/path/to/nested.js', {});
 
-      // Chain should still contain the parent module since this is not a root require
       expect(chain.has('some-parent-module')).toBe(true);
+
+      walkAccessor.endDependencyWalk();
+      expect(chain.size).toBe(0);
       getDependenciesTimestampSpy.mockRestore();
     });
   });

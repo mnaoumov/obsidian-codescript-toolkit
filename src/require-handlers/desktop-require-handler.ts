@@ -310,8 +310,13 @@ ${this.getRequireAsyncAdvice(path)}`);
             continue;
           }
 
-          const dependencyTimestamp = this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, options);
-          updateTimestamp(dependencyTimestamp);
+          const untrack = this.trackModuleRequester({ path: existingFilePath, requesterPath: path });
+          try {
+            const dependencyTimestamp = this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, options);
+            updateTimestamp(dependencyTimestamp);
+          } finally {
+            untrack();
+          }
           break;
         }
         case ResolvedType.SpecialModule: {
@@ -438,7 +443,13 @@ ${this.getRequireAsyncAdvice(path)}`;
   private requireMd(path: string): unknown {
     const md = this.readFile(path);
     const { code, codeScriptName } = extractCodeScript({ md, path });
-    return this.requireString({ code, path: `${path}.code-script.${codeScriptName ?? '(default)'}.ts` });
+    const codeScriptPath = `${path}.code-script.${codeScriptName ?? '(default)'}.ts`;
+    const untrack = this.trackModuleRequester({ isResolution: true, path: codeScriptPath, requesterPath: path });
+    try {
+      return this.requireString({ code, path: codeScriptPath });
+    } finally {
+      untrack();
+    }
   }
 
   private requireModule(params: RequireHandlerDesktopComponentRequireModuleParams): unknown {
@@ -510,14 +521,17 @@ ${this.getRequireAsyncAdvice(path)}`;
       throw new Error(`File not found: '${path}'.`);
     }
 
-    const isRootRequire = this.currentModulesTimestampChain.size === 0;
+    if (this.checkCircularPathRequire(existingFilePath, options.parentPath)) {
+      return this.modulesCache[existingFilePath]?.exports;
+    }
 
+    const untrack = this.trackModuleRequester({ isResolution: true, path: existingFilePath, requesterPath: options.parentPath });
+    this.beginDependencyWalk();
     try {
       this.getDependenciesTimestampChangedAndReloadIfNeeded(existingFilePath, options);
     } finally {
-      if (isRootRequire) {
-        this.currentModulesTimestampChain.clear();
-      }
+      this.endDependencyWalk();
+      untrack();
     }
     return this.modulesCache[existingFilePath]?.exports;
   }

@@ -15,6 +15,8 @@ type RequireAsyncWrapperFunction = ($function: (require: (id: string, options?: 
 type RequireFunction = (id: string | TFile, options?: Record<string, unknown>) => unknown;
 
 const SCRIPTS_DIR = '_int-test-scripts';
+// Longer than the 2 s the async require used to wait for an in-flight load before handing back empty exports.
+const SLOW_MODULE_DELAY_MILLISECONDS = 2500;
 
 function createMinimalAsar(fileName: string, content: string): Uint8Array {
   const fileBytes = new TextEncoder().encode(content);
@@ -120,6 +122,10 @@ beforeAll(() => {
 
   vault.populate({
     [`${SCRIPTS_DIR}/archive.asar`]: createMinimalAsar('index.js', 'exports.fromAsar = true;'),
+    [`${SCRIPTS_DIR}/cycle-async-a.mjs`]: 'await requireAsync(\'./cycle-async-b.mjs\'); export const a = true;',
+    [`${SCRIPTS_DIR}/cycle-async-b.mjs`]: 'await requireAsync(\'./cycle-async-a.mjs\'); export const b = true;',
+    [`${SCRIPTS_DIR}/cycle-sync-a.cjs`]: 'require(\'./cycle-sync-b.cjs\'); exports.a = true;',
+    [`${SCRIPTS_DIR}/cycle-sync-b.cjs`]: 'require(\'./cycle-sync-a.cjs\'); exports.b = true;',
     [`${SCRIPTS_DIR}/dummy.node`]: new Uint8Array([0x00, 0x01, 0x02, 0x03]),
     [`${SCRIPTS_DIR}/dynamic-target.mjs`]: 'export const dynValue = "dynamic-ok";',
     [`${SCRIPTS_DIR}/module.cjs`]: 'exports.value = 42;',
@@ -146,6 +152,7 @@ beforeAll(() => {
     [`${SCRIPTS_DIR}/pkg-esm/package.json`]: JSON.stringify({ name: 'pkg-esm', type: 'module' }),
     [`${SCRIPTS_DIR}/pkg-esm/probe.js`]: 'export const value = \'esm-js-ok\';',
     [`${SCRIPTS_DIR}/relative-parent.cjs`]: 'const child = require(\'./nested/child.cjs\'); exports.childValue = child.child;',
+    [`${SCRIPTS_DIR}/slow.mjs`]: `await new Promise((resolve) => setTimeout(resolve, ${String(SLOW_MODULE_DELAY_MILLISECONDS)})); export const invoke = 'full';`,
     [`${SCRIPTS_DIR}/strict-probe.cjs`]: 'exports.isStrict = (function () { return this === undefined; })();',
     [`${SCRIPTS_DIR}/top-level-await.mjs`]: 'const x = await Promise.resolve(99); export { x };'
   });
@@ -1329,6 +1336,93 @@ describe('RequireHandler integration', () => {
       });
 
       expect(result).toHaveProperty('value', 'esm-js-ok');
+    });
+  });
+
+  describe('concurrent and circular requires', () => {
+    it('should give two concurrent requires of a slow module its full exports', async () => {
+      const result = await evalInObsidian({
+        async callback({ directory }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const warnings: string[] = [];
+          const originalWarn = console.warn;
+          console.warn = (...arguments_: unknown[]): void => {
+            warnings.push(arguments_.map(String).join(' '));
+          };
+          try {
+            const [first, second] = await Promise.all([requireAsync(`//${directory}/slow.mjs`), requireAsync(`//${directory}/slow.mjs`)]);
+            return {
+              first: (first as Record<string, unknown>)['invoke'],
+              second: (second as Record<string, unknown>)['invoke'],
+              warnings
+            };
+          } finally {
+            Reflect.set(console, 'warn', originalWarn);
+          }
+        },
+        input: { directory: SCRIPTS_DIR },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toEqual({ first: 'full', second: 'full', warnings: [] });
+    });
+
+    it('should warn about an asynchronous cycle with its whole chain', async () => {
+      const result = await evalInObsidian({
+        async callback({ app, directory }) {
+          const requireAsync = Reflect.get(window, 'requireAsync') as RequireAsyncFunction;
+          const basePath = (Reflect.get(app.vault.adapter, 'basePath') as string).replaceAll('\\', '/');
+          const warnings: string[] = [];
+          const originalWarn = console.warn;
+          console.warn = (...arguments_: unknown[]): void => {
+            warnings.push(arguments_.map(String).join(' ').replaceAll(basePath, '<vault>'));
+          };
+          try {
+            const $module = await requireAsync(`//${directory}/cycle-async-a.mjs`) as Record<string, unknown>;
+            return { a: $module['a'], warnings };
+          } finally {
+            Reflect.set(console, 'warn', originalWarn);
+          }
+        },
+        input: { directory: SCRIPTS_DIR },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toEqual({
+        a: true,
+        warnings: [
+          `Circular dependency detected: <vault>/${SCRIPTS_DIR}/cycle-async-a.mjs -> <vault>/${SCRIPTS_DIR}/cycle-async-b.mjs -> <vault>/${SCRIPTS_DIR}/cycle-async-a.mjs. The partially initialized exports of <vault>/${SCRIPTS_DIR}/cycle-async-a.mjs are returned.`
+        ]
+      });
+    });
+
+    it('should warn about a synchronous cycle with its whole chain', async () => {
+      const result = await evalInObsidian({
+        callback({ app, directory }) {
+          const syncRequire = Reflect.get(window, 'require') as RequireFunction;
+          const basePath = (Reflect.get(app.vault.adapter, 'basePath') as string).replaceAll('\\', '/');
+          const warnings: string[] = [];
+          const originalWarn = console.warn;
+          console.warn = (...arguments_: unknown[]): void => {
+            warnings.push(arguments_.map(String).join(' ').replaceAll(basePath, '<vault>'));
+          };
+          try {
+            const $module = syncRequire(`//${directory}/cycle-sync-a.cjs`) as Record<string, unknown>;
+            return { a: $module['a'], warnings };
+          } finally {
+            Reflect.set(console, 'warn', originalWarn);
+          }
+        },
+        input: { directory: SCRIPTS_DIR },
+        vaultPath: vaultPath()
+      });
+
+      expect(result).toEqual({
+        a: true,
+        warnings: [
+          `Circular dependency detected: <vault>/${SCRIPTS_DIR}/cycle-sync-a.cjs -> <vault>/${SCRIPTS_DIR}/cycle-sync-b.cjs -> <vault>/${SCRIPTS_DIR}/cycle-sync-a.cjs. The partially initialized exports of <vault>/${SCRIPTS_DIR}/cycle-sync-a.cjs are returned.`
+        ]
+      });
     });
   });
 });
