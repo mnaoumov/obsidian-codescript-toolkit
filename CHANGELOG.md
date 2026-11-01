@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 15.1.0
+
+- docs(readme): point bug reports at the Report a bug command
+- feat: add a Report a bug command
+- docs: add issue-filing instructions for AI agents
+- chore(github): give the bug form the field ids bug-report links prefill
+- build(deps): override re2js to ^2.9.1 for GHSA-gg6h-894w-4m9c
+- build(deps): bump typescript-dev-toolkit to ^5.2.0 and apply prefer-dedent
+- build(deps): bump @mnaoumov/typescript-dev-toolkit to ^5.1.0
+
 ## 15.0.2
 
 - chore(deps): adopt obsidian-integration-testing 17.7.1 for host-resolver emulator DNS
