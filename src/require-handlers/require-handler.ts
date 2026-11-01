@@ -109,6 +109,10 @@ interface GetModuleTypeFromContentTypeParams {
   readonly contentType: string | undefined;
   readonly url: string;
 }
+interface InFlightLoad {
+  readonly promise: Promise<unknown>;
+  readonly startTimestamp: number;
+}
 interface Module {
   // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Evaluated CommonJS scripts replace module.exports when publishing their exports.
   exports: object;
@@ -116,9 +120,23 @@ interface Module {
 
 type PluginRequireFunction = (id: string) => unknown;
 
+interface RequesterEdge {
+  // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Counts the live trackers of one edge, so one of them ending does not drop an edge another still needs.
+  count: number;
+  readonly isResolution: boolean;
+}
+
 type RequireAsyncFunction = typeof requireAsync;
 
 type RequireAsyncWrapperFunction = typeof requireAsyncWrapper;
+
+interface RequireChainNode {
+  /**
+   * Whether this node is what the previous node resolved to (a file for an extension-less id, a code script for a note), rather than a module the previous one required.
+   */
+  readonly isResolution: boolean;
+  readonly path: string;
+}
 
 interface RequireHandlerComponentBaseAddToModuleCacheParams {
   readonly id: string;
@@ -130,6 +148,13 @@ interface RequireHandlerComponentBaseApplyConditionParams {
   readonly condition: string;
   readonly exportsNodeChild: PackageJson.Exports;
   readonly relativeModuleName: string;
+}
+
+interface RequireHandlerComponentBaseLoadModuleAsyncParams {
+  readonly cleanResolvedId: string;
+  readonly options: RequireOptions;
+  readonly resolvedId: string;
+  readonly resolvedType: ResolvedType;
 }
 
 interface RequireHandlerComponentBaseRequireJsonAsyncParams {
@@ -263,6 +288,15 @@ export interface RequireHandlerComponentBaseRequireNonCachedParams {
   readonly type: ResolvedType;
 }
 
+export interface RequireHandlerComponentBaseTrackModuleRequesterParams {
+  /**
+   * Whether {@link path} is what {@link requesterPath} resolved to, rather than a module it required.
+   */
+  readonly isResolution?: boolean;
+  readonly path: string;
+  readonly requesterPath: string | undefined;
+}
+
 export interface RequireHandlerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
@@ -323,7 +357,16 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   private _vaultAbsolutePath?: string;
 
+  private activeDependencyWalkCount = 0;
+
   private readonly consoleDebugComponent: ConsoleDebugComponent;
+
+  private readonly inFlightLoads = new Map<string, InFlightLoad>();
+
+  /**
+   * For each module being loaded, the modules that requested it and are still waiting for it: the request graph `findRequireCycle` walks.
+   */
+  private readonly moduleRequesters = new Map<string, Map<string, RequesterEdge>>();
 
   private originalRequire?: NodeJS.Require;
 
@@ -422,21 +465,29 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       ({ cleanString: cleanResolvedId, query } = splitQuery(resolvedId));
     }
 
-    const RELOAD_TIMEOUT_IN_MILLISECONDS = 2000;
-    const REPEAT_INTERVAL_IN_MILLISECONDS = 100;
-    let cachedModuleEntry: NodeJS.Module | undefined;
-    const start = performance.now();
-    while (performance.now() - start < RELOAD_TIMEOUT_IN_MILLISECONDS) {
-      cachedModuleEntry = this.modulesCache[resolvedId];
-      if (!cachedModuleEntry || cachedModuleEntry.loaded) {
-        break;
+    const inFlightLoad = this.inFlightLoads.get(resolvedId);
+    if (inFlightLoad) {
+      const cycle = this.findRequireCycle(resolvedId, fullOptions.parentPath);
+      if (cycle) {
+        console.warn(this.formatCircularDependencyMessage(cycle));
+        return this.modulesCache[resolvedId]?.exports;
       }
-      await sleep(REPEAT_INTERVAL_IN_MILLISECONDS);
+
+      // The same module is already being loaded by a require that is not on this one's chain, e.g. a concurrent top-level require, so wait for that load rather than starting a second one.
+      // The wait is recorded as a request edge, so a load further down that requires this caller back is still recognized as a cycle instead of waiting forever.
+      const untrack = this.trackModuleRequester({ path: resolvedId, requesterPath: fullOptions.parentPath });
+      try {
+        return await inFlightLoad.promise;
+      } finally {
+        untrack();
+      }
     }
+
+    const cachedModuleEntry = this.modulesCache[resolvedId];
 
     if (cachedModuleEntry) {
       if (!cachedModuleEntry.loaded) {
-        console.warn(`Circular dependency detected: ${resolvedId} -> ... -> ${fullOptions.parentPath ?? ''} -> ${resolvedId}.`);
+        this.warnModuleStillLoading(resolvedId, fullOptions.parentPath);
         return cachedModuleEntry.exports;
       }
 
@@ -463,21 +514,16 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       }
     }
 
-    if (cleanResolvedId.endsWith('.md')) {
-      return await this.initModuleAndAddToCacheAsync(
-        resolvedId,
-        () => this.requireNonCachedAsync({ id: resolvedId, options: fullOptions, type: resolvedType })
-      );
+    const promise = this.loadModuleAsync({ cleanResolvedId, options: fullOptions, resolvedId, resolvedType });
+    this.inFlightLoads.set(resolvedId, { promise, startTimestamp: performance.now() });
+    const untrack = this.trackModuleRequester({ path: resolvedId, requesterPath: fullOptions.parentPath });
+    try {
+      return await promise;
+    } finally {
+      untrack();
+      // No second load of this id can have replaced this one meanwhile: a require that finds it in flight waits for it or reports a cycle.
+      this.inFlightLoads.delete(resolvedId);
     }
-
-    const $module = await this.initModuleAndAddToCacheAsync(
-      cleanResolvedId,
-      () => this.requireNonCachedAsync({ id: cleanResolvedId, options: fullOptions, type: resolvedType })
-    );
-    if (resolvedId !== cleanResolvedId) {
-      this.initModuleAndAddToCache(resolvedId, () => $module);
-    }
-    return $module;
   }
 
   public async requireStringAsync(params: RequireHandlerComponentBaseRequireStringAsyncParams): Promise<unknown> {
@@ -505,7 +551,43 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return this.requireAsync(VAULT_ROOT_PREFIX + id);
   }
 
+  /**
+   * Starts a dependency walk. The walks share `currentModulesTimestampChain`, so it is cleared only when the last concurrent walk ends: clearing it when the walk that happened to find it empty ends would leave the other walks' entries in it for good.
+   */
+  protected beginDependencyWalk(): void {
+    this.activeDependencyWalkCount++;
+  }
+
   protected abstract canRequireNonCached(type: ResolvedType, options: Partial<RequireOptions>): boolean;
+
+  /**
+   * Catches a cycle that comes back to a file under another id (`./a` while `./a.js` is loading), which the in-flight check in {@link requireAsync} cannot see, because it is keyed by id.
+   *
+   * @param existingFilePath - The file an id resolved to.
+   * @param requesterPath - The id that resolved to it.
+   * @returns Whether the require is circular. It has been reported if so.
+   */
+  protected checkCircularPathRequire(existingFilePath: string, requesterPath: string | undefined): boolean {
+    if (requesterPath === undefined || requesterPath === existingFilePath || this.modulesCache[existingFilePath]?.loaded !== false) {
+      return false;
+    }
+
+    const cycle = this.findRequireCycle(existingFilePath, requesterPath);
+    if (!cycle) {
+      return false;
+    }
+
+    // The chain ends at the id that resolved to the file it starts with, so that id is the file itself.
+    console.warn(this.formatCircularDependencyMessage(cycle.slice(0, -1)));
+    return true;
+  }
+
+  protected endDependencyWalk(): void {
+    this.activeDependencyWalkCount--;
+    if (this.activeDependencyWalkCount === 0) {
+      this.currentModulesTimestampChain.clear();
+    }
+  }
 
   protected abstract existsFileAsync(path: string): Promise<boolean>;
 
@@ -704,6 +786,44 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return join(this.vaultAbsolutePath, this.pluginSettingsComponent.settings.modulesRoot, trimStart({ $string: id, prefix: '/' }));
   }
 
+  /**
+   * Records that {@link RequireHandlerComponentBaseTrackModuleRequesterParams.requesterPath} is waiting for {@link RequireHandlerComponentBaseTrackModuleRequesterParams.path} to load.
+   *
+   * @returns A function that removes the record once the wait is over.
+   */
+  protected trackModuleRequester(params: RequireHandlerComponentBaseTrackModuleRequesterParams): () => void {
+    const { isResolution = false, path, requesterPath } = params;
+    if (requesterPath === undefined || requesterPath === path) {
+      return noop;
+    }
+
+    let requesters = this.moduleRequesters.get(path);
+    if (!requesters) {
+      requesters = new Map<string, RequesterEdge>();
+      this.moduleRequesters.set(path, requesters);
+    }
+
+    let edge = requesters.get(requesterPath);
+    if (!edge) {
+      edge = { count: 0, isResolution };
+      requesters.set(requesterPath, edge);
+    }
+    edge.count++;
+    const trackedEdge = edge;
+    const trackedRequesters = requesters;
+
+    return (): void => {
+      trackedEdge.count--;
+      if (trackedEdge.count > 0) {
+        return;
+      }
+      trackedRequesters.delete(requesterPath);
+      if (trackedRequesters.size === 0) {
+        this.moduleRequesters.delete(path);
+      }
+    };
+  }
+
   private addToModuleCache(params: RequireHandlerComponentBaseAddToModuleCacheParams): NodeJS.Module {
     const { id, isLoaded = true, module: $module } = params;
     this.modulesCache[id] = {
@@ -794,6 +914,16 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     delete this.modulesCache[id];
   }
 
+  /**
+   * Drops the placeholder a finished top-level load left behind, which happens when the load handed back another module's partial exports (a cycle through another id).
+   * Kept, it would make every later require of this id report the module as still loading.
+   */
+  private deleteUnloadedCacheEntry(id: string): void {
+    if (this.modulesCache[id]?.loaded === false) {
+      this.deleteCacheEntry(id);
+    }
+  }
+
   private async findExistingFilePathAsync(path: string): Promise<null | string> {
     const { cleanString: cleanPath, query } = splitQuery(path);
     for (const suffix of PATH_SUFFIXES) {
@@ -804,6 +934,47 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
 
     return null;
+  }
+
+  /**
+   * Finds the request chain that makes requiring {@link id} from {@link parentPath} a cycle: {@link parentPath} is (transitively) being loaded on behalf of {@link id}.
+   *
+   * @returns The chain from {@link id} down to {@link parentPath}, or `null` when {@link parentPath} is not part of {@link id}'s load.
+   */
+  private findRequireCycle(id: string, parentPath: string | undefined): null | RequireChainNode[] {
+    if (parentPath === undefined) {
+      return null;
+    }
+
+    const visited = new Set<string>();
+    const search = (node: RequireChainNode): null | RequireChainNode[] => {
+      if (node.path === id) {
+        return [node];
+      }
+      if (visited.has(node.path)) {
+        return null;
+      }
+      visited.add(node.path);
+
+      for (const [requesterPath, edge] of this.moduleRequesters.get(node.path) ?? []) {
+        const chain = search({ isResolution: false, path: requesterPath });
+        if (chain) {
+          chain.push({ isResolution: edge.isResolution, path: node.path });
+          return chain;
+        }
+      }
+
+      return null;
+    };
+
+    return search({ isResolution: false, path: parentPath });
+  }
+
+  private formatCircularDependencyMessage(chain: readonly RequireChainNode[]): string {
+    // A node the next one merely resolves to (`./Note` -> `./Note.ts`) is the same module, so only the resolved path is shown.
+    const paths = chain.filter((_node, index) => !chain[index + 1]?.isResolution).map((node) => node.path);
+    const firstPath = ensureNonNullable(paths[0]);
+    return `Circular dependency detected: ${[...paths, firstPath].join(' -> ')}. The partially initialized exports of ${firstPath} are returned.`;
   }
 
   private async getDependenciesTimestampChangedAndReloadIfNeededAsync(path: string, options: Partial<RequireOptions>): Promise<number> {
@@ -845,8 +1016,13 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
             throw new Error(`File not found: '${resolvedId}'.`);
           }
 
-          const dependencyTimestamp = await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, options);
-          updateTimestamp(dependencyTimestamp);
+          const untrack = this.trackModuleRequester({ path: existingFilePath, requesterPath: path });
+          try {
+            const dependencyTimestamp = await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, options);
+            updateTimestamp(dependencyTimestamp);
+          } finally {
+            untrack();
+          }
           break;
         }
         case ResolvedType.SpecialModule: {
@@ -1007,6 +1183,36 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     return ($module as Partial<EmptyModule> | undefined)?.[EMPTY_MODULE_SYMBOL] === true;
   }
 
+  private async loadModuleAsync(params: RequireHandlerComponentBaseLoadModuleAsyncParams): Promise<unknown> {
+    const { cleanResolvedId, resolvedId, resolvedType } = params;
+    // Everything this load requires is requested by the module itself, which is what lets `findRequireCycle` walk from a dependency back to it.
+    const options = { ...params.options, parentPath: resolvedId };
+
+    if (cleanResolvedId.endsWith('.md')) {
+      const $module = await this.initModuleAndAddToCacheAsync(
+        resolvedId,
+        () => this.requireNonCachedAsync({ id: resolvedId, options, type: resolvedType })
+      );
+      this.deleteUnloadedCacheEntry(resolvedId);
+      return $module;
+    }
+
+    const untrack = this.trackModuleRequester({ isResolution: true, path: cleanResolvedId, requesterPath: resolvedId });
+    try {
+      const $module = await this.initModuleAndAddToCacheAsync(
+        cleanResolvedId,
+        () => this.requireNonCachedAsync({ id: cleanResolvedId, options: { ...options, parentPath: cleanResolvedId }, type: resolvedType })
+      );
+      this.deleteUnloadedCacheEntry(cleanResolvedId);
+      if (resolvedId !== cleanResolvedId) {
+        this.initModuleAndAddToCache(resolvedId, () => $module);
+      }
+      return $module;
+    } finally {
+      untrack();
+    }
+  }
+
   private makeChildRequire(parentPath: string): RequireExFunction {
     return this.wrapRequire({
       beforeRequire: (id: string): void => {
@@ -1075,7 +1281,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
     if (cachedModuleEntry) {
       if (!cachedModuleEntry.loaded) {
-        console.warn(`Circular dependency detected: ${resolvedId} -> ... -> ${fullOptions.parentPath ?? ''} -> ${resolvedId}.`);
+        this.warnModuleStillLoading(resolvedId, fullOptions.parentPath);
         return cachedModuleEntry.exports;
       }
 
@@ -1114,20 +1320,36 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       }
     }
 
-    if (cleanResolvedId.endsWith('.md')) {
-      return this.initModuleAndAddToCache(
-        resolvedId,
-        () => this.requireNonCached({ id: resolvedId, options: fullOptions, type: resolvedType })
-      );
+    const untrackRequester = this.trackModuleRequester({ path: resolvedId, requesterPath: fullOptions.parentPath });
+    // Everything this load requires is requested by the module itself, which is what lets `findRequireCycle` walk from a dependency back to it.
+    const loadOptions = { ...fullOptions, parentPath: resolvedId };
+    try {
+      if (cleanResolvedId.endsWith('.md')) {
+        const $mdModule = this.initModuleAndAddToCache(
+          resolvedId,
+          () => this.requireNonCached({ id: resolvedId, options: loadOptions, type: resolvedType })
+        );
+        this.deleteUnloadedCacheEntry(resolvedId);
+        return $mdModule;
+      }
+
+      const untrackResolution = this.trackModuleRequester({ isResolution: true, path: cleanResolvedId, requesterPath: resolvedId });
+      try {
+        const $module = this.initModuleAndAddToCache(
+          cleanResolvedId,
+          () => this.requireNonCached({ id: cleanResolvedId, options: { ...loadOptions, parentPath: cleanResolvedId }, type: resolvedType })
+        );
+        this.deleteUnloadedCacheEntry(cleanResolvedId);
+        if (resolvedId !== cleanResolvedId) {
+          this.initModuleAndAddToCache(resolvedId, () => $module);
+        }
+        return $module;
+      } finally {
+        untrackResolution();
+      }
+    } finally {
+      untrackRequester();
     }
-    const $module = this.initModuleAndAddToCache(
-      cleanResolvedId,
-      () => this.requireNonCached({ id: cleanResolvedId, options: fullOptions, type: resolvedType })
-    );
-    if (resolvedId !== cleanResolvedId) {
-      this.initModuleAndAddToCache(resolvedId, () => $module);
-    }
-    return $module;
   }
 
   private async requireAsyncWrapper(requireFunction: (require: RequireExFunction) => Promisable<unknown>, require?: RequireExFunction): Promise<unknown> {
@@ -1175,10 +1397,16 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     const { path } = params;
     const md = params.md ?? await this.readFileAsync(splitQuery(path).cleanString);
     const { code, codeScriptName } = extractCodeScript({ md, path });
-    return this.requireStringAsync({
-      code,
-      path: `${path}.code-script.${codeScriptName ?? '(default)'}.ts`
-    });
+    const codeScriptPath = `${path}.code-script.${codeScriptName ?? '(default)'}.ts`;
+    const untrack = this.trackModuleRequester({ isResolution: true, path: codeScriptPath, requesterPath: path });
+    try {
+      return await this.requireStringAsync({
+        code,
+        path: codeScriptPath
+      });
+    } finally {
+      untrack();
+    }
   }
 
   private async requireModuleAsync(params: RequireHandlerComponentBaseRequireModuleAsyncParams): Promise<unknown> {
@@ -1268,14 +1496,17 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
       throw new Error(`File not found: '${path}'.`);
     }
 
-    const isRootRequire = this.currentModulesTimestampChain.size === 0;
+    if (this.checkCircularPathRequire(existingFilePath, options.parentPath)) {
+      return this.modulesCache[existingFilePath]?.exports;
+    }
 
+    const untrack = this.trackModuleRequester({ isResolution: true, path: existingFilePath, requesterPath: options.parentPath });
+    this.beginDependencyWalk();
     try {
       await this.getDependenciesTimestampChangedAndReloadIfNeededAsync(existingFilePath, options);
     } finally {
-      if (isRootRequire) {
-        this.currentModulesTimestampChain.clear();
-      }
+      this.endDependencyWalk();
+      untrack();
     }
 
     return this.modulesCache[existingFilePath]?.exports;
@@ -1413,6 +1644,26 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
     }
 
     return id.toLowerCase().startsWith(Platform.resourcePathPrefix) ? { resolvedId: id.slice(Platform.resourcePathPrefix.length), resolvedType: ResolvedType.Path } : { resolvedId: id, resolvedType: ResolvedType.Url };
+  }
+
+  private warnModuleStillLoading(id: string, parentPath: string | undefined): void {
+    const cycle = this.findRequireCycle(id, parentPath);
+    if (cycle) {
+      console.warn(this.formatCircularDependencyMessage(cycle));
+      return;
+    }
+
+    const requester = parentPath === undefined ? 'the top level' : `'${parentPath}'`;
+    const inFlightLoad = this.inFlightLoads.get(id);
+    if (inFlightLoad) {
+      const elapsedMilliseconds = Math.round(performance.now() - inFlightLoad.startTimestamp);
+      console.warn(
+        `Module '${id}' has been loading for ${String(elapsedMilliseconds)} ms, and a synchronous require from ${requester} cannot wait for it. Its partially initialized exports are returned. ${this.getRequireAsyncAdvice(id)}`
+      );
+      return;
+    }
+
+    console.warn(`Module '${id}' is required from ${requester} while it is still loading. Its partially initialized exports are returned.`);
   }
 
   private wrapRequire(options: RequireHandlerComponentBaseWrapRequireParams): RequireExFunction {

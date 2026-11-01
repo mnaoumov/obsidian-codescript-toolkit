@@ -1,5 +1,7 @@
 import type { TFile as OriginalTFile } from 'obsidian';
+import type { Promisable } from 'type-fest';
 
+import { noop } from '@mnaoumov/typescript-lib/function';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
 import dedent from 'dedent';
@@ -94,6 +96,11 @@ interface CustomRequireWindow {
   readonly require: (id: string, options?: Partial<RequireOptions>) => unknown;
 }
 
+interface Gate {
+  readonly promise: Promise<void>;
+  readonly resolve: () => void;
+}
+
 interface MockAppAccessor {
   readonly app: MockAppWithMetadataCache;
 }
@@ -166,6 +173,14 @@ interface WebAssemblyInstantiateSpy {
 
 interface WebAssemblyInstantiateSpyFactory {
   readonly mockResolvedValue: (value: WebAssembly.WebAssemblyInstantiatedSource) => WebAssemblyInstantiateSpy;
+}
+
+function createGate(): Gate {
+  let resolve: () => void = noop;
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
 }
 
 function windowCustomRequire(id: string, options?: Partial<RequireOptions>): unknown {
@@ -838,7 +853,7 @@ describe('RequireHandlerComponentBase', () => {
       expect(result).toBeDefined();
     });
 
-    it('should warn on circular dependency and return cached exports', async () => {
+    it('should report a module still loading outside any require chain as such, not as a cycle, and return its partial exports', async () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Stub
       });
@@ -849,7 +864,9 @@ describe('RequireHandlerComponentBase', () => {
       handler.exposeModulesCache()['/vault/circular-mod'] = mockCacheEntry;
 
       const result = await handler.requireAsync('//circular-mod');
-      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Circular dependency detected'));
+      expect(consoleWarnSpy).toHaveBeenCalledExactlyOnceWith(
+        'Module \'/vault/circular-mod\' is required from the top level while it is still loading. Its partially initialized exports are returned.'
+      );
       expect(result).toEqual({ circular: true });
 
       consoleWarnSpy.mockRestore();
@@ -1442,7 +1459,7 @@ describe('RequireHandlerComponentBase', () => {
       expect(result).toEqual(expect.objectContaining({ chained: true }));
     });
 
-    it('should warn on circular dependency via sync require', () => {
+    it('should report a module still loading outside any require chain via sync require as such, not as a cycle', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
         // Stub
       });
@@ -1451,8 +1468,10 @@ describe('RequireHandlerComponentBase', () => {
       mockCacheEntry.exports = { circular: true };
       handler.exposeModulesCache()['/vault/circular-sync'] = mockCacheEntry;
 
-      const result: unknown = window.require('//circular-sync');
-      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Circular dependency detected'));
+      const result: unknown = windowCustomRequire('//circular-sync', { parentPath: '/vault/caller.js' });
+      expect(consoleWarnSpy).toHaveBeenCalledExactlyOnceWith(
+        'Module \'/vault/circular-sync\' is required from \'/vault/caller.js\' while it is still loading. Its partially initialized exports are returned.'
+      );
       expect(result).toEqual({ circular: true });
       consoleWarnSpy.mockRestore();
     });
@@ -3397,7 +3416,7 @@ describe('RequireHandlerComponentBase', () => {
       await handler.loadWithPromises();
     });
 
-    it('should not clear chain when not a root require', async () => {
+    it('should not clear chain while another dependency walk is still running', async () => {
       handler.mockExistsFile.mockResolvedValue(true);
       handler.mockGetTimestamp.mockResolvedValue(100);
       handler.mockReadFile.mockResolvedValue('module.exports = { nested: true };');
@@ -3411,17 +3430,41 @@ describe('RequireHandlerComponentBase', () => {
       await handler.requireAsync('//nested-target.js');
       handler.exposeCurrentModulesTimestampChain().clear();
 
-      // Set up a parent chain entry to simulate nested require
+      // Simulate another walk that is still running
+      handler.exposeBeginDependencyWalk();
       handler.exposeCurrentModulesTimestampChain().add('/vault/parent-module.js');
 
-      // Re-require — isRootRequire is false because chain is non-empty
       handler.exposeModuleTimestamps().clear();
       handler.mockGetTimestamp.mockResolvedValue(200);
 
       await handler.requireAsync('//nested-target.js');
 
-      // Chain should still contain the parent
       expect(handler.exposeCurrentModulesTimestampChain().has('/vault/parent-module.js')).toBe(true);
+
+      handler.exposeEndDependencyWalk();
+      expect(handler.exposeCurrentModulesTimestampChain().size).toBe(0);
+    });
+
+    it('should clear chain when the last of two concurrent root requires ends, whichever started first', async () => {
+      handler.mockExistsFile.mockResolvedValue(true);
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockResolvedValue('module.exports = {};');
+
+      const firstGate = createGate();
+      mockDebuggableEval.mockImplementation((_code: string, name: string) => async (context: Record<string, unknown>): Promise<void> => {
+        if (name.endsWith('/vault/first.js')) {
+          await firstGate.promise;
+        }
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { name };
+      });
+
+      const firstPromise = handler.requireAsync('//first.js');
+      await handler.requireAsync('//second.js');
+      firstGate.resolve();
+      await firstPromise;
+
+      expect(handler.exposeCurrentModulesTimestampChain().size).toBe(0);
     });
   });
 
@@ -3517,6 +3560,215 @@ describe('RequireHandlerComponentBase', () => {
     });
   });
 
+  describe('concurrent, failed and circular requires', () => {
+    const SLOW_LOAD_MILLISECONDS = 5000;
+    const SYNC_REQUIRE_AFTER_MILLISECONDS = 1500;
+
+    type EvaluatedScript = (context: Record<string, unknown>) => Promise<void>;
+    type ScriptRequireAsync = (id: string) => Promise<unknown>;
+
+    function evaluateScripts(scripts: Record<string, (context: Record<string, unknown>) => Promisable<unknown>>): void {
+      mockDebuggableEval.mockImplementation((_code: string, name: string): EvaluatedScript => async (context): Promise<void> => {
+        const entry = Object.entries(scripts).find(([path]) => name.endsWith(path));
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = await ensureNonNullable(entry, `No script for ${name}`)[1](context);
+      });
+    }
+
+    beforeEach(async () => {
+      await handler.loadWithPromises();
+      handler.mockExistsFile.mockResolvedValue(true);
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockResolvedValue('module.exports = {};');
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should give two concurrent requires of a slow module its full exports, however long the load takes', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] });
+      const consoleWarnSpy = vi.spyOn(console, 'warn');
+      const gate = createGate();
+      evaluateScripts({
+        '/vault/slow.js': async () => {
+          await gate.promise;
+          return { invoke: 'full' };
+        }
+      });
+
+      const first = handler.requireAsync('//slow.js');
+      const second = handler.requireAsync('//slow.js');
+      await vi.advanceTimersByTimeAsync(SLOW_LOAD_MILLISECONDS);
+      gate.resolve();
+      const [firstExports, secondExports] = await Promise.all([first, second]);
+
+      expect(firstExports).toEqual(expect.objectContaining({ invoke: 'full' }));
+      expect(secondExports).toBe(firstExports);
+      expect(mockDebuggableEval).toHaveBeenCalledOnce();
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should report a failed load as itself to every concurrent require, and load afresh on the next one', async () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn');
+      const gate = createGate();
+      evaluateScripts({
+        '/vault/broken.js': async () => {
+          await gate.promise;
+          throw new Error('boom');
+        }
+      });
+
+      const results = Promise.allSettled([handler.requireAsync('//broken.js'), handler.requireAsync('//broken.js')]);
+      gate.resolve();
+      const [first, second] = await results;
+
+      expect(first).toEqual({
+        reason: expect.objectContaining({
+          cause: expect.objectContaining({ message: 'boom' }) as unknown,
+          message: 'Failed to load module: \'/vault/broken.js\'.'
+        }) as unknown,
+        status: 'rejected'
+      });
+      expect(second).toEqual(first);
+      expect(handler.exposeModulesCache()['/vault/broken.js']).toBeUndefined();
+
+      evaluateScripts({ '/vault/broken.js': (): Record<string, boolean> => ({ fixed: true }) });
+      await expect(handler.requireAsync('//broken.js')).resolves.toEqual(expect.objectContaining({ fixed: true }));
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should warn about a real cycle with the whole chain, and return the partial exports', async () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop);
+      let partialExports: unknown;
+      evaluateScripts({
+        '/vault/a.js': async (context) => {
+          await (context['requireAsync'] as ScriptRequireAsync)('./b.js');
+          return { a: true };
+        },
+        '/vault/b.js': async (context) => {
+          partialExports = await (context['requireAsync'] as ScriptRequireAsync)('./a.js');
+          return { b: true };
+        }
+      });
+
+      const result = await handler.requireAsync('//a.js');
+
+      expect(result).toEqual(expect.objectContaining({ a: true }));
+      // The partial exports are a live view of the module, so they show its exports once it has loaded.
+      expect((partialExports as Partial<Record<string, unknown>>)['a']).toBe(true);
+      expect(consoleWarnSpy).toHaveBeenCalledExactlyOnceWith(
+        'Circular dependency detected: /vault/a.js -> /vault/b.js -> /vault/a.js. The partially initialized exports of /vault/a.js are returned.'
+      );
+    });
+
+    it('should name the files, not the extension-less ids, in a cycle that comes back under another id', async () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop);
+      handler.mockExistsFile.mockImplementation((path: string) => path.endsWith('.js'));
+      evaluateScripts({
+        '/vault/a.js': async (context) => {
+          await (context['requireAsync'] as ScriptRequireAsync)('./b');
+          return { a: true };
+        },
+        '/vault/b.js': async (context) => {
+          await (context['requireAsync'] as ScriptRequireAsync)('./a');
+          return { b: true };
+        }
+      });
+
+      await handler.requireAsync('//a.js');
+
+      expect(consoleWarnSpy).toHaveBeenCalledExactlyOnceWith(
+        'Circular dependency detected: /vault/a.js -> /vault/b.js -> /vault/a.js. The partially initialized exports of /vault/a.js are returned.'
+      );
+      expect(handler.exposeModulesCache()['/vault/a']).toBeUndefined();
+
+      consoleWarnSpy.mockClear();
+      await expect(handler.requireAsync('//a')).resolves.toEqual(expect.objectContaining({ a: true }));
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should say how long a module has been loading when a synchronous require cannot wait for it', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] });
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop);
+      const gate = createGate();
+      evaluateScripts({
+        '/vault/slow.js': async () => {
+          await gate.promise;
+          return { slow: true };
+        }
+      });
+
+      const load = handler.requireAsync('//slow.js');
+      await vi.advanceTimersByTimeAsync(SYNC_REQUIRE_AFTER_MILLISECONDS);
+      windowCustomRequire('//slow.js', { parentPath: '/vault/other.js' });
+      gate.resolve();
+      await load;
+
+      expect(consoleWarnSpy).toHaveBeenCalledExactlyOnceWith(
+        `Module '/vault/slow.js' has been loading for 1500 ms, and a synchronous require from '/vault/other.js' cannot wait for it. Its partially initialized exports are returned. ${handler.exposeGetRequireAsyncAdvice('/vault/slow.js')}`
+      );
+    });
+  });
+
+  describe('request graph', () => {
+    const CYCLE_MESSAGE = 'Circular dependency detected: /vault/a.js -> /vault/b.js -> /vault/a.js. The partially initialized exports of /vault/a.js are returned.';
+
+    beforeEach(async () => {
+      await handler.loadWithPromises();
+      const placeholder = createMockNodeModule('/vault/a.js');
+      placeholder.loaded = false;
+      handler.exposeModulesCache()['/vault/a.js'] = placeholder;
+    });
+
+    it('should keep an edge until the last of its trackers ends', () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop);
+      handler.exposeTrackModuleRequester('/vault/a', '/vault/b.js');
+      const untrackFirst = handler.exposeTrackModuleRequester('/vault/b.js', '/vault/a.js');
+      const untrackSecond = handler.exposeTrackModuleRequester('/vault/b.js', '/vault/a.js');
+
+      untrackFirst();
+      expect(handler.exposeCheckCircularPathRequire('/vault/a.js', '/vault/a')).toBe(true);
+      expect(consoleWarnSpy).toHaveBeenCalledExactlyOnceWith(CYCLE_MESSAGE);
+
+      untrackSecond();
+      expect(handler.exposeCheckCircularPathRequire('/vault/a.js', '/vault/a')).toBe(false);
+    });
+
+    it('should keep the other requesters of a module when one of them ends', () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop);
+      handler.exposeTrackModuleRequester('/vault/a', '/vault/b.js');
+      handler.exposeTrackModuleRequester('/vault/b.js', '/vault/a.js');
+      const untrackOther = handler.exposeTrackModuleRequester('/vault/b.js', '/vault/c.js');
+
+      untrackOther();
+      expect(handler.exposeCheckCircularPathRequire('/vault/a.js', '/vault/a')).toBe(true);
+      expect(consoleWarnSpy).toHaveBeenCalledExactlyOnceWith(CYCLE_MESSAGE);
+    });
+
+    it('should not report a cycle, nor loop forever, when the requests loop without reaching the module', () => {
+      handler.exposeTrackModuleRequester('/vault/a', '/vault/x.js');
+      handler.exposeTrackModuleRequester('/vault/x.js', '/vault/y.js');
+      handler.exposeTrackModuleRequester('/vault/y.js', '/vault/x.js');
+
+      expect(handler.exposeCheckCircularPathRequire('/vault/a.js', '/vault/a')).toBe(false);
+    });
+
+    it('should load a file whose placeholder is not loaded when no request chain leads back to it', async () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn');
+      handler.mockExistsFile.mockImplementation((path: string) => path.endsWith('.js'));
+      handler.mockGetTimestamp.mockResolvedValue(100);
+      handler.mockReadFile.mockResolvedValue('module.exports = {};');
+      mockDebuggableEval.mockReturnValue((context: Record<string, unknown>) => {
+        const module_ = context['module'] as MockModuleWithExports;
+        module_.exports = { loadedUnderAnotherId: true };
+      });
+
+      await expect(handler.requireAsync('//a')).resolves.toEqual(expect.objectContaining({ loadedUnderAnotherId: true }));
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('extractCodeScript position sorting', () => {
     it('should handle codes without position info', () => {
       // Create markdown with multiple code-script blocks but positions naturally assigned
@@ -3571,12 +3823,28 @@ class TestRequireHandlerComponent extends RequireHandlerComponentBase {
   public mockRequireNodeBuiltInModule = vi.fn().mockReturnValue({ nodeBuiltIn: true });
   public mockRequireNonCached = vi.fn().mockReturnValue({ nonCached: true });
 
+  public exposeBeginDependencyWalk(): void {
+    this.beginDependencyWalk();
+  }
+
+  public exposeCheckCircularPathRequire(existingFilePath: string, requesterPath: string | undefined): boolean {
+    return this.checkCircularPathRequire(existingFilePath, requesterPath);
+  }
+
   public exposeCurrentModulesTimestampChain(): Set<string> {
     return this.currentModulesTimestampChain;
   }
 
+  public exposeEndDependencyWalk(): void {
+    this.endDependencyWalk();
+  }
+
   public exposeGetParentPathFromCallStack(): null | string {
     return this.getParentPathFromCallStack();
+  }
+
+  public exposeGetRequireAsyncAdvice(id: string): string {
+    return this.getRequireAsyncAdvice(id);
   }
 
   public exposeHandleCodeWithTopLevelAwait(path: string): void {
@@ -3609,6 +3877,10 @@ class TestRequireHandlerComponent extends RequireHandlerComponentBase {
 
   public exposeResolve(id: string, parentPath?: string): ResolveResult {
     return this.resolve({ id, parentPath });
+  }
+
+  public exposeTrackModuleRequester(path: string, requesterPath: string | undefined): () => void {
+    return this.trackModuleRequester({ path, requesterPath });
   }
 
   public exposeVaultAbsolutePath(): string {

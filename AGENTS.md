@@ -67,6 +67,14 @@ Known flake: on 2026-08-09 one demo-vault run failed 3 of 43 with CDP `ECONNREFU
 
 Integration tests run the built `dist/build` bundle, not `node_modules`: **`npm run build` before running them**, or the suite silently exercises a stale build.
 
+### In-flight loads, cycles and the request graph
+
+A module's cache entry stays `loaded: false` for the whole of its load, and seeing that flag alone does not tell you whether the require is a cycle. So `requireAsync` keys each top-level load by its resolved id in `inFlightLoads`. A second require of that id waits for the same promise, without a time limit, unless it is a cycle. A failed load rejects every waiter with that load's own error, and it leaves no cache entry behind.
+
+A cycle is decided by a request graph (`trackModuleRequester` / `findRequireCycle`): each module being loaded records who asked for it. That covers a module required while it loads, an id that resolved to a file (`./Note` -> `Note.ts`), a note that resolved to its code script, a dependency the timestamp walk reloads, and a require waiting on an in-flight load. A require is circular only when a chain of those edges leads from the caller back to the module. The warning prints that chain, with each id collapsed to the file it resolved to. Anything else that finds a not-loaded entry gets a message saying the module is still loading. A sync require of an async load in flight cannot wait, and its message says how long the load has been running. **Every path that loads code must keep the graph current:** a load that runs a file without recording its requester makes a real cycle wait forever on itself.
+
+`currentModulesTimestampChain` is shared by every dependency walk. It is cleared when the last concurrent walk ends (`beginDependencyWalk` / `endDependencyWalk`), not when the walk that found it empty ends. That older rule let one concurrent walk leave its entries in the chain for good, and a module in the chain is never reloaded.
+
 ### Native addons share Node's module cache
 
 `RequireHandlerComponentBase.modulesCache` shares the original Node require cache. Before delegating a `.node` file to Node, `RequireHandlerDesktopComponent.requireNodeBinary` removes an unloaded placeholder so Node actually initializes the addon. Keep already loaded native entries intact. JavaScript circular-dependency placeholders still belong to the toolkit's normal initializer.
