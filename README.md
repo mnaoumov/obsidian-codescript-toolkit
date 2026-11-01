@@ -59,6 +59,20 @@ If you are not sure where to start, three notes cover most of it: [Core function
   - [`Templater`](https://silentvoid13.github.io/Templater/)
   - `My favorite scripting plugin not listed above` — most likely, this plugin can enrich it too.
 
+## Use cases
+
+- **A button in a note that does a job.** Put a ` ```code-button ` block in your daily note template that moves finished tasks, renames attachments or fills in a property, and click it when you need it. See [Code buttons](<./demo-vault/01 Code buttons.md>).
+- **A script you run from the command palette or a hotkey.** Every script in your scripts folder becomes a command, so a one-off chore becomes a hotkey without writing a plugin. See [Invocable scripts](<./demo-vault/06 Running scripts without a button/37 Invocable scripts.md>) and [Hotkeys](<./demo-vault/06 Running scripts without a button/40 Hotkeys.md>).
+- **One helper module shared by every scripting plugin.** Write a function once, in TypeScript if you like, and `require()` it from `Dataview`, `Templater`, `QuickAdd` or `CustomJS`, instead of pasting a copy into each. See [Working with other plugins](<./demo-vault/08 Working with other plugins/README.md>).
+- **Using an npm package in the vault**, such as a date library or a parser. See [NPM modules](<./demo-vault/03 Modules you did not write/25 NPM modules.md>).
+- **Trying out the Obsidian API, or a plugin idea, before building anything.** The DevTools console gets the same `require()` as a button. If your scripts folder holds `helpers.ts`, open the console (`Ctrl/Command + Shift + I`) and run:
+
+  ```js
+  require('/helpers.ts').summarize(app.workspace.getActiveFile());
+  ```
+
+  The leading `/` means the scripts folder. See [DevTools Console](<./demo-vault/03 DevTools Console.md>).
+
 ## See also
 
 [My other Obsidian resources](https://github.com/mnaoumov/obsidian-resources)
@@ -98,9 +112,13 @@ To install the latest beta release of this plugin (regardless if it is available
 
 ## Debugging
 
-By default, debug messages for this plugin (id: `fix-require-modules`) are hidden.
+By default, debug messages for this plugin are hidden. Its debug namespace is its plugin id, `fix-require-modules`, not `codescript-toolkit`: the id kept the plugin's old name (see [Rebranding](#rebranding)). To show the messages, run this in the DevTools console:
 
-If you need to enable them refer to the [documentation](https://mnaoumov.dev/obsidian-lib/guides/debugging/).
+```js
+window.DEBUG.enable('fix-require-modules');
+```
+
+The [debugging guide](https://mnaoumov.dev/obsidian-lib/guides/debugging/) explains how to narrow or widen that namespace.
 
 ## Rebranding
 

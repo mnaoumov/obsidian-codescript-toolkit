@@ -47,3 +47,5 @@ Each folder below opens with a note of its own listing what is inside, so the Fi
 ## Tips
 
 If you plan to write more than a handful of scripts, keep them in a [dot folder](https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments) such as `.scripts`. Obsidian does not track changes inside dot folders, so it will not re-index a `node_modules` tree every time you touch a file.
+
+The catch: [Obsidian Sync](https://obsidian.md/help/sync/settings) skips dot folders too, so scripts kept in `.scripts` stay on the device that has them. If you use Obsidian Sync to get your scripts onto your phone, use an ordinary folder instead, or sync the dot folder some other way, such as git. [25 NPM modules](<./03 Modules you did not write/25 NPM modules.md>) has the details.
