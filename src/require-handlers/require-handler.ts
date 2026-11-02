@@ -288,15 +288,6 @@ export interface RequireHandlerComponentBaseRequireNonCachedParams {
   readonly type: ResolvedType;
 }
 
-export interface RequireHandlerComponentBaseTrackModuleRequesterParams {
-  /**
-   * Whether {@link path} is what {@link requesterPath} resolved to, rather than a module it required.
-   */
-  readonly isResolution?: boolean;
-  readonly path: string;
-  readonly requesterPath: string | undefined;
-}
-
 export interface RequireHandlerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
@@ -332,6 +323,15 @@ type RequireHandlerComponentBaseRequireStringImplParams = RequireStringImplParam
 @see {@link CheckShouldTranspileParams}
 */
 type RequireHandlerComponentBaseResolveShouldTranspileAsyncParams = CheckShouldTranspileParams;
+
+interface RequireHandlerComponentBaseTrackModuleRequesterParams {
+  /**
+   * Whether {@link path} is what {@link requesterPath} resolved to, rather than a module it required.
+   */
+  readonly isResolution?: boolean;
+  readonly path: string;
+  readonly requesterPath: string | undefined;
+}
 
 export abstract class RequireHandlerComponentBase extends ComponentEx implements RequireHandler {
   protected readonly app: App;

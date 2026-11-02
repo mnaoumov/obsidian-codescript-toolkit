@@ -21,7 +21,6 @@ import type { RequireOptions } from '../types.ts';
 import type {
   RequireFunction,
   RequireHandlerComponentBaseRequireNodeBinaryAsyncParams,
-  RequireHandlerComponentBaseTrackModuleRequesterParams,
   RequireHandlerConstructorParams
 } from './require-handler.ts';
 
@@ -303,7 +302,12 @@ interface SyncFallbackSetting {
 }
 
 interface TrackModuleRequesterAccessor {
-  readonly trackModuleRequester: (params: RequireHandlerComponentBaseTrackModuleRequesterParams) => () => void;
+  readonly trackModuleRequester: (params: TrackModuleRequesterParams) => () => void;
+}
+
+interface TrackModuleRequesterParams {
+  readonly path: string;
+  readonly requesterPath: string | undefined;
 }
 
 interface WriteFileBinaryAsyncAccessor {
