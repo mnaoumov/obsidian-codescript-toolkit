@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 15.1.1
+
+- refactor(require): keep the module requester params type file-local
+- docs: say where the plugin helps, and that Obsidian Sync skips a .scripts folder
+- fix(require): wait for an in-flight load instead of reporting it as a cycle
+
 ## 15.1.0
 
 - docs(readme): point bug reports at the Report a bug command
