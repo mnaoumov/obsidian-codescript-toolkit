@@ -105,9 +105,9 @@ describe('PathSuggest', () => {
 
   describe('selectSuggestion', () => {
     it('should dispatch input event on textInputEl', () => {
-      const dispatchSpy = vi.spyOn(textInputEl, 'dispatchEvent');
+      const checkDispatchSpy = vi.spyOn(textInputEl, 'dispatchEvent');
       suggest.selectSuggestion({ path: 'selected.ts', type: 'file' });
-      expect(dispatchSpy).toHaveBeenCalledWith(expect.any(Event));
+      expect(checkDispatchSpy).toHaveBeenCalledWith(expect.any(Event));
     });
   });
 

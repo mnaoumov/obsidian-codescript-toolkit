@@ -13,12 +13,12 @@
 - docs: add issue-filing instructions for AI agents
 - chore(github): give the bug form the field ids bug-report links prefill
 - build(deps): override re2js to ^2.9.1 for GHSA-gg6h-894w-4m9c
-- build(deps): bump typescript-dev-toolkit to ^5.2.0 and apply prefer-dedent
+- build(deps): bump `typescript-dev-toolkit` to ^5.2.0 and apply prefer-dedent
 - build(deps): bump @mnaoumov/typescript-dev-toolkit to ^5.1.0
 
 ## 15.0.2
 
-- chore(deps): adopt obsidian-integration-testing 17.7.1 for host-resolver emulator DNS
+- chore(deps): adopt `obsidian-integration-testing` 17.7.1 for host-resolver emulator DNS
 - fix: re #63
 
 ## 15.0.1
@@ -30,7 +30,7 @@
 - docs(readme): combine related resources and plugin comparisons
 - refactor: group src and the demo-vault script fixtures into subject folders
 - docs(readme): list similar plugins
-- chore(deps): drop the @babel/core override for obsidian-dev-toolkit
+- chore(deps): drop the @babel/core override for `obsidian-dev-toolkit`
 
 ## 15.0.0
 
@@ -64,14 +64,14 @@
 ## 13.8.0
 
 - feat: serve @mnaoumov/obsidian-lib and @mnaoumov/typescript-lib to vault scripts
-- chore(spellcheck): accept Sidedock from the obsidian-typings workspace declarations
-- docs: fix the dead script-utils link in the obsidian-dev-utils note
+- chore(spellcheck): accept Sidedock from the `obsidian-typings` workspace declarations
+- docs: fix the dead script-utils link in the `obsidian-dev-utils` note
 - docs: mark plugin names as code
-- test: merge using the obsidian-typings declarations of Obsidian internals
+- test: merge using the `obsidian-typings` declarations of Obsidian internals
 
 ## 13.7.3
 
-- fix(watcher): load node:fs on demand behind Platform.isDesktop
+- fix(watcher): load `node`:fs on demand behind Platform.isDesktop
 
 ## 13.7.2
 
@@ -83,15 +83,15 @@
 - docs(agents): note the demo-vault merge subject to reword in the next changelog
 - move the demo-vault button walk onto the shared suite
 - docs(agents): note the dependency-bump merge subject to reword in the next changelog
-- float obsidian-test-mocks to ^7.0.0
+- float `obsidian-test-mocks` to ^7.0.0
 - fix(deps): restore the lockfile's missing resolved and integrity fields
 - test(demo-vault): scroll-walk the preview so buttons below the fold are clicked
 - docs(agents): date the pending changelog note instead of counting the range
 - docs(agents): say that the generated changelog ships commit subjects verbatim
 - test(demo-vault): split the button walk into one transport call per button
-- build(vitest): drop the local root-include workaround, now the library owns it
+- build(`vitest`): drop the local root-include workaround, now the library owns it
 - fix(deps): float devalue to 5.9.4, clearing GHSA-9rgm-9g3h-6x36
-- build(markdownlint): forbid hard-wrapped markdown paragraphs
+- build(`markdownlint`): forbid hard-wrapped markdown paragraphs
 - style(comments): stop rewriting symbol names that open a comment
 - chore(deps): drop the dead markdown-it override
 - chore(deps): drop the dead js-yaml override
@@ -99,24 +99,24 @@
 - docs: replace the private rule-id citations with what they assert
 - docs: name the library and the sibling plugins so a reader can resolve them
 - docs: replace the private tracker references with what they pointed at
-- chore(deps): move to obsidian-dev-utils 103
+- chore(deps): move to `obsidian-dev-utils` 103
 - test(integration): take the palette frame with the soft keyboard up
 - test: bring the in-closure wait ceilings under the transport's per-eval cap
-- chore: adopt the npm run gate branch gate
+- chore: adopt the `npm` run gate branch gate
 - refactor(android): drive the Android suites with trusted input
 - docs: name the unversioned demo-vault asset and the folder it unzips into
 - chore: make the LICENSE copyright line checkable by the linter and guard it against the year roll-over
-- fix(test): let each vitest project collect only the files its own include names
+- fix(test): let each `vitest` project collect only the files its own include names
 - chore: update libs
 - refactor: rename the platform modules onto the load-bearing desktop-/mobile- prefix
 - docs: bring the demo vault's "Start reading here" line onto the standard sentence
-- docs(demo-vault): document the WebAssembly fixture and check in its WAT source
+- docs(demo-vault): document the `WebAssembly` fixture and check in its WAT source
 - fix(build): wire build:compile to buildCompile and drop the duplicate leaf script
 
 ## 13.7.1
 
 - chore(deps): sweep caret-ranged dependencies to latest
-- fix(deps): move to obsidian-integration-testing 11 and obsidian-dev-utils 96.5.2
+- fix(deps): move to `obsidian-integration-testing` 11 and `obsidian-dev-utils` 96.5.2
 - fix(deps): drop the brace-expansion file: override that breaks a clean install
 
 ## 13.7.0
@@ -131,7 +131,7 @@
 ## 13.6.10
 
 - docs(demo-vault): unwrap the notes so Obsidian stops rendering a break per line
-- docs(readme): render the same in Obsidian's plugin page as on GitHub
+- docs(readme): render the same in Obsidian's plugin page as on `GitHub`
 
 ## 13.6.9
 
@@ -140,11 +140,11 @@
 
 ## 13.6.8
 
-- chore: update obsidian-dev-utils to 94.6.1
-- chore: update obsidian-dev-utils to 94.6.0
+- chore: update `obsidian-dev-utils` to 94.6.1
+- chore: update `obsidian-dev-utils` to 94.6.0
 - fix: override deepmerge-ts to clear GHSA-ggr8-5vv4-36mx
-- fix(test): declare the demo-vault vitest project it already runs
-- chore: teach cspell the advisory wording
+- fix(test): declare the demo-vault `vitest` project it already runs
+- chore: teach `cspell` the advisory wording
 - chore: update libs
 - docs: add store screenshots and surface them in the README
 
@@ -158,7 +158,7 @@
 
 ## 13.6.5
 
-- chore: reword a test comment cspell does not know
+- chore: reword a test comment `cspell` does not know
 - fix(demo-vault): show the deprecated invokeCommand failure on demand only
 
 ## 13.6.4
@@ -176,7 +176,7 @@
 - docs: read code buttons before core functions
 - docs: simplify README
 - docs: renumber demo vault notes to follow the reading order in 00 Start
-- docs: make the migrate-to-async heading resolve in Obsidian and on GitHub
+- docs: make the migrate-to-async heading resolve in Obsidian and on `GitHub`
 - docs: fix link
 - chore: update libs
 
@@ -193,7 +193,7 @@
 
 ## 13.5.3
 
-- chore: update libs and adopt obsidian-integration-testing 10
+- chore: update libs and adopt `obsidian-integration-testing` 10
 
 ## 13.5.2
 
@@ -206,15 +206,15 @@
 - chore: update libs
 - chore: update libs
 - refactor!: buildInvokeCommand
-- chore(vitest): adopt the shared Obsidian plugin vitest configuration
-- refactor: consume obsidian-dev-utils' SyntaxHighlightingComponent for fence highlighting
+- chore(`vitest`): adopt the shared Obsidian plugin `vitest` configuration
+- refactor: consume `obsidian-dev-utils`' SyntaxHighlightingComponent for fence highlighting
 - chore: update libs
 
 ## 13.5.0
 
 - fix: unblock the release gate
 - refactor(settings): move the settings tab onto the declarative settings API
-- chore: update libs and clear the npm audit
+- chore: update libs and clear the `npm` audit
 - docs: fix the demo vault download instructions
 
 ## 13.4.2
@@ -280,13 +280,13 @@
 
 - chore: overexposed
 - chore: update libs
-- chore: update obsidian-dev-utils to 85.0.0
+- chore: update `obsidian-dev-utils` to 85.0.0
 - refactor: pass params objects to functions and methods with multiple args
 
 ## 13.1.8
 
-- test: use dev-utils sleep for emulate-mobile wait now that it works in node
-- test: fix emulate-mobile integration wait to run in node environment
+- test: use dev-utils sleep for emulate-mobile wait now that it works in `node`
+- test: fix emulate-mobile integration wait to run in `node` environment
 - chore: workaround to bypass validation
 - test: wire integration-testing vitest-setup into integration projects
 - chore: update libs
@@ -299,7 +299,7 @@
 ## 13.1.6
 
 - chore: update libs
-- test: reuse real obsidian-dev-utils and obsidian-test-mocks in unit tests
+- test: reuse real `obsidian-dev-utils` and `obsidian-test-mocks` in unit tests
 - refactor: monkey around
 
 ## 13.1.5
@@ -332,7 +332,7 @@
 ## 13.0.2
 
 - chore: update libs
-- fix: preserve kebab-case in obsidian-dev-utils property paths
+- fix: preserve kebab-case in `obsidian-dev-utils` property paths
 
 ## 13.0.1
 
@@ -415,7 +415,7 @@
 - feat: add codescript-toolkit module
 - feat: add CSS to temp plugin
 - docs: update docs
-- feat: add obsidian-dev-utils lib re <https://github.com/mnaoumov/obsidian-dev-utils/issues/37>
+- feat: add `obsidian-dev-utils` lib re <https://github.com/mnaoumov/obsidian-dev-utils/issues/37>
 - chore: update libs
 
 ## 11.3.3
@@ -442,7 +442,7 @@
 - fix: misleading comment
 - fix: proper support for CacheInvalidationMode.Always
 - docs: warning
-- docs: callouts for GitHub
+- docs: callouts for `GitHub`
 - docs: better links
 
 ## 11.2.10
@@ -492,7 +492,7 @@
 - fix: allow buttons that cannot be uniquely identified
   - fix: #35
 - docs: split features in separate files
-- chore: enable markdownlint
+- chore: enable `markdownlint`
 - refactor: move types to a separate file to use in README
 
 ## 11.2.0
@@ -897,7 +897,7 @@ Require stack:
 
 ## 8.7.1
 
-- Remove outdated eslint
+- Remove outdated `eslint`
 - Add Debugging / Rebranding
 - Fix relative wildcard resolution
 
@@ -926,7 +926,7 @@ Require stack:
 - Fix multiple initialization
 - Resolve entry point
 - Support circular dependencies
-- Support nested path without exports node
+- Support nested path without exports `node`
 - Handle scoped modules
 - Add suffixes for relative paths
 
@@ -1028,7 +1028,7 @@ Require stack:
 
 ## 5.0.3
 
-- Fix esbuild first load
+- Fix `esbuild` first load
 
 ## 5.0.2
 
@@ -1045,7 +1045,7 @@ Require stack:
 
 ## 4.9.1
 
-- Fix esbuild resolution
+- Fix `esbuild` resolution
 
 ## 4.9.0
 
@@ -1055,7 +1055,7 @@ Require stack:
 
 ## 4.8.0
 
-- Switch to obsidian-dev-utils
+- Switch to `obsidian-dev-utils`
 - Add obsidian/app
 
 ## 4.7.0
@@ -1076,7 +1076,7 @@ Require stack:
 
 ## 4.3.0
 
-- Download esbuild binaries based on the platform
+- Download `esbuild` binaries based on the platform
 - Proper handle for circular dependencies in ESM
 
 ## 4.2.0
@@ -1096,7 +1096,7 @@ Require stack:
 - Fix resolve for non-relative paths
 - Register dynamicImport
 - Use babel to support top level await
-- Fix esbuild binary suffix
+- Fix `esbuild` binary suffix
 
 ## 3.4.2
 
@@ -1124,7 +1124,7 @@ Require stack:
 
 ## 3.1.0
 
-- Download esbuild dependencies
+- Download `esbuild` dependencies
 
 ## 3.0.0
 

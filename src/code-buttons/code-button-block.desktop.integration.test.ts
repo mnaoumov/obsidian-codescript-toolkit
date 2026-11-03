@@ -154,7 +154,7 @@ describe('CodeButtonBlock integration', () => {
         let settledRenderCount: number;
         do {
           settledRenderCount = getRenderCount();
-          await delay(SETTLE_MS);
+          await delay();
         } while (getRenderCount() !== settledRenderCount);
 
         const view = leaf.view;
@@ -186,7 +186,7 @@ describe('CodeButtonBlock integration', () => {
           });
 
           // The render awaits an animation frame before reading the note, so give a save it issued time to land.
-          await delay(SETTLE_MS);
+          await delay();
 
           return {
             diskAfter: await app.vault.adapter.read(FILE_PATH),
@@ -203,9 +203,9 @@ describe('CodeButtonBlock integration', () => {
           view.requestSave = originalRequestSave;
         }
 
-        async function delay(milliseconds: number): Promise<void> {
+        async function delay(): Promise<void> {
           await new Promise((resolve) => {
-            window.setTimeout(resolve, milliseconds);
+            window.setTimeout(resolve, SETTLE_MS);
           });
         }
 

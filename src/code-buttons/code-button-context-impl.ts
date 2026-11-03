@@ -95,14 +95,14 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
 
   // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
   public async insertAfterCodeButtonBlock(params: CodeButtonContextInsertAfterCodeButtonBlockParams): Promise<void> {
-    const { lineOffset, markdown, shouldPreserveLinePrefix } = params;
+    const { lineOffset = 0, markdown, shouldPreserveLinePrefix = true } = params;
     await insertAfterCodeBlock({
       app: this.app,
       context: this.markdownPostProcessorContext,
       el: this.parentEl,
-      lineOffset: lineOffset ?? 0,
+      lineOffset,
       resourceLockComponent: this.resourceLockComponent,
-      shouldPreserveLinePrefix: shouldPreserveLinePrefix ?? true,
+      shouldPreserveLinePrefix,
       source: this.source,
       text: markdown
     });
@@ -110,14 +110,14 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
 
   // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
   public async insertBeforeCodeButtonBlock(params: CodeButtonContextInsertBeforeCodeButtonBlockParams): Promise<void> {
-    const { lineOffset, markdown, shouldPreserveLinePrefix } = params;
+    const { lineOffset = 0, markdown, shouldPreserveLinePrefix = true } = params;
     await insertBeforeCodeBlock({
       app: this.app,
       context: this.markdownPostProcessorContext,
       el: this.parentEl,
-      lineOffset: lineOffset ?? 0,
+      lineOffset,
       resourceLockComponent: this.resourceLockComponent,
-      shouldPreserveLinePrefix: shouldPreserveLinePrefix ?? true,
+      shouldPreserveLinePrefix,
       source: this.source,
       text: markdown
     });
@@ -130,13 +130,13 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
     return await this.tempPluginRegistry.registerTempPlugin<TPlugin>(params);
   }
 
-  public async removeCodeButtonBlock(shouldKeepGap?: boolean): Promise<void> {
+  public async removeCodeButtonBlock(shouldKeepGap = false): Promise<void> {
     await removeCodeBlock({
       app: this.app,
       context: this.markdownPostProcessorContext,
       el: this.parentEl,
       resourceLockComponent: this.resourceLockComponent,
-      shouldKeepGap: shouldKeepGap ?? false,
+      shouldKeepGap,
       source: this.source
     });
   }
@@ -147,15 +147,15 @@ export class CodeButtonContextImplComponent extends ComponentEx implements CodeB
 
   // eslint-disable-next-line typescript-dev-toolkit/params-options-name-match -- Implements the CodeButtonContext interface and must share its params type.
   public async replaceCodeButtonBlock(params: CodeButtonContextReplaceCodeButtonBlockParams): Promise<void> {
-    const { markdown, shouldKeepGapWhenEmpty, shouldPreserveLinePrefix } = params;
+    const { markdown, shouldKeepGapWhenEmpty = false, shouldPreserveLinePrefix = true } = params;
     await replaceCodeBlock({
       app: this.app,
       codeBlockProvider: markdown,
       context: this.markdownPostProcessorContext,
       el: this.parentEl,
       resourceLockComponent: this.resourceLockComponent,
-      shouldKeepGapWhenEmpty: shouldKeepGapWhenEmpty ?? false,
-      shouldPreserveLinePrefix: shouldPreserveLinePrefix ?? true,
+      shouldKeepGapWhenEmpty,
+      shouldPreserveLinePrefix,
       source: this.source
     });
   }

@@ -63,8 +63,6 @@ interface CodeButtonBlockComponentHandleClickParams {
   readonly escapedCaption: string;
 }
 
-type CodeButtonBlockScriptWrapper = (context: CodeButtonContext) => Promisable<void>;
-
 export const DEFAULT_CODE_BUTTON_BLOCK_CONFIG: CodeButtonBlockConfig = {
   caption: '(no caption)',
   css: '',
@@ -178,6 +176,7 @@ export class CodeButtonBlockComponent extends ComponentEx {
 
     let isSuccess = false;
     try {
+      type CodeButtonBlockScriptWrapper = (context: CodeButtonContext) => Promisable<void>;
       const script = makeWrapperScript({
         shouldAutoOutput: params.codeButtonContext.config.shouldAutoOutput,
         shouldAutoOutputUndefined: params.codeButtonContext.config.shouldAutoOutputUndefined,

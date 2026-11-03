@@ -442,8 +442,8 @@ ${this.getRequireAsyncAdvice(path)}`;
 
   private requireMd(path: string): unknown {
     const md = this.readFile(path);
-    const { code, codeScriptName } = extractCodeScript({ md, path });
-    const codeScriptPath = `${path}.code-script.${codeScriptName ?? '(default)'}.ts`;
+    const { code, codeScriptName = '(default)' } = extractCodeScript({ md, path });
+    const codeScriptPath = `${path}.code-script.${codeScriptName}.ts`;
     const untrack = this.trackModuleRequester({ isResolution: true, path: codeScriptPath, requesterPath: path });
     try {
       return this.requireString({ code, path: codeScriptPath });

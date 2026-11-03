@@ -1,6 +1,6 @@
 # Dynamic import
 
-`import()` as an expression — load a module only when a branch is actually taken, or with a path computed at runtime. Inside scripts and code buttons it is rewired to [`requireAsync()`](<../02 Core functions.md#requireasync>), so everything else in this vault works through it too: vault paths, wikilinks, URLs, WebAssembly.
+`import()` as an expression — load a module only when a branch is actually taken, or with a path computed at runtime. Inside scripts and code buttons it is rewired to [`requireAsync()`](<../02 Core functions.md#requireasync>), so everything else in this vault works through it too: vault paths, wikilinks, URLs, `WebAssembly`.
 
 ```code-button
 ---

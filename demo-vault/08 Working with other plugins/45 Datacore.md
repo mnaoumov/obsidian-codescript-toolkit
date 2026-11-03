@@ -73,6 +73,6 @@ console.log(page);
 
 `Datacore` has a loader of its own: `dc.require(path)` reads a `.js`, `.ts`, `.jsx` or `.tsx` file from your vault, or a codeblock addressed by the section it sits in, and hands back what that code returns.
 
-It is not a module system, though. What it loads is evaluated as a function body with only `dc` in scope, so the file has to **`return` its exports** — the `export` keyword does not work there — and nothing from npm, Node or the rest of [what this plugin can load](<../02 What you can load/README.md>) is in reach. `require()` and `requireAsync()` work inside a `dc.require()`d file just as they do in the blocks above, so the two compose: use `Datacore`'s loader for the components it renders, and this plugin's for the modules underneath them.
+It is not a module system, though. What it loads is evaluated as a function body with only `dc` in scope, so the file has to **`return` its exports** — the `export` keyword does not work there — and nothing from `npm`, Node or the rest of [what this plugin can load](<../02 What you can load/README.md>) is in reach. `require()` and `requireAsync()` work inside a `dc.require()`d file just as they do in the blocks above, so the two compose: use `Datacore`'s loader for the components it renders, and this plugin's for the modules underneath them.
 
 [Parameterized Dataview queries](<./47 Parameterized Dataview queries.md>) builds a whole query layer out of that idea on the `Dataview` side.

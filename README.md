@@ -33,7 +33,7 @@ An [Obsidian](https://obsidian.md/) plugin that lets you write and run modern Ja
 
 **The documentation is an interactive demo vault.** Every feature has a note that explains what it does and why you would want it, followed by a button that runs it for real — so you can read the explanation and execute the example in the same place.
 
-**[Start reading here](<./demo-vault/00 Start.md>)** — it is plain markdown, so it works on GitHub with nothing installed.
+**[Start reading here](<./demo-vault/00 Start.md>)** — it is plain markdown, so it works on `GitHub` with nothing installed.
 
 A copy of the vault ships with every release. You can access it via any of the following:
 
@@ -45,7 +45,7 @@ If you are not sure where to start, three notes cover most of it: [Core function
 
 ## What it does
 
-- Loads CJS/ES modules, TypeScript, JSON, npm packages, Node built-ins, WebAssembly, ASAR archives and URLs with `require()` — or `await requireAsync()`, which also works on mobile.
+- Loads CJS/ES modules, TypeScript, JSON, `npm` packages, Node built-ins, `WebAssembly`, ASAR archives and URLs with `require()` — or `await requireAsync()`, which also works on mobile.
 - Runs your scripts from a note, an Obsidian command, a hotkey, a startup script, or an `obsidian://` URL.
 - Lets you prototype a plugin, and explore the Obsidian API — public and internal — at runtime.
 - Enriches scripting capabilities of [DevTools console](https://developer.chrome.com/docs/devtools/console).
@@ -64,7 +64,7 @@ If you are not sure where to start, three notes cover most of it: [Core function
 - **A button in a note that does a job.** Put a ` ```code-button ` block in your daily note template that moves finished tasks, renames attachments or fills in a property, and click it when you need it. See [Code buttons](<./demo-vault/01 Code buttons.md>).
 - **A script you run from the command palette or a hotkey.** Every script in your scripts folder becomes a command, so a one-off chore becomes a hotkey without writing a plugin. See [Invocable scripts](<./demo-vault/06 Running scripts without a button/37 Invocable scripts.md>) and [Hotkeys](<./demo-vault/06 Running scripts without a button/40 Hotkeys.md>).
 - **One helper module shared by every scripting plugin.** Write a function once, in TypeScript if you like, and `require()` it from `Dataview`, `Templater`, `QuickAdd` or `CustomJS`, instead of pasting a copy into each. See [Working with other plugins](<./demo-vault/08 Working with other plugins/README.md>).
-- **Using an npm package in the vault**, such as a date library or a parser. See [NPM modules](<./demo-vault/03 Modules you did not write/25 NPM modules.md>).
+- **Using an `npm` package in the vault**, such as a date library or a parser. See [NPM modules](<./demo-vault/03 Modules you did not write/25 NPM modules.md>).
 - **Trying out the Obsidian API, or a plugin idea, before building anything.** The DevTools console gets the same `require()` as a button. If your scripts folder holds `helpers.ts`, open the console (`Ctrl/Command + Shift + I`) and run:
 
   ```js
@@ -85,7 +85,7 @@ If you are not sure where to start, three notes cover most of it: [Core function
 | [`JS Engine`](https://community.obsidian.md/plugins/js-engine) | `js-engine` blocks; Markdown results; view-building API | Overlaps on in-note code; module system and script entry points beyond blocks |
 | [`Modules`](https://community.obsidian.md/plugins/modules) | Vault/Internet JavaScript and TypeScript modules; Markdown modules; source maps | Overlaps on module loading; also code buttons, commands, hotkeys and startup scripts |
 | [`Plugin REPL`](https://community.obsidian.md/plugins/plugin-repl) | Evaluates editor lines/selections; inserts results; editor helpers | Alternative execution scope: whole scripts and modules |
-| [`RunJS`](https://community.obsidian.md/plugins/runjs) | Named JavaScript snippets; code list, picker, commands, ribbon and startup | Overlaps on script entry points; also TypeScript compilation and npm packages |
+| [`RunJS`](https://community.obsidian.md/plugins/runjs) | Named JavaScript snippets; code list, picker, commands, ribbon and startup | Overlaps on script entry points; also TypeScript compilation and `npm` packages |
 | [`Safe JS`](https://community.obsidian.md/plugins/safe-js) | Isolated Web Workers; permission-gated API; no DOM, Node.js or app access | Alternative trust model: full Obsidian access; no sandbox |
 | [`User Plugins`](https://community.obsidian.md/plugins/obsidian-user-plugins) | Vault JavaScript as small plugins; `onload` instance; commands | Alternative script shape: ordinary modules; notes and commands as entry points |
 

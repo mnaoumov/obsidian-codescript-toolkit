@@ -2670,11 +2670,7 @@ describe('RequireHandlerComponentBase', () => {
           const requestFunction = context['require'] as (id: string) => unknown;
           // First file requires the second, second requires the first
           try {
-            if (callCount <= 1) {
-              requestFunction('./circular-b.js');
-            } else {
-              requestFunction('./circular-a.js');
-            }
+            requestFunction(callCount <= 1 ? './circular-b.js' : './circular-a.js');
           } catch {
             // Circular dependency warning
           }
@@ -3564,10 +3560,10 @@ describe('RequireHandlerComponentBase', () => {
     const SLOW_LOAD_MILLISECONDS = 5000;
     const SYNC_REQUIRE_AFTER_MILLISECONDS = 1500;
 
-    type EvaluatedScript = (context: Record<string, unknown>) => Promise<void>;
     type ScriptRequireAsync = (id: string) => Promise<unknown>;
 
     function evaluateScripts(scripts: Record<string, (context: Record<string, unknown>) => Promisable<unknown>>): void {
+      type EvaluatedScript = (context: Record<string, unknown>) => Promise<void>;
       mockDebuggableEval.mockImplementation((_code: string, name: string): EvaluatedScript => async (context): Promise<void> => {
         const entry = Object.entries(scripts).find(([path]) => name.endsWith(path));
         const module_ = context['module'] as MockModuleWithExports;

@@ -6,6 +6,7 @@ import type {
 } from 'obsidian';
 import type { Mock } from 'vitest';
 
+import { CallbackDisposable } from '@mnaoumov/typescript-lib/disposable';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
 import {
@@ -77,7 +78,7 @@ function createMockPlugin(): MockPlugin {
 function createRegisterCommandHandlersMock(): ReturnType<typeof vi.fn<CommandHandlerComponent['registerCommandHandlers']>> {
   return vi.fn<CommandHandlerComponent['registerCommandHandlers']>((buildCommandHandlers) => {
     buildCommandHandlers();
-    return Promise.resolve({ dispose: vi.fn(), [Symbol.dispose]: vi.fn() });
+    return Promise.resolve(new CallbackDisposable({ callback: vi.fn() }));
   });
 }
 
@@ -178,7 +179,7 @@ describe('TempPluginRegistry', () => {
       const disposeMock = vi.fn();
       const registerCommandHandlersMock = vi.fn<CommandHandlerComponent['registerCommandHandlers']>((buildCommandHandlers) => {
         buildCommandHandlers();
-        return Promise.resolve({ dispose: vi.fn(), [Symbol.dispose]: disposeMock });
+        return Promise.resolve(new CallbackDisposable({ callback: disposeMock }));
       });
       const localRegistry = new TempPluginRegistryComponent({
         app: createApp(),

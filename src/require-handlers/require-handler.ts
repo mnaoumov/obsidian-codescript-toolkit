@@ -230,8 +230,6 @@ interface ResolveResult {
   readonly resolvedType: ResolvedType;
 }
 
-type ScriptWrapper = (context: ScriptWrapperContext) => Promisable<void>;
-
 interface ScriptWrapperContext {
   readonly __dirname: string;
   readonly __filename: string;
@@ -693,6 +691,7 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   }
 
   protected requireStringImpl(options: RequireHandlerComponentBaseRequireStringImplParams): RequireStringImplResult {
+    type ScriptWrapper = (context: ScriptWrapperContext) => Promisable<void>;
     const folder = isUrl(options.path) ? '' : dirname(options.path);
     const filename = isUrl(options.path) ? options.path : basename(options.path);
     const url = convertPathToObsidianUrl(options.path) + options.urlSuffix;
@@ -1396,8 +1395,8 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
   private async requireMdAsync(params: RequireHandlerComponentBaseRequireMdAsyncParams): Promise<unknown> {
     const { path } = params;
     const md = params.md ?? await this.readFileAsync(splitQuery(path).cleanString);
-    const { code, codeScriptName } = extractCodeScript({ md, path });
-    const codeScriptPath = `${path}.code-script.${codeScriptName ?? '(default)'}.ts`;
+    const { code, codeScriptName = '(default)' } = extractCodeScript({ md, path });
+    const codeScriptPath = `${path}.code-script.${codeScriptName}.ts`;
     const untrack = this.trackModuleRequester({ isResolution: true, path: codeScriptPath, requesterPath: path });
     try {
       return await this.requireStringAsync({

@@ -12,7 +12,7 @@ require('node:path');
 
 ## Options
 
-Both spellings work — bare (`fs`) and prefixed (`node:fs`). The prefixed form is unambiguous, and cannot be shadowed by an npm package of the same name.
+Both spellings work — bare (`fs`) and prefixed (`node:fs`). The prefixed form is unambiguous, and cannot be shadowed by an `npm` package of the same name.
 
 ## Caveats
 

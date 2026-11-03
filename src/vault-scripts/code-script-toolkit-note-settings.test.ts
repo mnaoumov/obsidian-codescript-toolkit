@@ -23,12 +23,12 @@ function createSettings(overrides?: Partial<NoteSettings>): NoteSettings {
   };
 }
 
-const mockIsMarkdownFile = vi.fn<(path: string) => boolean>();
+const isMarkdownFileMock = vi.fn<(path: string) => boolean>();
 const mockParseFrontmatter = vi.fn();
 const mockGetFrontmatterSafe = vi.fn();
 
 vi.mock('@mnaoumov/obsidian-lib/file-system', () => ({
-  isMarkdownFile: (...$arguments: unknown[]): unknown => mockIsMarkdownFile(...$arguments as [string])
+  isMarkdownFile: (...$arguments: unknown[]): unknown => isMarkdownFileMock(...$arguments as [string])
 }));
 
 vi.mock('@mnaoumov/obsidian-lib/frontmatter', () => ({
@@ -61,7 +61,7 @@ function createMockApp(options?: CreateMockAppOptions): App {
 describe('CodeScriptToolkitNoteSettings', () => {
   it('should have correct default values', async () => {
     const app = createMockApp();
-    mockIsMarkdownFile.mockReturnValue(false);
+    isMarkdownFileMock.mockReturnValue(false);
 
     const settings = await getCodeScriptToolkitNoteSettings(app, 'test.txt');
 
@@ -74,7 +74,7 @@ describe('CodeScriptToolkitNoteSettings', () => {
 describe('getCodeScriptToolkitNoteSettings', () => {
   it('should return default settings when path is not a markdown file', async () => {
     const app = createMockApp();
-    mockIsMarkdownFile.mockReturnValue(false);
+    isMarkdownFileMock.mockReturnValue(false);
 
     const result = await getCodeScriptToolkitNoteSettings(app, 'test.txt');
 
@@ -84,7 +84,7 @@ describe('getCodeScriptToolkitNoteSettings', () => {
   it('should return frontmatter settings when file exists in vault', async () => {
     const mockFile = { path: 'test.md' };
     const app = createMockApp({ fileByPath: mockFile });
-    mockIsMarkdownFile.mockReturnValue(true);
+    isMarkdownFileMock.mockReturnValue(true);
     const expectedSettings = createSettings({ isInvocable: true });
     mockGetFrontmatterSafe.mockResolvedValue({ codeScriptToolkit: expectedSettings });
 
@@ -96,7 +96,7 @@ describe('getCodeScriptToolkitNoteSettings', () => {
   it('should return default settings when file exists but frontmatter has no codeScriptToolkit', async () => {
     const mockFile = { path: 'test.md' };
     const app = createMockApp({ fileByPath: mockFile });
-    mockIsMarkdownFile.mockReturnValue(true);
+    isMarkdownFileMock.mockReturnValue(true);
     mockGetFrontmatterSafe.mockResolvedValue({});
 
     const result = await getCodeScriptToolkitNoteSettings(app, 'test.md');
@@ -106,7 +106,7 @@ describe('getCodeScriptToolkitNoteSettings', () => {
 
   it('should parse content when file is not in vault', async () => {
     const app = createMockApp({ readContent: '---\ncodeScriptToolkit:\n  isInvocable: true\n---' });
-    mockIsMarkdownFile.mockReturnValue(true);
+    isMarkdownFileMock.mockReturnValue(true);
     const expectedSettings = createSettings({ isInvocable: true });
     mockParseFrontmatter.mockReturnValue({ codeScriptToolkit: expectedSettings });
 
@@ -117,7 +117,7 @@ describe('getCodeScriptToolkitNoteSettings', () => {
 
   it('should return default settings when content has no codeScriptToolkit frontmatter', async () => {
     const app = createMockApp({ readContent: '---\ntitle: test\n---' });
-    mockIsMarkdownFile.mockReturnValue(true);
+    isMarkdownFileMock.mockReturnValue(true);
     mockParseFrontmatter.mockReturnValue({});
 
     const result = await getCodeScriptToolkitNoteSettings(app, 'test.md');

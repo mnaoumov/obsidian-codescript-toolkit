@@ -1,6 +1,6 @@
 # What you can load
 
-Obsidian's own `require()` loads CommonJS and little else. This plugin widens that to the file types a real project actually contains — ES modules, TypeScript, JSON, WebAssembly, native addons — with no build step and no watcher. These notes take them one at a time.
+Obsidian's own `require()` loads CommonJS and little else. This plugin widens that to the file types a real project actually contains — ES modules, TypeScript, JSON, `WebAssembly`, native addons — with no build step and no watcher. These notes take them one at a time.
 
 | Note                                                      | What it covers                                              |
 | --------------------------------------------------------- | ----------------------------------------------------------- |

@@ -1,6 +1,6 @@
 # Start here
 
-This is an [Obsidian](https://obsidian.md/) vault that documents the [CodeScript Toolkit](https://community.obsidian.md/plugins/fix-require-modules) plugin by demonstrating it. Every feature has a note; every note explains what the feature is for and gives you a button that runs it for real. Read it here on GitHub, or open it in Obsidian and click things.
+This is an [Obsidian](https://obsidian.md/) vault that documents the [CodeScript Toolkit](https://community.obsidian.md/plugins/fix-require-modules) plugin by demonstrating it. Every feature has a note; every note explains what the feature is for and gives you a button that runs it for real. Read it here on `GitHub`, or open it in Obsidian and click things.
 
 The plugin does one thing, in a lot of directions: it lets you **write and run JavaScript or TypeScript inside Obsidian** — in a note, as a command, on a hotkey, at startup — with the module system you would expect from a real project rather than the cut-down one Obsidian ships with.
 
@@ -36,8 +36,8 @@ Each folder below opens with a note of its own listing what is inside, so the Fi
 | Folder                                                                                   | What it covers                                                                    |
 | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | [01 Where your code lives](<./01 Where your code lives/README.md>)                       | Every path form `require()` accepts, from `./helper.js` to a wikilink             |
-| [02 What you can load](<./02 What you can load/README.md>)                               | ES modules, TypeScript, JSON, WebAssembly, native addons — no build step          |
-| [03 Modules you did not write](<./03 Modules you did not write/README.md>)               | Obsidian internals, this plugin's API, Electron, Node built-ins, npm              |
+| [02 What you can load](<./02 What you can load/README.md>)                               | ES modules, TypeScript, JSON, `WebAssembly`, native addons — no build step        |
+| [03 Modules you did not write](<./03 Modules you did not write/README.md>)               | Obsidian internals, this plugin's API, Electron, Node built-ins, `npm`            |
 | [04 Loading from somewhere else](<./04 Loading from somewhere else/README.md>)           | Code that is not a file in your vault: HTTPS, `file://` and `app://` URLs         |
 | [05 Behavior and performance](<./05 Behavior and performance/README.md>)                 | Caching, top-level `await`, transpilation and where breakpoints land              |
 | [06 Running scripts without a button](<./06 Running scripts without a button/README.md>) | Commands, hotkeys, a startup script, and `obsidian://` URLs                       |
@@ -48,4 +48,4 @@ Each folder below opens with a note of its own listing what is inside, so the Fi
 
 If you plan to write more than a handful of scripts, keep them in a [dot folder](https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory#Unix_and_Unix-like_environments) such as `.scripts`. Obsidian does not track changes inside dot folders, so it will not re-index a `node_modules` tree every time you touch a file.
 
-The catch: [Obsidian Sync](https://obsidian.md/help/sync/settings) skips dot folders too, so scripts kept in `.scripts` stay on the device that has them. If you use Obsidian Sync to get your scripts onto your phone, use an ordinary folder instead, or sync the dot folder some other way, such as git. [25 NPM modules](<./03 Modules you did not write/25 NPM modules.md>) has the details.
+The catch: [Obsidian Sync](https://obsidian.md/help/sync/settings) skips dot folders too, so scripts kept in `.scripts` stay on the device that has them. If you use Obsidian Sync to get your scripts onto your phone, use an ordinary folder instead, or sync the dot folder some other way, such as `git`. [25 NPM modules](<./03 Modules you did not write/25 NPM modules.md>) has the details.

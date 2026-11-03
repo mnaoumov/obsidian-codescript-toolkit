@@ -203,7 +203,7 @@ describe('CodeButtonContext integration', () => {
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/insert-after.md');
-          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
+          return file && ('path' in file) ? (await app.vault.read(file as import('obsidian').TFile)) : null;
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
@@ -237,7 +237,7 @@ describe('CodeButtonContext integration', () => {
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/insert-before.md');
-          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
+          return file && ('path' in file) ? (await app.vault.read(file as import('obsidian').TFile)) : null;
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
@@ -271,7 +271,7 @@ describe('CodeButtonContext integration', () => {
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/remove-block.md');
-          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
+          return file && ('path' in file) ? (await app.vault.read(file as import('obsidian').TFile)) : null;
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
@@ -312,7 +312,7 @@ describe('CodeButtonContext integration', () => {
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/replace-block.md');
-          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
+          return file && ('path' in file) ? (await app.vault.read(file as import('obsidian').TFile)) : null;
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },
@@ -451,7 +451,7 @@ describe('CodeButtonContext integration', () => {
 
         async function readContent(): Promise<null | string> {
           const file = app.vault.getAbstractFileByPath('_int-test-context-notes/remove-after-success.md');
-          return !file || !('path' in file) ? null : (await app.vault.read(file as import('obsidian').TFile));
+          return file && ('path' in file) ? (await app.vault.read(file as import('obsidian').TFile)) : null;
         }
       },
       input: { intervalMs: POLL_INTERVAL_MS, timeoutMs: POLL_TIMEOUT_MS },

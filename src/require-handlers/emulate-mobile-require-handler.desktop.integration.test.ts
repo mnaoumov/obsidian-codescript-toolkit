@@ -13,8 +13,6 @@ import {
   it
 } from 'vitest';
 
-type RequireAsyncFunction = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
-
 const SCRIPTS_DIR = '_int-test-emulate-mobile';
 
 const PLUGIN_ID = 'fix-require-modules';
@@ -132,6 +130,7 @@ function vaultPath(): string {
 }
 
 describe('RequireHandler emulate-mobile integration', () => {
+  type RequireAsyncFunction = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
   describe('features available on mobile', () => {
     it('should requireAsync a CJS module in emulate-mobile mode', async () => {
       const result = await evalInObsidian({

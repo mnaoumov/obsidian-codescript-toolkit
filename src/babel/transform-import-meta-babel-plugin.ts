@@ -50,7 +50,7 @@ function generateUniqueIdentifier(params: GenerateUniqueIdentifierParams): strin
 }
 
 function getImportMetaPropertyName(node: MemberExpression): string | undefined {
-  return !isImportMeta(node.object) || !isIdentifier(node.property) ? undefined : node.property.name;
+  return isImportMeta(node.object) && isIdentifier(node.property) ? node.property.name : undefined;
 }
 
 function isImportMeta(node: Expression | MemberExpression['object']): node is MetaProperty {
