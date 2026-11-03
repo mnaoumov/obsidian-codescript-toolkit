@@ -12,8 +12,6 @@ import type { PluginSettingsComponent } from './settings/plugin-settings-compone
 
 const PROTOCOL_HANDLER_ACTION = 'CodeScriptToolkit';
 
-type GenericAsyncFunction = (...$arguments: unknown[]) => Promise<unknown>;
-
 interface InvokeModuleFunctionParams {
   // eslint-disable-next-line unicorn/name-replacements -- `args` is the public `obsidian://CodeScriptToolkit?args=` query key.
   readonly args: unknown[];
@@ -121,6 +119,7 @@ export class ProtocolHandlerComponent extends ComponentEx {
 
 /* v8 ignore start -- serialized via toString() and evaluated in another runtime context via requireStringAsync. */
 async function invokeModuleFunction(params: InvokeModuleFunctionParams): Promise<void> {
+  type GenericAsyncFunction = (...$arguments: unknown[]) => Promise<unknown>;
   const { args, functionName, moduleSpecifier } = params;
   const windowWithRequireAsync = window as Partial<WindowWithRequireAsync>;
   const requireAsync = windowWithRequireAsync.requireAsync;

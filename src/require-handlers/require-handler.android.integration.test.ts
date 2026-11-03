@@ -10,8 +10,6 @@ import {
   it
 } from 'vitest';
 
-type RequireAsyncFunction = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
-
 const SCRIPTS_DIR = '_int-test-android';
 
 function createMinimalWasm(): Uint8Array {
@@ -91,6 +89,7 @@ function vaultPath(): string {
 }
 
 describe('RequireHandler Android integration', () => {
+  type RequireAsyncFunction = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
   describe('features available on Android', () => {
     it('should requireAsync a CJS module on Android', async () => {
       const result = await evalInObsidian({

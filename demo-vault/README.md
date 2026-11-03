@@ -2,7 +2,7 @@
 
 This is an [Obsidian](https://obsidian.md/) vault that documents the [CodeScript Toolkit](https://community.obsidian.md/plugins/fix-require-modules) plugin by demonstrating it. Every feature has a note explaining what it is for, with a button that runs it.
 
-You can read it right here on GitHub — start at [00 Start](<./00 Start.md>) — or open it in Obsidian and click things, which is the point.
+You can read it right here on `GitHub` — start at [00 Start](<./00 Start.md>) — or open it in Obsidian and click things, which is the point.
 
 ## Opening this vault
 

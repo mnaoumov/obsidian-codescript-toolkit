@@ -100,7 +100,7 @@ A query module is a normal module, in any format the plugin loads, exporting one
 
 `Dataview` has a related mechanism of its own. [`dv.view(path, input)`](https://blacksmithgu.github.io/obsidian-dataview/api/code-reference/) loads a `.js` file from your vault and runs it with `dv` and your `input` in scope, so the rendering can at least live outside the note.
 
-It stops short of a module, though: the file is evaluated as `new Function('dv', 'input', contents)`, which leaves it with no `import`, no `export`, no TypeScript and nothing from npm — and it is found by Obsidian's link resolution rather than as a module path. That is the gap this plugin closes. The view file becomes a two-line shim, and what it calls is the very module the buttons above use:
+It stops short of a module, though: the file is evaluated as `new Function('dv', 'input', contents)`, which leaves it with no `import`, no `export`, no TypeScript and nothing from `npm` — and it is found by Obsidian's link resolution rather than as a module path. That is the gap this plugin closes. The view file becomes a two-line shim, and what it calls is the very module the buttons above use:
 
 ```dataviewjs
 await dv.view('_assets/CodeScriptToolkit/QueryViews/notesInFolder', { folder: '02 What you can load' });

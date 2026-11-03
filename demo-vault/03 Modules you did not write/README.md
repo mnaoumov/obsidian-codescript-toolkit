@@ -1,6 +1,6 @@
 # Modules you did not write
 
-Not every module comes out of your vault. These notes cover what you can require without writing it first: Obsidian's own internals, this plugin's API, Electron's desktop modules, Node's built-ins, and anything installed from npm.
+Not every module comes out of your vault. These notes cover what you can require without writing it first: Obsidian's own internals, this plugin's API, Electron's desktop modules, Node's built-ins, and anything installed from `npm`.
 
 | Note                                                                                                            | What it covers                                                    |
 | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -10,5 +10,5 @@ Not every module comes out of your vault. These notes cover what you can require
 | [22 `@mnaoumov/obsidian-lib` and `@mnaoumov/typescript-lib` modules](<./22 obsidian-lib and typescript-lib.md>) | Modal dialogs and helpers written for plugin development          |
 | [23 `codescript-toolkit` module](<./23 codescript-toolkit.md>)                                                  | This plugin's own API — prototype a plugin without writing one    |
 | [24 Additional desktop modules](<./24 Additional desktop modules.md>)                                           | Electron internals: native dialogs, clipboard, fonts              |
-| [25 NPM modules](<./25 NPM modules.md>)                                                                         | Anything from npm, installed into your scripts folder             |
+| [25 NPM modules](<./25 NPM modules.md>)                                                                         | Anything from `npm`, installed into your scripts folder           |
 | [26 Node built-in modules](<./26 Node built-in modules.md>)                                                     | `fs`, `path`, `child_process` — the escape hatch                  |

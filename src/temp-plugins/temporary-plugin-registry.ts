@@ -20,8 +20,6 @@ import type { PluginSettingsComponent } from '../settings/plugin-settings-compon
 
 import { UnloadTempPluginCommandHandler as UnloadTemporaryPluginCommandHandler } from '../command-handlers/unload-temp-plugin-command-handler.ts';
 
-type LoadFunction = () => Promise<void>;
-
 const DEFAULT_TEMP_PLUGIN_CLASS_NAME = '_AnonymousPlugin';
 
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
@@ -64,6 +62,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
   public async registerTempPlugin<TPlugin extends ObsidianPlugin = ObsidianPlugin>(
     params: TempPluginRegistryComponentRegisterTempPluginParams<TPlugin>
   ): Promise<null | TPlugin> {
+    type LoadFunction = () => Promise<void>;
     const pluginNoticeComponent = this.pluginNoticeComponent;
     const pluginSettingsComponent = this.pluginSettingsComponent;
     // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
@@ -161,7 +160,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
     // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
     function tempPluginUnload(shouldShowUnloadNotice: boolean): void {
       tempPlugins.delete(id);
-      unloadTemporaryPluginCommandHandlerDisposable[Symbol.dispose]();
+      unloadTemporaryPluginCommandHandlerDisposable.dispose();
       if (shouldShowUnloadNotice && pluginSettingsComponent.settings.shouldShowTempPluginLoadUnloadNotices) {
         pluginNoticeComponent.showNotice(`Unregistered Temp Plugin: ${tempPluginClassName}.`);
       }

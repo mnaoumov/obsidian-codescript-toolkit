@@ -10,10 +10,6 @@ import {
   it
 } from 'vitest';
 
-type RequireAsyncFunction = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
-type RequireAsyncWrapperFunction = ($function: (require: (id: string, options?: Record<string, unknown>) => unknown) => unknown) => Promise<unknown>;
-type RequireFunction = (id: string | TFile, options?: Record<string, unknown>) => unknown;
-
 const SCRIPTS_DIR = '_int-test-scripts';
 // Longer than the 2 s the async require used to wait for an in-flight load before handing back empty exports.
 const SLOW_MODULE_DELAY_MILLISECONDS = 2500;
@@ -163,6 +159,8 @@ function vaultPath(): string {
 }
 
 describe('RequireHandler integration', () => {
+  type RequireFunction = (id: string | TFile, options?: Record<string, unknown>) => unknown;
+  type RequireAsyncFunction = (id: string | TFile, options?: Record<string, unknown>) => Promise<unknown>;
   describe('module formats', () => {
     it('should require a CJS module', async () => {
       const result = await evalInObsidian({
@@ -339,6 +337,7 @@ describe('RequireHandler integration', () => {
     it('should support requireAsyncWrapper', async () => {
       const result = await evalInObsidian({
         async callback({ directory }) {
+          type RequireAsyncWrapperFunction = ($function: (require: (id: string, options?: Record<string, unknown>) => unknown) => unknown) => Promise<unknown>;
           const requireAsyncWrapper = Reflect.get(window, 'requireAsyncWrapper') as RequireAsyncWrapperFunction;
           return (await requireAsyncWrapper((require) => {
             const modulePath = `//${directory}/module.cjs`;

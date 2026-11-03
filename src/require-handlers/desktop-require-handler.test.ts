@@ -36,9 +36,6 @@ import {
   ResolvedType
 } from './require-handler.ts';
 
-type NodeFsModule = typeof import('node:fs');
-type NodeFsPromisesModule = typeof import('node:fs/promises');
-
 vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
   getDataAdapterEx: vi.fn().mockReturnValue({ basePath: '/vault' }),
   loadPrism: vi.fn()
@@ -360,10 +357,12 @@ class TestableRequireHandlerDesktopComponent extends RequireHandlerDesktopCompon
   }
 
   public setMockFs(fs: MockFs): void {
+    type NodeFsModule = typeof import('node:fs');
     this['_fs'] = castTo<NodeFsModule>(fs);
   }
 
   public setMockFsPromises(fsPromises: MockFsPromises): void {
+    type NodeFsPromisesModule = typeof import('node:fs/promises');
     this['_fsPromises'] = castTo<NodeFsPromisesModule>(fsPromises);
   }
 

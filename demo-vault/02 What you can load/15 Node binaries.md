@@ -1,6 +1,6 @@
 # Node binaries
 
-Load a compiled native addon (`.node`) — the format npm packages ship when part of them is written in C++. That is how you reach a native database driver, an image codec, or any library whose speed comes from not being JavaScript.
+Load a compiled native addon (`.node`) — the format `npm` packages ship when part of them is written in C++. That is how you reach a native database driver, an image codec, or any library whose speed comes from not being JavaScript.
 
 ```code-button
 ---

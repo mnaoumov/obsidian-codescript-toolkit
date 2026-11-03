@@ -58,13 +58,13 @@
     "@babel/traverse": "^8.0.7",
     "@babel/types": "^8.0.6",
     "@commitlint/cli": "^21.2.4",
-    "@mnaoumov/obsidian-dev-toolkit": "^7.4.0",
-    "@mnaoumov/typescript-dev-toolkit": "^5.2.0",
+    "@mnaoumov/obsidian-dev-toolkit": "^8.2.0",
+    "@mnaoumov/typescript-dev-toolkit": "^6.1.0",
     "@mnaoumov/typescript-test-toolkit": "^1.0.2",
     "@obsidian-typings/obsidian-public-latest": "^6.50.0",
     "@total-typescript/ts-reset": "^0.6.1",
     "@types/node": "^26.6.5",
-    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/coverage-v8": "^5.1.0",
     "better-typescript-lib": "^2.12.0",
     "czg": "^1.14.0",
     "debuggable-eval": "^2.3.0",
@@ -76,13 +76,13 @@
     "mdast": "^3.0.0",
     "nano-staged": "^1.0.2",
     "obsidian": "^1.14.4",
-    "obsidian-integration-testing": "^17.7.1",
+    "obsidian-integration-testing": "^17.8.1",
     "obsidian-test-mocks": "^7.2.3",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
     "sharp": "^0.35.5",
     "type-fest": "^5.10.0",
     "unist-util-visit": "^5.1.0",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   }
 }

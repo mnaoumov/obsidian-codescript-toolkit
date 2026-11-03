@@ -81,7 +81,7 @@ await requireAsyncWrapper((require) => {
 });
 ```
 
-For large prebuilt CommonJS bundles you can also [skip transpilation](<./05 Behavior and performance/33 Skip transpilation.md>) and avoid the Babel overhead entirely.
+For large prebuilt CommonJS bundles you can also [skip transpilation](<./05 Behavior and performance/33 Skip transpilation.md>) and avoid the `Babel` overhead entirely.
 
 ## Migrate-to-async
 

@@ -1,6 +1,6 @@
 # WebAssembly
 
-Load a `.wasm` binary and call its exports like an ordinary module. Unlike [Node binaries](<./15 Node binaries.md>), WebAssembly runs on mobile too — so it is the portable way to use something compiled from Rust, C, or Go inside your vault.
+Load a `.wasm` binary and call its exports like an ordinary module. Unlike [Node binaries](<./15 Node binaries.md>), `WebAssembly` runs on mobile too — so it is the portable way to use something compiled from Rust, C, or Go inside your vault.
 
 ```code-button
 ---
@@ -12,7 +12,7 @@ console.log(answer());
 
 ## The module in this vault
 
-The plugin bundles no WebAssembly of its own — it loads only what your vault already contains. The `/ModuleTypes/module.wasm` the button above loads is this vault's own 39-byte example at `_assets/CodeScriptToolkit/ModuleTypes/module.wasm`, and its source is checked in beside it as [`module.wat`](<../_assets/CodeScriptToolkit/ModuleTypes/module.wat>):
+The plugin bundles no `WebAssembly` of its own — it loads only what your vault already contains. The `/ModuleTypes/module.wasm` the button above loads is this vault's own 39-byte example at `_assets/CodeScriptToolkit/ModuleTypes/module.wasm`, and its source is checked in beside it as [`module.wat`](<../_assets/CodeScriptToolkit/ModuleTypes/module.wat>):
 
 ```wat
 (module
@@ -24,7 +24,7 @@ It exports one function, `answer()`, returning the constant `42`, and imports no
 
 ## Caveats
 
-Instantiating a WebAssembly module is asynchronous, so this needs [`requireAsync()`](<../02 Core functions.md#requireasync>) — plain `require()` cannot load it. To use one from synchronous-looking code, pre-load it with [`requireAsyncWrapper()`](<../05 Behavior and performance/35 requireAsyncWrapper.md>).
+Instantiating a `WebAssembly` module is asynchronous, so this needs [`requireAsync()`](<../02 Core functions.md#requireasync>) — plain `require()` cannot load it. To use one from synchronous-looking code, pre-load it with [`requireAsyncWrapper()`](<../05 Behavior and performance/35 requireAsyncWrapper.md>).
 
 ## Platform support
 
