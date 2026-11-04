@@ -131,7 +131,11 @@ That is a wedged emulator during Appium session creation — the transport's pro
 
 ## Obsidian compatibility
 
-The supported minimum is Obsidian `1.13.6`. Direct API analysis reports `1.13.0` because the settings use `ButtonComponent.setDestructive()`. The bundled settings bridge also uses the declarative setting definitions introduced in that version. The declared minimum uses the verified public release: its Windows installer runs Node `24.18.1`, which satisfies both bundled runtime libraries' Node `>=22` requirement. Validate compatibility against the actual target app and installer with `OBSIDIAN_VERSION=1.13.6`, including the desktop integration suite, settings rendering and the demo-vault buttons. API analysis alone excludes bundled dependencies, private APIs and runtime requirements. Keep historical `versions.json` entries unchanged when lowering the current manifest minimum.
+**The plugin supports only the latest public Obsidian, and every normal release raises `minAppVersion` to it.** That is a deliberate support policy, not a compatibility claim: supporting one app version is what keeps the support burden small, so a release never keeps an older floor because the plugin might still run there. Catalyst builds are not public and are never the minimum.
+
+`scripts/version.ts` enforces it. It reads `latestVersion` from Obsidian's `desktop-releases.json` (Catalyst builds sit under that feed's separate `beta` key) and passes it to the toolkit as an explicit `minAppVersion`, because the installed `@mnaoumov/obsidian-dev-toolkit` keeps the manifest's current value unless one is passed. A feed that cannot be read or carries no valid version fails the release before any file is edited, rather than shipping a stale floor. An explicit `--min-app-version` still wins, for the rare release that must say something else. Once the toolkit's own default is the latest public version again, the wrapper goes and `scripts/version.ts` is the plain parse-and-update call.
+
+Between releases the manifest can lag the latest public version, and `main` currently says `1.13.6`: a one-off lowering that was validated on that build (desktop suite at both startup timings, settings rendering and all demo-vault buttons; direct API analysis reports `1.13.0` from `ButtonComponent.setDestructive()`). That evidence records what was tested; it is not a support promise, and the next release replaces the value. Historical `versions.json` entries are never rewritten.
 
 ## Releasing
 
