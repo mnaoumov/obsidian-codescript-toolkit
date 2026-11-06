@@ -58,12 +58,20 @@ vi.mock('./command-handlers/clear-cache-command-handler.ts', () => ({
   ClearCacheCommandHandler: vi.fn()
 }));
 
+vi.mock('./command-handlers/edit-scratch-script-command-handler.ts', () => ({
+  EditScratchScriptCommandHandler: vi.fn()
+}));
+
 vi.mock('./command-handlers/invoke-script-choose-command-handler.ts', () => ({
   InvokeScriptChooseCommandHandler: vi.fn()
 }));
 
 vi.mock('./command-handlers/reload-startup-script-command-handler.ts', () => ({
   ReloadStartupScriptCommandHandler: vi.fn()
+}));
+
+vi.mock('./command-handlers/run-scratch-script-command-handler.ts', () => ({
+  RunScratchScriptCommandHandler: vi.fn()
 }));
 
 vi.mock('./command-handlers/unload-temp-plugins-command-handler.ts', () => ({
@@ -93,6 +101,10 @@ vi.mock('./require-handlers/require-handler-factory.ts', () => ({
 
 vi.mock('./script-folder-watchers/script-folder-watcher-factory.ts', () => ({
   ScriptFolderWatcherFactoryComponent: vi.fn()
+}));
+
+vi.mock('./vault-scripts/scratch-script.ts', () => ({
+  ScratchScript: vi.fn()
 }));
 
 vi.mock('./vault-scripts/script-registry.ts', () => ({
@@ -135,7 +147,7 @@ const manifest: PluginManifest = {
 
 describe('Plugin', () => {
   const EXPECTED_ADD_CHILD_COUNT = 11;
-  const EXPECTED_COMMAND_HANDLER_COUNT = 8;
+  const EXPECTED_COMMAND_HANDLER_COUNT = 10;
 
   let app: AppOriginal;
 

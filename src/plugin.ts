@@ -11,9 +11,11 @@ import { castTo } from '@mnaoumov/typescript-lib/object-utils';
 import { CodeButtonBlockComponent } from './code-buttons/code-button-block.ts';
 import { CodeButtonCodeHighlighterComponent } from './code-buttons/code-button-code-highlighter-component.ts';
 import { ClearCacheCommandHandler } from './command-handlers/clear-cache-command-handler.ts';
+import { EditScratchScriptCommandHandler } from './command-handlers/edit-scratch-script-command-handler.ts';
 import { InsertSampleCodeButtonCommandHandler } from './command-handlers/insert-sample-code-button-command-handler.ts';
 import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-script-choose-command-handler.ts';
 import { ReloadStartupScriptCommandHandler } from './command-handlers/reload-startup-script-command-handler.ts';
+import { RunScratchScriptCommandHandler } from './command-handlers/run-scratch-script-command-handler.ts';
 import { UnloadTempPluginsCommandHandler as UnloadTemporaryPluginsCommandHandler } from './command-handlers/unload-temp-plugins-command-handler.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 import { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
@@ -23,6 +25,7 @@ import { PluginSettingsTab } from './settings/plugin-settings-tab.ts';
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugins/temporary-plugin-registry.ts';
 import { CodeScriptCodeHighlighterComponent } from './vault-scripts/code-script-code-highlighter-component.ts';
+import { ScratchScript } from './vault-scripts/scratch-script.ts';
 import { ScriptRegistryComponent } from './vault-scripts/script-registry.ts';
 import { ScriptManager } from './vault-scripts/script.ts';
 import { StartupScriptComponent } from './vault-scripts/startup-script.ts';
@@ -119,6 +122,13 @@ export class Plugin extends PluginBase {
       scriptRegistry
     });
 
+    const scratchScript = new ScratchScript({
+      app: this.app,
+      pluginNoticeComponent: this.pluginNoticeComponent,
+      pluginSettingsComponent,
+      requireHandlerFactoryComponent: requireHandlerFactory
+    });
+
     this.addChild(new CodeScriptCodeHighlighterComponent());
     this.addChild(new CodeButtonCodeHighlighterComponent());
 
@@ -137,6 +147,7 @@ export class Plugin extends PluginBase {
 
     await this.commandHandlerComponent.registerCommandHandlers(() => [
       new ClearCacheCommandHandler(requireHandlerFactory),
+      new EditScratchScriptCommandHandler(scratchScript),
       new InsertSampleCodeButtonCommandHandler(),
       new InvokeScriptChooseCommandHandler(scriptManager),
       new OpenBugReportCommandHandler({
@@ -155,6 +166,7 @@ export class Plugin extends PluginBase {
         settingTab: pluginSettingsTab
       }),
       new ReloadStartupScriptCommandHandler(startupScriptComponent),
+      new RunScratchScriptCommandHandler(scratchScript),
       new UnloadTemporaryPluginsCommandHandler(tempPluginRegistry)
     ]);
 

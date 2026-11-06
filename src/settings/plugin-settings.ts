@@ -6,6 +6,7 @@ export class PluginSettings {
   // eslint-disable-next-line no-magic-numbers -- Magic numbers are OK in settings.
   public mobileChangesCheckingIntervalInSeconds = 30;
   public modulesRoot = '';
+  public scratchScriptPath = 'Scratch script.md';
   public shouldHandleProtocolUrls = false;
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   public shouldShowTempPluginLoadUnloadNotices = true;
@@ -14,6 +15,10 @@ export class PluginSettings {
 
   public getInvocableScriptsFolder(): string {
     return this.getPathRelativeToModulesRoot(this.invocableScriptsFolder);
+  }
+
+  public getScratchScriptPath(): string {
+    return this.getPathRelativeToModulesRoot(this.scratchScriptPath);
   }
 
   public getStartupScriptPath(): string {

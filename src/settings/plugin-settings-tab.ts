@@ -138,6 +138,39 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
                 });
               });
             }
+          }),
+          this.settingEx({
+            desc: createFragment((f) => {
+              f.appendText('Path to the note holding the scratch script: a throwaway ');
+              appendCodeBlock(f, '```code-script');
+              f.appendText(' block run by the ');
+              appendCodeBlock(f, 'Run scratch script');
+              f.appendText(' command.');
+              f.createEl('br');
+              f.appendText('Should be a relative path to the ');
+              appendCodeBlock(f, 'Script modules root');
+              f.appendText('. The note is created on first use.');
+            }),
+            name: 'Scratch script path',
+            render: (setting) => {
+              setting.addText((text) => {
+                this.bind({ propertyName: 'scratchScriptPath', valueComponent: text })
+                  .setPlaceholder('Scratch script.md');
+                const suggest = new PathSuggest({
+                  app: this.app,
+                  getRootPath(): string {
+                    return thisWrapper.value.pluginSettingsComponent.settings.modulesRoot;
+                  },
+                  textInputEl: text.inputEl,
+                  type: 'file'
+                });
+
+                events.on('modulesRootChanged', () => {
+                  text.onChanged();
+                  suggest.refresh();
+                });
+              });
+            }
           })
         ]
       }),
