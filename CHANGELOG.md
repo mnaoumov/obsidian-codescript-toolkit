@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 15.2.0
+
+- feat: add a scratch script for one-off jobs
+- chore(github): add the plugin-version id to the feature request form
+- fix(version): release with the latest public Obsidian as the minimum
+- chore(deps): override glob to clear GHSA-3g3m-2fjr-6pw4
+- fix: lower the supported Obsidian version to 1.13.6
+- docs: make issue attachments optional and strongly encouraged
+- docs: link to the Obsidian resources page
+
 ## 15.1.1
 
 - refactor(require): keep the module requester params type file-local
