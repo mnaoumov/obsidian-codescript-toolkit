@@ -23,7 +23,7 @@ export interface CodeButtonContext {
    *
    * `null` when {@link CodeButtonBlockConfig.isRaw} is `true`, because a raw block renders no button.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#codebuttoncontextbuttonel}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/44%20Code%20button%20context.md#codebuttoncontextbuttonel}
    */
   readonly buttonEl: HTMLButtonElement | null;
 
@@ -39,7 +39,7 @@ export interface CodeButtonContext {
    *
    * If {@link CodeButtonBlockConfig.shouldWrapConsole} is `false`, this will be the standard {@link console} itself.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldwrapconsole---console-messages}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#shouldwrapconsole---console-messages}
    */
   readonly console: Console;
 
@@ -50,7 +50,7 @@ export interface CodeButtonContext {
    *
    * If {@link CodeButtonBlockConfig.isRaw} is `false`, this will be a child of {@link parentEl}.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#codebuttoncontextcontainer}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/44%20Code%20button%20context.md#codebuttoncontextcontainer}
    */
   readonly container: HTMLElement;
 
@@ -60,7 +60,7 @@ export interface CodeButtonContext {
    * @param tempPluginClass - The class name or class itself of the temp plugin.
    * @returns The temp plugin.
    */
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly getTempPlugin: (tempPluginClass: string | TempPluginClass) => null | ObsidianPlugin;
 
   /**
@@ -68,7 +68,7 @@ export interface CodeButtonContext {
    *
    * @param params - The parameters to insert the markdown.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/44%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
   readonly insertAfterCodeButtonBlock: (params: CodeButtonContextInsertAfterCodeButtonBlockParams) => Promise<void>;
 
@@ -77,7 +77,7 @@ export interface CodeButtonContext {
    *
    * @param params - The parameters to insert the markdown.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/44%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
   readonly insertBeforeCodeButtonBlock: (params: CodeButtonContextInsertBeforeCodeButtonBlockParams) => Promise<void>;
 
@@ -103,9 +103,9 @@ export interface CodeButtonContext {
    *
    * @param tempPluginClass - The class for the temp plugin.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#codebuttoncontextregistertempplugin}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/44%20Code%20button%20context.md#codebuttoncontextregistertempplugin}
    */
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly registerTempPlugin: <TPlugin extends ObsidianPlugin = ObsidianPlugin>(params: RegisterTempPluginParams<TPlugin>) => Promise<null | TPlugin>;
 
   /**
@@ -113,7 +113,7 @@ export interface CodeButtonContext {
    *
    * @param shouldKeepGap - Whether to keep the gap after removing the code button block. Defaults to `false`.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/44%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
   readonly removeCodeButtonBlock: (shouldKeepGap?: boolean) => Promise<void>;
 
@@ -122,7 +122,7 @@ export interface CodeButtonContext {
    *
    * @param markdown - The markdown to render.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#codebuttoncontextrendermarkdown}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/44%20Code%20button%20context.md#codebuttoncontextrendermarkdown}
    */
   readonly renderMarkdown: (markdown: string) => Promise<void>;
 
@@ -131,7 +131,7 @@ export interface CodeButtonContext {
    *
    * @param params - The parameters to replace the code button block.
    *
-   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
+   * @see {@link https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/44%20Code%20button%20context.md#editing-the-note-the-button-lives-in}
    */
   readonly replaceCodeButtonBlock: (params: CodeButtonContextReplaceCodeButtonBlockParams) => Promise<void>;
 
@@ -206,15 +206,15 @@ export interface CodeButtonContextReplaceCodeButtonBlockParams {
   readonly shouldPreserveLinePrefix?: boolean;
 }
 
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 export interface RegisterTempPluginParams<TPlugin extends ObsidianPlugin = ObsidianPlugin> {
   readonly cssText?: string;
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   readonly tempPluginClass: TempPluginClass<TPlugin>;
 }
 
 /**
  * A temp plugin class signature.
  */
-// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+// eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 export type TempPluginClass<TPlugin extends ObsidianPlugin = ObsidianPlugin> = new (app: App, manifest: PluginManifest) => TPlugin;

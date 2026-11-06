@@ -58,6 +58,10 @@ vi.mock('./command-handlers/clear-cache-command-handler.ts', () => ({
   ClearCacheCommandHandler: vi.fn()
 }));
 
+vi.mock('./command-handlers/edit-scratch-script-command-handler.ts', () => ({
+  EditScratchScriptCommandHandler: vi.fn()
+}));
+
 vi.mock('./command-handlers/invoke-script-choose-command-handler.ts', () => ({
   InvokeScriptChooseCommandHandler: vi.fn()
 }));
@@ -66,8 +70,12 @@ vi.mock('./command-handlers/reload-startup-script-command-handler.ts', () => ({
   ReloadStartupScriptCommandHandler: vi.fn()
 }));
 
+vi.mock('./command-handlers/run-scratch-script-command-handler.ts', () => ({
+  RunScratchScriptCommandHandler: vi.fn()
+}));
+
 vi.mock('./command-handlers/unload-temp-plugins-command-handler.ts', () => ({
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   UnloadTempPluginsCommandHandler: vi.fn()
 }));
 
@@ -95,6 +103,10 @@ vi.mock('./script-folder-watchers/script-folder-watcher-factory.ts', () => ({
   ScriptFolderWatcherFactoryComponent: vi.fn()
 }));
 
+vi.mock('./vault-scripts/scratch-script.ts', () => ({
+  ScratchScript: vi.fn()
+}));
+
 vi.mock('./vault-scripts/script-registry.ts', () => ({
   ScriptRegistryComponent: vi.fn()
 }));
@@ -108,7 +120,7 @@ vi.mock('./vault-scripts/startup-script.ts', () => ({
 }));
 
 vi.mock('./temp-plugins/temporary-plugin-registry.ts', () => ({
-  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/43 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
+  // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   TempPluginRegistryComponent: vi.fn()
 }));
 
@@ -135,7 +147,7 @@ const manifest: PluginManifest = {
 
 describe('Plugin', () => {
   const EXPECTED_ADD_CHILD_COUNT = 11;
-  const EXPECTED_COMMAND_HANDLER_COUNT = 8;
+  const EXPECTED_COMMAND_HANDLER_COUNT = 10;
 
   let app: AppOriginal;
 

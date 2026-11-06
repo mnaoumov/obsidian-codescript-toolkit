@@ -2,7 +2,7 @@
 
 This plugin's own API, requirable from any script. Its main job is temporary plugins: a class you write in a note gets loaded as a real Obsidian plugin — commands, ribbon icons, event handlers and all — and unloaded again without ever leaving Obsidian. That is the fastest way to prototype a plugin idea, or to add a command you only need for the next ten minutes.
 
-The same functions are available inside a code button as [`codeButtonContext`](<../07 Code buttons in depth/43 Code button context.md>); this module is how you reach them from a `.js`/`.ts` file instead.
+The same functions are available inside a code button as [`codeButtonContext`](<../07 Code buttons in depth/44 Code button context.md>); this module is how you reach them from a `.js`/`.ts` file instead.
 
 ```code-button
 ---

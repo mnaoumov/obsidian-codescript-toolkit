@@ -195,7 +195,7 @@ describe('PluginSettingsComponent', () => {
     it('should register validators for all settings fields', () => {
       registeredValidators.length = 0;
       castTo<PluginSettingsComponentPrivateApi>(component).registerValidators();
-      const EXPECTED_VALIDATOR_COUNT = 4;
+      const EXPECTED_VALIDATOR_COUNT = 5;
       expect(registeredValidators).toHaveLength(EXPECTED_VALIDATOR_COUNT);
     });
 
@@ -205,6 +205,10 @@ describe('PluginSettingsComponent', () => {
 
     it('should register an invocableScriptsFolder validator', () => {
       expect(getRegisteredValidatorNames()).toContain('invocableScriptsFolder');
+    });
+
+    it('should register a scratchScriptPath validator', () => {
+      expect(getRegisteredValidatorNames()).toContain('scratchScriptPath');
     });
 
     it('should register a startupScriptPath validator', () => {
@@ -261,6 +265,27 @@ describe('PluginSettingsComponent', () => {
         const result = await validator('scripts', settings);
         expect(result).toBe('Path does not exist');
         expect(mockExists).toHaveBeenCalledWith('root/scripts');
+      });
+    });
+
+    describe('scratchScriptPath validator', () => {
+      it('should return undefined for empty value', async () => {
+        const validator = getRegisteredValidator('scratchScriptPath');
+        const result = await validator('', new PluginSettings());
+        expect(result).toBeUndefined();
+      });
+
+      it('should accept a note that does not exist yet', async () => {
+        mockExists.mockResolvedValue(false);
+        const validator = getRegisteredValidator('scratchScriptPath');
+        const result = await validator('Scratch script.md', new PluginSettings());
+        expect(result).toBeUndefined();
+      });
+
+      it('should return error for a path that is not a note', async () => {
+        const validator = getRegisteredValidator('scratchScriptPath');
+        const result = await validator('scratch.ts', new PluginSettings());
+        expect(result).toBe('The scratch script is a note: the path must end with .md');
       });
     });
 

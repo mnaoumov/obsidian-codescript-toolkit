@@ -376,6 +376,34 @@ describe('PluginSettingsTab', () => {
       expect(findBindCall('startupScriptPath')).toBeDefined();
     });
 
+    it('should bind scratchScriptPath setting', () => {
+      renderRows(tab);
+
+      expect(findBindCall('scratchScriptPath')).toBeDefined();
+    });
+
+    it('should refresh the scratchScriptPath row when modulesRootChanged fires', () => {
+      renderRows(tab);
+
+      // The fourth text and the fourth PathSuggest belong to scratchScriptPath.
+      const INDEX_SCRATCH = 3;
+      findBindCall('modulesRoot')?.options?.onChanged();
+
+      expect(mockTextInstances[INDEX_SCRATCH]?.onChanged).toHaveBeenCalled();
+      expect(mockPathSuggestInstances[INDEX_SCRATCH]?.refresh).toHaveBeenCalled();
+    });
+
+    it('should return modulesRoot from scratchScriptPath PathSuggest getRootPath', () => {
+      const tabWithMock = createTab({ modulesRoot: 'scratch/root' });
+
+      mockPathSuggestInstances.length = 0;
+
+      renderRows(tabWithMock);
+
+      const PATH_SUGGEST_INDEX_SCRATCH = 3;
+      expect(mockPathSuggestInstances[PATH_SUGGEST_INDEX_SCRATCH]?.getRootPath()).toBe('scratch/root');
+    });
+
     it('should bind mobileChangesCheckingIntervalInSeconds setting', () => {
       renderRows(tab);
 
@@ -428,7 +456,7 @@ describe('PluginSettingsTab', () => {
       const modulesRootBindCall = findBindCall('modulesRoot');
       const options = modulesRootBindCall?.options;
 
-      // There are 3 addText calls: modulesRoot, invocableScriptsFolder, startupScriptPath.
+      // The first 3 addText calls are modulesRoot, invocableScriptsFolder, startupScriptPath.
       // The invocable and startup text objects register modulesRootChanged handlers.
       const TEXT_INDEX_INVOCABLE = 1;
       const TEXT_INDEX_STARTUP = 2;

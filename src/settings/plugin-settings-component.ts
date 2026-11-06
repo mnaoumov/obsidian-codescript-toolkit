@@ -87,6 +87,17 @@ export class PluginSettingsComponent extends PluginSettingsComponentBase<PluginS
       return await validatePath({ app: this.app, path, type: 'folder' });
     });
 
+    this.registerValidator('scratchScriptPath', (value): MaybeReturn<string> => {
+      if (!value) {
+        return;
+      }
+
+      // The note need not exist yet: the scratch script commands create it on first use.
+      if (extname(value) !== '.md') {
+        return 'The scratch script is a note: the path must end with .md';
+      }
+    });
+
     this.registerValidator('startupScriptPath', async (value, settings): Promise<MaybeReturn<string>> => {
       if (!value) {
         return;

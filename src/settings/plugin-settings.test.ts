@@ -15,6 +15,7 @@ describe('PluginSettings', () => {
     expect(settings.invocableScriptsFolder).toBe('');
     expect(settings.mobileChangesCheckingIntervalInSeconds).toBe(DEFAULT_MOBILE_CHECKING_INTERVAL_SECONDS);
     expect(settings.modulesRoot).toBe('');
+    expect(settings.scratchScriptPath).toBe('Scratch script.md');
     expect(settings.shouldHandleProtocolUrls).toBe(false);
     expect(settings.shouldUseSyncFallback).toBe(false);
     expect(settings.startupScriptPath).toBe('');
@@ -37,6 +38,20 @@ describe('PluginSettings', () => {
       settings.modulesRoot = 'root';
       settings.invocableScriptsFolder = 'scripts';
       expect(settings.getInvocableScriptsFolder()).toBe('root/scripts');
+    });
+  });
+
+  describe('getScratchScriptPath', () => {
+    it('should return empty string when scratchScriptPath is empty', () => {
+      const settings = new PluginSettings();
+      settings.scratchScriptPath = '';
+      expect(settings.getScratchScriptPath()).toBe('');
+    });
+
+    it('should return joined path when modulesRoot is set', () => {
+      const settings = new PluginSettings();
+      settings.modulesRoot = 'root';
+      expect(settings.getScratchScriptPath()).toBe('root/Scratch script.md');
     });
   });
 

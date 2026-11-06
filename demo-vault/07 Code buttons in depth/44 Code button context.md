@@ -4,7 +4,7 @@ While a [code button](<../01 Code buttons.md>) runs, a variable called `codeButt
 
 ## `codeButtonContext.buttonEl`
 
-The button element itself, so running code can change the button that started it: relabel it, disable it while the work is in flight, or style it by what just happened. [`css` and `cssClasses`](<./42 Code button config.md>) set its appearance up front; this changes it afterwards.
+The button element itself, so running code can change the button that started it: relabel it, disable it while the work is in flight, or style it by what just happened. [`css` and `cssClasses`](<./43 Code button config.md>) set its appearance up front; this changes it afterwards.
 
 ```code-button
 ---
@@ -21,7 +21,7 @@ if (buttonEl) {
 new Notice('The button relabelled itself');
 ```
 
-It is `null` for an [`isRaw`](<./42 Code button config.md>) button, which renders no button at all — so check before using it, as above.
+It is `null` for an [`isRaw`](<./43 Code button config.md>) button, which renders no button at all — so check before using it, as above.
 
 ## `codeButtonContext.container`
 
