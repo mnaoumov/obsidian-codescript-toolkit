@@ -28,25 +28,25 @@ export interface CodeButtonBlockConfig {
   readonly caption: string;
 
   /**
-   * The [inline CSS](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#css---inline-button-styles) applied to the button element, in the same syntax as an HTML `style` attribute.
+   * The [inline CSS](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#css---inline-button-styles) applied to the button element, in the same syntax as an HTML `style` attribute.
    *
-   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#israw---raw-mode) buttons, which render no button element.
+   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#israw---raw-mode) buttons, which render no button element.
    *
    * @default `''`
    */
   readonly css: string;
 
   /**
-   * The [CSS classes](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#cssclasses---button-css-classes) added to the button element, as a single space-separated string or a list of strings.
+   * The [CSS classes](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#cssclasses---button-css-classes) added to the button element, as a single space-separated string or a list of strings.
    *
-   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#israw---raw-mode) buttons, which render no button element.
+   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#israw---raw-mode) buttons, which render no button element.
    *
    * @default `''`
    */
   readonly cssClasses: string | string[];
 
   /**
-   * Whether the button should work in [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#israw---raw-mode) mode.
+   * Whether the button should work in [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#israw---raw-mode) mode.
    */
   readonly isRaw: boolean;
 
@@ -56,7 +56,7 @@ export interface CodeButtonBlockConfig {
   readonly removeAfterExecution: RemoveAfterExecutionConfig;
 
   /**
-   * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldautooutput---auto-output-mode) the last evaluated expression.
+   * Whether to [automatically output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#shouldautooutput---auto-output-mode) the last evaluated expression.
    *
    * A last expression that is a `Promise` is awaited first, and its settled value is output.
    */
@@ -64,7 +64,7 @@ export interface CodeButtonBlockConfig {
   shouldAutoOutput: boolean;
 
   /**
-   * Whether [auto output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldautooutputundefined---auto-output-undefined) also prints a last expression that evaluates to `undefined`, the way the `DevTools Console` does.
+   * Whether [auto output](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#shouldautooutputundefined---auto-output-undefined) also prints a last expression that evaluates to `undefined`, the way the `DevTools Console` does.
    *
    * Off by default, so a button ending with a call that returns nothing does not print `undefined`.
    *
@@ -75,13 +75,13 @@ export interface CodeButtonBlockConfig {
   readonly shouldAutoOutputUndefined: boolean;
 
   /**
-   * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldautorun---auto-running-code-blocks-mode) without pressing the button.
+   * Whether to [run code automatically](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#shouldautorun---auto-running-code-blocks-mode) without pressing the button.
    */
   // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Raw mode enables automatic execution while normalizing the button configuration.
   shouldAutoRun: boolean;
 
   /**
-   * Whether the results panel [scrolls itself into view](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldautoscrolltoconsolemessages---auto-scrolling) as messages are appended to it.
+   * Whether the results panel [scrolls itself into view](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#shouldautoscrolltoconsolemessages---auto-scrolling) as messages are appended to it.
    *
    * Covers everything the panel shows: the system messages gated by {@link CodeButtonBlockConfig.shouldShowSystemMessages} and the console messages gated by {@link CodeButtonBlockConfig.shouldWrapConsole}.
    *
@@ -98,15 +98,15 @@ export interface CodeButtonBlockConfig {
   shouldShowSystemMessages: boolean;
 
   /**
-   * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#shouldwrapconsole---console-messages) in the results panel.
+   * Whether to display [console messages](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#shouldwrapconsole---console-messages) in the results panel.
    */
   // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Raw mode disables console wrapping while normalizing the button configuration.
   shouldWrapConsole: boolean;
 
   /**
-   * Whether the button shows [its own source code](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#sourcevisibility---source-visibility) next to it, and whether that panel starts open.
+   * Whether the button shows [its own source code](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#sourcevisibility---source-visibility) next to it, and whether that panel starts open.
    *
-   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/42%20Code%20button%20config.md#israw---raw-mode) buttons, which own their whole rendered element and clear it on every run.
+   * Has no effect on [`raw`](https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/demo-vault/07%20Code%20buttons%20in%20depth/43%20Code%20button%20config.md#israw---raw-mode) buttons, which own their whole rendered element and clear it on every run.
    */
   readonly sourceVisibility: SourceVisibility;
 }

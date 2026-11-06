@@ -1,6 +1,6 @@
 # Invocable scripts
 
-Turn a script into a real Obsidian command. Export an `invoke()` function and the script appears in the `Command Palette`, ready to be run, bound to a [hotkey](<./40 Hotkeys.md>), or called from anywhere commands can be called — no plugin to write, no manifest, no reload.
+Turn a script into a real Obsidian command. Export an `invoke()` function and the script appears in the `Command Palette`, ready to be run, bound to a [hotkey](<./41 Hotkeys.md>), or called from anywhere commands can be called — no plugin to write, no manifest, no reload.
 
 Every script below lives in this vault's invocable-scripts folder. Open the `Command Palette` and run any of them:
 

@@ -94,7 +94,7 @@ A query module is a normal module, in any format the plugin loads, exporting one
 
 `query` is whatever you pass it — a number, a string, an object, a list — as long as it survives a YAML round-trip into frontmatter and back out.
 
-`dv` is the host note's [Dataview](<./46 Dataview.md>) inline API, so a module renders tables, lists, callouts and raw HTML exactly as an inline block would. Being a module rather than a fenced block, it can also `require()` your other modules, keep its own helpers, and move between vaults as a file.
+`dv` is the host note's [Dataview](<./47 Dataview.md>) inline API, so a module renders tables, lists, callouts and raw HTML exactly as an inline block would. Being a module rather than a fenced block, it can also `require()` your other modules, keep its own helpers, and move between vaults as a file.
 
 ## `Dataview`'s own `dv.view()`
 
@@ -117,7 +117,7 @@ Which of the two you want depends on where the question comes from. `dv.view()` 
 
 ## Turning a query into a command
 
-Wrap a call in an [invocable script](<../06 Running scripts without a button/37 Invocable scripts.md>) and the query gets a name in the `Command Palette`, and a [hotkey](<../06 Running scripts without a button/40 Hotkeys.md>) if you want one:
+Wrap a call in an [invocable script](<../06 Running scripts without a button/37 Invocable scripts.md>) and the query gets a name in the `Command Palette`, and a [hotkey](<../06 Running scripts without a button/41 Hotkeys.md>) if you want one:
 
 ```ts
 export async function invoke(app) {
@@ -131,7 +131,7 @@ That is the shape every query settles into: one module that answers the question
 ## Caveats
 
 - **One question at a time.** The host note is shared state, so a second query replaces the first. Point a second host note at the dispatcher if you want two answers side by side.
-- **`require()` inside `dataviewjs` does not reach the plugin on mobile** — see the warning in [Dataview](<./46 Dataview.md>). The block in the host note uses `requireAsync()`, which does.
+- **`require()` inside `dataviewjs` does not reach the plugin on mobile** — see the warning in [Dataview](<./47 Dataview.md>). The block in the host note uses `requireAsync()`, which does.
 - **Frontmatter is YAML, not JavaScript.** A query comes back as plain data: no functions, no class instances, and a date-like string may come back as a date.
 - **`Dataview` repaints on a timer.** Its refresh interval is 2.5 seconds by default, so a host note that is already open would otherwise keep showing the previous answer for a moment after the frontmatter changes. `runQuery()` asks `Dataview` to refresh straight away to close that gap.
 

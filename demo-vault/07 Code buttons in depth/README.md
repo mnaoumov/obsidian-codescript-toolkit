@@ -4,5 +4,5 @@
 
 | Note                                                    | What it covers                                                                    |
 | ------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| [42 Code button config](<./42 Code button config.md>)   | Every option a button takes — caption, auto-run, self-removal, showing its source |
-| [43 Code button context](<./43 Code button context.md>) | The API a running button can call: draw UI, render markdown, edit its own note    |
+| [43 Code button config](<./43 Code button config.md>)   | Every option a button takes — caption, auto-run, self-removal, showing its source |
+| [44 Code button context](<./44 Code button context.md>) | The API a running button can call: draw UI, render markdown, edit its own note    |

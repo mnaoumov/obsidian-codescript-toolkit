@@ -40,7 +40,7 @@ Each folder below opens with a note of its own listing what is inside, so the Fi
 | [03 Modules you did not write](<./03 Modules you did not write/README.md>)               | Obsidian internals, this plugin's API, Electron, Node built-ins, `npm`            |
 | [04 Loading from somewhere else](<./04 Loading from somewhere else/README.md>)           | Code that is not a file in your vault: HTTPS, `file://` and `app://` URLs         |
 | [05 Behavior and performance](<./05 Behavior and performance/README.md>)                 | Caching, top-level `await`, transpilation and where breakpoints land              |
-| [06 Running scripts without a button](<./06 Running scripts without a button/README.md>) | Commands, hotkeys, a startup script, and `obsidian://` URLs                       |
+| [06 Running scripts without a button](<./06 Running scripts without a button/README.md>) | Commands, a scratch script, hotkeys, a startup script, `obsidian://` URLs         |
 | [07 Code buttons in depth](<./07 Code buttons in depth/README.md>)                       | Every button option, and the API a running button can call                        |
 | [08 Working with other plugins](<./08 Working with other plugins/README.md>)             | Two-way integration with `Dataview`, `Datacore`, `Templater`, `QuickAdd` and more |
 

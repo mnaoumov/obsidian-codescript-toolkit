@@ -2,7 +2,7 @@
 
 Nominate one script to run every time Obsidian loads. It is where vault-wide setup goes: monkey-patching something, registering a custom view, wiring event handlers — the work a small plugin would do, without writing a plugin.
 
-This vault uses one. `_assets/CodeScriptToolkit/startup.ts` is what shows the *Demo vault ready* notice, opens this start note, and binds the [`Alt + F1` hotkey](<./40 Hotkeys.md>). To watch it run again, do any of:
+This vault uses one. `_assets/CodeScriptToolkit/startup.ts` is what shows the *Demo vault ready* notice, opens this start note, and binds the [`Alt + F1` hotkey](<./41 Hotkeys.md>). To watch it run again, do any of:
 
 - invoke the `Reload app without saving` command;
 - turn the `CodeScript Toolkit` plugin off and on;
