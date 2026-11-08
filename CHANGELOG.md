@@ -2,441 +2,598 @@
 
 ## 15.2.0
 
-- feat: add a scratch script for one-off jobs
-- chore(github): add the plugin-version id to the feature request form
-- fix(version): release with the latest public Obsidian as the minimum
-- chore(deps): override glob to clear GHSA-3g3m-2fjr-6pw4
-- fix: lower the supported Obsidian version to 1.13.6
-- docs: make issue attachments optional and strongly encouraged
-- docs: link to the Obsidian resources page
+This release has 1 new feature, 2 fixes and 2 documentation changes. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### New
+
+- add a scratch script for one-off jobs
+
+### Fixed
+
+- **version:** release with the latest public Obsidian as the minimum
+- lower the supported Obsidian version to 1.13.6
+
+### Documentation
+
+- make issue attachments optional and strongly encouraged
+- link to the Obsidian resources page
 
 ## 15.1.1
 
-- refactor(require): keep the module requester params type file-local
-- docs: say where the plugin helps, and that Obsidian Sync skips a .scripts folder
-- fix(require): wait for an in-flight load instead of reporting it as a cycle
+This release has 1 fix and 1 documentation change. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- **require:** wait for an in-flight load instead of reporting it as a cycle
+
+### Documentation
+
+- say where the plugin helps, and that Obsidian Sync skips a .scripts folder
 
 ## 15.1.0
 
-- docs(readme): point bug reports at the Report a bug command
-- feat: add a Report a bug command
-- docs: add issue-filing instructions for AI agents
-- chore(github): give the bug form the field ids bug-report links prefill
-- build(deps): override re2js to ^2.9.1 for GHSA-gg6h-894w-4m9c
-- build(deps): bump `typescript-dev-toolkit` to ^5.2.0 and apply prefer-dedent
-- build(deps): bump @mnaoumov/typescript-dev-toolkit to ^5.1.0
+This release has 1 new feature and 2 documentation changes. 4 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### New
+
+- add a Report a bug command
+
+### Documentation
+
+- **readme:** point bug reports at the Report a bug command
+- add issue-filing instructions for AI agents
 
 ## 15.0.2
 
-- chore(deps): adopt `obsidian-integration-testing` 17.7.1 for host-resolver emulator DNS
-- fix: re #63
+This release has 1 fix. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- \[BUG\] Please Reopen #62 (#63)
 
 ## 15.0.1
 
-- fix: re #62
-- refactor: adopt keyword-safe binding names
-- refactor: adopt readonly interface members
-- test: make editor script cases independent of workspace state
-- docs(readme): combine related resources and plugin comparisons
-- refactor: group src and the demo-vault script fixtures into subject folders
-- docs(readme): list similar plugins
-- chore(deps): drop the @babel/core override for `obsidian-dev-toolkit`
+This release has 1 fix and 2 documentation changes. 5 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Fixed
+
+- \[BUG\] Concatenating node_module Paths (#62)
+
+### Documentation
+
+- **readme:** combine related resources and plugin comparisons
+- **readme:** list similar plugins
 
 ## 15.0.0
 
-- feat!: the bundled `@mnaoumov/obsidian-lib` that vault scripts can `require` moves from 3.3.1 to 6.0.2. Three of its major releases change what a script sees: a patch's `postPatchHandler` can no longer add members ([4.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/4.0.0>)), `PathSettings` entries match case-insensitively and an unescaped `*`, `?` or `[` makes an entry a glob ([5.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/5.0.0>)), and the names kept from `obsidian-dev-utils` are gone, including the `obsidian-dev-utils-state` module, the `obsidianDevUtils` i18n namespace and the legacy CSS class and events ([6.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/6.0.0>)). Check a script that uses any of these against those release notes.
-- feat(code-button): await a last Promise before auto-output prints it
-- feat(code-button): stop auto-output printing `undefined`; add `shouldAutoOutputUndefined`
-- fix(code-button): route the reveal and copy notices through the plugin notice component
-- fix(docs): point JSDoc links at the renumbered demo-vault notes
-- docs: point leftover `obsidian-dev-utils` comments at the packages that hold the APIs now
-- docs: shorten the debugging section
-- docs(readme): lead the Debugging section with `Advanced Debug Mode`
-- chore: replace leftover `obsidian-dev-utils` references with `@mnaoumov/obsidian-lib`
-- chore(deps): move to `@mnaoumov/obsidian-dev-toolkit` 5
-- chore(deps): float `brace-expansion`, `sharp` and `fast-uri` past their advisories
+This release has 1 breaking change, 2 new features, 2 fixes and 3 documentation changes. 3 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Breaking changes
+
+- the bundled `@mnaoumov/obsidian-lib` that vault scripts can `require` moves from 3.3.1 to 6.0.2. Three of its major releases change what a script sees: a patch's `postPatchHandler` can no longer add members ([4.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/4.0.0>)), `PathSettings` entries match case-insensitively and an unescaped `*`, `?` or `[` makes an entry a glob ([5.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/5.0.0>)), and the names kept from `obsidian-dev-utils` are gone, including the `obsidian-dev-utils-state` module, the `obsidianDevUtils` i18n namespace and the legacy CSS class and events ([6.0.0](<https://github.com/mnaoumov/obsidian-lib/releases/tag/6.0.0>)). Check a script that uses any of these against those release notes.
+
+### New
+
+- **code-button:** await a last Promise before auto-output prints it
+- **code-button:** stop auto-output printing `undefined`; add `shouldAutoOutputUndefined`
+
+### Fixed
+
+- **code-button:** route the reveal and copy notices through the plugin notice component
+- **docs:** point JSDoc links at the renumbered demo-vault notes
+
+### Documentation
+
+- point leftover `obsidian-dev-utils` comments at the packages that hold the APIs now
+- shorten the debugging section
+- **readme:** lead the Debugging section with `Advanced Debug Mode`
 
 ## 14.0.1
 
-- fix(protocol-handler): load even when a previous instance of the plugin left its `obsidian://CodeScriptToolkit` handler behind, instead of failing with `Action "CodeScriptToolkit" is already registered as a handler`
-- fix(deps): update `@mnaoumov/typescript-lib` to 1.6.1, so printing an `AggregateError` whose `errors` is missing shows the real error instead of crashing the error printer
-- docs(demo-vault): rename the `obsidian-dev-utils` note after `@mnaoumov/obsidian-lib` and `@mnaoumov/typescript-lib`
-- docs: mark plugin names as code
-- docs(readme): point the Debugging link at the `@mnaoumov/obsidian-lib` guide
+This release has 2 fixes and 3 documentation changes.
+
+### Fixed
+
+- **protocol-handler:** load even when a previous instance of the plugin left its `obsidian://CodeScriptToolkit` handler behind, instead of failing with `Action "CodeScriptToolkit" is already registered as a handler`
+- **deps:** update `@mnaoumov/typescript-lib` to 1.6.1, so printing an `AggregateError` whose `errors` is missing shows the real error instead of crashing the error printer
+
+### Documentation
+
+- **demo-vault:** rename the `obsidian-dev-utils` note after `@mnaoumov/obsidian-lib` and `@mnaoumov/typescript-lib`
+- mark plugin names as code
+- **readme:** point the Debugging link at the `@mnaoumov/obsidian-lib` guide
 
 ## 14.0.0
 
-- feat!: requiring or importing `obsidian-dev-utils` now throws an error naming its replacement. The library is retired and no longer ships with the plugin. Rename `obsidian-dev-utils/obsidian/<x>` to `@mnaoumov/obsidian-lib/<x>`, and any other `obsidian-dev-utils/<x>` to `@mnaoumov/typescript-lib/<x>`. See the [migration note](<https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/obsidian-dev-utils.md>) for details.
-- fix(startup-script): name the file when a startup script does not export `invoke()`
-- chore(github): point questions to Discussions from the new-issue page
-- ci: attest release assets through the toolkit's reusable workflow
+This release has 1 breaking change and 1 fix. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Breaking changes
+
+- requiring or importing `obsidian-dev-utils` now throws an error naming its replacement. The library is retired and no longer ships with the plugin. Rename `obsidian-dev-utils/obsidian/<x>` to `@mnaoumov/obsidian-lib/<x>`, and any other `obsidian-dev-utils/<x>` to `@mnaoumov/typescript-lib/<x>`. See the [migration note](<https://github.com/mnaoumov/obsidian-codescript-toolkit/blob/main/docs/obsidian-dev-utils.md>) for details.
+
+### Fixed
+
+- **startup-script:** name the file when a startup script does not export `invoke()`
 
 ## 13.8.0
 
-- feat: serve @mnaoumov/obsidian-lib and @mnaoumov/typescript-lib to vault scripts
-- chore(spellcheck): accept Sidedock from the `obsidian-typings` workspace declarations
-- docs: fix the dead script-utils link in the `obsidian-dev-utils` note
-- docs: mark plugin names as code
-- test: merge using the `obsidian-typings` declarations of Obsidian internals
+This release has 1 new feature and 2 documentation changes. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### New
+
+- serve @mnaoumov/obsidian-lib and @mnaoumov/typescript-lib to vault scripts
+
+### Documentation
+
+- fix the dead script-utils link in the `obsidian-dev-utils` note
+- mark plugin names as code
 
 ## 13.7.3
 
-- fix(watcher): load `node`:fs on demand behind Platform.isDesktop
+This release has 1 fix.
+
+### Fixed
+
+- **watcher:** load `node`:fs on demand behind Platform.isDesktop
 
 ## 13.7.2
 
-- docs(agents): list the capture-theme merge among the changelog entries to reword
+This release has 4 fixes, 12 documentation changes and 3 other changes. 18 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Fixed
+
+- **deps:** restore the lockfile's missing resolved and integrity fields
+- **deps:** float devalue to 5.9.4, clearing GHSA-9rgm-9g3h-6x36
+- **test:** let each `vitest` project collect only the files its own include names
+- **build:** wire build:compile to buildCompile and drop the duplicate leaf script
+
+### Documentation
+
+- **agents:** list the capture-theme merge among the changelog entries to reword
+- **screenshots:** shorten desktop frame 4 caption so it fits the frame
+- **agents:** note the demo-vault merge subject to reword in the next changelog
+- **agents:** note the dependency-bump merge subject to reword in the next changelog
+- **agents:** date the pending changelog note instead of counting the range
+- **agents:** say that the generated changelog ships commit subjects verbatim
+- replace the private rule-id citations with what they assert
+- name the library and the sibling plugins so a reader can resolve them
+- replace the private tracker references with what they pointed at
+- name the unversioned demo-vault asset and the folder it unzips into
+- bring the demo vault's "Start reading here" line onto the standard sentence
+- **demo-vault:** document the `WebAssembly` fixture and check in its WAT source
+
+### Other changes
+
 - apply the desktop capture theme with applyObsidianTheme
-- docs(screenshots): shorten desktop frame 4 caption so it fits the frame
-- chore(deps): float dependencies and re-shoot the store frames under the opaque caption band
-- test(code-button): assert a Live Preview re-render does not save the dirty editor
-- docs(agents): note the demo-vault merge subject to reword in the next changelog
 - move the demo-vault button walk onto the shared suite
-- docs(agents): note the dependency-bump merge subject to reword in the next changelog
 - float `obsidian-test-mocks` to ^7.0.0
-- fix(deps): restore the lockfile's missing resolved and integrity fields
-- test(demo-vault): scroll-walk the preview so buttons below the fold are clicked
-- docs(agents): date the pending changelog note instead of counting the range
-- docs(agents): say that the generated changelog ships commit subjects verbatim
-- test(demo-vault): split the button walk into one transport call per button
-- build(`vitest`): drop the local root-include workaround, now the library owns it
-- fix(deps): float devalue to 5.9.4, clearing GHSA-9rgm-9g3h-6x36
-- build(`markdownlint`): forbid hard-wrapped markdown paragraphs
-- style(comments): stop rewriting symbol names that open a comment
-- chore(deps): drop the dead markdown-it override
-- chore(deps): drop the dead js-yaml override
-- style(comments): stop capitalizing the middle of a wrapped comment
-- docs: replace the private rule-id citations with what they assert
-- docs: name the library and the sibling plugins so a reader can resolve them
-- docs: replace the private tracker references with what they pointed at
-- chore(deps): move to `obsidian-dev-utils` 103
-- test(integration): take the palette frame with the soft keyboard up
-- test: bring the in-closure wait ceilings under the transport's per-eval cap
-- chore: adopt the `npm` run gate branch gate
-- refactor(android): drive the Android suites with trusted input
-- docs: name the unversioned demo-vault asset and the folder it unzips into
-- chore: make the LICENSE copyright line checkable by the linter and guard it against the year roll-over
-- fix(test): let each `vitest` project collect only the files its own include names
-- chore: update libs
-- refactor: rename the platform modules onto the load-bearing desktop-/mobile- prefix
-- docs: bring the demo vault's "Start reading here" line onto the standard sentence
-- docs(demo-vault): document the `WebAssembly` fixture and check in its WAT source
-- fix(build): wire build:compile to buildCompile and drop the duplicate leaf script
 
 ## 13.7.1
 
-- chore(deps): sweep caret-ranged dependencies to latest
-- fix(deps): move to `obsidian-integration-testing` 11 and `obsidian-dev-utils` 96.5.2
-- fix(deps): drop the brace-expansion file: override that breaks a clean install
+This release has 2 fixes. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- **deps:** move to `obsidian-integration-testing` 11 and `obsidian-dev-utils` 96.5.2
+- **deps:** drop the brace-expansion file: override that breaks a clean install
 
 ## 13.7.0
 
-- docs(demo-vault): document the TS-module-as-parameterized-query pattern
-- docs: point other plugins at their community.obsidian.md pages
+This release has 2 documentation changes.
+
+### Documentation
+
+- **demo-vault:** document the TS-module-as-parameterized-query pattern
+- point other plugins at their community.obsidian.md pages
 
 ## 13.6.11
 
-- test(codescript-toolkit): dismiss demo-vault modals with a trusted Escape
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.6.10
 
-- docs(demo-vault): unwrap the notes so Obsidian stops rendering a break per line
-- docs(readme): render the same in Obsidian's plugin page as on `GitHub`
+This release has 2 documentation changes.
+
+### Documentation
+
+- **demo-vault:** unwrap the notes so Obsidian stops rendering a break per line
+- **readme:** render the same in Obsidian's plugin page as on `GitHub`
 
 ## 13.6.9
 
-- fix(versions): correct the stale 1.13.8 minAppVersion row for 13.6.8
-- chore: update libs
+This release has 1 fix. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- **versions:** correct the stale 1.13.8 minAppVersion row for 13.6.8
 
 ## 13.6.8
 
-- chore: update `obsidian-dev-utils` to 94.6.1
-- chore: update `obsidian-dev-utils` to 94.6.0
-- fix: override deepmerge-ts to clear GHSA-ggr8-5vv4-36mx
-- fix(test): declare the demo-vault `vitest` project it already runs
-- chore: teach `cspell` the advisory wording
-- chore: update libs
-- docs: add store screenshots and surface them in the README
+This release has 2 fixes and 1 documentation change. 4 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Fixed
+
+- override deepmerge-ts to clear GHSA-ggr8-5vv4-36mx
+- **test:** declare the demo-vault `vitest` project it already runs
+
+### Documentation
+
+- add store screenshots and surface them in the README
 
 ## 13.6.7
 
-- docs(demo-vault): use NATO placeholders instead of foo, bar and baz
+This release has 1 documentation change.
+
+### Documentation
+
+- **demo-vault:** use NATO placeholders instead of foo, bar and baz
 
 ## 13.6.6
 
-- docs: bring the README to the standard skeleton
+This release has 1 documentation change.
+
+### Documentation
+
+- bring the README to the standard skeleton
 
 ## 13.6.5
 
-- chore: reword a test comment `cspell` does not know
-- fix(demo-vault): show the deprecated invokeCommand failure on demand only
+This release has 1 fix. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- **demo-vault:** show the deprecated invokeCommand failure on demand only
 
 ## 13.6.4
 
-- fix: use the slashed `</>` icon for the code-button source toggle
-- docs: group the demo notes into numbered folders
+This release has 1 fix and 1 documentation change.
+
+### Fixed
+
+- use the slashed `</>` icon for the code-button source toggle
+
+### Documentation
+
+- group the demo notes into numbered folders
 
 ## 13.6.3
 
-- chore: update libs
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.6.2
 
-- docs: explain the source toggle and raw code buttons
-- docs: read code buttons before core functions
-- docs: simplify README
-- docs: renumber demo vault notes to follow the reading order in 00 Start
-- docs: make the migrate-to-async heading resolve in Obsidian and on `GitHub`
-- docs: fix link
-- chore: update libs
+This release has 6 documentation changes. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Documentation
+
+- explain the source toggle and raw code buttons
+- read code buttons before core functions
+- simplify README
+- renumber demo vault notes to follow the reading order in 00 Start
+- make the migrate-to-async heading resolve in Obsidian and on `GitHub`
+- fix link
 
 ## 13.6.1
 
-- test: fix
-- chore: update libs
+This release has maintenance changes only. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 13.6.0
 
-- test: run the demo-vault project in the integration aggregate
-- docs: describe the android integration project and its emulator DNS trap
-- feat: show a code button's source, and make the demo vault the documentation
+This release has 1 new feature and 1 documentation change. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### New
+
+- show a code button's source, and make the demo vault the documentation
+
+### Documentation
+
+- describe the android integration project and its emulator DNS trap
 
 ## 13.5.3
 
-- chore: update libs and adopt `obsidian-integration-testing` 10
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.5.2
 
-- chore: update libs
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.5.1
 
-- test: invoke the command handler factory in the registry stubs
-- fix: await the settings load before the components that read them
-- chore: update libs
-- chore: update libs
-- refactor!: buildInvokeCommand
-- chore(`vitest`): adopt the shared Obsidian plugin `vitest` configuration
-- refactor: consume `obsidian-dev-utils`' SyntaxHighlightingComponent for fence highlighting
-- chore: update libs
+This release has 1 breaking change and 1 fix. 6 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Breaking changes
+
+- buildInvokeCommand
+
+### Fixed
+
+- await the settings load before the components that read them
 
 ## 13.5.0
 
-- fix: unblock the release gate
-- refactor(settings): move the settings tab onto the declarative settings API
-- chore: update libs and clear the `npm` audit
-- docs: fix the demo vault download instructions
+This release has 1 fix and 1 documentation change. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Fixed
+
+- unblock the release gate
+
+### Documentation
+
+- fix the demo vault download instructions
 
 ## 13.4.2
 
-- chore: update libs
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.4.1
 
-- test(require-handler): fix emulate-mobile suite failing in the desktop aggregate
-- chore: update libs
-- chore: update libs
-- test: code-button freeze
+This release has maintenance changes only. 4 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 13.4.0
 
-- feat: re #54
+This release has 1 new feature.
+
+### New
+
+- \[FR\] Allow startup scripts to run before workspace (#54)
 
 ## 13.3.6
 
-- chore: update libs
-- chore: update libs
+This release has maintenance changes only. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 13.3.5
 
-- chore(demo-vault): drop committed Invocables placeholder
-- chore(demo-vault): add Invocables folder for consistency
+This release has maintenance changes only. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 13.3.4
 
-- docs: fix links
+This release has 1 documentation change.
+
+### Documentation
+
+- fix links
 
 ## 13.3.3
 
-- chore: satisfy lint on require-args extraction and demo-vault test
-- docs: organize demo vault
-- chore: format
-- fix: extract requireAsyncWrapper require options with identifier keys and enum-value modes
-- fix(demo-vault): correct copy-pasted button captions in integration notes
-- fix(demo-vault): repair broken code-button examples and configure community plugins
-- test: add demo-vault code-button execution integration suite
-- docs: number demo vault example notes
-- docs: demo vault
+This release has 3 fixes and 3 documentation changes. 3 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Fixed
+
+- extract requireAsyncWrapper require options with identifier keys and enum-value modes
+- **demo-vault:** correct copy-pasted button captions in integration notes
+- **demo-vault:** repair broken code-button examples and configure community plugins
+
+### Documentation
+
+- organize demo vault
+- number demo vault example notes
+- demo vault
 
 ## 13.3.2
 
-- chore: update libs
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.3.1
 
-- chore: update libs
-- chore: ignore demo-vault plugins
+This release has maintenance changes only. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 13.3.0
 
-- docs: point the plugin-integrations link at the in-repo demo vault
-- feat: demo vault
+This release has 1 new feature and 1 documentation change.
+
+### New
+
+- demo vault
+
+### Documentation
+
+- point the plugin-integrations link at the in-repo demo vault
 
 ## 13.2.0
 
-- feat: re #55
+This release has 1 new feature.
+
+### New
+
+- \[FR\] Allow opting out of `Babel` transpilation for (#55)
 
 ## 13.1.9
 
-- chore: overexposed
-- chore: update libs
-- chore: update `obsidian-dev-utils` to 85.0.0
-- refactor: pass params objects to functions and methods with multiple args
+This release has maintenance changes only. 4 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 13.1.8
 
-- test: use dev-utils sleep for emulate-mobile wait now that it works in `node`
-- test: fix emulate-mobile integration wait to run in `node` environment
-- chore: workaround to bypass validation
-- test: wire integration-testing vitest-setup into integration projects
-- chore: update libs
-- chore: sort tsconfig types
+This release has maintenance changes only. 6 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 13.1.7
 
-- refactor: new template
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.1.6
 
-- chore: update libs
-- test: reuse real `obsidian-dev-utils` and `obsidian-test-mocks` in unit tests
-- refactor: monkey around
+This release has maintenance changes only. 3 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 13.1.5
 
-- refactor: new template
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.1.4
 
-- fix: push options
-- chore: update version script
+This release has 1 fix. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- push options
 
 ## 13.1.3
 
-- chore: update libs
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.1.2
 
-- chore: update template
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.1.1
 
-- chore: switch versions
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 13.1.0
 
-- fix: bind `this` in CodeScriptToolkitModuleImpl to support destructured usage re #53
-- feat: open settings command
-- chore: update libs
+This release has 1 new feature and 1 fix. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### New
+
+- open settings command
+
+### Fixed
+
+- bind `this` in CodeScriptToolkitModuleImpl to support destructured usage re #53
 
 ## 13.0.2
 
-- chore: update libs
-- fix: preserve kebab-case in `obsidian-dev-utils` property paths
+This release has 1 fix. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- preserve kebab-case in `obsidian-dev-utils` property paths
 
 ## 13.0.1
 
-- feat: disable temp plugin notices
-- feat: add setting groups
-- fix: module execution re #52
+This release has 2 new features and 1 fix.
+
+### New
+
+- disable temp plugin notices
+- add setting groups
+
+### Fixed
+
+- module execution re #52
 
 ## 13.0.0
 
-- test: increase Android integration test timeout to 60s
-- fix: skip link resolution for vault-root-prefixed paths
-- fix: fall back to vault-root path when metadata cache cannot resolve link On Android
-- fix: prevent infinite recursion in resolveLink for URL inputs
-- test: add doc: update
-- refactor: unregisterTempPlugin
-- refactor!: registerTempPlugin lifecycle
-- feat: getTempPlugin
-- feat: add require for links
-- feat: add require for TFile
+This release has 1 breaking change, 3 new features and 3 fixes. 3 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Breaking changes
+
+- registerTempPlugin lifecycle
+
+### New
+
+- getTempPlugin
+- add require for links
+- add require for TFile
+
+### Fixed
+
+- skip link resolution for vault-root-prefixed paths
+- fall back to vault-root path when metadata cache cannot resolve link On Android
+- prevent infinite recursion in resolveLink for URL inputs
 
 ## 12.0.0
 
-- test: add tests
-- refactor!: new template
+This release has 1 breaking change. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Breaking changes
+
+- new template
 
 ## 11.7.2
 
-- docs: fix url
-- fix: description
-- chore: add English language requirement to issue templates
+This release has 1 fix and 1 documentation change. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- description
+
+### Documentation
+
+- fix url
 
 ## 11.7.1
 
-- chore: fix typo
-- chore: update template
+This release has maintenance changes only. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 11.7.0
 
-- feat: allow disabling checking for changes re #48
-- chore: update libs
+This release has 1 new feature. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### New
+
+- allow disabling checking for changes re #48
 
 ## 11.6.0
 
-- docs: invokeCommand
-- feat: allow register commands re #45
-- feat: reload entire scripts if script changed
+This release has 2 new features and 1 documentation change.
+
+### New
+
+- allow register commands re #45
+- reload entire scripts if script changed
+
+### Documentation
+
+- invokeCommand
 
 ## 11.5.4
 
-- chore: update libs re #46
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 11.5.3
 
-- refactor: commands
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 11.5.2
 
-- chore: update libs
-- refactor: registerLegacySettingsConverters
+This release has maintenance changes only. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
 
 ## 11.5.1
 
-- chore: update libs
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 11.5.0
 
-- feat: expose unregisterTempPlugin
-- feat: handle errors during temp plugin load/unload
-- chore: update libs
+This release has 2 new features. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### New
+
+- expose unregisterTempPlugin
+- handle errors during temp plugin load/unload
 
 ## 11.4.1
 
-- fix: exclude @types folder
-- chore: update libs
+This release has 1 fix. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- exclude @types folder
 
 ## 11.4.0
 
-- docs: fix link
-- refactor: rename registerObsidianDevUtilsModule
-- feat: add codescript-toolkit module
-- feat: add CSS to temp plugin
-- docs: update docs
-- feat: add `obsidian-dev-utils` lib re <https://github.com/mnaoumov/obsidian-dev-utils/issues/37>
-- chore: update libs
+This release has 3 new features and 2 documentation changes. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### New
+
+- add codescript-toolkit module
+- add CSS to temp plugin
+- add `obsidian-dev-utils` lib re <https://github.com/mnaoumov/obsidian-dev-utils/issues/37>
+
+### Documentation
+
+- fix link
+- update docs
 
 ## 11.3.3
 
-- chore: lint
-- chore: update libs
-- docs: update
+This release has 1 documentation change. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Documentation
+
+- update
 
 ## 11.3.2
 
-- chore: update libs
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 11.3.1
 
@@ -446,51 +603,91 @@
 
 ## 11.3.0
 
-- docs: fix links
-- chore: lint
-- feat: improve warning for whenPossible
-- fix: misleading comment
-- fix: proper support for CacheInvalidationMode.Always
-- docs: warning
-- docs: callouts for `GitHub`
-- docs: better links
+This release has 1 new feature, 2 fixes and 4 documentation changes. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### New
+
+- improve warning for whenPossible
+
+### Fixed
+
+- misleading comment
+- proper support for CacheInvalidationMode.Always
+
+### Documentation
+
+- fix links
+- warning
+- callouts for `GitHub`
+- better links
 
 ## 11.2.10
 
-- docs: migrate to async
+This release has 1 documentation change.
+
+### Documentation
+
+- migrate to async
 
 ## 11.2.9
 
-- fix: cache invalidation mode
+This release has 1 fix.
+
+### Fixed
+
+- cache invalidation mode
 
 ## 11.2.8
 
-- fix: cache invalidation mode
+This release has 1 fix.
+
+### Fixed
+
+- cache invalidation mode
 
 ## 11.2.7
 
-- fix: require ASAR
+This release has 1 fix.
+
+### Fixed
+
+- require ASAR
 
 ## 11.2.6
 
-- fix: fix get-fonts require
-- docs: add example
-- docs: add missing bold
-- docs: link to demo vault
-- docs: add `JS Engine`
-- docs: inline urls
+This release has 1 fix and 5 documentation changes.
+
+### Fixed
+
+- fix get-fonts require
+
+### Documentation
+
+- add example
+- add missing bold
+- link to demo vault
+- add `JS Engine`
+- inline urls
 
 ## 11.2.5
 
-- fix: make working in app.emulateMobile(true)
+This release has 1 fix.
+
+### Fixed
+
+- make working in app.emulateMobile(true)
 
 ## 11.2.4
 
-- fix: ensure sourcePath is correct after renames
+This release has 1 fix.
+
+### Fixed
+
+- ensure sourcePath is correct after renames
 
 ## 11.2.3
 
-- chore: force build
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 11.2.2
 
@@ -512,12 +709,15 @@
 
 ## 11.1.7
 
-- fix: build
-- chore: update libs
+This release has 1 fix. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### Fixed
+
+- build
 
 ## 11.1.6
 
-- chore: enable conventional commits
+This release has maintenance changes only. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
 
 ## 11.1.5
 
