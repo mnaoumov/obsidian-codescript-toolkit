@@ -63,6 +63,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
     params: TempPluginRegistryComponentRegisterTempPluginParams<TPlugin>
   ): Promise<null | TPlugin> {
     type LoadFunction = () => Promise<void>;
+    const app = this.app;
     const pluginNoticeComponent = this.pluginNoticeComponent;
     const pluginSettingsComponent = this.pluginSettingsComponent;
     // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
@@ -151,7 +152,7 @@ export class TempPluginRegistryComponent extends ComponentEx {
         return;
       }
       const STYLE_TAG_NAME = 'style';
-      styleEl = document.head.createEl(STYLE_TAG_NAME, {
+      styleEl = app.workspace.containerEl.doc.head.createEl(STYLE_TAG_NAME, {
         attr: { id },
         text: params.cssText
       });

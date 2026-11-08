@@ -53,7 +53,11 @@ interface MockPlugin {
 }
 
 function createApp(): App {
-  return strictProxy<App>({});
+  return strictProxy<App>({
+    workspace: strictProxy<App['workspace']>({
+      containerEl: strictProxy<HTMLElement>({ doc: document })
+    })
+  });
 }
 
 function createCommandHandlerComponent(): CommandHandlerComponent {

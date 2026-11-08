@@ -29,7 +29,7 @@ export class RequireHandlerFactoryComponent extends ComponentEx implements Requi
   public override async onloadAsync(): Promise<void> {
     await super.onloadAsync();
 
-    if (document.body.hasClass('emulate-mobile')) {
+    if (activeDocument.body.hasClass('emulate-mobile')) {
       const emulateMobileModule = await import('./emulate-mobile-require-handler.ts');
       this._platformRequireHandler = new emulateMobileModule.RequireHandlerEmulateMobileComponent(this.params);
     } else if (Platform.isMobile) {
