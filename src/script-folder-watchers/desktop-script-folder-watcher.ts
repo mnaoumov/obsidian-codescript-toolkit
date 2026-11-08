@@ -18,7 +18,7 @@ export class ScriptFolderWatcherDesktopComponent extends ScriptFolderWatcherComp
       return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports -- See above: `import()` does not load `node:fs` in the bundle.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, unicorn/prefer-module -- See above: `import()` does not load `node:fs` in the bundle.
     const { watch } = require('node:fs') as typeof import('node:fs');
 
     const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();

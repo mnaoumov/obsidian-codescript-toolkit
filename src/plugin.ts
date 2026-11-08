@@ -87,6 +87,7 @@ export class Plugin extends PluginBase {
       new RequireHandlerFactoryComponent({
         app: this.app,
         consoleDebugComponent: this.consoleDebugComponent,
+        // eslint-disable-next-line unicorn/prefer-module -- The bundle is CommonJS, and the require handlers need the `require` Obsidian gives the plugin.
         pluginRequire: require,
         pluginSettingsComponent,
 
