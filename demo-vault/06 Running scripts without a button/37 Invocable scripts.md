@@ -119,6 +119,12 @@ export async function buildInvokeCommand(app: App): Promise<Partial<Command>> {
 
 `buildInvokeCommand()` is called once, when the script is registered.
 
+## When a script runs
+
+> [!WARNING]
+>
+> Registering a script runs it. To read a script's exports, the plugin loads the whole module, so its top-level code and `buildInvokeCommand()` run as soon as the script is registered, before you invoke anything. Registration happens when the plugin loads, when its settings change, and whenever a file in the folder changes. Scripts have full access to the app and, on desktop, to Node.js. Anyone who can write to this folder, for example through a synced or shared vault, can run code on your device, so point this setting only at a folder you trust.
+
 ## Caveats
 
 > [!NOTE]

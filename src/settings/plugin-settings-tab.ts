@@ -84,6 +84,8 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
               appendCodeBlock(f, 'Script modules root');
               f.createEl('br');
               f.appendText('Leave blank if you don\'t use invocable scripts.');
+              f.createEl('br');
+              f.appendText('Scripts in this folder run as soon as they are registered, before you invoke them. Use only a folder you trust.');
             }),
             name: 'Invocable scripts folder',
             render: (setting) => {
