@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 15.3.0
+
+- test: cover the settings tab registering invocable scripts
+- feat: re #64
+
 ## 15.2.1
 
 - test: pin temporary plugin CSS reaching popout windows
