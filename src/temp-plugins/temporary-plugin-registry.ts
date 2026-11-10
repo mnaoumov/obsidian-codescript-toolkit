@@ -152,6 +152,10 @@ export class TempPluginRegistryComponent extends ComponentEx {
         return;
       }
       const STYLE_TAG_NAME = 'style';
+      // The main window only, on purpose: Obsidian mirrors every `<style>` in the main window's `<head>` into each popout
+      // window, those already open and those opened later, and drops the copies when the original is removed (shortly
+      // after, not synchronously). So one element here styles every window, and a per-window copy would only compete
+      // with that mirroring. The desktop integration test `temp-plugin-registry.desktop.integration.test.ts` pins this.
       styleEl = app.workspace.containerEl.doc.head.createEl(STYLE_TAG_NAME, {
         attr: { id },
         text: params.cssText

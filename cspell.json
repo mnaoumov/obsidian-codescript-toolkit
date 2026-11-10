@@ -49,6 +49,8 @@
     "offref",
     "outfile",
     "pmpm",
+    "popout",
+    "popouts",
     "posix",
     "postversion",
     "quickadd",
