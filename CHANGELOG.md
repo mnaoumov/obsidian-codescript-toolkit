@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 15.2.1
+
+- test: pin temporary plugin CSS reaching popout windows
+- fix: wait for a script another plugin instance is still loading
+- docs: re #64
+- chore: adopt `obsidian-dev-toolkit` 9 for the release minimum
+- docs(changelog): regroup the published release notes for readers
+
 ## 15.2.0
 
 This release has 1 new feature, 2 fixes and 2 documentation changes. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
