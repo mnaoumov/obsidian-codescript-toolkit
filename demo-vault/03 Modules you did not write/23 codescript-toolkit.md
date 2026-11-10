@@ -22,7 +22,7 @@ const cssText = '* { color: red; }';
 await registerTempPlugin({ tempPluginClass: RequireCodescriptToolkitModulePlugin, cssText });
 ```
 
-`registerTempPlugin()` returns the loaded plugin instance, or `null` if loading failed. The optional `cssText` is loaded and unloaded together with the plugin.
+`registerTempPlugin()` returns the loaded plugin instance, or `null` if loading failed. The optional `cssText` is loaded and unloaded together with the plugin, and applies to every window, popout windows included.
 
 ## `getTempPlugin()`
 
