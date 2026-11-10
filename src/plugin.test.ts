@@ -21,6 +21,7 @@ import {
 } from 'vitest';
 
 import { Plugin } from './plugin.ts';
+import { PluginSettingsTab } from './settings/plugin-settings-tab.ts';
 
 vi.mock('@mnaoumov/obsidian-lib/command-handlers/open-settings-command-handler', () => ({
   OpenSettingsCommandHandler: vi.fn()
@@ -232,6 +233,17 @@ describe('Plugin', () => {
     await plugin.trustInvocableScriptsFolder();
 
     expect(mockTrust).toHaveBeenCalledOnce();
+    expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
+  });
+
+  it('should let the settings tab register the invocable scripts through the script manager', async () => {
+    const plugin = createPlugin();
+    await castTo<PluginPrivateApi>(plugin).onloadImpl();
+    mockRegisterInvocableScripts.mockClear();
+
+    const settingsTabParams = vi.mocked(PluginSettingsTab).mock.lastCall?.[0];
+    await settingsTabParams?.registerInvocableScripts();
+
     expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
   });
 
