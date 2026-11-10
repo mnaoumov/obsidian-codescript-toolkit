@@ -518,15 +518,21 @@ describe('ResolvedType', () => {
 
 describe('RequireHandlerComponentBase', () => {
   let handler: TestRequireHandlerComponent;
+  let savedWindowRequire: NodeJS.Require;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // A handler takes its module cache from window.require, and the load bookkeeping lives on that cache, so each test starts from a fresh one.
+    savedWindowRequire = window.require;
+    const outerRequire = savedWindowRequire;
+    window.require = castTo<NodeJS.Require>(Object.assign((id: string): unknown => outerRequire(id), outerRequire, { cache: {} }));
     const params = createMockConstructorParams();
     handler = new TestRequireHandlerComponent(params);
   });
 
   afterEach(() => {
     handler.unload();
+    window.require = savedWindowRequire;
   });
 
   describe('clearCache', () => {
@@ -3603,6 +3609,49 @@ describe('RequireHandlerComponentBase', () => {
       expect(secondExports).toBe(firstExports);
       expect(mockDebuggableEval).toHaveBeenCalledOnce();
       expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should make a second handler sharing the module cache wait for the first one\'s load, as during a plugin update', async () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn');
+      const gate = createGate();
+      evaluateScripts({
+        '/vault/slow.js': async () => {
+          await gate.promise;
+          return { invoke: 'full' };
+        }
+      });
+
+      // The new plugin instance loads while the old one is still loaded, so it takes the old one's require, and with it the same module cache.
+      const secondHandler = new TestRequireHandlerComponent(createMockConstructorParams());
+      try {
+        await secondHandler.loadWithPromises();
+        secondHandler.mockExistsFile.mockResolvedValue(true);
+        secondHandler.mockGetTimestamp.mockResolvedValue(100);
+        expect(secondHandler.exposeModulesCache()).toBe(handler.exposeModulesCache());
+
+        const first = handler.requireAsync('//slow.js');
+        await vi.waitFor(() => {
+          expect(handler.exposeModulesCache()['/vault/slow.js']?.loaded).toBe(false);
+        });
+        const second = secondHandler.requireAsync('//slow.js');
+        gate.resolve();
+        const [firstExports, secondExports] = await Promise.all([first, second]);
+
+        expect(firstExports).toEqual(expect.objectContaining({ invoke: 'full' }));
+        expect(secondExports).toBe(firstExports);
+        expect(mockDebuggableEval).toHaveBeenCalledOnce();
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      } finally {
+        secondHandler.unload();
+      }
+    });
+
+    it('should keep the shared load state out of the module cache\'s entries', async () => {
+      evaluateScripts({ '/vault/plain.js': (): Record<string, boolean> => ({ plain: true }) });
+
+      await handler.requireAsync('//plain.js');
+
+      expect(Object.keys(handler.exposeModulesCache())).toEqual(['/vault/plain.js']);
     });
 
     it('should report a failed load as itself to every concurrent require, and load afresh on the next one', async () => {
