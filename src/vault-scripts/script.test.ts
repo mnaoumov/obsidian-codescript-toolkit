@@ -223,6 +223,65 @@ describe('ScriptManager', () => {
       expect(scriptRegistry.registerScript).not.toHaveBeenCalled();
     });
 
+    it('should run concurrent registrations one at a time, and fold the ones queued behind a running one into one', async () => {
+      const FOLDER = 'scripts';
+      mockPluginSettingsComponent.settings.getInvocableScriptsFolder.mockReturnValue(FOLDER);
+      mockApp.vault.adapter.exists.mockResolvedValue(true);
+      mockApp.vault.adapter.list.mockResolvedValue({ files: ['scripts/a.js'], folders: [] });
+
+      let running = 0;
+      let maxRunning = 0;
+      let releaseFirst: () => void = noop;
+      const firstGate = new Promise<void>((resolve) => {
+        releaseFirst = resolve;
+      });
+      let callCount = 0;
+      vi.mocked(scriptRegistry.registerScript).mockImplementation(async () => {
+        callCount++;
+        running++;
+        maxRunning = Math.max(maxRunning, running);
+        if (callCount === 1) {
+          await firstGate;
+        }
+        running--;
+      });
+
+      const first = scriptManager.registerInvocableScripts();
+      await vi.waitFor(() => {
+        expect(scriptRegistry.registerScript).toHaveBeenCalledOnce();
+      });
+      const second = scriptManager.registerInvocableScripts();
+      const third = scriptManager.registerInvocableScripts();
+
+      releaseFirst();
+      await Promise.all([first, second, third]);
+
+      expect(maxRunning).toBe(1);
+      expect(scriptRegistry.unregisterInvocableCommands).toHaveBeenCalledTimes(2);
+      expect(scriptRegistry.registerScript).toHaveBeenCalledTimes(2);
+    });
+
+    it('should still run a queued registration after the running one fails', async () => {
+      mockPluginSettingsComponent.settings.getInvocableScriptsFolder.mockReturnValue('scripts');
+      mockApp.vault.adapter.exists.mockRejectedValueOnce(new Error('boom')).mockResolvedValue(false);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop);
+
+      try {
+        const first = scriptManager.registerInvocableScripts();
+        const firstAssertion = expect(first).rejects.toThrow('boom');
+        await vi.waitFor(() => {
+          expect(scriptRegistry.unregisterInvocableCommands).toHaveBeenCalledOnce();
+        });
+        const second = scriptManager.registerInvocableScripts();
+
+        await firstAssertion;
+        await expect(second).resolves.toBeUndefined();
+        expect(scriptRegistry.unregisterInvocableCommands).toHaveBeenCalledTimes(2);
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+
     it('should recursively search subfolders', async () => {
       const FOLDER = 'scripts';
       mockPluginSettingsComponent.settings.getInvocableScriptsFolder.mockReturnValue(FOLDER);

@@ -113,6 +113,20 @@ interface InFlightLoad {
   readonly promise: Promise<unknown>;
   readonly startTimestamp: number;
 }
+/**
+ * Load bookkeeping that must be shared by every handler that shares one module cache.
+ */
+interface SharedLoadState {
+  readonly inFlightLoads: Map<string, InFlightLoad>;
+  readonly moduleRequesters: Map<string, Map<string, RequesterEdge>>;
+}
+
+/**
+ * The key {@link SharedLoadState} is stored under on the module cache. It is a registered symbol, so a plugin instance from another bundle (the old instance during a plugin update) finds the same state.
+ * Another version of the plugin reads this state, so its shape may only grow: never rename or retype a member.
+ */
+const SHARED_LOAD_STATE_KEY = Symbol.for('fix-require-modules:shared-load-state');
+
 interface Module {
   // eslint-disable-next-line typescript-dev-toolkit/readonly-interface-members -- Evaluated CommonJS scripts replace module.exports when publishing their exports.
   exports: object;
@@ -359,19 +373,27 @@ export abstract class RequireHandlerComponentBase extends ComponentEx implements
 
   private readonly consoleDebugComponent: ConsoleDebugComponent;
 
-  private readonly inFlightLoads = new Map<string, InFlightLoad>();
-
-  /**
-   * For each module being loaded, the modules that requested it and are still waiting for it: the request graph `findRequireCycle` walks.
-   */
-  private readonly moduleRequesters = new Map<string, Map<string, RequesterEdge>>();
-
   private originalRequire?: NodeJS.Require;
 
   private readonly pluginRequire: PluginRequireFunction;
+
   private readonly specialModuleFactories = new Map<string, (options: Partial<RequireOptions>) => unknown>();
+
   // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
   private readonly tempPluginRegistry: TempPluginRegistryComponent;
+  /**
+   * The loads in flight, keyed by resolved id. Kept on the module cache, so every handler sharing that cache sees them: see {@link getSharedLoadState}.
+   */
+  private get inFlightLoads(): Map<string, InFlightLoad> {
+    return getSharedLoadState(this.modulesCache).inFlightLoads;
+  }
+
+  /**
+   * For each module being loaded, the modules that requested it and are still waiting for it: the request graph `findRequireCycle` walks. Shared like {@link inFlightLoads}.
+   */
+  private get moduleRequesters(): Map<string, Map<string, RequesterEdge>> {
+    return getSharedLoadState(this.modulesCache).moduleRequesters;
+  }
 
   public constructor(params: RequireHandlerComponentBaseConstructorParams) {
     super();
@@ -1800,6 +1822,34 @@ const module = await requireAsync(url, { moduleType: 'jsTs' });`);
       return ModuleType.JsTs;
     }
   }
+}
+
+/**
+ * Returns the load bookkeeping stored on a module cache, creating it on first use.
+ *
+ * The cache is Node's own `require.cache`, which every plugin instance shares. A plugin update loads the new instance while the old one may still be loading the same vault scripts.
+ * With per-instance bookkeeping, each instance found the other's placeholder in the shared cache and returned its partially initialized exports, instead of waiting for that load.
+ *
+ * @param modulesCache - The module cache.
+ * @returns The shared state.
+ */
+function getSharedLoadState(modulesCache: NodeJS.Dict<NodeJS.Module>): SharedLoadState {
+  const holder = modulesCache as Partial<Record<typeof SHARED_LOAD_STATE_KEY, SharedLoadState>>;
+  let state = holder[SHARED_LOAD_STATE_KEY];
+  if (!state) {
+    state = {
+      inFlightLoads: new Map<string, InFlightLoad>(),
+      moduleRequesters: new Map<string, Map<string, RequesterEdge>>()
+    };
+    // Not enumerable, so nothing that walks the cache's entries sees it.
+    Object.defineProperty(holder, SHARED_LOAD_STATE_KEY, {
+      configurable: true,
+      enumerable: false,
+      value: state,
+      writable: false
+    });
+  }
+  return state;
 }
 
 function wrapModuleCodeWithoutTranspilation(code: string): string {

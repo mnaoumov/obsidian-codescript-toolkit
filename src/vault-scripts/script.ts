@@ -5,6 +5,10 @@ import type { Promisable } from 'type-fest';
 
 import { selectItem } from '@mnaoumov/obsidian-lib/modals/select-item';
 import {
+  noop,
+  noopAsync
+} from '@mnaoumov/typescript-lib/function';
+import {
   basename,
   join
 } from '@mnaoumov/typescript-lib/path';
@@ -39,6 +43,14 @@ export class ScriptManager {
   private readonly consoleDebugComponent: ConsoleDebugComponent;
   private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
+  /**
+   * The registration queued behind the one running, if any. Every request that arrives while it waits joins it.
+   */
+  private queuedRegistration: null | Promise<void> = null;
+  /**
+   * Settles when the last started or queued registration ends.
+   */
+  private registrationTail: Promise<void> = noopAsync();
   private readonly scriptRegistry: ScriptRegistryComponent;
 
   public constructor(params: ScriptManagerConstructorParams) {
@@ -49,27 +61,26 @@ export class ScriptManager {
     this.scriptRegistry = params.scriptRegistry;
   }
 
+  /**
+   * Registers the invocable scripts, one registration at a time.
+   *
+   * A request made while a registration runs queues one more, which starts when the running one ends, so it sees the latest settings and files. Requests made while that one is still queued share it.
+   * Two registrations running at once would unregister each other's commands and load the same scripts concurrently.
+   *
+   * @returns A promise that settles when a registration that started after this call ends.
+   */
   public async registerInvocableScripts(): Promise<void> {
-    this.scriptRegistry.unregisterInvocableCommands();
-
-    const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();
-
-    if (!invocableScriptsFolder) {
-      return;
+    if (this.queuedRegistration) {
+      return this.queuedRegistration;
     }
 
-    if (!await this.app.vault.adapter.exists(invocableScriptsFolder)) {
-      const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
-      this.pluginNoticeComponent.showNotice(message);
-      console.error(message);
-      return;
-    }
-
-    const scriptPaths = await getAllScriptPaths({ app: this.app, folder: '', scriptsFolder: this.pluginSettingsComponent.settings.getInvocableScriptsFolder() });
-
-    for (const scriptPath of scriptPaths) {
-      await this.scriptRegistry.registerScript(scriptPath);
-    }
+    const registration = this.registrationTail.then(async () => {
+      this.queuedRegistration = null;
+      await this.registerInvocableScriptsImpl();
+    });
+    this.queuedRegistration = registration;
+    this.registrationTail = registration.catch(noop);
+    return registration;
   }
 
   public async selectAndInvokeScript(): Promise<void> {
@@ -98,6 +109,29 @@ export class ScriptManager {
 
     if (!scriptPath.startsWith('Error:')) {
       await this.scriptRegistry.invokeScriptPath(scriptPath);
+    }
+  }
+
+  private async registerInvocableScriptsImpl(): Promise<void> {
+    this.scriptRegistry.unregisterInvocableCommands();
+
+    const invocableScriptsFolder = this.pluginSettingsComponent.settings.getInvocableScriptsFolder();
+
+    if (!invocableScriptsFolder) {
+      return;
+    }
+
+    if (!await this.app.vault.adapter.exists(invocableScriptsFolder)) {
+      const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
+      this.pluginNoticeComponent.showNotice(message);
+      console.error(message);
+      return;
+    }
+
+    const scriptPaths = await getAllScriptPaths({ app: this.app, folder: '', scriptsFolder: invocableScriptsFolder });
+
+    for (const scriptPath of scriptPaths) {
+      await this.scriptRegistry.registerScript(scriptPath);
     }
   }
 }
