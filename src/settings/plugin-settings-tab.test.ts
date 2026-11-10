@@ -18,8 +18,18 @@ import {
   vi
 } from 'vitest';
 
+import type { InvocableScriptsFolderTrust } from '../vault-scripts/invocable-scripts-folder-trust.ts';
+
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { PluginSettings } from './plugin-settings.ts';
+
+const mockTrust = {
+  isTrusted: vi.fn().mockReturnValue(false),
+  promptForTrust: vi.fn().mockResolvedValue(false),
+  revoke: vi.fn()
+};
+const mockRegisterInvocableScripts = vi.fn().mockResolvedValue(undefined);
+const TRUST_BUTTON_INDEX = 0;
 
 interface AppSetting {
   readonly openTabById: ReturnType<typeof vi.fn>;
@@ -499,8 +509,8 @@ describe('PluginSettingsTab', () => {
 
       renderRows(tabWithMock);
 
-      // Second button click handler is for Hotkeys "Configure" (after "Reset" button in Code button blocks).
-      const HOTKEYS_BUTTON_INDEX = 1;
+      // Third button click handler is for Hotkeys "Configure" (after the trust button in Paths and "Reset" in Code button blocks).
+      const HOTKEYS_BUTTON_INDEX = 2;
       const hotkeysClickHandler = mockButtonClickHandlers[HOTKEYS_BUTTON_INDEX];
       expect(hotkeysClickHandler).toBeDefined();
 
@@ -524,8 +534,8 @@ describe('PluginSettingsTab', () => {
 
       renderRows(tabWithMock);
 
-      // First button click handler is for "Reset to plugin default code button config" (in Code button blocks group).
-      const RESET_BUTTON_INDEX = 0;
+      // Second button click handler is for "Reset to plugin default code button config" (in Code button blocks group), after the trust button in Paths.
+      const RESET_BUTTON_INDEX = 1;
       const resetClickHandler = mockButtonClickHandlers[RESET_BUTTON_INDEX];
       expect(resetClickHandler).toBeDefined();
 
@@ -570,6 +580,50 @@ describe('PluginSettingsTab', () => {
     });
   });
 
+  describe('trust invocable scripts folder', () => {
+    beforeEach(() => {
+      mockTrust.isTrusted.mockReset().mockReturnValue(false);
+      mockTrust.promptForTrust.mockReset().mockResolvedValue(false);
+      mockTrust.revoke.mockReset();
+      mockRegisterInvocableScripts.mockClear();
+    });
+
+    it('should create the trust setting', () => {
+      expect(getSettingNames(tab)).toContain('Trust invocable scripts folder');
+    });
+
+    it('should do nothing more when the user declines the prompt', async () => {
+      renderRows(tab);
+
+      await (mockButtonClickHandlers[TRUST_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockTrust.promptForTrust).toHaveBeenCalledOnce();
+      expect(mockRegisterInvocableScripts).not.toHaveBeenCalled();
+      expect(tab.refresh).not.toHaveBeenCalled();
+    });
+
+    it('should register the scripts once the user trusts the folder', async () => {
+      mockTrust.promptForTrust.mockResolvedValue(true);
+      renderRows(tab);
+
+      await (mockButtonClickHandlers[TRUST_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
+      expect(tab.refresh).toHaveBeenCalled();
+    });
+
+    it('should revoke the trust of a trusted folder and re-register without prompting', async () => {
+      mockTrust.isTrusted.mockReturnValue(true);
+      renderRows(tab);
+
+      await (mockButtonClickHandlers[TRUST_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockTrust.revoke).toHaveBeenCalledOnce();
+      expect(mockTrust.promptForTrust).not.toHaveBeenCalled();
+      expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
+    });
+  });
+
   function createTab(params: CreateTabParams = {}): PluginSettingsTab {
     const openTabById = params.openTabById ?? vi.fn().mockReturnValue({
       searchComponent: { setValue: vi.fn() },
@@ -588,9 +642,11 @@ describe('PluginSettingsTab', () => {
     settings.modulesRoot = params.modulesRoot ?? '';
 
     const createdTab = new PluginSettingsTab({
+      invocableScriptsFolderTrust: castTo<InvocableScriptsFolderTrust>(mockTrust),
       plugin,
       pluginName: 'CodeScript Toolkit',
-      pluginSettingsComponent: createSettingsComponent(settings, params.editAndSave)
+      pluginSettingsComponent: createSettingsComponent(settings, params.editAndSave),
+      registerInvocableScripts: mockRegisterInvocableScripts
     });
 
     // The reset button asks Obsidian to re-render the tab; there is no rendered tab in a unit test.

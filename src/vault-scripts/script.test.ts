@@ -1,6 +1,7 @@
 import type { ConsoleDebugComponent } from '@mnaoumov/obsidian-lib/components/console-debug-component';
 import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { App } from 'obsidian';
+import type { Mock } from 'vitest';
 
 import { noop } from '@mnaoumov/typescript-lib/function';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
@@ -14,6 +15,7 @@ import {
 } from 'vitest';
 
 import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
+import type { InvocableScriptsFolderTrust } from './invocable-scripts-folder-trust.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import { ScriptRegistryComponent } from './script-registry.ts';
@@ -62,6 +64,12 @@ interface MockSettings {
   readonly getInvocableScriptsFolder: ReturnType<typeof vi.fn>;
 }
 
+interface MockTrust {
+  readonly isTrusted: ReturnType<typeof vi.fn>;
+  readonly promptForTrust: Mock<() => Promise<boolean>>;
+  readonly shouldPromptAutomatically: ReturnType<typeof vi.fn>;
+}
+
 interface MockVault {
   readonly adapter: MockAdapter;
 }
@@ -97,6 +105,7 @@ describe('ScriptManager', () => {
   let mockConsoleDebugComponent: MockConsoleDebugComponent;
   let scriptRegistry: ScriptRegistryComponent;
   let scriptManager: ScriptManager;
+  let mockTrust: MockTrust;
 
   beforeEach(() => {
     mockSelectItem.mockReset();
@@ -112,9 +121,16 @@ describe('ScriptManager', () => {
     mockConsoleDebugComponent = createMockConsoleDebugComponent();
     scriptRegistry = castTo<ScriptRegistryComponent>(new ScriptRegistryComponent(castTo<ConstructorParameters<typeof ScriptRegistryComponent>[0]>({})));
 
+    mockTrust = {
+      isTrusted: vi.fn().mockReturnValue(true),
+      promptForTrust: vi.fn().mockResolvedValue(false),
+      shouldPromptAutomatically: vi.fn().mockReturnValue(false)
+    };
+
     scriptManager = new ScriptManager({
       app: castTo<App>(mockApp),
       consoleDebugComponent: castTo<ConsoleDebugComponent>(mockConsoleDebugComponent),
+      invocableScriptsFolderTrust: castTo<InvocableScriptsFolderTrust>(mockTrust),
       pluginNoticeComponent: strictProxy<PluginNoticeComponent>({
         showNotice: vi.fn()
       }),
@@ -302,6 +318,55 @@ describe('ScriptManager', () => {
       expect(scriptRegistry.registerScript).toHaveBeenCalledWith('root.js');
       expect(scriptRegistry.registerScript).toHaveBeenCalledWith('sub/nested.ts');
     });
+
+    describe('when the folder is not trusted', () => {
+      const FOLDER = 'scripts';
+
+      beforeEach(() => {
+        mockPluginSettingsComponent.settings.getInvocableScriptsFolder.mockReturnValue(FOLDER);
+        mockApp.vault.adapter.exists.mockResolvedValue(true);
+        mockApp.vault.adapter.list.mockResolvedValue({ files: ['scripts/hello.js'], folders: [] });
+        mockTrust.isTrusted.mockReturnValue(false);
+      });
+
+      it('should neither list nor register any script', async () => {
+        await scriptManager.registerInvocableScripts();
+
+        expect(mockApp.vault.adapter.list).not.toHaveBeenCalled();
+        expect(scriptRegistry.registerScript).not.toHaveBeenCalled();
+      });
+
+      it('should not prompt when the folder was already asked about', async () => {
+        await scriptManager.registerInvocableScripts();
+
+        expect(mockTrust.promptForTrust).not.toHaveBeenCalled();
+      });
+
+      it('should prompt, and register nothing when the user declines', async () => {
+        mockTrust.shouldPromptAutomatically.mockReturnValue(true);
+
+        await scriptManager.registerInvocableScripts();
+        await vi.waitFor(() => {
+          expect(mockTrust.promptForTrust).toHaveBeenCalledOnce();
+        });
+
+        expect(scriptRegistry.registerScript).not.toHaveBeenCalled();
+      });
+
+      it('should register the scripts once the user trusts the folder', async () => {
+        mockTrust.shouldPromptAutomatically.mockReturnValueOnce(true);
+        mockTrust.promptForTrust.mockImplementation(() => {
+          mockTrust.isTrusted.mockReturnValue(true);
+          return Promise.resolve(true);
+        });
+
+        await scriptManager.registerInvocableScripts();
+
+        await vi.waitFor(() => {
+          expect(scriptRegistry.registerScript).toHaveBeenCalledWith('hello.js');
+        });
+      });
+    });
   });
 
   describe('selectAndInvokeScript', () => {
@@ -384,6 +449,38 @@ describe('ScriptManager', () => {
       await scriptManager.selectAndInvokeScript();
 
       expect(scriptRegistry.invokeScriptPath).toHaveBeenCalledWith(SCRIPT_PATH);
+    });
+
+    describe('when the folder is not trusted', () => {
+      const FOLDER = 'scripts';
+      const SCRIPT_PATH = 'test.js';
+
+      beforeEach(() => {
+        mockPluginSettingsComponent.settings.getInvocableScriptsFolder.mockReturnValue(FOLDER);
+        mockApp.vault.adapter.exists.mockResolvedValue(true);
+        mockApp.vault.adapter.list.mockResolvedValue({ files: [`${FOLDER}/${SCRIPT_PATH}`], folders: [] });
+        mockSelectItem.mockResolvedValue(SCRIPT_PATH);
+        mockTrust.isTrusted.mockReturnValue(false);
+      });
+
+      it('should not invoke the script when the user declines to trust the folder', async () => {
+        await scriptManager.selectAndInvokeScript();
+
+        expect(mockTrust.promptForTrust).toHaveBeenCalledOnce();
+        expect(scriptRegistry.invokeScriptPath).not.toHaveBeenCalled();
+      });
+
+      it('should register the folder and invoke the script once the user trusts it', async () => {
+        mockTrust.promptForTrust.mockImplementation(() => {
+          mockTrust.isTrusted.mockReturnValue(true);
+          return Promise.resolve(true);
+        });
+
+        await scriptManager.selectAndInvokeScript();
+
+        expect(scriptRegistry.registerScript).toHaveBeenCalledWith(SCRIPT_PATH);
+        expect(scriptRegistry.invokeScriptPath).toHaveBeenCalledWith(SCRIPT_PATH);
+      });
     });
 
     it('should pass correct placeholder to selectItem', async () => {

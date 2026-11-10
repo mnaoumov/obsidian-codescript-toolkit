@@ -4,6 +4,7 @@ import type { App } from 'obsidian';
 import type { Promisable } from 'type-fest';
 
 import { selectItem } from '@mnaoumov/obsidian-lib/modals/select-item';
+import { invokeAsyncSafely } from '@mnaoumov/typescript-lib/async';
 import {
   noop,
   noopAsync
@@ -14,6 +15,7 @@ import {
 } from '@mnaoumov/typescript-lib/path';
 
 import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
+import type { InvocableScriptsFolderTrust } from './invocable-scripts-folder-trust.ts';
 
 import { getCodeScriptToolkitNoteSettings } from './code-script-toolkit-note-settings.ts';
 import { ScriptRegistryComponent } from './script-registry.ts';
@@ -33,6 +35,7 @@ interface GetAllScriptPathsParams {
 interface ScriptManagerConstructorParams {
   readonly app: App;
   readonly consoleDebugComponent: ConsoleDebugComponent;
+  readonly invocableScriptsFolderTrust: InvocableScriptsFolderTrust;
   readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly scriptRegistry: ScriptRegistryComponent;
@@ -41,6 +44,7 @@ interface ScriptManagerConstructorParams {
 export class ScriptManager {
   private readonly app: App;
   private readonly consoleDebugComponent: ConsoleDebugComponent;
+  private readonly invocableScriptsFolderTrust: InvocableScriptsFolderTrust;
   private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   /**
@@ -56,6 +60,7 @@ export class ScriptManager {
   public constructor(params: ScriptManagerConstructorParams) {
     this.app = params.app;
     this.consoleDebugComponent = params.consoleDebugComponent;
+    this.invocableScriptsFolderTrust = params.invocableScriptsFolderTrust;
     this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.scriptRegistry = params.scriptRegistry;
@@ -107,9 +112,21 @@ export class ScriptManager {
       return;
     }
 
-    if (!scriptPath.startsWith('Error:')) {
-      await this.scriptRegistry.invokeScriptPath(scriptPath);
+    if (scriptPath.startsWith('Error:')) {
+      return;
     }
+
+    // The listing above runs no code, but invoking does. Asking here, rather than refusing, is what lets a user who
+    // declined the automatic prompt still run a script by choosing it.
+    if (!this.invocableScriptsFolderTrust.isTrusted()) {
+      if (!await this.invocableScriptsFolderTrust.promptForTrust()) {
+        return;
+      }
+
+      await this.registerInvocableScripts();
+    }
+
+    await this.scriptRegistry.invokeScriptPath(scriptPath);
   }
 
   private async registerInvocableScriptsImpl(): Promise<void> {
@@ -125,6 +142,22 @@ export class ScriptManager {
       const message = `Invocable scripts folder not found: ${invocableScriptsFolder}`;
       this.pluginNoticeComponent.showNotice(message);
       console.error(message);
+      return;
+    }
+
+    // Registering a script evaluates it, so an untrusted folder is not even listed: a file synced into it must not run
+    // before the user has agreed to run that folder's code on this device.
+    if (!this.invocableScriptsFolderTrust.isTrusted()) {
+      this.consoleDebugComponent.consoleDebug(`Invocable scripts folder is not trusted on this device: ${invocableScriptsFolder}`);
+      if (this.invocableScriptsFolderTrust.shouldPromptAutomatically()) {
+        // Not awaited: this runs while the plugin loads, which must not wait for the user to answer. The registration it
+        // requests queues behind this one.
+        invokeAsyncSafely(async () => {
+          if (await this.invocableScriptsFolderTrust.promptForTrust()) {
+            await this.registerInvocableScripts();
+          }
+        });
+      }
       return;
     }
 

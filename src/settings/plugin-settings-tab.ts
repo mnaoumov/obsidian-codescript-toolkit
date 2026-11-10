@@ -11,13 +11,16 @@ import {
   stringifyYaml
 } from 'obsidian';
 
+import type { InvocableScriptsFolderTrust } from '../vault-scripts/invocable-scripts-folder-trust.ts';
 import type { PluginSettings } from './plugin-settings.ts';
 
 import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from '../code-buttons/code-button-block.ts';
 import { PathSuggest } from './path-suggest.ts';
 
 interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstructorParams<PluginSettings> {
+  readonly invocableScriptsFolderTrust: InvocableScriptsFolderTrust;
   readonly pluginName: string;
+  readonly registerInvocableScripts: () => Promise<void>;
 }
 
 const MAX_INTERVAL_FOR_SET_TIMEOUT = 2_147_483_647;
@@ -25,11 +28,15 @@ const MILLISECONDS_IN_SECOND = 1000;
 const MAX_CHECKING_INTERVAL_IN_SECONDS = MAX_INTERVAL_FOR_SET_TIMEOUT / MILLISECONDS_IN_SECOND;
 
 export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
+  private readonly invocableScriptsFolderTrust: InvocableScriptsFolderTrust;
   private readonly pluginName: string;
+  private readonly registerInvocableScripts: () => Promise<void>;
 
   public constructor(params: PluginSettingsTabConstructorParams) {
     super(params);
+    this.invocableScriptsFolderTrust = params.invocableScriptsFolderTrust;
     this.pluginName = params.pluginName;
+    this.registerInvocableScripts = params.registerInvocableScripts;
   }
 
   protected override getSettingDefinitionItems(): SettingDefinitionItem[] {
@@ -85,7 +92,7 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
               f.createEl('br');
               f.appendText('Leave blank if you don\'t use invocable scripts.');
               f.createEl('br');
-              f.appendText('Scripts in this folder run as soon as they are registered, before you invoke them. Use only a folder you trust.');
+              f.appendText('Scripts in this folder run as soon as they are registered, before you invoke them, so nothing in it is registered until you trust the folder on this device.');
             }),
             name: 'Invocable scripts folder',
             render: (setting) => {
@@ -109,6 +116,31 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
                   suggest.refresh();
                 });
               });
+            }
+          }),
+          this.settingEx({
+            desc: createFragment((f) => {
+              f.appendText('Whether the invocable scripts folder may run on this device.');
+              f.createEl('br');
+              f.appendText('Trust is stored on this device only and is never synced. It is tied to the folder path, so pointing the setting at another folder makes it untrusted again.');
+            }),
+            name: 'Trust invocable scripts folder',
+            render: (setting) => {
+              const trust = this.invocableScriptsFolderTrust;
+              setting.addButton((button) =>
+                button
+                  .setButtonText(trust.isTrusted() ? 'Revoke trust' : 'Trust this folder')
+                  .onClick(convertAsyncToSync(async () => {
+                    if (trust.isTrusted()) {
+                      trust.revoke();
+                    } else if (!await trust.promptForTrust()) {
+                      return;
+                    }
+
+                    await this.registerInvocableScripts();
+                    this.refresh();
+                  }))
+              );
             }
           }),
           this.settingEx({

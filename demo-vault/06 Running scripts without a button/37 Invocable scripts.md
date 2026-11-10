@@ -123,7 +123,13 @@ export async function buildInvokeCommand(app: App): Promise<Partial<Command>> {
 
 > [!WARNING]
 >
-> Registering a script runs it. To read a script's exports, the plugin loads the whole module, so its top-level code and `buildInvokeCommand()` run as soon as the script is registered, before you invoke anything. Registration happens when the plugin loads, when its settings change, and whenever a file in the folder changes. Scripts have full access to the app and, on desktop, to Node.js. Anyone who can write to this folder, for example through a synced or shared vault, can run code on your device, so point this setting only at a folder you trust.
+> Registering a script runs it. To read a script's exports, the plugin loads the whole module, so its top-level code and `buildInvokeCommand()` run as soon as the script is registered, before you invoke anything. Registration happens when the plugin loads, when its settings change, and whenever a file in the folder changes. Scripts have full access to the app and, on desktop, to Node.js. Anyone who can write to this folder, for example through a synced or shared vault, can run code on your device.
+
+That is why nothing in the folder is registered until you trust it on this device. The first time the plugin finds an untrusted folder, it asks whether to trust it. Answer **Don't trust** and none of its scripts is registered; you are asked again after a restart, or when you choose a script with the `Invoke script: <<Choose>>` command. You can trust the folder, or revoke the trust, at any time with the **Trust invocable scripts folder** button in the plugin's settings.
+
+Trust is stored in this device's `localStorage`, which is never synced, so every device asks on its own. It records the folder's path rather than a yes or no, so pointing the setting at a different folder makes it untrusted again.
+
+The two buttons in the next section trust this vault's folder for you, since you clicked them.
 
 ## Caveats
 
