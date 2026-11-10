@@ -51,6 +51,13 @@ import {
   it
 } from 'vitest';
 
+/**
+ * The part of the plugin's public surface the setup calls through `app.plugins`.
+ */
+interface TrustingPlugin {
+  readonly trustInvocableScriptsFolder: () => Promise<void>;
+}
+
 const WIDTH_IN_PIXELS = 900;
 const HEIGHT_IN_PIXELS = 1600;
 
@@ -133,12 +140,25 @@ beforeAll(async () => {
   await vault.syncToDevice();
 
   setupDiagnostics = await evalInObsidian({
-    async callback({ app, fontSizeInPixels, lib: { waitUntil }, subjectNotePath }) {
+    async callback({ app, fontSizeInPixels, lib: { waitUntil }, pluginId, subjectNotePath }) {
       // A closure runs inside ONE Appium `execute/sync` call, which WebDriver
       // caps around 30s. A longer wait in here dies as an opaque `script
       // timeout` rather than a readable failure, so keep every wait under it.
       const SETTLE_TIMEOUT_IN_MILLISECONDS = 20_000;
       const SETTLE_DELAY_IN_MILLISECONDS = 1500;
+
+      // Nothing in an untrusted folder is registered, so the plugin asked
+      // about the staged folder as it loaded. Trust it, then close that
+      // prompt, which would otherwise sit in every frame. Not awaited:
+      // registering compiles every script, which outlasts this call's cap,
+      // so `waitForScriptCommands` below polls for it instead.
+      const plugin = app.plugins.getPlugin(pluginId) as null | TrustingPlugin;
+      plugin?.trustInvocableScriptsFolder().catch((error: unknown) => {
+        console.error(error);
+      });
+      for (const closeButton of document.querySelectorAll<HTMLElement>('.modal-container .modal-close-button')) {
+        closeButton.click();
+      }
 
       app.changeTheme('obsidian');
 
@@ -161,6 +181,7 @@ beforeAll(async () => {
     },
     input: {
       fontSizeInPixels: MOBILE_FONT_SIZE_IN_PIXELS,
+      pluginId: PLUGIN_ID,
       subjectNotePath: SUBJECT_NOTE_PATH
     },
     vaultPath: vaultPath()

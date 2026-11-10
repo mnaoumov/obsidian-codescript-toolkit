@@ -43,6 +43,7 @@ export async function installConfigureEnable(app: App, pluginId: string, setting
  * @param shouldBeRegistered - Whether to wait for the command to appear (`true`) or to disappear (`false`).
  */
 export async function waitForInvocableCommand(app: App, relativeScriptPath: string, shouldBeRegistered: boolean): Promise<void> {
+  await trustInvocableScriptsFolder(app);
   const commandId = `${INVOKE_SCRIPT_COMMAND_ID_PREFIX}${relativeScriptPath}`;
 
   for (let elapsed = 0; elapsed <= POLL_TIMEOUT_IN_MILLISECONDS; elapsed += POLL_INTERVAL_IN_MILLISECONDS) {
@@ -55,6 +56,18 @@ export async function waitForInvocableCommand(app: App, relativeScriptPath: stri
   }
 
   throw new Error(`Timed out waiting for ${relativeScriptPath} to be ${shouldBeRegistered ? 'registered' : 'unregistered'}`);
+}
+
+/**
+ * Trusts this vault's invocable scripts folder on this device, which a plain load of the vault never does: until a
+ * folder is trusted, none of its scripts is registered. These demos are buttons you clicked, so the code calling this
+ * already runs with your consent. In a vault of your own, trust the folder from the plugin's settings instead.
+ *
+ * @param app - Obsidian app instance.
+ */
+async function trustInvocableScriptsFolder(app: App): Promise<void> {
+  const plugin = app.plugins.getPlugin(CODE_SCRIPT_TOOLKIT_PLUGIN_ID) as null | { trustInvocableScriptsFolder(): Promise<void> };
+  await plugin?.trustInvocableScriptsFolder();
 }
 
 /**

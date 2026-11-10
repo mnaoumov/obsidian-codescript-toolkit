@@ -7,6 +7,8 @@ import {
   it
 } from 'vitest';
 
+import { TRUSTED_INVOCABLE_SCRIPTS_FOLDER_KEY } from './trusted-invocable-scripts-folder-key.ts';
+
 const MODULES_ROOT = '_int-test-invocables';
 const INVOCABLES_FOLDER = 'scripts';
 const PLUGIN_ID = 'fix-require-modules';
@@ -41,7 +43,10 @@ beforeAll(async () => {
   });
 
   await evalInObsidian({
-    async callback({ app, pluginId }) {
+    async callback({ app, pluginId, trustedFolder, trustKey }) {
+      // Nothing in an untrusted folder is registered, so trust it on this device before the plugin loads.
+      app.saveLocalStorage(trustKey, trustedFolder);
+
       // Reload plugin to pick up new data.json + scripts
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
@@ -50,7 +55,11 @@ beforeAll(async () => {
       const WATCHER_SETTLE_DELAY_MS = 3000;
       await sleep(WATCHER_SETTLE_DELAY_MS);
     },
-    input: { pluginId: PLUGIN_ID },
+    input: {
+      pluginId: PLUGIN_ID,
+      trustedFolder: `${MODULES_ROOT}/${INVOCABLES_FOLDER}`,
+      trustKey: TRUSTED_INVOCABLE_SCRIPTS_FOLDER_KEY
+    },
     vaultPath: vault.path
   });
 }, 30_000);

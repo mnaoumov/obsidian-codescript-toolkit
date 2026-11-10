@@ -7,6 +7,7 @@ import { PluginMarkdownCodeBlockProcessorRegistrar } from '@mnaoumov/obsidian-li
 import { PluginBase } from '@mnaoumov/obsidian-lib/plugin/plugin';
 import { PluginEventSourceImpl } from '@mnaoumov/obsidian-lib/plugin/plugin-event-source';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
+import { ensureNonNullable } from '@mnaoumov/typescript-lib/type-guards';
 
 import { CodeButtonBlockComponent } from './code-buttons/code-button-block.ts';
 import { CodeButtonCodeHighlighterComponent } from './code-buttons/code-button-code-highlighter-component.ts';
@@ -25,6 +26,7 @@ import { PluginSettingsTab } from './settings/plugin-settings-tab.ts';
 // eslint-disable-next-line unicorn/name-replacements -- The `temp` in this plugin's temp-plugin API is documented public surface (demo-vault/07 Code buttons in depth/44 Code button context.md) that user scripts call by name, so it is vocabulary rather than an abbreviation.
 import { TempPluginRegistryComponent } from './temp-plugins/temporary-plugin-registry.ts';
 import { CodeScriptCodeHighlighterComponent } from './vault-scripts/code-script-code-highlighter-component.ts';
+import { InvocableScriptsFolderTrust } from './vault-scripts/invocable-scripts-folder-trust.ts';
 import { ScratchScript } from './vault-scripts/scratch-script.ts';
 import { ScriptRegistryComponent } from './vault-scripts/script-registry.ts';
 import { ScriptManager } from './vault-scripts/script.ts';
@@ -53,6 +55,21 @@ export class Plugin extends PluginBase {
    */
   public override set pluginSettingsComponent(value: PluginSettingsComponent) {
     super.pluginSettingsComponent = value;
+  }
+
+  private invocableScriptsFolderTrust?: InvocableScriptsFolderTrust;
+
+  private scriptManager?: ScriptManager;
+
+  /**
+   * Trusts the configured invocable scripts folder on this device without asking, and registers its scripts.
+   *
+   * For code that already runs with the user's consent -- a code button the user clicked, an integration test -- and
+   * needs the folder's commands. Anything able to call this can already run arbitrary code, so it grants nothing new.
+   */
+  public async trustInvocableScriptsFolder(): Promise<void> {
+    ensureNonNullable(this.invocableScriptsFolderTrust).trust();
+    await ensureNonNullable(this.scriptManager).registerInvocableScripts();
   }
 
   protected override async onloadImpl(): Promise<void> {
@@ -115,13 +132,21 @@ export class Plugin extends PluginBase {
       })
     );
 
+    const invocableScriptsFolderTrust = new InvocableScriptsFolderTrust({
+      app: this.app,
+      pluginSettingsComponent
+    });
+    this.invocableScriptsFolderTrust = invocableScriptsFolderTrust;
+
     const scriptManager = new ScriptManager({
       app: this.app,
       consoleDebugComponent: this.consoleDebugComponent,
+      invocableScriptsFolderTrust,
       pluginNoticeComponent: this.pluginNoticeComponent,
       pluginSettingsComponent,
       scriptRegistry
     });
+    this.scriptManager = scriptManager;
 
     const scratchScript = new ScratchScript({
       app: this.app,
@@ -134,9 +159,11 @@ export class Plugin extends PluginBase {
     this.addChild(new CodeButtonCodeHighlighterComponent());
 
     const pluginSettingsTab = new PluginSettingsTab({
+      invocableScriptsFolderTrust,
       plugin: this,
       pluginName: this.manifest.name,
-      pluginSettingsComponent
+      pluginSettingsComponent,
+      registerInvocableScripts: (): Promise<void> => scriptManager.registerInvocableScripts()
     });
 
     this.addChild(

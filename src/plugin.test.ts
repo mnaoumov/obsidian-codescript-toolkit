@@ -112,7 +112,22 @@ vi.mock('./vault-scripts/script-registry.ts', () => ({
 }));
 
 vi.mock('./vault-scripts/script.ts', () => ({
-  ScriptManager: vi.fn()
+  // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new`.
+  ScriptManager: vi.fn(function () {
+    return { registerInvocableScripts: mockRegisterInvocableScripts };
+  })
+}));
+
+const { mockRegisterInvocableScripts, mockTrust } = vi.hoisted(() => ({
+  mockRegisterInvocableScripts: vi.fn().mockResolvedValue(undefined),
+  mockTrust: vi.fn()
+}));
+
+vi.mock('./vault-scripts/invocable-scripts-folder-trust.ts', () => ({
+  // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new`.
+  InvocableScriptsFolderTrust: vi.fn(function () {
+    return { trust: mockTrust };
+  })
 }));
 
 vi.mock('./vault-scripts/startup-script.ts', () => ({
@@ -208,6 +223,16 @@ describe('Plugin', () => {
     // instance — a copy would not be the one the running plugin reads its settings from.
     expect(plugin.pluginSettingsComponent).toBe(addChildSpy.mock.calls[0]?.[0]);
     expect(plugin.pluginSettingsComponent).toBeDefined();
+  });
+
+  it('should trust the invocable scripts folder and register its scripts', async () => {
+    const plugin = createPlugin();
+    await castTo<PluginPrivateApi>(plugin).onloadImpl();
+
+    await plugin.trustInvocableScriptsFolder();
+
+    expect(mockTrust).toHaveBeenCalledOnce();
+    expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
   });
 
   it('should assign app from constructor argument', () => {
