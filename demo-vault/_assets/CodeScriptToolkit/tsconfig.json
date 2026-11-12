@@ -1,0 +1,17 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "outDir": "../../../dist/demo-vault-setup",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "tsBuildInfoFile": "../../../dist/demo-vault-setup/tsconfig.tsbuildinfo"
+  },
+  "include": [],
+  "files": [
+    "./demoSetup.ts",
+    "./startup.ts"
+  ]
+}

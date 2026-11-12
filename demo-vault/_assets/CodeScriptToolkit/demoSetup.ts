@@ -1,11 +1,11 @@
 import type { App } from 'obsidian';
 
-import { Notice } from 'obsidian';
 import {
   configureCommunityPlugin,
   enableCommunityPlugin,
   installCommunityPlugin
 } from '@mnaoumov/obsidian-lib/community-plugins';
+import { Notice } from 'obsidian';
 
 const CODE_SCRIPT_TOOLKIT_PLUGIN_ID = 'fix-require-modules';
 const INVOKE_SCRIPT_COMMAND_ID_PREFIX = `${CODE_SCRIPT_TOOLKIT_PLUGIN_ID}:invoke-script-file-`;
@@ -13,6 +13,14 @@ const POLL_INTERVAL_IN_MILLISECONDS = 100;
 const POLL_TIMEOUT_IN_MILLISECONDS = 5000;
 const STABLE_POLL_COUNT = 3;
 const WATCHER_REARM_DELAY_IN_MILLISECONDS = 250;
+
+/**
+ * The one member of the `CodeScript Toolkit` plugin instance these demos call. Named here rather than imported,
+ * because a vault script cannot reach the plugin's source: what it gets from `getPlugin` is the running instance.
+ */
+interface CodeScriptToolkitPlugin {
+  readonly trustInvocableScriptsFolder: () => Promise<void>;
+}
 
 /**
  * Installs a community plugin, writes its settings, THEN enables it — in that order — so the
@@ -47,7 +55,7 @@ export async function waitForInvocableCommand(app: App, relativeScriptPath: stri
   const commandId = `${INVOKE_SCRIPT_COMMAND_ID_PREFIX}${relativeScriptPath}`;
 
   for (let elapsed = 0; elapsed <= POLL_TIMEOUT_IN_MILLISECONDS; elapsed += POLL_INTERVAL_IN_MILLISECONDS) {
-    if (Boolean(app.commands.commands[commandId]) === shouldBeRegistered) {
+    if (Object.hasOwn(app.commands.commands, commandId) === shouldBeRegistered) {
       await waitForRegistrationToSettle(app);
       return;
     }
@@ -59,6 +67,18 @@ export async function waitForInvocableCommand(app: App, relativeScriptPath: stri
 }
 
 /**
+ * Checks that a plugin instance is a `CodeScript Toolkit` that can trust its invocable scripts folder. An older build
+ * of the plugin has no such method, and its folder needs no trust either.
+ *
+ * @param plugin - The plugin instance, or `null` when the plugin is not enabled.
+ * @returns Whether the instance has the method.
+ */
+function isCodeScriptToolkitPlugin(plugin: unknown): plugin is CodeScriptToolkitPlugin {
+  return typeof plugin === 'object' && plugin !== null && 'trustInvocableScriptsFolder' in plugin
+    && typeof plugin.trustInvocableScriptsFolder === 'function';
+}
+
+/**
  * Trusts this vault's invocable scripts folder on this device, which a plain load of the vault never does: until a
  * folder is trusted, none of its scripts is registered. These demos are buttons you clicked, so the code calling this
  * already runs with your consent. In a vault of your own, trust the folder from the plugin's settings instead.
@@ -66,8 +86,10 @@ export async function waitForInvocableCommand(app: App, relativeScriptPath: stri
  * @param app - Obsidian app instance.
  */
 async function trustInvocableScriptsFolder(app: App): Promise<void> {
-  const plugin = app.plugins.getPlugin(CODE_SCRIPT_TOOLKIT_PLUGIN_ID) as null | { trustInvocableScriptsFolder(): Promise<void> };
-  await plugin?.trustInvocableScriptsFolder();
+  const plugin = app.plugins.getPlugin(CODE_SCRIPT_TOOLKIT_PLUGIN_ID);
+  if (isCodeScriptToolkitPlugin(plugin)) {
+    await plugin.trustInvocableScriptsFolder();
+  }
 }
 
 /**
