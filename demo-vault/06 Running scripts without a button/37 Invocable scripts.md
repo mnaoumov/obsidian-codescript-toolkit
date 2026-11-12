@@ -125,9 +125,14 @@ export async function buildInvokeCommand(app: App): Promise<Partial<Command>> {
 >
 > Registering a script runs it. To read a script's exports, the plugin loads the whole module, so its top-level code and `buildInvokeCommand()` run as soon as the script is registered, before you invoke anything. Registration happens when the plugin loads, when its settings change, and whenever a file in the folder changes. Scripts have full access to the app and, on desktop, to Node.js. Anyone who can write to this folder, for example through a synced or shared vault, can run code on your device.
 
-That is why nothing in the folder is registered until you trust it on this device. The first time the plugin finds an untrusted folder, it asks whether to trust it. Answer **Don't trust** and none of its scripts is registered; you are asked again after a restart, or when you choose a script with the `Invoke script: <<Choose>>` command. You can trust the folder, or revoke the trust, at any time with the **Trust invocable scripts folder** button in the plugin's settings.
+That is why nothing in the folder is registered until you trust it on this device. The first time the plugin finds an untrusted folder, it asks whether to trust it. Answer **Don't trust** and none of its scripts is registered; you are asked again after a restart, or when you choose a script with the `Invoke script: <<Choose>>` command. You can trust the folder, or untrust it, at any time with the **Trust invocable scripts folder** button in the plugin's settings, or with the `CodeScript Toolkit: Trust invocable scripts folder` and `CodeScript Toolkit: Untrust invocable scripts folder` commands.
 
-Trust is stored in this device's `localStorage`, which is never synced, so every device asks on its own. It records the folder's path rather than a yes or no, so pointing the setting at a different folder makes it untrusted again.
+Trust is stored in this device's `localStorage`, which is never synced, so every device asks on its own. The device keeps a list of the folders you trusted, the way VS Code's workspace trust does:
+
+- pointing the setting at a folder you have not trusted asks again, but switching back to a folder you trusted before does not;
+- a folder inside a trusted folder is trusted too, since whoever can write the outer folder can already write the inner one;
+- the **Trusted folders** section of the settings lists every trusted folder, with a **Remove** button for each. Removing the one that covers the current folder stops its scripts until you trust it again;
+- untrusting the current folder also removes every trusted folder that contains it, otherwise it would stay trusted through them.
 
 The two buttons in the next section trust this vault's folder for you, since you clicked them.
 
