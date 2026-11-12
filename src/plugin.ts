@@ -17,7 +17,9 @@ import { InsertSampleCodeButtonCommandHandler } from './command-handlers/insert-
 import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-script-choose-command-handler.ts';
 import { ReloadStartupScriptCommandHandler } from './command-handlers/reload-startup-script-command-handler.ts';
 import { RunScratchScriptCommandHandler } from './command-handlers/run-scratch-script-command-handler.ts';
+import { TrustInvocableScriptsFolderCommandHandler } from './command-handlers/trust-invocable-scripts-folder-command-handler.ts';
 import { UnloadTempPluginsCommandHandler as UnloadTemporaryPluginsCommandHandler } from './command-handlers/unload-temp-plugins-command-handler.ts';
+import { UntrustInvocableScriptsFolderCommandHandler } from './command-handlers/untrust-invocable-scripts-folder-command-handler.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 import { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 import { ScriptFolderWatcherFactoryComponent } from './script-folder-watchers/script-folder-watcher-factory.ts';
@@ -147,6 +149,9 @@ export class Plugin extends PluginBase {
       scriptRegistry
     });
     this.scriptManager = scriptManager;
+    function registerInvocableScripts(): Promise<void> {
+      return scriptManager.registerInvocableScripts();
+    }
 
     const scratchScript = new ScratchScript({
       app: this.app,
@@ -163,7 +168,7 @@ export class Plugin extends PluginBase {
       plugin: this,
       pluginName: this.manifest.name,
       pluginSettingsComponent,
-      registerInvocableScripts: (): Promise<void> => scriptManager.registerInvocableScripts()
+      registerInvocableScripts
     });
 
     this.addChild(
@@ -195,7 +200,9 @@ export class Plugin extends PluginBase {
       }),
       new ReloadStartupScriptCommandHandler(startupScriptComponent),
       new RunScratchScriptCommandHandler(scratchScript),
-      new UnloadTemporaryPluginsCommandHandler(tempPluginRegistry)
+      new TrustInvocableScriptsFolderCommandHandler({ invocableScriptsFolderTrust, registerInvocableScripts }),
+      new UnloadTemporaryPluginsCommandHandler(tempPluginRegistry),
+      new UntrustInvocableScriptsFolderCommandHandler({ invocableScriptsFolderTrust, registerInvocableScripts })
     ]);
 
     this.addChild(

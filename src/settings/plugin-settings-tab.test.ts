@@ -24,9 +24,12 @@ import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { PluginSettings } from './plugin-settings.ts';
 
 const mockTrust = {
+  getFolder: vi.fn().mockReturnValue('scripts'),
+  getTrustedFolders: vi.fn().mockReturnValue([]),
   isTrusted: vi.fn().mockReturnValue(false),
   promptForTrust: vi.fn().mockResolvedValue(false),
-  revoke: vi.fn()
+  removeTrustedFolder: vi.fn(),
+  untrust: vi.fn()
 };
 const mockRegisterInvocableScripts = vi.fn().mockResolvedValue(undefined);
 const TRUST_BUTTON_INDEX = 0;
@@ -297,7 +300,7 @@ describe('PluginSettingsTab', () => {
     it('should group the rows under the expected headings', () => {
       const headings = tab.getSettingDefinitions().map((item) => 'heading' in item ? item.heading : '');
 
-      expect(headings).toStrictEqual(['Paths', 'Desktop', 'Mobile', 'Code button blocks', 'Other']);
+      expect(headings).toStrictEqual(['Paths', 'Trusted folders', 'Desktop', 'Mobile', 'Code button blocks', 'Other']);
     });
 
     it('should create Script modules root setting', () => {
@@ -584,7 +587,9 @@ describe('PluginSettingsTab', () => {
     beforeEach(() => {
       mockTrust.isTrusted.mockReset().mockReturnValue(false);
       mockTrust.promptForTrust.mockReset().mockResolvedValue(false);
-      mockTrust.revoke.mockReset();
+      mockTrust.untrust.mockReset();
+      mockTrust.removeTrustedFolder.mockReset();
+      mockTrust.getTrustedFolders.mockReset().mockReturnValue([]);
       mockRegisterInvocableScripts.mockClear();
     });
 
@@ -612,15 +617,47 @@ describe('PluginSettingsTab', () => {
       expect(tab.refresh).toHaveBeenCalled();
     });
 
-    it('should revoke the trust of a trusted folder and re-register without prompting', async () => {
+    it('should untrust a trusted folder and re-register without prompting', async () => {
       mockTrust.isTrusted.mockReturnValue(true);
       renderRows(tab);
 
       await (mockButtonClickHandlers[TRUST_BUTTON_INDEX] as () => Promise<void>)();
 
-      expect(mockTrust.revoke).toHaveBeenCalledOnce();
+      expect(mockTrust.untrust).toHaveBeenCalledOnce();
       expect(mockTrust.promptForTrust).not.toHaveBeenCalled();
       expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
+    });
+
+    it('should say so when no folder is trusted', () => {
+      expect(getSettingNames(tab)).toContain('No folders are trusted on this device');
+    });
+
+    it('should list every trusted folder, marking the one covering the current folder', () => {
+      mockTrust.getTrustedFolders.mockReturnValue(['other', 'scripts']);
+
+      const rows = collectRows(tab);
+      const names = getSettingNames(tab);
+
+      expect(names).toContain('other');
+      expect(names).toContain('scripts');
+      expect(names).not.toContain('No folders are trusted on this device');
+
+      const descriptions = rows.map((row) => 'desc' in row ? row.desc : '');
+      expect(descriptions[names.indexOf('scripts')]).toMatch(/^Trusts the current invocable scripts folder/u);
+      expect(descriptions[names.indexOf('other')]).toBe('Not the current invocable scripts folder.');
+    });
+
+    it('should remove a trusted folder and re-register', async () => {
+      mockTrust.getTrustedFolders.mockReturnValue(['scripts']);
+      renderRows(tab);
+
+      // The trust button in Paths is first, then the one Remove button of the trusted folders list.
+      const REMOVE_BUTTON_INDEX = 1;
+      await (mockButtonClickHandlers[REMOVE_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockTrust.removeTrustedFolder).toHaveBeenCalledWith('scripts');
+      expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
+      expect(tab.refresh).toHaveBeenCalled();
     });
   });
 

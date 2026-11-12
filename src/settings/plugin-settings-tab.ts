@@ -1,9 +1,13 @@
 import type { PluginSettingsTabBaseConstructorParams } from '@mnaoumov/obsidian-lib/plugin/plugin-settings-tab';
-import type { SettingDefinitionItem } from 'obsidian';
+import type {
+  SettingDefinitionItem,
+  SettingGroupItem
+} from 'obsidian';
 
 import { appendCodeBlock } from '@mnaoumov/obsidian-lib/html-element';
 import { PluginSettingsTabBase } from '@mnaoumov/obsidian-lib/plugin/plugin-settings-tab';
 import { convertAsyncToSync } from '@mnaoumov/typescript-lib/async';
+import { noop } from '@mnaoumov/typescript-lib/function';
 import { EMPTY } from '@mnaoumov/typescript-lib/string';
 import { ValueWrapper } from '@mnaoumov/typescript-lib/value-wrapper';
 import {
@@ -15,6 +19,7 @@ import type { InvocableScriptsFolderTrust } from '../vault-scripts/invocable-scr
 import type { PluginSettings } from './plugin-settings.ts';
 
 import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from '../code-buttons/code-button-block.ts';
+import { isSameOrUnderFolder } from '../vault-scripts/is-same-or-under-folder.ts';
 import { PathSuggest } from './path-suggest.ts';
 
 interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstructorParams<PluginSettings> {
@@ -122,17 +127,21 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             desc: createFragment((f) => {
               f.appendText('Whether the invocable scripts folder may run on this device.');
               f.createEl('br');
-              f.appendText('Trust is stored on this device only and is never synced. It is tied to the folder path, so pointing the setting at another folder makes it untrusted again.');
+              f.appendText('Trust is stored on this device only and is never synced. Every folder you trust is kept in the ');
+              appendCodeBlock(f, 'Trusted folders');
+              f.appendText(' list below, and a folder inside a trusted folder is trusted too.');
+              f.createEl('br');
+              f.appendText('Untrusting the folder also removes every trusted folder that contains it.');
             }),
             name: 'Trust invocable scripts folder',
             render: (setting) => {
               const trust = this.invocableScriptsFolderTrust;
               setting.addButton((button) =>
                 button
-                  .setButtonText(trust.isTrusted() ? 'Revoke trust' : 'Trust this folder')
+                  .setButtonText(trust.isTrusted() ? 'Untrust this folder' : 'Trust this folder')
                   .onClick(convertAsyncToSync(async () => {
                     if (trust.isTrusted()) {
-                      trust.revoke();
+                      trust.untrust();
                     } else if (!await trust.promptForTrust()) {
                       return;
                     }
@@ -207,6 +216,10 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
             }
           })
         ]
+      }),
+      this.settingGroupEx({
+        heading: 'Trusted folders',
+        items: this.getTrustedFolderItems()
       }),
       this.settingGroupEx({
         heading: 'Desktop',
@@ -339,5 +352,44 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
         ]
       })
     ];
+  }
+
+  private getTrustedFolderItems(): SettingGroupItem[] {
+    const trust = this.invocableScriptsFolderTrust;
+    const trustedFolders = trust.getTrustedFolders();
+
+    if (trustedFolders.length === 0) {
+      return [
+        this.settingEx({
+          desc: 'Invocable scripts folders trusted on this device are listed here.',
+          name: 'No folders are trusted on this device',
+          render: noop
+        })
+      ];
+    }
+
+    const currentFolder = trust.getFolder();
+
+    return trustedFolders.map((folder) =>
+      this.settingEx({
+        desc: isSameOrUnderFolder(currentFolder, folder)
+          ? 'Trusts the current invocable scripts folder. Removing it stops its scripts until you trust the folder again.'
+          : 'Not the current invocable scripts folder.',
+        name: folder,
+        render: (setting) => {
+          setting.addButton((button) =>
+            button
+              .setButtonText('Remove')
+              .setTooltip(`Stop trusting ${folder}`)
+              .setDestructive()
+              .onClick(convertAsyncToSync(async () => {
+                trust.removeTrustedFolder(folder);
+                await this.registerInvocableScripts();
+                this.refresh();
+              }))
+          );
+        }
+      })
+    );
   }
 }
