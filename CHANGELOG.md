@@ -2,16 +2,24 @@
 
 ## 15.3.0
 
-- test: cover the settings tab registering invocable scripts
-- feat: re #64
+This release has 1 new feature. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
+
+### New
+
+- **invocable scripts:** ask before running the Invocable Scripts Folder on a device. Registering a script runs it, so a file synced into that folder used to run without being invoked. Until you trust the folder on this device, nothing in it is registered or invoked, and another device or another folder asks again (#64)
 
 ## 15.2.1
 
-- test: pin temporary plugin CSS reaching popout windows
-- fix: wait for a script another plugin instance is still loading
-- docs: re #64
-- chore: adopt `obsidian-dev-toolkit` 9 for the release minimum
-- docs(changelog): regroup the published release notes for readers
+This release has 1 fix and 2 documentation changes. 2 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### Fixed
+
+- wait for a script another plugin instance is still loading
+
+### Documentation
+
+- warn that registering an invocable script runs it (#64)
+- **changelog:** regroup the published release notes for readers
 
 ## 15.2.0
 
