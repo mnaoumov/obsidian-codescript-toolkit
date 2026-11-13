@@ -16,6 +16,7 @@ import {
 } from 'obsidian';
 
 import type { InvocableScriptsFolderTrust } from '../vault-scripts/invocable-scripts-folder-trust.ts';
+import type { StartupScriptTrust } from '../vault-scripts/startup-script-trust.ts';
 import type { PluginSettings } from './plugin-settings.ts';
 
 import { DEFAULT_CODE_BUTTON_BLOCK_CONFIG } from '../code-buttons/code-button-block.ts';
@@ -26,6 +27,9 @@ interface PluginSettingsTabConstructorParams extends PluginSettingsTabBaseConstr
   readonly invocableScriptsFolderTrust: InvocableScriptsFolderTrust;
   readonly pluginName: string;
   readonly registerInvocableScripts: () => Promise<void>;
+  readonly reloadStartupScript: () => Promise<void>;
+  readonly startupScriptTrust: StartupScriptTrust;
+  readonly stopStartupScript: () => Promise<void>;
 }
 
 const MAX_INTERVAL_FOR_SET_TIMEOUT = 2_147_483_647;
@@ -36,12 +40,18 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
   private readonly invocableScriptsFolderTrust: InvocableScriptsFolderTrust;
   private readonly pluginName: string;
   private readonly registerInvocableScripts: () => Promise<void>;
+  private readonly reloadStartupScript: () => Promise<void>;
+  private readonly startupScriptTrust: StartupScriptTrust;
+  private readonly stopStartupScript: () => Promise<void>;
 
   public constructor(params: PluginSettingsTabConstructorParams) {
     super(params);
     this.invocableScriptsFolderTrust = params.invocableScriptsFolderTrust;
     this.pluginName = params.pluginName;
     this.registerInvocableScripts = params.registerInvocableScripts;
+    this.reloadStartupScript = params.reloadStartupScript;
+    this.startupScriptTrust = params.startupScriptTrust;
+    this.stopStartupScript = params.stopStartupScript;
   }
 
   protected override getSettingDefinitionItems(): SettingDefinitionItem[] {
@@ -160,6 +170,8 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
               appendCodeBlock(f, 'Script modules root');
               f.createEl('br');
               f.appendText('Leave blank if you don\'t use startup script.');
+              f.createEl('br');
+              f.appendText('It runs every time the vault opens, without a click, so it does not run until you trust it on this device.');
             }),
             name: 'Startup script path',
             render: (setting) => {
@@ -180,6 +192,35 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
                   suggest.refresh();
                 });
               });
+            }
+          }),
+          this.settingEx({
+            desc: createFragment((f) => {
+              f.appendText('Whether the startup script may run on this device.');
+              f.createEl('br');
+              f.appendText('Trust is stored on this device only and is never synced. Every script you trust is kept in the ');
+              appendCodeBlock(f, 'Trusted startup scripts');
+              f.appendText(' list below. Pointing the setting at another file asks again, even in a trusted folder.');
+            }),
+            name: 'Trust startup script',
+            render: (setting) => {
+              const trust = this.startupScriptTrust;
+              setting.addButton((button) =>
+                button
+                  .setButtonText(trust.isTrusted() ? 'Untrust this script' : 'Trust this script')
+                  .onClick(convertAsyncToSync(async () => {
+                    if (trust.isTrusted()) {
+                      trust.untrust();
+                      await this.stopStartupScript();
+                    } else if (await trust.promptForTrust()) {
+                      await this.reloadStartupScript();
+                    } else {
+                      return;
+                    }
+
+                    this.refresh();
+                  }))
+              );
             }
           }),
           this.settingEx({
@@ -220,6 +261,10 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
       this.settingGroupEx({
         heading: 'Trusted folders',
         items: this.getTrustedFolderItems()
+      }),
+      this.settingGroupEx({
+        heading: 'Trusted startup scripts',
+        items: this.getTrustedStartupScriptItems()
       }),
       this.settingGroupEx({
         heading: 'Desktop',
@@ -385,6 +430,47 @@ export class PluginSettingsTab extends PluginSettingsTabBase<PluginSettings> {
               .onClick(convertAsyncToSync(async () => {
                 trust.removeTrustedFolder(folder);
                 await this.registerInvocableScripts();
+                this.refresh();
+              }))
+          );
+        }
+      })
+    );
+  }
+
+  private getTrustedStartupScriptItems(): SettingGroupItem[] {
+    const trust = this.startupScriptTrust;
+    const trustedPaths = trust.getTrustedPaths();
+
+    if (trustedPaths.length === 0) {
+      return [
+        this.settingEx({
+          desc: 'Startup scripts trusted on this device are listed here.',
+          name: 'No startup scripts are trusted on this device',
+          render: noop
+        })
+      ];
+    }
+
+    const currentPath = trust.getPath();
+
+    return trustedPaths.map((path) =>
+      this.settingEx({
+        desc: path === currentPath
+          ? 'The current startup script. Removing it stops it until you trust it again.'
+          : 'Not the current startup script.',
+        name: path,
+        render: (setting) => {
+          setting.addButton((button) =>
+            button
+              .setButtonText('Remove')
+              .setTooltip(`Stop trusting ${path}`)
+              .setDestructive()
+              .onClick(convertAsyncToSync(async () => {
+                trust.removeTrustedPath(path);
+                if (path === currentPath) {
+                  await this.stopStartupScript();
+                }
                 this.refresh();
               }))
           );

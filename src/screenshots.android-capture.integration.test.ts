@@ -56,6 +56,7 @@ import {
  */
 interface TrustingPlugin {
   readonly trustInvocableScriptsFolder: () => Promise<void>;
+  readonly trustStartupScript: () => Promise<void>;
 }
 
 const WIDTH_IN_PIXELS = 900;
@@ -154,6 +155,10 @@ beforeAll(async () => {
       // so `waitForScriptCommands` below polls for it instead.
       const plugin = app.plugins.getPlugin(pluginId) as null | TrustingPlugin;
       plugin?.trustInvocableScriptsFolder().catch((error: unknown) => {
+        console.error(error);
+      });
+      // The plugin asked about the staged startup script too; trusting it runs it, as a launch would have.
+      plugin?.trustStartupScript().catch((error: unknown) => {
         console.error(error);
       });
       for (const closeButton of document.querySelectorAll<HTMLElement>('.modal-container .modal-close-button')) {

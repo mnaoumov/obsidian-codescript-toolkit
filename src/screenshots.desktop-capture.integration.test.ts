@@ -47,6 +47,7 @@ import {
 } from 'vitest';
 
 import { TRUSTED_INVOCABLE_SCRIPTS_FOLDER_KEY } from './vault-scripts/trusted-invocable-scripts-folder-key.ts';
+import { TRUSTED_STARTUP_SCRIPTS_KEY } from './vault-scripts/trusted-startup-scripts-key.ts';
 
 const WIDTH_IN_PIXELS = 1200;
 const HEIGHT_IN_PIXELS = 800;
@@ -138,12 +139,14 @@ beforeAll(async () => {
   // reload that has to compile the staged scripts can eat most of that on its
   // own. Folded into the closure above, the whole setup times out.
   await evalInObsidian({
-    async callback({ app, lib: { waitUntil }, pluginId, scriptsFolder, trustKey }) {
+    async callback({ app, lib: { waitUntil }, pluginId, scriptsFolder, startupScriptPath, startupTrustKey, trustKey }) {
       const SCRIPT_REGISTRATION_TIMEOUT_IN_MILLISECONDS = 20_000;
 
       // Nothing in an untrusted folder is registered, and the trust prompt
       // would sit in every frame, so trust the folder before the reload.
       app.saveLocalStorage(trustKey, scriptsFolder);
+      // The same goes for the startup script, whose prompt would sit in every frame too.
+      app.saveLocalStorage(startupTrustKey, [startupScriptPath]);
 
       // The plugin reads the settings and scans the scripts folder on load, so
       // the staged `data.json` only takes effect after a reload.
@@ -159,6 +162,8 @@ beforeAll(async () => {
     input: {
       pluginId: PLUGIN_ID,
       scriptsFolder: SCRIPTS_FOLDER,
+      startupScriptPath: `${SCRIPTS_FOLDER}/Warm up.ts`,
+      startupTrustKey: TRUSTED_STARTUP_SCRIPTS_KEY,
       trustKey: TRUSTED_INVOCABLE_SCRIPTS_FOLDER_KEY
     },
     vaultPath: vaultPath()

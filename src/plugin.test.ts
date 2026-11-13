@@ -131,8 +131,24 @@ vi.mock('./vault-scripts/invocable-scripts-folder-trust.ts', () => ({
   })
 }));
 
+const { mockReloadStartupScript, mockStartupScriptTrust, mockStopStartupScript } = vi.hoisted(() => ({
+  mockReloadStartupScript: vi.fn().mockResolvedValue(undefined),
+  mockStartupScriptTrust: vi.fn(),
+  mockStopStartupScript: vi.fn().mockResolvedValue(undefined)
+}));
+
 vi.mock('./vault-scripts/startup-script.ts', () => ({
-  StartupScriptComponent: vi.fn()
+  // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new`.
+  StartupScriptComponent: vi.fn(function () {
+    return { reloadStartupScript: mockReloadStartupScript, stopStartupScript: mockStopStartupScript };
+  })
+}));
+
+vi.mock('./vault-scripts/startup-script-trust.ts', () => ({
+  // eslint-disable-next-line prefer-arrow-callback, func-names -- mock must be constructable with `new`.
+  StartupScriptTrust: vi.fn(function () {
+    return { trust: mockStartupScriptTrust };
+  })
 }));
 
 vi.mock('./temp-plugins/temporary-plugin-registry.ts', () => ({
@@ -163,7 +179,7 @@ const manifest: PluginManifest = {
 
 describe('Plugin', () => {
   const EXPECTED_ADD_CHILD_COUNT = 11;
-  const EXPECTED_COMMAND_HANDLER_COUNT = 12;
+  const EXPECTED_COMMAND_HANDLER_COUNT = 14;
 
   let app: AppOriginal;
 
@@ -245,6 +261,31 @@ describe('Plugin', () => {
     await settingsTabParams?.registerInvocableScripts();
 
     expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
+  });
+
+  it('should trust the startup script and run it', async () => {
+    const plugin = createPlugin();
+    await castTo<PluginPrivateApi>(plugin).onloadImpl();
+    mockReloadStartupScript.mockClear();
+
+    await plugin.trustStartupScript();
+
+    expect(mockStartupScriptTrust).toHaveBeenCalledOnce();
+    expect(mockReloadStartupScript).toHaveBeenCalledOnce();
+  });
+
+  it('should let the settings tab reload and stop the startup script through its component', async () => {
+    const plugin = createPlugin();
+    await castTo<PluginPrivateApi>(plugin).onloadImpl();
+    mockReloadStartupScript.mockClear();
+    mockStopStartupScript.mockClear();
+
+    const settingsTabParams = vi.mocked(PluginSettingsTab).mock.lastCall?.[0];
+    await settingsTabParams?.reloadStartupScript();
+    await settingsTabParams?.stopStartupScript();
+
+    expect(mockReloadStartupScript).toHaveBeenCalledOnce();
+    expect(mockStopStartupScript).toHaveBeenCalledOnce();
   });
 
   it('should assign app from constructor argument', () => {

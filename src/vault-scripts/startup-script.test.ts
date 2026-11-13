@@ -1,5 +1,6 @@
 import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/plugin-notice-component';
 import type { App } from 'obsidian';
+import type { MockInstance } from 'vitest';
 
 import { noop } from '@mnaoumov/typescript-lib/function';
 import { castTo } from '@mnaoumov/typescript-lib/object-utils';
@@ -15,6 +16,7 @@ import {
 
 import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
 import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
+import type { StartupScriptTrust } from './startup-script-trust.ts';
 
 import { StartupScriptComponent } from './startup-script.ts';
 
@@ -32,6 +34,12 @@ interface MockRequireHandlerFactoryComponent {
 
 interface MockSettings {
   readonly getStartupScriptPath: ReturnType<typeof vi.fn>;
+}
+
+interface MockStartupScriptTrust {
+  readonly isTrusted: ReturnType<typeof vi.fn>;
+  readonly promptForTrust: ReturnType<typeof vi.fn>;
+  readonly shouldPromptAutomatically: ReturnType<typeof vi.fn>;
 }
 
 interface MockVault {
@@ -65,9 +73,15 @@ describe('StartupScriptComponent', () => {
   let mockPluginSettingsComponent: MockPluginSettingsComponent;
   let mockRequireHandlerFactoryComponent: MockRequireHandlerFactoryComponent;
   let mockShowNotice: ReturnType<typeof vi.fn>;
+  let mockStartupScriptTrust: MockStartupScriptTrust;
   let component: StartupScriptComponent;
 
   beforeEach(() => {
+    mockStartupScriptTrust = {
+      isTrusted: vi.fn().mockReturnValue(true),
+      promptForTrust: vi.fn().mockResolvedValue(false),
+      shouldPromptAutomatically: vi.fn().mockReturnValue(false)
+    };
     mockApp = createMockApp();
     mockPluginSettingsComponent = createMockPluginSettingsComponent();
     mockRequireHandlerFactoryComponent = createMockRequireHandlerFactoryComponent();
@@ -79,7 +93,8 @@ describe('StartupScriptComponent', () => {
         showNotice: castTo<PluginNoticeComponent['showNotice']>(mockShowNotice)
       }),
       pluginSettingsComponent: castTo<PluginSettingsComponent>(mockPluginSettingsComponent),
-      requireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>(mockRequireHandlerFactoryComponent)
+      requireHandlerFactoryComponent: castTo<RequireHandlerFactoryComponent>(mockRequireHandlerFactoryComponent),
+      startupScriptTrust: castTo<StartupScriptTrust>(mockStartupScriptTrust)
     });
   });
 
@@ -402,6 +417,128 @@ describe('StartupScriptComponent', () => {
       await component.reloadStartupScript();
 
       expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('trust', () => {
+    let consoleWarnSpy: MockInstance<typeof console.warn>;
+    let mockInvoke: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      mockInvoke = vi.fn().mockResolvedValue(undefined);
+      mockStartupScriptTrust.isTrusted.mockReturnValue(false);
+      mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue('startup.ts');
+      mockApp.vault.exists.mockResolvedValue(true);
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        invoke: mockInvoke,
+        shouldExecuteOnLoad: vi.fn().mockResolvedValue(true)
+      });
+      consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+        noop();
+      });
+
+      return (): void => {
+        consoleWarnSpy.mockRestore();
+      };
+    });
+
+    it('should not even require an untrusted script on load, because requiring runs its top-level code', async () => {
+      await component.onloadAsync();
+
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
+      expect(mockStartupScriptTrust.promptForTrust).not.toHaveBeenCalled();
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Startup script is not trusted on this device: startup.ts');
+    });
+
+    it('should ask once at layout ready and run the script when the user trusts it', async () => {
+      mockStartupScriptTrust.shouldPromptAutomatically.mockReturnValue(true);
+      mockStartupScriptTrust.promptForTrust.mockResolvedValue(true);
+      // Untrusted while the plugin loads, trusted once the user has answered.
+      mockStartupScriptTrust.isTrusted.mockReset().mockReturnValueOnce(false).mockReturnValue(true);
+
+      await component.onloadAsync();
+      await component.onLayoutReady();
+
+      await vi.waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalledWith(mockApp);
+      });
+      expect(mockStartupScriptTrust.promptForTrust).toHaveBeenCalledOnce();
+    });
+
+    it('should run nothing when the user declines the prompt at layout ready', async () => {
+      mockStartupScriptTrust.shouldPromptAutomatically.mockReturnValue(true);
+
+      await component.onloadAsync();
+      await component.onLayoutReady();
+
+      await vi.waitFor(() => {
+        expect(mockStartupScriptTrust.promptForTrust).toHaveBeenCalled();
+      });
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it('should not ask at layout ready when the script was already asked about', async () => {
+      await component.onloadAsync();
+      await component.onLayoutReady();
+
+      expect(mockStartupScriptTrust.promptForTrust).not.toHaveBeenCalled();
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+
+    it('should not ask at layout ready when the configured script does not exist', async () => {
+      mockStartupScriptTrust.shouldPromptAutomatically.mockReturnValue(true);
+      mockApp.vault.exists.mockResolvedValue(false);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        noop();
+      });
+
+      try {
+        await component.onloadAsync();
+        await component.onLayoutReady();
+
+        expect(mockStartupScriptTrust.promptForTrust).not.toHaveBeenCalled();
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+
+    it('should ask on reload and run the script when the user trusts it', async () => {
+      mockStartupScriptTrust.promptForTrust.mockResolvedValue(true);
+
+      await component.reloadStartupScript();
+
+      expect(mockStartupScriptTrust.promptForTrust).toHaveBeenCalledOnce();
+      expect(mockInvoke).toHaveBeenCalledWith(mockApp);
+    });
+
+    it('should run nothing on reload when the user declines', async () => {
+      await component.reloadStartupScript();
+
+      expect(mockStartupScriptTrust.promptForTrust).toHaveBeenCalledOnce();
+      expect(mockRequireHandlerFactoryComponent.requireVaultScriptAsync).not.toHaveBeenCalled();
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('stopStartupScript', () => {
+    it('should clean up the running script and not run it again', async () => {
+      const mockInvoke = vi.fn().mockResolvedValue(undefined);
+      const mockCleanup = vi.fn().mockResolvedValue(undefined);
+
+      mockPluginSettingsComponent.settings.getStartupScriptPath.mockReturnValue('startup.ts');
+      mockApp.vault.exists.mockResolvedValue(true);
+      mockRequireHandlerFactoryComponent.requireVaultScriptAsync.mockResolvedValue({
+        cleanup: mockCleanup,
+        invoke: mockInvoke
+      });
+
+      await component['loadStartupScript']();
+      await component.stopStartupScript();
+      await component['executeStartupScript']();
+
+      expect(mockCleanup).toHaveBeenCalledWith(mockApp);
+      expect(mockInvoke).not.toHaveBeenCalled();
     });
   });
 
