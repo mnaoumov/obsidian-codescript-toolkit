@@ -2,11 +2,13 @@ import type { PluginNoticeComponent } from '@mnaoumov/obsidian-lib/components/pl
 import type { Promisable } from 'type-fest';
 
 import { LayoutReadyComponent } from '@mnaoumov/obsidian-lib/components/layout-ready-component';
+import { invokeAsyncSafely } from '@mnaoumov/typescript-lib/async';
 import { App } from 'obsidian';
 
 import type { RequireHandlerFactoryComponent } from '../require-handlers/require-handler-factory.ts';
 import type { PluginSettingsComponent } from '../settings/plugin-settings-component.ts';
 import type { Script } from './script.ts';
+import type { StartupScriptTrust } from './startup-script-trust.ts';
 
 interface StartupScript extends Script {
   readonly cleanup?: (app: App) => Promisable<void>;
@@ -18,25 +20,40 @@ interface StartupScriptComponentConstructorParams {
   readonly pluginNoticeComponent: PluginNoticeComponent;
   readonly pluginSettingsComponent: PluginSettingsComponent;
   readonly requireHandlerFactoryComponent: RequireHandlerFactoryComponent;
+  readonly startupScriptTrust: StartupScriptTrust;
 }
 
 export class StartupScriptComponent extends LayoutReadyComponent {
+  private isWaitingForTrust = false;
   private readonly pluginNoticeComponent: PluginNoticeComponent;
   private readonly pluginSettingsComponent: PluginSettingsComponent;
   private readonly requireHandlerFactoryComponent: RequireHandlerFactoryComponent;
 
   private shouldExecuteOnLoad = false;
   private startupScript: null | StartupScript = null;
+  private readonly startupScriptTrust: StartupScriptTrust;
 
   public constructor(params: StartupScriptComponentConstructorParams) {
     super(params.app);
     this.pluginNoticeComponent = params.pluginNoticeComponent;
     this.pluginSettingsComponent = params.pluginSettingsComponent;
     this.requireHandlerFactoryComponent = params.requireHandlerFactoryComponent;
+    this.startupScriptTrust = params.startupScriptTrust;
   }
 
   public override async onLayoutReady(): Promise<void> {
     if (this.shouldExecuteOnLoad) {
+      return;
+    }
+
+    if (this.isWaitingForTrust && this.startupScriptTrust.shouldPromptAutomatically()) {
+      // Not awaited: the layout-ready work of the rest of the plugin must not wait for the user to answer. Once trusted,
+      // the script loads and runs as it would have at startup.
+      invokeAsyncSafely(async () => {
+        if (await this.startupScriptTrust.promptForTrust()) {
+          await this.reloadStartupScript();
+        }
+      });
       return;
     }
 
@@ -63,10 +80,22 @@ export class StartupScriptComponent extends LayoutReadyComponent {
     }
   }
 
+  /**
+   * Cleans up the running startup script, then loads and runs the configured one again.
+   *
+   * An untrusted script is asked about first, and is neither loaded nor run when the user declines.
+   */
   public async reloadStartupScript(): Promise<void> {
     await this.cleanupStartupScript();
-    await this.loadStartupScript();
+    await this.loadStartupScript(true);
     await this.executeStartupScript();
+  }
+
+  /**
+   * Cleans up the running startup script, so it stops affecting the app, without loading it again.
+   */
+  public async stopStartupScript(): Promise<void> {
+    await this.cleanupStartupScript();
   }
 
   private async cleanupStartupScript(): Promise<void> {
@@ -87,10 +116,19 @@ export class StartupScriptComponent extends LayoutReadyComponent {
     await this.startupScript.invoke(this.app);
   }
 
-  private async loadStartupScript(): Promise<void> {
+  private async loadStartupScript(shouldPromptForTrust = false): Promise<void> {
+    this.startupScript = null;
+    this.isWaitingForTrust = false;
+
     const startupScriptPath = await this.validateStartupScript();
     if (!startupScriptPath) {
-      this.startupScript = null;
+      return;
+    }
+
+    // Requiring the script already runs its top-level code, so trust is checked before the require, not before `invoke()`.
+    if (!this.startupScriptTrust.isTrusted() && !(shouldPromptForTrust && await this.startupScriptTrust.promptForTrust())) {
+      console.warn(`Startup script is not trusted on this device: ${startupScriptPath}`);
+      this.isWaitingForTrust = true;
       return;
     }
 
@@ -100,7 +138,6 @@ export class StartupScriptComponent extends LayoutReadyComponent {
       const message = `Startup script ${startupScriptPath} does not export an \`invoke()\` function. Add \`export async function invoke(app) { ... }\` to it.`;
       this.pluginNoticeComponent.showNotice(message);
       console.error(message);
-      this.startupScript = null;
       return;
     }
 

@@ -19,6 +19,7 @@ import {
 } from 'vitest';
 
 import type { InvocableScriptsFolderTrust } from '../vault-scripts/invocable-scripts-folder-trust.ts';
+import type { StartupScriptTrust } from '../vault-scripts/startup-script-trust.ts';
 
 import { PluginSettingsTab } from './plugin-settings-tab.ts';
 import { PluginSettings } from './plugin-settings.ts';
@@ -32,7 +33,18 @@ const mockTrust = {
   untrust: vi.fn()
 };
 const mockRegisterInvocableScripts = vi.fn().mockResolvedValue(undefined);
+const mockStartupScriptTrust = {
+  getPath: vi.fn().mockReturnValue('startup.ts'),
+  getTrustedPaths: vi.fn().mockReturnValue([]),
+  isTrusted: vi.fn().mockReturnValue(false),
+  promptForTrust: vi.fn().mockResolvedValue(false),
+  removeTrustedPath: vi.fn(),
+  untrust: vi.fn()
+};
+const mockReloadStartupScript = vi.fn().mockResolvedValue(undefined);
+const mockStopStartupScript = vi.fn().mockResolvedValue(undefined);
 const TRUST_BUTTON_INDEX = 0;
+const STARTUP_TRUST_BUTTON_INDEX = 1;
 
 interface AppSetting {
   readonly openTabById: ReturnType<typeof vi.fn>;
@@ -300,7 +312,7 @@ describe('PluginSettingsTab', () => {
     it('should group the rows under the expected headings', () => {
       const headings = tab.getSettingDefinitions().map((item) => 'heading' in item ? item.heading : '');
 
-      expect(headings).toStrictEqual(['Paths', 'Trusted folders', 'Desktop', 'Mobile', 'Code button blocks', 'Other']);
+      expect(headings).toStrictEqual(['Paths', 'Trusted folders', 'Trusted startup scripts', 'Desktop', 'Mobile', 'Code button blocks', 'Other']);
     });
 
     it('should create Script modules root setting', () => {
@@ -512,8 +524,8 @@ describe('PluginSettingsTab', () => {
 
       renderRows(tabWithMock);
 
-      // Third button click handler is for Hotkeys "Configure" (after the trust button in Paths and "Reset" in Code button blocks).
-      const HOTKEYS_BUTTON_INDEX = 2;
+      // Fourth button click handler is for Hotkeys "Configure" (after the two trust buttons in Paths and "Reset" in Code button blocks).
+      const HOTKEYS_BUTTON_INDEX = 3;
       const hotkeysClickHandler = mockButtonClickHandlers[HOTKEYS_BUTTON_INDEX];
       expect(hotkeysClickHandler).toBeDefined();
 
@@ -537,8 +549,8 @@ describe('PluginSettingsTab', () => {
 
       renderRows(tabWithMock);
 
-      // Second button click handler is for "Reset to plugin default code button config" (in Code button blocks group), after the trust button in Paths.
-      const RESET_BUTTON_INDEX = 1;
+      // Third button click handler is for "Reset to plugin default code button config" (in Code button blocks group), after the two trust buttons in Paths.
+      const RESET_BUTTON_INDEX = 2;
       const resetClickHandler = mockButtonClickHandlers[RESET_BUTTON_INDEX];
       expect(resetClickHandler).toBeDefined();
 
@@ -651,13 +663,104 @@ describe('PluginSettingsTab', () => {
       mockTrust.getTrustedFolders.mockReturnValue(['scripts']);
       renderRows(tab);
 
-      // The trust button in Paths is first, then the one Remove button of the trusted folders list.
-      const REMOVE_BUTTON_INDEX = 1;
+      // The two trust buttons in Paths come first, then the one Remove button of the trusted folders list.
+      const REMOVE_BUTTON_INDEX = 2;
       await (mockButtonClickHandlers[REMOVE_BUTTON_INDEX] as () => Promise<void>)();
 
       expect(mockTrust.removeTrustedFolder).toHaveBeenCalledWith('scripts');
       expect(mockRegisterInvocableScripts).toHaveBeenCalledOnce();
       expect(tab.refresh).toHaveBeenCalled();
+    });
+  });
+
+  describe('trust startup script', () => {
+    beforeEach(() => {
+      mockStartupScriptTrust.getPath.mockReset().mockReturnValue('startup.ts');
+      mockStartupScriptTrust.isTrusted.mockReset().mockReturnValue(false);
+      mockStartupScriptTrust.promptForTrust.mockReset().mockResolvedValue(false);
+      mockStartupScriptTrust.untrust.mockReset();
+      mockStartupScriptTrust.removeTrustedPath.mockReset();
+      mockStartupScriptTrust.getTrustedPaths.mockReset().mockReturnValue([]);
+      mockTrust.getTrustedFolders.mockReset().mockReturnValue([]);
+      mockReloadStartupScript.mockClear();
+      mockStopStartupScript.mockClear();
+    });
+
+    it('should create the trust setting', () => {
+      expect(getSettingNames(tab)).toContain('Trust startup script');
+    });
+
+    it('should do nothing more when the user declines the prompt', async () => {
+      renderRows(tab);
+
+      await (mockButtonClickHandlers[STARTUP_TRUST_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockStartupScriptTrust.promptForTrust).toHaveBeenCalledOnce();
+      expect(mockReloadStartupScript).not.toHaveBeenCalled();
+      expect(tab.refresh).not.toHaveBeenCalled();
+    });
+
+    it('should run the script once the user trusts it', async () => {
+      mockStartupScriptTrust.promptForTrust.mockResolvedValue(true);
+      renderRows(tab);
+
+      await (mockButtonClickHandlers[STARTUP_TRUST_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockReloadStartupScript).toHaveBeenCalledOnce();
+      expect(tab.refresh).toHaveBeenCalled();
+    });
+
+    it('should untrust a trusted script and stop it without prompting', async () => {
+      mockStartupScriptTrust.isTrusted.mockReturnValue(true);
+      renderRows(tab);
+
+      await (mockButtonClickHandlers[STARTUP_TRUST_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockStartupScriptTrust.untrust).toHaveBeenCalledOnce();
+      expect(mockStartupScriptTrust.promptForTrust).not.toHaveBeenCalled();
+      expect(mockStopStartupScript).toHaveBeenCalledOnce();
+      expect(tab.refresh).toHaveBeenCalled();
+    });
+
+    it('should say so when no startup script is trusted', () => {
+      expect(getSettingNames(tab)).toContain('No startup scripts are trusted on this device');
+    });
+
+    it('should list every trusted script, marking the current one', () => {
+      mockStartupScriptTrust.getTrustedPaths.mockReturnValue(['other.ts', 'startup.ts']);
+
+      const rows = collectRows(tab);
+      const names = getSettingNames(tab);
+
+      expect(names).not.toContain('No startup scripts are trusted on this device');
+
+      const descriptions = rows.map((row) => 'desc' in row ? row.desc : '');
+      expect(descriptions[names.indexOf('startup.ts')]).toMatch(/^The current startup script/u);
+      expect(descriptions[names.indexOf('other.ts')]).toBe('Not the current startup script.');
+    });
+
+    it('should remove the current trusted script and stop it', async () => {
+      mockStartupScriptTrust.getTrustedPaths.mockReturnValue(['startup.ts']);
+      renderRows(tab);
+
+      // The two trust buttons in Paths come first, then the one Remove button of the trusted scripts list.
+      const REMOVE_BUTTON_INDEX = 2;
+      await (mockButtonClickHandlers[REMOVE_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockStartupScriptTrust.removeTrustedPath).toHaveBeenCalledWith('startup.ts');
+      expect(mockStopStartupScript).toHaveBeenCalledOnce();
+      expect(tab.refresh).toHaveBeenCalled();
+    });
+
+    it('should remove another trusted script without stopping the current one', async () => {
+      mockStartupScriptTrust.getTrustedPaths.mockReturnValue(['other.ts']);
+      renderRows(tab);
+
+      const REMOVE_BUTTON_INDEX = 2;
+      await (mockButtonClickHandlers[REMOVE_BUTTON_INDEX] as () => Promise<void>)();
+
+      expect(mockStartupScriptTrust.removeTrustedPath).toHaveBeenCalledWith('other.ts');
+      expect(mockStopStartupScript).not.toHaveBeenCalled();
     });
   });
 
@@ -683,7 +786,10 @@ describe('PluginSettingsTab', () => {
       plugin,
       pluginName: 'CodeScript Toolkit',
       pluginSettingsComponent: createSettingsComponent(settings, params.editAndSave),
-      registerInvocableScripts: mockRegisterInvocableScripts
+      registerInvocableScripts: mockRegisterInvocableScripts,
+      reloadStartupScript: mockReloadStartupScript,
+      startupScriptTrust: castTo<StartupScriptTrust>(mockStartupScriptTrust),
+      stopStartupScript: mockStopStartupScript
     });
 
     // The reset button asks Obsidian to re-render the tab; there is no rendered tab in a unit test.

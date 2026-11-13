@@ -8,6 +8,8 @@ import {
   it
 } from 'vitest';
 
+import { TRUSTED_STARTUP_SCRIPTS_KEY } from './trusted-startup-scripts-key.ts';
+
 const MODULES_ROOT = '_int-test-startup';
 const STARTUP_SCRIPT = 'startup.js';
 const PLUGIN_ID = 'fix-require-modules';
@@ -33,14 +35,21 @@ beforeAll(async () => {
   });
 
   await evalInObsidian({
-    async callback({ app, pluginId }) {
+    async callback({ app, pluginId, trustedPath, trustKey }) {
+      // An untrusted startup script is neither loaded nor run, so trust it on this device before the plugin loads.
+      app.saveLocalStorage(trustKey, [trustedPath]);
+
       await app.plugins.disablePlugin(pluginId);
       await app.plugins.enablePlugin(pluginId);
 
       const STARTUP_DELAY_MS = 3000;
       await sleep(STARTUP_DELAY_MS);
     },
-    input: { pluginId: PLUGIN_ID },
+    input: {
+      pluginId: PLUGIN_ID,
+      trustedPath: `${MODULES_ROOT}/${STARTUP_SCRIPT}`,
+      trustKey: TRUSTED_STARTUP_SCRIPTS_KEY
+    },
     vaultPath: vault.path
   });
 }, 30_000);

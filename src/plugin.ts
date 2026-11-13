@@ -18,8 +18,10 @@ import { InvokeScriptChooseCommandHandler } from './command-handlers/invoke-scri
 import { ReloadStartupScriptCommandHandler } from './command-handlers/reload-startup-script-command-handler.ts';
 import { RunScratchScriptCommandHandler } from './command-handlers/run-scratch-script-command-handler.ts';
 import { TrustInvocableScriptsFolderCommandHandler } from './command-handlers/trust-invocable-scripts-folder-command-handler.ts';
+import { TrustStartupScriptCommandHandler } from './command-handlers/trust-startup-script-command-handler.ts';
 import { UnloadTempPluginsCommandHandler as UnloadTemporaryPluginsCommandHandler } from './command-handlers/unload-temp-plugins-command-handler.ts';
 import { UntrustInvocableScriptsFolderCommandHandler } from './command-handlers/untrust-invocable-scripts-folder-command-handler.ts';
+import { UntrustStartupScriptCommandHandler } from './command-handlers/untrust-startup-script-command-handler.ts';
 import { ProtocolHandlerComponent } from './protocol-handler-component.ts';
 import { RequireHandlerFactoryComponent } from './require-handlers/require-handler-factory.ts';
 import { ScriptFolderWatcherFactoryComponent } from './script-folder-watchers/script-folder-watcher-factory.ts';
@@ -32,6 +34,7 @@ import { InvocableScriptsFolderTrust } from './vault-scripts/invocable-scripts-f
 import { ScratchScript } from './vault-scripts/scratch-script.ts';
 import { ScriptRegistryComponent } from './vault-scripts/script-registry.ts';
 import { ScriptManager } from './vault-scripts/script.ts';
+import { StartupScriptTrust } from './vault-scripts/startup-script-trust.ts';
 import { StartupScriptComponent } from './vault-scripts/startup-script.ts';
 
 export class Plugin extends PluginBase {
@@ -63,6 +66,10 @@ export class Plugin extends PluginBase {
 
   private scriptManager?: ScriptManager;
 
+  private startupScriptComponent?: StartupScriptComponent;
+
+  private startupScriptTrust?: StartupScriptTrust;
+
   /**
    * Trusts the configured invocable scripts folder on this device without asking, and registers its scripts.
    *
@@ -72,6 +79,17 @@ export class Plugin extends PluginBase {
   public async trustInvocableScriptsFolder(): Promise<void> {
     ensureNonNullable(this.invocableScriptsFolderTrust).trust();
     await ensureNonNullable(this.scriptManager).registerInvocableScripts();
+  }
+
+  /**
+   * Trusts the configured startup script on this device without asking, and runs it.
+   *
+   * For code that already runs with the user's consent -- a code button the user clicked, an integration test. Anything
+   * able to call this can already run arbitrary code, so it grants nothing new.
+   */
+  public async trustStartupScript(): Promise<void> {
+    ensureNonNullable(this.startupScriptTrust).trust();
+    await ensureNonNullable(this.startupScriptComponent).reloadStartupScript();
   }
 
   protected override async onloadImpl(): Promise<void> {
@@ -114,14 +132,28 @@ export class Plugin extends PluginBase {
       })
     );
 
+    const startupScriptTrust = new StartupScriptTrust({
+      app: this.app,
+      pluginSettingsComponent
+    });
+
     const startupScriptComponent = this.addChild(
       new StartupScriptComponent({
         app: this.app,
         pluginNoticeComponent: this.pluginNoticeComponent,
         pluginSettingsComponent,
-        requireHandlerFactoryComponent: requireHandlerFactory
+        requireHandlerFactoryComponent: requireHandlerFactory,
+        startupScriptTrust
       })
     );
+    this.startupScriptComponent = startupScriptComponent;
+    this.startupScriptTrust = startupScriptTrust;
+    function reloadStartupScript(): Promise<void> {
+      return startupScriptComponent.reloadStartupScript();
+    }
+    function stopStartupScript(): Promise<void> {
+      return startupScriptComponent.stopStartupScript();
+    }
 
     const scriptRegistry = this.addChild(
       new ScriptRegistryComponent({
@@ -168,7 +200,10 @@ export class Plugin extends PluginBase {
       plugin: this,
       pluginName: this.manifest.name,
       pluginSettingsComponent,
-      registerInvocableScripts
+      registerInvocableScripts,
+      reloadStartupScript,
+      startupScriptTrust,
+      stopStartupScript
     });
 
     this.addChild(
@@ -201,8 +236,10 @@ export class Plugin extends PluginBase {
       new ReloadStartupScriptCommandHandler(startupScriptComponent),
       new RunScratchScriptCommandHandler(scratchScript),
       new TrustInvocableScriptsFolderCommandHandler({ invocableScriptsFolderTrust, registerInvocableScripts }),
+      new TrustStartupScriptCommandHandler({ reloadStartupScript, startupScriptTrust }),
       new UnloadTemporaryPluginsCommandHandler(tempPluginRegistry),
-      new UntrustInvocableScriptsFolderCommandHandler({ invocableScriptsFolderTrust, registerInvocableScripts })
+      new UntrustInvocableScriptsFolderCommandHandler({ invocableScriptsFolderTrust, registerInvocableScripts }),
+      new UntrustStartupScriptCommandHandler({ startupScriptTrust, stopStartupScript })
     ]);
 
     this.addChild(
