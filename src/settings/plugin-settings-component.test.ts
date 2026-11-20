@@ -339,6 +339,7 @@ describe('PluginSettingsComponent', () => {
   function createMockDataHandler(data: unknown = {}): DataHandler {
     return strictProxy<DataHandler>({
       loadData: vi.fn(() => Promise.resolve(data)),
+      recoveryStore: null,
       saveData: vi.fn(() => noopAsync())
     });
   }

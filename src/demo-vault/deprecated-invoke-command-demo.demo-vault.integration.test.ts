@@ -31,12 +31,12 @@ interface ClickButtonResult {
 async function clickButton(caption: string): Promise<ClickButtonResult> {
   return await evalInObsidian({
     async callback({ app, caption: buttonCaption, commandId, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {
-      function block(): HTMLElement | undefined {
+      function block(): HTMLElement | null {
         return [
           ...app.workspace.getActiveViewOfType(obsidianModule.MarkdownView)?.containerEl
             .querySelectorAll<HTMLElement>(':scope .block-language-code-button') ?? []
         ]
-          .find((candidate) => candidate.textContent.includes(buttonCaption));
+          .find((candidate) => candidate.textContent.includes(buttonCaption)) ?? null;
       }
 
       const button = block()?.querySelector<HTMLButtonElement>('button.mod-cta');

@@ -1774,7 +1774,7 @@ function convertPathToObsidianUrl(path: string): string {
   return isAbsolute(path) ? Platform.resourcePathPrefix + path.replaceAll('\\', '/') : path;
 }
 
-function getCodeScriptName(params: GetCodeScriptNameParams): string | undefined {
+function getCodeScriptName(params: GetCodeScriptNameParams): null | string {
   const { md, path } = params;
   const query = splitQuery(path).query;
 
@@ -1789,7 +1789,7 @@ function getCodeScriptName(params: GetCodeScriptNameParams): string | undefined 
     throw new Error(`Invalid query: '${query}'.`);
   }
 
-  return match.groups?.['CodeScriptName'];
+  return ensureNonNullable(match.groups?.['CodeScriptName']);
 }
 
 function getModuleTypeFromContentType(params: GetModuleTypeFromContentTypeParams): ModuleType {

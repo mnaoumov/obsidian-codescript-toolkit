@@ -15,7 +15,7 @@ const DEMO_VAULT_SETUP_FILES = [
 ];
 
 export const configs: Linter.Config[] = defineEslintConfigs({
-  customConfigs() {
+  customConfigs(context) {
     return defineConfig([
       {
         // The illustrative scripts are linted for markdown + spelling only; the setup files are re-included. `demo-vault/**/*`
@@ -35,6 +35,13 @@ export const configs: Linter.Config[] = defineEslintConfigs({
               brands: ['docs']
             }
           ]
+        }
+      },
+      {
+        // Scoped to the files the toolkit's own rules apply to: the rule's plugin is registered only there.
+        files: context.allFiles(),
+        rules: {
+          'typescript-dev-toolkit/no-undefined-return-type': 'error'
         }
       },
       {
