@@ -379,7 +379,7 @@ describe('PluginSettingsTab', () => {
       renderRows(tab);
 
       const modulesRootBindCall = findBindCall('modulesRoot');
-      expect(modulesRootBindCall).toBeDefined();
+      expect(modulesRootBindCall).not.toBeNull();
 
       const options = modulesRootBindCall?.options;
       expect(options?.onChanged).toBeDefined();
@@ -392,19 +392,19 @@ describe('PluginSettingsTab', () => {
     it('should bind invocableScriptsFolder setting', () => {
       renderRows(tab);
 
-      expect(findBindCall('invocableScriptsFolder')).toBeDefined();
+      expect(findBindCall('invocableScriptsFolder')).not.toBeNull();
     });
 
     it('should bind startupScriptPath setting', () => {
       renderRows(tab);
 
-      expect(findBindCall('startupScriptPath')).toBeDefined();
+      expect(findBindCall('startupScriptPath')).not.toBeNull();
     });
 
     it('should bind scratchScriptPath setting', () => {
       renderRows(tab);
 
-      expect(findBindCall('scratchScriptPath')).toBeDefined();
+      expect(findBindCall('scratchScriptPath')).not.toBeNull();
     });
 
     it('should refresh the scratchScriptPath row when modulesRootChanged fires', () => {
@@ -432,31 +432,31 @@ describe('PluginSettingsTab', () => {
     it('should bind mobileChangesCheckingIntervalInSeconds setting', () => {
       renderRows(tab);
 
-      expect(findBindCall('mobileChangesCheckingIntervalInSeconds')).toBeDefined();
+      expect(findBindCall('mobileChangesCheckingIntervalInSeconds')).not.toBeNull();
     });
 
     it('should bind shouldUseSyncFallback setting', () => {
       renderRows(tab);
 
-      expect(findBindCall('shouldUseSyncFallback')).toBeDefined();
+      expect(findBindCall('shouldUseSyncFallback')).not.toBeNull();
     });
 
     it('should bind shouldHandleProtocolUrls setting', () => {
       renderRows(tab);
 
-      expect(findBindCall('shouldHandleProtocolUrls')).toBeDefined();
+      expect(findBindCall('shouldHandleProtocolUrls')).not.toBeNull();
     });
 
     it('should bind shouldShowTempPluginLoadUnloadNotices setting', () => {
       renderRows(tab);
 
-      expect(findBindCall('shouldShowTempPluginLoadUnloadNotices')).toBeDefined();
+      expect(findBindCall('shouldShowTempPluginLoadUnloadNotices')).not.toBeNull();
     });
 
     it('should bind defaultCodeButtonConfig setting', () => {
       renderRows(tab);
 
-      expect(findBindCall('defaultCodeButtonConfig')).toBeDefined();
+      expect(findBindCall('defaultCodeButtonConfig')).not.toBeNull();
     });
 
     it('should configure hotkeys button that opens hotkeys tab', () => {
@@ -836,7 +836,7 @@ describe('PluginSettingsTab', () => {
     return source;
   }
 
-  function findBindCall(propertyName: string): BindCall | undefined {
-    return bindCalls.find((call) => call.propertyName === propertyName);
+  function findBindCall(propertyName: string): BindCall | null {
+    return bindCalls.find((call) => call.propertyName === propertyName) ?? null;
   }
 });

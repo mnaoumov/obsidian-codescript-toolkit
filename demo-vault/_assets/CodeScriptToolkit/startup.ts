@@ -34,6 +34,6 @@ export async function invoke(app: App): Promise<void> {
   }
 
   app.hotkeyManager.setHotkeys(HOTKEY_COMMAND_ID, [{ key: 'F1', modifiers: ['Alt'] }]);
-  app.hotkeyManager.save();
+  await app.hotkeyManager.save();
   app.hotkeyManager.bake();
 }

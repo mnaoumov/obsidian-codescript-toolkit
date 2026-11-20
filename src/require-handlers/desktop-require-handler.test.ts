@@ -8,7 +8,10 @@ import {
   normalizeOptionalProperties
 } from '@mnaoumov/typescript-lib/object-utils';
 import { strictProxy } from '@mnaoumov/typescript-test-toolkit/strict-proxy';
-import { FileSystemAdapter } from 'obsidian';
+import {
+  Events,
+  FileSystemAdapter
+} from 'obsidian';
 import {
   beforeEach,
   describe,
@@ -419,6 +422,8 @@ function createMockConstructorParams(): RequireHandlerConstructorParams {
         // The real `AllWindowsEventComponent` (added by the base `onloadAsync`) eager-loads a
         // `CallbackLayoutReadyComponent` whose `onload` calls `onLayoutReady`.
         // Never invoke the callback, so the deferred window-iteration path is not reached during load.
+        // It also subscribes to `window-close` straight away, before the layout is ready.
+        on: vi.fn((name: string, callback: (...data: unknown[]) => unknown) => new Events().on(name, callback)),
         onLayoutReady: vi.fn()
       }
     }),

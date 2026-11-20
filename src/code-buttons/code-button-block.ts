@@ -267,11 +267,11 @@ export class CodeButtonBlockComponent extends ComponentEx {
             convertAsyncToSync(async () => {
               const config: Partial<CodeButtonBlockConfig> = removeUndefinedProperties(normalizeOptionalProperties<Partial<CodeButtonBlockConfig>>({
                 caption: markdownInfo.$arguments[0],
-                isRaw: getBooleanArgument(markdownInfo.$arguments, 'raw'),
-                shouldAutoOutput: getBooleanArgument(markdownInfo.$arguments, 'autoOutput'),
-                shouldAutoRun: getBooleanArgument(markdownInfo.$arguments, 'autorun'),
-                shouldShowSystemMessages: getBooleanArgument(markdownInfo.$arguments, 'systemMessages'),
-                shouldWrapConsole: getBooleanArgument(markdownInfo.$arguments, 'console')
+                isRaw: getBooleanArgument(markdownInfo.$arguments, 'raw') ?? undefined,
+                shouldAutoOutput: getBooleanArgument(markdownInfo.$arguments, 'autoOutput') ?? undefined,
+                shouldAutoRun: getBooleanArgument(markdownInfo.$arguments, 'autorun') ?? undefined,
+                shouldShowSystemMessages: getBooleanArgument(markdownInfo.$arguments, 'systemMessages') ?? undefined,
+                shouldWrapConsole: getBooleanArgument(markdownInfo.$arguments, 'console') ?? undefined
               }));
               const newCodeBlock = `\`\`\`code-button
   ---
@@ -470,14 +470,14 @@ function escapeForFileName($string: string): string {
   return $string.replace(getOsAndObsidianUnsafePathCharsRegExp(), '_');
 }
 
-function getBooleanArgument(codeBlockArguments: string[], argumentName: string): boolean | undefined {
+function getBooleanArgument(codeBlockArguments: string[], argumentName: string): boolean | null {
   // Checked in order, so a `true` spelling wins over a `:false` one given alongside it.
   for (const [suffix, value] of BOOLEAN_ARGUMENT_SUFFIXES) {
     if (codeBlockArguments.includes(`${argumentName}${suffix}`)) {
       return value;
     }
   }
-  return undefined;
+  return null;
 }
 
 function makeWrapperScript(params: MakeWrapperScriptParams): string {

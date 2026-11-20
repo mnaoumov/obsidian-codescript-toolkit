@@ -61,8 +61,8 @@ function createFixture(params: CreateScratchScriptParams = {}): Fixture {
   return { app, requireVaultScriptAsync, scratchScript, showNotice };
 }
 
-function getActiveFilePath(app: App): string | undefined {
-  return app.workspace.getActiveFile()?.path;
+function getActiveFilePath(app: App): null | string {
+  return app.workspace.getActiveFile()?.path ?? null;
 }
 
 describe('ScratchScript', () => {

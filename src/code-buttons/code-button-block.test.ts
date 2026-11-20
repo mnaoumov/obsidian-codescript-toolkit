@@ -952,6 +952,38 @@ describe('CodeButtonBlockComponent', () => {
       );
     });
 
+    it('should leave the flags the legacy arguments do not mention out of the updated config', async () => {
+      mockGetCodeBlockMarkdownInfo.mockResolvedValue({ $arguments: ['Run', 'autoOutput'] });
+      mockReplaceCodeBlock.mockResolvedValue(undefined);
+
+      const el = createDiv();
+      const resultEl = createDiv();
+      el.createDiv = vi.fn().mockReturnValue(resultEl);
+
+      const partialContext: Partial<MarkdownPostProcessorContext> = {
+        sourcePath: 'notes/test.md'
+      };
+      const context = partialContext as MarkdownPostProcessorContext;
+
+      await component['processCodeButtonBlock']({ context, el, source: 'console.log("test")' });
+
+      const fragmentArgument = mockConsoleWrapperWriteSystemMessage.mock.calls[0]?.[0] as DocumentFragment | undefined;
+      const button = fragmentArgument?.querySelector('button');
+      expect(button).not.toBeNull();
+      button?.click();
+
+      await waitForAllAsyncOperations();
+
+      expect(mockReplaceCodeBlock).toHaveBeenCalledWith(expect.objectContaining({
+        codeBlockProvider: expect.stringContaining('shouldAutoOutput: true') as unknown
+      }));
+      for (const absent of ['isRaw', 'shouldAutoRun', 'null']) {
+        expect(mockReplaceCodeBlock).toHaveBeenCalledWith(expect.objectContaining({
+          codeBlockProvider: expect.not.stringContaining(absent) as unknown
+        }));
+      }
+    });
+
     it('should pass updated sourcePath from sourceFile to CodeButtonContextImplComponent', async () => {
       mockGetFile.mockReturnValue({ path: 'updated/path.md' });
       const el = createDiv();
