@@ -618,9 +618,15 @@ This release has maintenance changes only. 1 maintenance commit (tests, build, C
 
 ## 11.3.1
 
-- fix: intermittent watcher errors
-  - re #42
-- docs: add performance tip
+This release has 1 fix and 1 documentation change.
+
+### Fixed
+
+- **invocable scripts:** a change in the Invocable Scripts Folder no longer fails at random while the file is still being written, for example during a Git commit or a sync. The plugin retries the reload a few times before reporting an error (#42)
+
+### Documentation
+
+- a performance tip: code that is required many times can skip the cache invalidation check with `cacheInvalidationMode: 'never'`
 
 ## 11.3.0
 
@@ -717,16 +723,23 @@ This release has maintenance changes only. 1 maintenance commit (tests, build, C
 
 ## 11.2.1
 
-- fix: allow buttons that cannot be uniquely identified
-  - fix: #35
-- docs: split features in separate files
-- chore: enable `markdownlint`
-- refactor: move types to a separate file to use in README
+This release has 1 fix and 1 documentation change. Maintenance commits (linting, refactoring) are not listed.
+
+### Fixed
+
+- **code buttons:** a code button whose block cannot be uniquely identified in its note, such as one rendered by another plugin, now runs instead of showing an error. Only the `removeAfterExecution` option needs to find the block, and it now reports when it cannot (#35)
+
+### Documentation
+
+- each feature is described in its own page
 
 ## 11.2.0
 
-- feat: add default code-button config
-  - fix #34
+This release has 1 new feature.
+
+### New
+
+- **code buttons:** a default code-button config in the plugin settings, applied to every code button that does not set an option itself (#34)
 
 ## 11.1.7
 
@@ -1385,4 +1398,8 @@ Require stack:
 
 ## 1.0.1
 
-- Initial version
+- Internal refactoring and a stricter TypeScript build, with no change in behavior
+
+## 1.0.0
+
+- Initial release: scripts can `require('obsidian')` and the other modules Obsidian bundles
