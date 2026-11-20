@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 15.4.0
+
+This release has 2 new features and 2 documentation changes. 6 maintenance commits (tests, build, CI, refactoring, dependencies) are not listed.
+
+### New
+
+- ask before running a startup script this device has not trusted
+- remember every trusted invocable scripts folder on this device
+
+### Documentation
+
+- **changelog:** human-readable notes for 11.3.1, 11.2.1 and 11.2.0, add 1.0.0
+- **changelog:** readable 15.2.1 and 15.3.0 release notes, and grouped notes from the next release on
+
 ## 15.3.0
 
 This release has 1 new feature. 1 maintenance commit (tests, build, CI, refactoring, dependencies) is not listed.
