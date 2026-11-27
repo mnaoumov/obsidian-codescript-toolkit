@@ -80,17 +80,23 @@ If you are not sure where to start, three notes cover most of it: [Core function
 
 | Plugin | Features | How `CodeScript Toolkit` differs |
 | --- | --- | --- |
+| [`Code Runner`](https://community.obsidian.md/plugins/code-runner) | Code blocks in 17 languages; Python in `WebAssembly`; stdin input; playground APIs | Narrower language scope: JavaScript/TypeScript inside Obsidian, with its API and modules |
+| [`Code Suite`](https://community.obsidian.md/plugins/code-suite) | Highlighted, runnable code blocks; shared variables; inline plots; Jupyter and PDF export | Narrower language scope: JavaScript/TypeScript inside Obsidian; no highlighting or export |
+| [`Cron`](https://community.obsidian.md/plugins/cron) | Runs commands or user functions on a cron schedule; job locks; sync check | Covers a different trigger: no schedule; script entry points, which `Cron` can run as commands |
 | [`CustomJS`](https://community.obsidian.md/plugins/customjs) | Vault JavaScript classes; global object; startup and hotkey scripts | Broader module shapes: TypeScript and ordinary modules; no one-class-per-file requirement |
 | [`Execute Code`](https://community.obsidian.md/plugins/execute-code) | Code blocks in 20+ languages; external interpreters | Narrower language scope: JavaScript/TypeScript inside Obsidian, with its API |
+| [`Freeform`](https://community.obsidian.md/plugins/freeform) | `freeform` blocks in an isolated iframe; ESM imports from URLs; `display()` | Alternative trust model: full Obsidian access; `require()`, TypeScript and vault modules |
 | [`JavaScript Init`](https://community.obsidian.md/plugins/obsidian-javascript-init) | One settings-stored JavaScript snippet at startup | Broader entry points: vault-file startup script, buttons, commands, hotkeys and URLs |
 | [`JS Engine`](https://community.obsidian.md/plugins/js-engine) | `js-engine` blocks; Markdown results; view-building API | Overlaps on in-note code; module system and script entry points beyond blocks |
+| [`Manta Code Blocks`](https://community.obsidian.md/plugins/runnable-code-blocks) | Editable `run-*` blocks in 24 languages; browser, local-container and remote runtimes | Narrower language scope: JavaScript/TypeScript inside Obsidian; no remote execution |
 | [`Modules`](https://community.obsidian.md/plugins/modules) | Vault/Internet JavaScript and TypeScript modules; Markdown modules; source maps | Overlaps on module loading; also code buttons, commands, hotkeys and startup scripts |
 | [`Plugin REPL`](https://community.obsidian.md/plugins/plugin-repl) | Evaluates editor lines/selections; inserts results; editor helpers | Alternative execution scope: whole scripts and modules |
+| [`Run Code Blocks`](https://community.obsidian.md/plugins/run-code-blocks) | Run button on code blocks via installed interpreters; streaming output; Stop; time limit | Narrower language scope: JavaScript/TypeScript inside Obsidian, with its API; no external process |
 | [`RunJS`](https://community.obsidian.md/plugins/runjs) | Named JavaScript snippets; code list, picker, commands, ribbon and startup | Overlaps on script entry points; also TypeScript compilation and `npm` packages |
 | [`Safe JS`](https://community.obsidian.md/plugins/safe-js) | Isolated Web Workers; permission-gated API; no DOM, Node.js or app access | Alternative trust model: full Obsidian access; no sandbox |
 | [`User Plugins`](https://community.obsidian.md/plugins/obsidian-user-plugins) | Vault JavaScript as small plugins; `onload` instance; commands | Alternative script shape: ordinary modules; notes and commands as entry points |
 
-Last searched for similar plugins on 2026-10-26.
+Last searched for similar plugins on 2026-11-27.
 
 ## Installation
 
