@@ -6,8 +6,8 @@ You can read it right here on `GitHub` — start at [00 Start](<./00 Start.md>) 
 
 ## Opening this vault
 
-- **If you already have the plugin installed**, run the **`CodeScript Toolkit`: Open demo vault** command — it downloads and opens the latest demo vault automatically.
-- **Otherwise**, download `fix-require-modules-demo-vault.zip` from the [plugin releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases), unzip it, and in Obsidian choose `Manage vaults...` → `Open folder as vault` → select the `fix-require-modules-demo-vault-<version>` folder it unzips into.
+- **If you already have the plugin installed on desktop**, run the **`CodeScript Toolkit`: Open demo vault** command — it downloads and opens the latest demo vault automatically.
+- **Otherwise, and always on mobile, where the command is not available**, download `fix-require-modules-demo-vault.zip` from the [plugin releases](https://github.com/mnaoumov/obsidian-codescript-toolkit/releases), unzip it, and in Obsidian choose `Manage vaults...` → `Open folder as vault` → select the `fix-require-modules-demo-vault-<version>` folder it unzips into.
 
 When plugins prompt on first open, enable them using one of these methods:
 
