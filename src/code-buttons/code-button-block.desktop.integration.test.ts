@@ -98,6 +98,55 @@ function vaultPath(): string {
 }
 
 describe('CodeButtonBlock integration', () => {
+  it('should unregister the code-button processor with its component, so reloading the component does not throw', async () => {
+    const result = await evalInObsidian({
+      callback({ app, obsidianModule, pluginId }) {
+        const plugin = app.plugins.getPlugin(pluginId);
+        if (!plugin) {
+          return { error: `Plugin ${pluginId} is not loaded` };
+        }
+
+        // The block component is the only component in the plugin's tree holding the registrar; property names survive the bundle.
+        // It sits under the plugin's gated feature surface, so the walk goes below the plugin's direct children.
+        type ComponentNode = typeof plugin._children[number];
+        const pending: ComponentNode[] = [plugin];
+        let parent: ComponentNode | null = null;
+        let blockComponent: ComponentNode | null = null;
+        while (!blockComponent) {
+          const current = pending.shift();
+          if (!current) {
+            return { error: 'No code-button block component in the plugin tree' };
+          }
+          blockComponent = current._children.find((child) => 'markdownCodeBlockProcessorRegistrar' in child) ?? null;
+          parent = current;
+          pending.push(...current._children);
+        }
+
+        const processors: Record<string, unknown> = obsidianModule.MarkdownPreviewRenderer.codeBlockPostProcessors;
+        const isRegisteredBefore = Object.hasOwn(processors, 'code-button');
+        parent?.removeChild(blockComponent);
+        const isRegisteredAfterUnload = Object.hasOwn(processors, 'code-button');
+        let reloadError: null | string = null;
+        try {
+          parent?.addChild(blockComponent);
+        } catch (error) {
+          reloadError = String(error);
+        }
+        const isRegisteredAfterReload = Object.hasOwn(processors, 'code-button');
+        return { isRegisteredAfterReload, isRegisteredAfterUnload, isRegisteredBefore, reloadError };
+      },
+      input: { pluginId: 'fix-require-modules' },
+      vaultPath: vaultPath()
+    });
+
+    expect(result).toEqual({
+      isRegisteredAfterReload: true,
+      isRegisteredAfterUnload: false,
+      isRegisteredBefore: true,
+      reloadError: null
+    });
+  });
+
   it('should render a code button in markdown', async () => {
     const result = await evalInObsidian({
       async callback({ app, intervalMs, lib: { waitUntil }, obsidianModule, timeoutMs }) {

@@ -158,7 +158,9 @@ export class CodeButtonBlockComponent extends ComponentEx {
           source
         });
       },
-      language: CODE_BUTTON_BLOCK_LANGUAGE
+      language: CODE_BUTTON_BLOCK_LANGUAGE,
+      // Unregisters the processor when this component unloads, not only when the plugin does, so reloading the component never throws `already registered`.
+      lifetimeOwner: this
     });
   }
 

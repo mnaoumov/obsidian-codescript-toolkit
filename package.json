@@ -55,7 +55,7 @@
     "obsidian-integration-testing": "$obsidian-integration-testing"
   },
   "dependencies": {
-    "@mnaoumov/obsidian-lib": "^11.0.0",
+    "@mnaoumov/obsidian-lib": "^12.0.0",
     "@mnaoumov/typescript-lib": "^4.1.0"
   },
   "devDependencies": {
