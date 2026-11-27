@@ -61,7 +61,8 @@ vi.mock('obsidian', async (importOriginal) => {
   };
 });
 
-vi.mock('@obsidian-typings/obsidian-public-latest/implementations', () => ({
+vi.mock('@obsidian-typings/obsidian-public-latest/implementations', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@obsidian-typings/obsidian-public-latest/implementations')>(),
   getDataAdapterEx: vi.fn().mockReturnValue({ basePath: '/vault' }),
   loadPrism: vi.fn()
 }));

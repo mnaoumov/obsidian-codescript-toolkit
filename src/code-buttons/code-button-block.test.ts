@@ -355,7 +355,8 @@ describe('CodeButtonBlockComponent', () => {
 
       expect(mockMarkdownCodeBlockProcessorRegistrar.registerMarkdownCodeBlockProcessor).toHaveBeenCalledWith({
         handler: expect.any(Function) as unknown,
-        language: 'code-button'
+        language: 'code-button',
+        lifetimeOwner: component
       });
     });
   });
